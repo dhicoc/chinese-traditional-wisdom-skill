@@ -39,7 +39,7 @@
 
 ## 关于项目
 
-> **如果你是 AI Agent，直接阅读 [SKILL.md](SKILL.md)，按照工作流执行。**
+> **如果你是 AI Agent，直接跳转到 [README_AI.md](README_AI.md)，严格按照内容要求执行。**
 
 当 AI Agent（Claude Code、Codex CLI、Cursor 等）遇到用户的人生困惑、健康调养、事业决策、婚姻合婚、择吉选址等问题时，本技能包提供从排盘推算 → 知识库检索 → 综合分析 → 可视化报告的全链路能力。
 
