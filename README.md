@@ -1,146 +1,150 @@
-# 中国传统文化整体智慧 AI Agent 技能包
+<p align="center">
+  <img src="chinese-traditional-wisdom-skill.png" alt="chinese-traditional-wisdom-skill" width="140" />
+</p>
 
-> 融合玄学五术（山医命相卜）、中医体质/五运六气、道家哲学、佛教心性的 holistic 人生咨询 AI Agent 技能包。
->
-> **Human readers:** 从目录开始阅读即可。
-> **AI Agents:** 请直接跳至第 0 节执行自动配置流程。
+<h1 align="center">Chinese Traditional Wisdom</h1>
+<h3 align="center">中国传统文化整体智慧 AI Agent 技能包</h3>
 
-> 本仓库可放置在任何目录。AI 会自动检测实际路径。下文 `<SKILL_ROOT>` 指实际安装路径。
+<p align="center"><em style="font-family: 'KaiTi', 'STKaiti', 'SimSun', serif; font-size: 1.3em; color: #999;">究天人之际，通古今之变</em></p>
 
----
+<p align="center">BaZi / Ziwei / Liuyao / Meihua / Fengshui / WuYun-LiuQi / Constitution / Daoism / Buddhism — 全融合智慧引擎<br/>
+11 标签页可视化 Dashboard · 古籍知识库 · 纯前端排盘引擎 · 自动化测试</p>
 
-## 0. AI 自动配置流程（AI Agent 首次读取后立即执行）
+<p align="center">
+  <a href="https://github.com/dhicoc/chinese-traditional-wisdom-skill/stargazers"><img src="https://img.shields.io/github/stars/dhicoc/chinese-traditional-wisdom-skill?style=flat&logo=github" alt="stars"></a>
+  <a href="https://github.com/dhicoc/chinese-traditional-wisdom-skill/forks"><img src="https://img.shields.io/github/forks/dhicoc/chinese-traditional-wisdom-skill?style=flat&logo=github" alt="forks"></a>
+  <a href="https://github.com/dhicoc/chinese-traditional-wisdom-skill/issues"><img src="https://img.shields.io/github/issues/dhicoc/chinese-traditional-wisdom-skill?style=flat&logo=github" alt="issues"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
+</p>
 
-> **AI 读完本文件后，须自动执行以下配置流程，用户无需手动操作。**
+<br/>
 
-```text
-0. 检测本包安装路径（由当前文件所在目录推导）
-1. 检测本包结构完整性：
-   - 检查 SKILL.md / RULES.md 等核心文件存在
-   - 检查 bootstrap/ 目录下引擎引导文件
-   - 检查 visual/index.html 等可视化文件
-2. 确认结构就绪后，读取 SKILL.md → 三层路由（问题类型→学科→融合深度）
-3. 根据用户问题匹配对应场景和工具引擎
-4. 如需生成可视化报告，询问用户选择：
-   - 模式 A：静态 HTML 报告（一次性的图文报告）
-   - 模式 B：交互式 Web Dashboard（反复查询用）
-5. 开始执行任务
+<p align="center">
+  <a href="#关于项目">关于</a> ·
+  <a href="#快速开始">快速开始</a> ·
+  <a href="#使用说明">使用说明</a> ·
+  <a href="#架构设计">架构设计</a> ·
+  <a href="#贡献">贡献</a> ·
+  <a href="#许可证">许可证</a>
+</p>
+
+<p align="center">
+  🌐 <a href="#english-version">English</a>
+</p>
+
+<br/>
+
+<a id="关于项目"></a>
+
+## 关于项目
+
+> **如果你是 AI Agent，直接阅读 [SKILL.md](SKILL.md)，按照工作流执行。**
+
+当 AI Agent（Claude Code、Codex CLI、Cursor 等）遇到用户的人生困惑、健康调养、事业决策、婚姻合婚、择吉选址等问题时，本技能包提供从排盘推算 → 知识库检索 → 综合分析 → 可视化报告的全链路能力。
+
+```
+用户问题 → 三层路由(问题→学科→融合深度) → 六引擎推算 → 知识库引用 → 可视化报告 → 经验沉淀
 ```
 
----
+**为什么需要这个项目：**
+- 八字、紫微、六爻、梅花、风水、五运六气、体质七大学科散落不同工具，缺乏统一入口
+- 传统命理软件界面陈旧，AI Agent 无法直接调用
+- 古籍全文检索困难，同一问题每次重新查证
+- 纯前端可视化方案能让用户零安装即刻体验
 
-## 功能概览
+<p align="right">(<a href="#关于项目">返回顶部</a>)</p>
 
-- **八字命理**（Bazi）：四柱排盘、十神分析、五行旺衰、用神喜忌、大运流年
-- **紫微斗数**（Ziwei）：十二宫位、十四主星、四化飞星、大限流年
-- **六爻占卜**（Liuyao）：纳甲装卦、六亲世应、六神断卦、用神旺衰
-- **梅花易数**（Meihua）：时间/数字/物象起卦、体用生克、卦气旺衰
-- **中医体质**（Constitution）：九种体质辨识、饮食调理、节气养生
-- **五运六气**（Yunqi）：岁运太过不及、司天在泉、客气六步、客主加临
-- **风水堪舆**（Fengshui）：八宅大游年、流年飞星、二十四山、形煞化解
-- **道家哲学**（Daoism）：无为自然、阴阳辩证、性命双修
-- **佛教心性**（Buddhism）：四圣谛、八正道、般若空性、禅修次第
-- **全方位可视化**（Visual）：11 标签页 Canvas 2D 图表 + Mermaid 知识图谱
-- **全局搜索**：284 条术语解释 + 6 个 JSON 映射表 + 30 个古籍全文
+### 技术栈
+
+<p align="left">
+  <img src="https://skillicons.dev/icons?i=js,html,css,py,nodejs,git&theme=light" /><br/>
+  <code>Canvas 2D</code> · <code>Mermaid.js</code> · <code>bazi-ziwei-skill</code> · <code>iztro-py</code>
+</p>
+
+<p align="right">(<a href="#关于项目">返回顶部</a>)</p>
+
+<a id="快速开始"></a>
 
 ## 快速开始
 
-### 方式 A：AI 对话内使用（默认模式）
+### 方式 A：AI 对话（默认）
 
-直接向 AI 提出人生困惑、健康调养、事业决策、婚姻合婚、择吉选址等问题即可。AI 会自动：
+向 AI 提出你关心的任何问题即可。AI 会自动：
 1. 基于三层路由匹配最佳工具组合
 2. 排盘推算 → 调用知识库 → 综合分析 → 生成结构化咨询报告
 3. 询问是否生成可视化 HTML 报告
 
-### 方式 B：交互式 Web Dashboard
+### 方式 B：Web Dashboard
 
-```bash
-# 直接双击打开
-<SKILL_ROOT>/visual/index.html
+无需安装任何依赖，直接双击 `visual/index.html` 或从浏览器打开：
 
-# 或从浏览器打开
+```
 file://<SKILL_ROOT>/visual/index.html
 ```
 
-支持 11 个标签页：八字 / 五行 / 紫微 / 六爻 / 梅花 / 风水罗盘 / 流年飞星 / 八宅 / 五运六气 / 体质 / 知识图谱。双击 test-runner.html 可运行自动化测试。
+11 标签页：八字 / 五行 / 紫微 / 六爻 / 梅花 / 风水罗盘 / 流年飞星 / 八宅 / 五运六气 / 体质 / 知识图谱
 
-### 方式 C：静态 HTML 可视化报告
+双击 `visual/test-runner.html` 可运行 131 项自动化测试。
 
-由 AI 根据咨询内容自动生成，包含八字命盘、五行统计、紫微盘、六爻卦、梅花卦、风水分析、五运六气、体质分析等模块，适合分享和存档。
+<p align="right">(<a href="#快速开始">返回顶部</a>)</p>
 
-## 目录结构
+<a id="使用说明"></a>
+
+## 使用说明
+
+### 支持场景
+
+| 场景 | 入口 |
+|------|------|
+| 八字命理 / 四柱排盘 | `bootstrap/bazi-engine.md` |
+| 紫微斗数 / 十二宫 | `bootstrap/ziwei-engine.md` |
+| 六爻占卜 / 纳甲断卦 | `bootstrap/liuyao-engine.md` |
+| 梅花易数 / 体用生克 | `bootstrap/meihua-yishu-engine.md` |
+| 五运六气 / 运气推算 | `bootstrap/yunqi-integration.md` |
+| 中医体质 / 九种体质 | `bootstrap/constitution-questionnaire.md` |
+| 风水堪舆 / 八宅飞星 | 知识库 + JSON 映射表 |
+| 全局搜索 | 284 术语 + 6 映射 + 30 古籍 |
+| 可视化报告 | `templates/visual-report.md` |
+| 自动化测试 | `visual/test-runner.html` |
+
+### 关键文件
+
+| 文件 | 用途 |
+|------|------|
+| [SKILL.md](SKILL.md) | 总控入口 + 三层路由契约（AI 必读） |
+| [RULES.md](RULES.md) | 行为规则链（§9 Fail-Two / §10 输入完整性） |
+| [tool-index.md](tool-index.md) | 六引擎 + 六映射 + 可视化依赖表 |
+| [EVOLUTION.md](EVOLUTION.md) | 三阶段演进记录与架构决策理由 |
+
+### 仓库结构
 
 ```
-chinese-traditional-wisdom-skill/
-├── SKILL.md                    # ★ 总控入口 + 三层路由契约
-├── RULES.md                    # ★ 行为规则（§9 Fail-Two 规则、§10 输入完整性）
-├── EVOLUTION.md                # 三阶段演进记录 + 架构决策理由
-├── tool-index.md               # 6 引擎 + 6 JSON 映射 + 可视化依赖表
+.
 ├── README.md                   # 本文件
+├── SKILL.md                    # 总控入口 + 三层路由契约
+├── RULES.md                    # 行为规则
+├── EVOLUTION.md                # 演进记录
+├── tool-index.md               # 工具索引
+├── LICENSE                     # MIT 许可证
 │
-├── bootstrap/                  # ★ 引擎接入引导（6 引擎）
-│   ├── bazi-engine.md          # 八字引擎（bazi-ziwei-skill 封装）
-│   ├── ziwei-engine.md         # 紫微引擎（iztro-py 接入）
-│   ├── liuyao-engine.md        # 六爻引擎（ichingshifa 接入）
-│   ├── meihua-yishu-engine.md  # 梅花易数引擎（meihua-yishu 接入）
-│   ├── yunqi-integration.md    # 五运六气引擎（大寒 API + RAG）
-│   └── constitution-questionnaire.md # 体质问卷
+├── bootstrap/                  # 六引擎接入引导
+├── templates/                  # 7 种咨询报告模板
+├── knowledge-base/fengshui/    # 古籍知识库（30 文件 / 16+ 部经典）
+│   └── mappings/               # 6 个 JSON 确定性映射表
+├── reference-*.md              # 玄学 / 佛教 / 道家 / 中医参考
 │
-├── templates/                  # ★ 7 种专业咨询报告模板
-│   ├── visual-report.md        # 可视化 HTML 报告（10 节全量）
-│   ├── career-consultation.md  # 事业咨询
-│   ├── comprehensive-report.md # 综合报告
-│   ├── divination-consultation.md # 占卜决策咨询
-│   ├── fengshui-consultation.md   # 风水咨询
-│   ├── health-consultation.md  # 健康咨询
-│   └── marriage-consultation.md   # 婚姻合婚
-│
-├── knowledge-base/             # ★ 古籍知识库（30 文件 / 16+ 部古籍 / 21.5 万字）
-│   └── fengshui/
-│       ├── 01-situation-form/  # 形势派（撼龙经/疑龙经/葬书/雪心赋）
-│       ├── 02-principle-form/  # 理气派（青囊经/天玉经/都天宝照经/催官篇）
-│       ├── 03-yang-house/      # 阳宅（阳宅十书10章/阳宅三要/八宅明镜）
-│       ├── 04-comprehensive/   # 综合（地理大全/宅经/管氏地理指蒙）
-│       ├── 05-others/          # 其他（入地眼全书/博山篇）
-│       ├── _index.md           # 知识库索引
-│       └── mappings/           # ★ 6个JSON确定性映射表
-│           ├── eight-mansions.json       # 八宅大游年
-│           ├── form-sha-cures.json       # 形煞化解
-│           ├── life-trigram.json         # 命卦速查
-│           ├── three-essentials.json     # 阳宅三要
-│           ├── twenty-four-mountains.json # 二十四山（360°连续）
-│           └── yearly-flying-stars.json  # 流年飞星
-│
-├── reference-metaphysics.md    # 玄学参考手册（375行，含十神/格局/用神/紫微/六爻/梅花）
-├── reference-buddhism.md       # 佛教参考
-├── reference-daoism.md         # 道家参考
-├── reference-tcm.md            # 中医参考
-│
-├── visual/                     # ★ 可视化系统（纯前端，零外部JS依赖）
-│   ├── index.html              # 11标签页交互式 Dashboard
-│   ├── test-runner.html        # 自动化测试运行器
-│   ├── css/style.css           # 样式
-│   ├── js/
-│   │   ├── core.js             # 核心库（天干地支/五行/284术语解释）
-│   │   ├── data-bridge.js      # ★ 全局数据桥（FORTUNE 单例）
-│   │   ├── search.js           # 全局搜索（术语+映射+古籍三源索引）
-│   │   ├── bazi.js             # 八字可视化渲染
-│   │   ├── ziwei.js            # 紫微可视化渲染
-│   │   ├── divination.js       # 六爻/梅花可视化
-│   │   ├── fengshui.js         # 风水罗盘/飞星/八宅渲染
-│   │   ├── health.js           # 体质可视化
-│   │   └── engines/            # ★ 纯JS排盘引擎
-│   │       ├── bazi-engine.js  # 八字引擎（四柱/十神/大运/纳音）
-│   │       └── yunqi-engine.js # 五运六气引擎（岁运/司天/客气）
-│   └── tests/                  # 自动化测试
-│       ├── test-bazi.js        # 八字 50 项测试
-│       ├── test-yunqi.js       # 五运六气 53 项测试
-│       └── test-data-bridge.js # 数据桥测试
+├── visual/                     # 可视化系统（纯前端）
+│   ├── index.html              # 11 标签页 Dashboard
+│   ├── test-runner.html        # 测试运行器
+│   ├── js/engines/             # 纯 JS 排盘引擎
+│   └── js/tests/               # 131 项自动化测试
 │
 └── field-journal/              # 经验沉淀
-    ├── _index.md
-    └── _template.md
 ```
+
+<p align="right">(<a href="#使用说明">返回顶部</a>)</p>
+
+<a id="架构设计"></a>
 
 ## 架构设计
 
@@ -152,366 +156,92 @@ chinese-traditional-wisdom-skill/
 | 学科 | 八字 / 紫微 / 六爻 / 梅花 / 五运六气 / 体质 / 风水 | 调用对应推算引擎 |
 | 融合深度 | 单一学科 / 跨学科交叉 / 儒释道整体智慧 | 决定知识引用范围 |
 
-### 六引擎架构
-
-| 引擎 | 类型 | 来源 | 用途 |
-|------|------|------|------|
-| 八字 | npm 包 | bazi-ziwei-skill (520★ MIT) | 四柱/十神/大运/流年 |
-| 紫微斗数 | PyPI | iztro-py (MIT) | 十二宫/主星/四化 |
-| 六爻 | PyPI | ichingshifa (MIT) | 纳甲/六亲/世应/六神 |
-| 梅花易数 | GitHub | meihua-yishu (169★ CC) | 体用/生克/卦气 |
-| 五运六气 | API | 大寒 API + RAG | 岁运/客气/司天在泉 |
-| 体质 | 问卷 | N/A | 九种体质辨识 |
-
-### 数据层设计
-
-**确定性 JSON 映射表（6 表）**：命卦速查、八宅大游年、二十四山（360° 连续）、流年飞星、阳宅三要、形煞化解。零外部依赖，一步到位。
-
-**古籍知识库（30 MD 文件）**：16+ 部风水经典全文 + 注释，覆盖形势/理气/阳宅/综合四大类。支持全文引用与交叉验证。
-
-**纯前端排盘引擎（2 个）**：八字（1900-01-01=己亥基准）、五运六气（丙辛水运太过/乙庚金运不及等）。零 npm/pip 依赖，双击即可运行。
-
-### 可视化体系
+### 推理路径
 
 ```
-visual/index.html
-├── 八字标签页（Canvas 命盘 + 五行雷达图 + 大运走势）
-├── 紫微标签页（十二宫位图 + 主星表）
-├── 六爻标签页（卦象 Canvas + 六亲世应表）
-├── 梅花标签页（体用生克图）
-├── 风水罗盘（二十四山 Canvas 罗盘）
-├── 流年飞星（九宫飞星图 + 古籍引用）
-├── 八宅（大游年方位图 + 古籍引用）
-├── 五运六气（客气六步图 + 司天在泉）
-├── 体质（九种体质雷达图）
-├── 知识图谱（Mermaid 关系图）
-└── 全局搜索（284 术语 + 6 映射 + 30 古籍）
+用户输入 → 三层路由
+  ↓
+bootstrap/ → 加载对应引擎引导
+  ↓
+推算引擎执行（纯JS / npm / PyPI / API）
+  ↓
+JSON 映射表 / 古籍知识库 → 确定性查询 + 全文引用
+  ↓
+templates/ → 选择报告模板
+  ↓
+询问可视化模式 → A: 静态HTML报告 / B: Web Dashboard
+  ↓
+field-journal/ → 经验沉淀
 ```
 
-### 引擎 + RAG + 可视化推理路径
+### 数据层
 
-```
-用户输入 → 三层路由（问题→学科→融合深度）
-  ↓
-bootstrap/ ← 加载对应引擎引导
-  ↓
-推算引擎执行（本地纯JS / npm 包 / PyPI 包 / API）
-  ↓
-json mappings/ ← 确定性数据查询
-  ↓
-knowledge-base/ ← 古籍全文引用
-  ↓
-templates/ ← 选择报告模板
-  ↓
-询问用户可视化模式 → A: 静态HTML报告 / B: Web Dashboard
-  ↓
-field-journal/ ← 经验沉淀（可选）
-```
+- **6 确定性 JSON 映射表**：命卦速查、八宅大游年、二十四山（360° 连续）、流年飞星、阳宅三要、形煞化解
+- **30 古籍文件**：16+ 部风水经典全文，覆盖形势/理气/阳宅/综合四大类
+- **2 纯前端排盘引擎**：八字（1900-01-01=己亥基准）、五运六气（丙辛水运/乙庚金运等），零 npm/pip 依赖
 
-## 工具索引与故障处理
+<p align="right">(<a href="#架构设计">返回顶部</a>)</p>
 
-`tool-index.md` 记录了所有引擎、映射表、可视化依赖的安装状态和备用方案。
+<a id="贡献"></a>
 
-**§9 Fail-Two 规则**：同一操作失败两次 → 停止 → 记录到 field-journal → 查 tool-index.md 备用方案 → 切换或告知用户。
+## 贡献
 
-**§10 输入完整性**：AI 必须先补问必要信息（生辰/性别/问题/体质/房屋信息），不得猜测。
+欢迎任何贡献！Fork 本仓库 → 创建特性分支 → 提交 PR 即可。
 
-## 可视化使用
+1. Fork 项目
+2. `git checkout -b feature/AmazingFeature`
+3. `git commit -m 'Add some AmazingFeature'`
+4. `git push origin feature/AmazingFeature`
+5. 提交 Pull Request
 
-```bash
-# 交互式 Web Dashboard
-# 直接双击 visual/index.html，或从浏览器打开：
-file://<SKILL_ROOT>/visual/index.html
+<p align="right">(<a href="#贡献">返回顶部</a>)</p>
 
-# 运行自动化测试
-# 双击 visual/test-runner.html，或从浏览器打开：
-file://<SKILL_ROOT>/visual/test-runner.html
-```
+<a id="许可证"></a>
 
-### 浏览器兼容性
+## 许可证
 
-| 浏览器 | 状态 | 说明 |
-|--------|------|------|
-| Chrome 90+ | 全量支持 | Canvas 2D + Mermaid v10.9.1 |
-| Firefox 90+ | 全量支持 | 同上 |
-| Edge 90+ | 全量支持 | 同上 |
-| Safari 15+ | 基本支持 | Mermaid 部分渲染正常 |
-
-## 裁剪复用策略
-
-从 reverse-skill 保留：
-- 三轴路由矩阵（问题类型 + 学科 + 融合深度）
-- SKILL.md 标准格式（frontmatter + scope + workflow + pitfalls + 路由上下文）
-- RULES.md 行为规则链（§9 Fail-Two / §10 输入完整性）
-- field-journal 经验沉淀系统
-- EVOLUTION.md 演进留痕
-
-从 reverse-skill 裁剪：
-- manifest 驱动自举系统（本技能无需安装外部工具）
-- bootstrap/ToolDiscovery/tool-index
-- MCP 服务器注册
-- 多平台脚本对等（本技能为 agent 知识包，无代码运行依赖）
-
-## 声明与许可
-
-本技能包仅供传统文化学习、学术研究和 AI Agent 应用开发参考。所有推算结果仅供参考，不构成医疗诊断、投资建议或人生决策依据。
-
-实际健康问题请咨询执业医师；重大决策请理性判断。
-
-### License
-
-MIT License. 详见 [LICENSE](./LICENSE)。
+本项目采用 **MIT License**（详见 [LICENSE](LICENSE)）。
 
 ### 致谢
 
-- 架构设计参考 [reverse-skill](https://github.com/zhaoxuya520/reverse-skill)（zhaoxuya520）
-- 八字引擎参考 [bazi-ziwei-skill](https://github.com/novertime/bazi-ziwei-skill)（novertime, MIT）
-- 紫微引擎参考 [iztro-py](https://github.com/syncretism/iztro-py)（MIT）
-- 六爻引擎参考 [ichingshifa](https://github.com/winetree94/ichingshifa)（MIT）
-- 梅花易数参考 [meihua-yishu](https://github.com/shtan1992/meihua-yishu)（CC BY-NC-SA）
-- 五运六气参考 [wuyun-liuqi-skills](https://github.com/dhicoc/wuyun-liuqi-skills)（MIT）
-- 风水古籍数据来源于维基文库、绝学网、美篇、163、搜狐等公开来源
-- AI 社区交流：[linux.do](https://linux.do)
+- 架构参考 [reverse-skill](https://github.com/zhaoxuya520/reverse-skill)（zhaoxuya520）
+- 八字引擎 [bazi-ziwei-skill](https://github.com/novertime/bazi-ziwei-skill)（MIT）
+- 紫微引擎 [iztro-py](https://github.com/syncretism/iztro-py)（MIT）
+- 六爻引擎 [ichingshifa](https://github.com/winetree94/ichingshifa)（MIT）
+- 梅花易数 [meihua-yishu](https://github.com/shtan1992/meihua-yishu)（CC BY-NC-SA）
+- 五运六气 [wuyun-liuqi-skills](https://github.com/dhicoc/wuyun-liuqi-skills)（MIT）
+
+<p align="right">(<a href="#许可证">返回顶部</a>)</p>
+
+<a id="english-version"></a>
 
 ---
 
-> **English Version / 英文版**
+> **English Version — README.md is bilingual. Chinese content is above. Below is a summary.**
 
 ---
 
 # Chinese Traditional Wisdom — AI Agent Skill Pack
 
-> A holistic life consulting AI Agent Skill Pack that integrates the Five Arts of Chinese Metaphysics (Mountains, Medicine, Destiny, Physiognomy, Divination), TCM Constitution / WuYun-LiuQi (Five Movements & Six Qi), Daoist philosophy, and Buddhist psychology.
+A holistic life consulting AI Agent Skill Pack integrating BaZi, Ziwei, Liuyao, Meihua, Fengshui, WuYun-LiuQi, TCM Constitution, Daoist philosophy, and Buddhist psychology.
 
-> **Human readers:** Start from the table of contents.
-> **AI Agents:** Jump to Section 0 to execute the auto-configuration flow.
+**Features:**
+- 11-tab Canvas 2D visualization dashboard (zero external JS dependencies)
+- Pure frontend BaZi and WuYun-LiuQi calculation engines
+- 30-file classic text knowledge base (16+ Fengshui classics)
+- 6 deterministic JSON mapping tables
+- 131 automated tests
+- 7 professional consulting report templates
+- Global search across 284 terms, 6 mappings, and 30 classic texts
 
-This repository can be placed in any directory. The AI will auto-detect its actual path. `<SKILL_ROOT>` refers to the real installation path.
+**Quick Start:** Double-click `visual/index.html` to open the dashboard, or let the AI handle everything.
 
----
+**Tech Stack:** JavaScript, HTML5 Canvas 2D, Mermaid.js
 
-## 0. AI Auto-Configuration Flow (Execute Immediately After Reading)
-
-> **After reading this file, the AI must automatically execute the following configuration — no manual operation required.**
-
-```text
-0. Detect the installation path (derived from this file's directory)
-1. Verify package structure integrity:
-   - Check SKILL.md / RULES.md and other core files exist
-   - Check bootstrap/ engine guides
-   - Check visual/index.html and other visualization files
-2. Once confirmed, read SKILL.md → 3-layer routing (Problem Type → Subject → Integration Depth)
-3. Match user's question to the corresponding scenario and tool engine
-4. If a visual report is needed, ask the user to choose:
-   - Mode A: Static HTML report (one-time report with text and images)
-   - Mode B: Interactive Web Dashboard (for repeated queries)
-5. Start executing the task
-```
+**License:** MIT
 
 ---
 
-## Feature Overview
-
-- **BaZi (Four Pillars)**: Pillar calculation, Ten Gods, Five Elements analysis, Useful/Jealous Gods, Great Luck periods
-- **Ziwei Doushu**: 12 palaces, 14 main stars, Four Transformations, Great Limits
-- **Liuyao (Six Lines)**: Najia hexagram setup, Six Relatives, Six Spirits, line judgment
-- **Meihua Yishu (Plum Blossom Divination)**: Time/number/object trigrams, Body-Use interaction
-- **TCM Constitution**: Nine constitution types, dietary guidance, seasonal health
-- **WuYun-LiuQi (Five Movements & Six Qi)**: Year fortune, Situ-Zaiquan, Guest Qi steps
-- **Fengshui (Geomancy)**: Eight Mansions, Yearly Flying Stars, Twenty-Four Mountains, Sha remedies
-- **Daoist Philosophy**: Wu Wei, Yin-Yang dialectics, nature cultivation
-- **Buddhist Psychology**: Four Noble Truths, Eightfold Path, Emptiness, meditation
-- **Full Visualization**: 11-tab Canvas 2D charts + Mermaid knowledge graph
-- **Global Search**: 284 term explanations + 6 JSON mappings + 30 classic text files
-
-## Quick Start
-
-### Mode A: AI Conversation (Default)
-
-Ask the AI about life concerns, health, career, marriage, divination, or Fengshui. The AI will:
-1. Match the best tool combination via 3-layer routing
-2. Calculate → query knowledge base → synthesize analysis → generate structured report
-3. Ask whether to generate a visual HTML report
-
-### Mode B: Interactive Web Dashboard
-
-```bash
-# Double-click to open
-<SKILL_ROOT>/visual/index.html
-
-# Or open from browser
-file://<SKILL_ROOT>/visual/index.html
-```
-
-11 tabs: BaZi / Five Elements / Ziwei / Liuyao / Meihua / Fengshui Compass / Flying Stars / Eight Mansions / WuYun-LiuQi / Constitution / Knowledge Graph. Double-click test-runner.html to run automated tests.
-
-### Mode C: Static HTML Visual Report
-
-Auto-generated by AI during consultations, including BaZi chart, Five Elements stats, Ziwei plate, divination hexagrams, Fengshui analysis, WuYun-LiuQi, Constitution analysis — suitable for sharing and archiving.
-
-## Directory Structure
-
-```
-chinese-traditional-wisdom-skill/
-├── SKILL.md                    # ★ Main controller + 3-layer routing contract
-├── RULES.md                    # ★ Behavior rules (§9 Fail-Two, §10 Input completeness)
-├── EVOLUTION.md                # 3-phase evolution record + architectural decisions
-├── tool-index.md               # 6 engines + 6 JSON mappings + visual dependencies
-├── README.md                   # This file
-│
-├── bootstrap/                  # ★ Engine bootstrap guides (6 engines)
-├── templates/                  # ★ 7 professional consulting report templates
-├── knowledge-base/             # ★ Classic text knowledge base (30 files / 16+ classics)
-│   └── fengshui/mappings/      # ★ 6 deterministic JSON mapping tables
-├── reference-metaphysics.md    # Metaphysics reference (375 lines)
-├── reference-buddhism.md       # Buddhist reference
-├── reference-daoism.md         # Daoist reference
-├── reference-tcm.md            # TCM reference
-│
-├── visual/                     # ★ Visualization system (pure frontend, zero external JS deps)
-│   ├── index.html              # 11-tab interactive Dashboard
-│   ├── test-runner.html        # Automated test runner
-│   ├── css/style.css
-│   ├── js/
-│   │   ├── core.js             # Core library (Tiangan/Dizhi/Wuxing/284 terms)
-│   │   ├── data-bridge.js      # ★ Global data bridge (FORTUNE singleton)
-│   │   ├── search.js           # Global search (3-source index)
-│   │   ├── bazi.js / ziwei.js / divination.js / fengshui.js / health.js
-│   │   └── engines/            # ★ Pure JS calculation engines
-│   │       ├── bazi-engine.js  # BaZi engine (4 pillars/Ten Gods/Luck/Nayin)
-│   │       └── yunqi-engine.js # WuYun-LiuQi engine (Year fortune/Sitian/Keqi)
-│   └── tests/                  # Automated tests (131 tests total)
-│
-└── field-journal/              # Experience sedimentation
-```
-
-## Architecture
-
-### 3-Layer Routing Matrix
-
-| Dimension | Categories | Purpose |
-|-----------|-----------|---------|
-| Problem Type | Health / Career / Marriage / Divination / General | Match best scenario |
-| Subject | BaZi / Ziwei / Liuyao / Meihua / Yunqi / Constitution / Fengshui | Call corresponding engine |
-| Integration Depth | Single subject / Cross-subject / Holistic wisdom | Determine knowledge scope |
-
-### Six Engine Architecture
-
-| Engine | Type | Source | Purpose |
-|--------|------|--------|---------|
-| BaZi | npm package | bazi-ziwei-skill (520★ MIT) | 4 pillars, Ten Gods, Luck |
-| Ziwei | PyPI | iztro-py (MIT) | 12 palaces, main stars, 4 transformations |
-| Liuyao | PyPI | ichingshifa (MIT) | Najia, 6 relatives, 6 spirits |
-| Meihua | GitHub | meihua-yishu (169★ CC) | Body-Use, interaction |
-| WuYun-LiuQi | API | Dahan API + RAG | Year fortune, Keqi, Sitian-Zaiquan |
-| Constitution | Questionnaire | N/A | 9 constitution types |
-
-### Data Layer
-
-**6 Deterministic JSON Mappings**: Life Trigram lookup, Eight Mansions, Twenty-Four Mountains (360° continuous), Yearly Flying Stars, Three Essentials, Form-Sha cures. Zero external dependencies.
-
-**30 Classic Text Files**: 16+ Fengshui classics with full text and annotations, covering Situation Form / Principle Form / Yang House / Comprehensive categories.
-
-**2 Pure Frontend Calculation Engines**: BaZi (reference: 1900-01-01 = Jihai), WuYun-LiuQi (Bingxin → Water movement, Yigeng → Metal movement, etc.). Zero npm/pip dependencies, double-click to run.
-
-### Visualization System
-
-```
-visual/index.html
-├── BaZi tab (Canvas birth chart + Five Elements radar + Luck trend)
-├── Ziwei tab (12-palace diagram + main star table)
-├── Liuyao tab (Hexagram Canvas + 6 relatives table)
-├── Meihua tab (Body-Use interaction diagram)
-├── Fengshui Compass (24-mountain Canvas compass)
-├── Flying Stars (9-palace flying star diagram + classic citations)
-├── Eight Mansions (Great Year direction diagram + classic citations)
-├── WuYun-LiuQi (6-step Guest Qi diagram + Sitian-Zaiquan)
-├── Constitution (9-type radar chart)
-├── Knowledge Graph (Mermaid relationship diagram)
-└── Global search (284 terms + 6 mappings + 30 classics)
-```
-
-### Engine + RAG + Visualization Pipeline
-
-```
-User input → 3-layer routing (Problem → Subject → Depth)
-  ↓
-bootstrap/ ← Load corresponding engine guide
-  ↓
-Calculation engine executes (pure JS / npm / PyPI / API)
-  ↓
-JSON mappings/ ← Deterministic data lookup
-  ↓
-knowledge-base/ ← Classic text citations
-  ↓
-templates/ ← Select report template
-  ↓
-Ask user visualization mode → A: Static HTML report / B: Web Dashboard
-  ↓
-field-journal/ ← Experience sedimentation (optional)
-```
-
-## Tool Index & Fault Handling
-
-`tool-index.md` records the installation status and fallback plans for all engines, mappings, and visual dependencies.
-
-**§9 Fail-Two Rule**: Same operation fails twice → stop → log to field-journal → check tool-index.md for fallback → switch or inform user.
-
-**§10 Input Completeness**: AI must ask for required info (birth date/time/gender/question/constitution/house info) — never guess.
-
-## Usage
-
-```bash
-# Interactive Web Dashboard
-# Double-click visual/index.html, or open from browser:
-file://<SKILL_ROOT>/visual/index.html
-
-# Run automated tests
-# Double-click visual/test-runner.html, or open from browser:
-file://<SKILL_ROOT>/visual/test-runner.html
-```
-
-### Browser Compatibility
-
-| Browser | Status | Notes |
-|---------|--------|-------|
-| Chrome 90+ | Full support | Canvas 2D + Mermaid v10.9.1 |
-| Firefox 90+ | Full support | Same as above |
-| Edge 90+ | Full support | Same as above |
-| Safari 15+ | Basic support | Mermaid may have minor issues |
-
-## Reuse Strategy
-
-Preserved from reverse-skill:
-- 3-axis routing matrix (Problem Type + Subject + Integration Depth)
-- SKILL.md standard format (frontmatter + scope + workflow + pitfalls + routing context)
-- RULES.md behavior chain (§9 Fail-Two / §10 Input completeness)
-- field-journal experience sedimentation system
-- EVOLUTION.md evolution traceability
-
-Removed from reverse-skill:
-- Manifest-driven bootstrap system (this skill requires no external tool installation)
-- bootstrap/ToolDiscovery/tool-index
-- MCP server registration
-- Cross-platform script parity (this is an agent knowledge pack, no code runtime dependencies)
-
-## Disclaimer
-
-This skill pack is for traditional culture learning, academic research, and AI Agent application development reference only. All calculation results are for reference only and do not constitute medical diagnosis, investment advice, or life decision guidance.
-
-For actual health issues, consult a licensed physician. For major decisions, exercise rational judgment.
-
-### License
-
-MIT License. See [LICENSE](./LICENSE).
-
-### Acknowledgements
-
-- Architecture reference: [reverse-skill](https://github.com/zhaoxuya520/reverse-skill) (zhaoxuya520)
-- BaZi engine: [bazi-ziwei-skill](https://github.com/novertime/bazi-ziwei-skill) (novertime, MIT)
-- Ziwei engine: [iztro-py](https://github.com/syncretism/iztro-py) (MIT)
-- Liuyao engine: [ichingshifa](https://github.com/winetree94/ichingshifa) (MIT)
-- Meihua engine: [meihua-yishu](https://github.com/shtan1992/meihua-yishu) (CC BY-NC-SA)
-- WuYun-LiuQi: [wuyun-liuqi-skills](https://github.com/dhicoc/wuyun-liuqi-skills) (MIT)
-- Fengshui classic text data sourced from Wikisource, Juexue, Meipian, 163, Sohu and other public sources
-- AI Community: [linux.do](https://linux.do)
+<p align="center">
+  <a href="https://linux.do">AI Community: linux.do</a>
+</p>
