@@ -1,0 +1,323 @@
+/* chinese-traditional-wisdom-skill — 可视化样式表 */
+
+:root {
+  --bg-main: #F5F0EB;
+  --bg-card: #FFFFFF;
+  --bg-header: #3E2723;
+  --text-primary: #2C1810;
+  --text-secondary: #5D4037;
+  --text-muted: #8D6E63;
+  --accent-gold: #D4A017;
+  --accent-red: #C62828;
+  --border-light: #D7CCC8;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --radius: 8px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+/* ─── Header ───────────────────────────── */
+.header {
+  background: linear-gradient(135deg, #3E2723, #5D4037);
+  color: #FFF;
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+.header .subtitle {
+  font-size: 13px;
+  opacity: 0.7;
+  margin-left: auto;
+}
+
+/* ─── Tab Navigation ───────────────────── */
+.tab-bar {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  overflow-x: auto;
+  gap: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.tab-btn {
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.tab-btn:hover { background: #F5F0EB; color: var(--text-primary); }
+.tab-btn.active {
+  color: var(--accent-red);
+  border-bottom-color: var(--accent-red);
+  background: #FFF8F0;
+}
+
+/* ─── Main Content ─────────────────────── */
+.main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ─── Cards ─────────────────────────────── */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-title .badge {
+  font-size: 12px;
+  font-weight: 400;
+  background: #EFEBE9;
+  color: var(--text-secondary);
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+/* ─── Canvas ────────────────────────────── */
+canvas.viz-canvas {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  border-radius: 4px;
+}
+
+/* ─── Controls ──────────────────────────── */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 16px;
+  background: #FAFAF7;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+}
+.controls label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.controls input, .controls select {
+  padding: 6px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  background: #FFF;
+  color: var(--text-primary);
+}
+.controls input:focus, .controls select:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+.controls button {
+  padding: 7px 18px;
+  background: var(--bg-header);
+  color: #FFF;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.controls button:hover { background: #5D4037; }
+
+/* ─── Info Box ──────────────────────────── */
+.info-box {
+  background: #FFF8E1;
+  border-left: 4px solid var(--accent-gold);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  border-radius: 0 4px 4px 0;
+}
+.info-box strong { color: var(--text-primary); }
+
+/* ─── Responsive ────────────────────────── */
+@media (max-width: 768px) {
+  .header { padding: 12px 16px; }
+  .header h1 { font-size: 18px; }
+  .tab-btn { padding: 10px 14px; font-size: 13px; }
+  .main { padding: 12px; }
+  .card { padding: 16px; }
+  .controls { flex-direction: column; align-items: stretch; }
+}
+
+/* ─── Mermaid Container ─────────────────── */
+.mermaid-container {
+  background: #FFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  text-align: center;
+}
+.mermaid-container .mermaid {
+  display: inline-block;
+  text-align: center;
+}
+
+/* ─── Tool Grid ─────────────────────────── */
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.tool-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.tool-card:hover {
+  box-shadow: var(--shadow);
+  border-color: var(--accent-gold);
+  transform: translateY(-2px);
+}
+.tool-card h3 {
+  font-size: 15px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.tool-card p {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.tool-card .icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* ─── Two-column layout ─────────────────── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 800px) {
+  .two-col { grid-template-columns: 1fr; }
+}
+
+/* ─── Legend Panel (术语图例) ───────────── */
+.legend-panel details {
+  margin-top: 10px;
+  background: #FFF;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 0 12px;
+  transition: all 0.2s;
+}
+.legend-panel details[open] {
+  padding-bottom: 12px;
+}
+.legend-panel summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 10px 0;
+  user-select: none;
+  outline: none;
+}
+.legend-panel summary::-webkit-details-marker {
+  color: var(--accent-gold);
+}
+.legend-panel .term-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 8px;
+}
+@media (max-width: 600px) {
+  .legend-panel .term-grid { grid-template-columns: 1fr; }
+}
+.legend-panel .term-card {
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 8px 10px;
+  background: #FAFAF7;
+  border-radius: 4px;
+  border-left: 3px solid var(--accent-gold);
+  color: var(--text-secondary);
+}
+.legend-panel .term-card b {
+  color: var(--text-primary);
+  display: inline-block;
+  min-width: 3em;
+}
+
+/* ─── Interpretation (通俗解读) ─────────── */
+.interpretation {
+  background: linear-gradient(135deg, #FFF8E1, #FFFDE7);
+  border: 1px solid #FFE082;
+  border-radius: 6px;
+  padding: 14px 18px;
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+.interpretation strong {
+  color: var(--text-primary);
+}
+.interpretation .term-highlight {
+  display: inline-block;
+  background: #FFF3E0;
+  color: #E65100;
+  padding: 0 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  font-size: 12px;
+}
+.interpretation .section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-gold);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
