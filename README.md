@@ -22,6 +22,7 @@
 <p align="center">
   <a href="#关于项目">关于</a> ·
   <a href="#快速开始">快速开始</a> ·
+  <a href="README_AI.md">AI 引导</a> ·
   <a href="#使用说明">使用说明</a> ·
   <a href="#架构设计">架构设计</a> ·
   <a href="#贡献">贡献</a> ·
