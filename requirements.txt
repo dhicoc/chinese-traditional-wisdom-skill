@@ -1,0 +1,12 @@
+# Chinese Traditional Wisdom - Python Dependencies
+# Install: pip install -r requirements.txt
+
+# Core calculation
+lunar-python>=1.0.11          # Precise lunar/solar term calculation (used by bazi, yunqi)
+
+# Optional engines (install when needed)
+iztro-py>=0.1.0               # 紫微斗数 engine (PyPI)
+ichingshifa>=0.1.0            # 六爻 engine (PyPI)
+
+# Utilities
+requests>=2.28.0              # HTTP requests (for yunqi API)
