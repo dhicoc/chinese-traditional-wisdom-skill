@@ -2,7 +2,57 @@
 
 > **这是 AI Agent 的配置引导文件。如果你是 AI Agent，严格按以下流程执行。**
 
-## 0. 核心执行流程（立即执行）
+## 0. 安装与核心执行流程
+
+> **AI Agent 请严格按以下流程执行。人类用户可参考「安装说明」手动操作。**
+
+---
+
+### 0.1 安装说明（人类用户手动安装用）
+
+=== Chinese Traditional Wisdom - Setup ===
+
+[1/3] Installing Python dependencies...
+Defaulting to user installation because normal site-packages is not writeable
+Requirement already satisfied: lunar-python>=1.0.11 in C:\Users\DELL\AppData\Roaming\Python\Python313\site-packages (from -r requirements.txt (line 5)) (1.4.8)
+Requirement already satisfied: iztro-py>=0.1.0 in C:\Users\DELL\AppData\Roaming\Python\Python313\site-packages (from -r requirements.txt (line 8)) (0.3.4)
+Collecting ichingshifa>=0.1.0 (from -r requirements.txt (line 9))
+  Downloading ichingshifa-3.1.9-py3-none-any.whl.metadata (13 kB)
+Requirement already satisfied: requests>=2.28.0 in C:\Users\DELL\AppData\Roaming\Python\Python313\site-packages (from -r requirements.txt (line 12)) (2.32.5)
+Requirement already satisfied: pydantic>=2.0.0 in C:\Users\DELL\AppData\Roaming\Python\Python313\site-packages (from iztro-py>=0.1.0->-r requirements.txt (line 8)) (2.12.5)
+Requirement already satisfied: python-dateutil>=2.8.0 in C:\Users\DELL\AppData\Roaming\Python\Python313\site-packages (from iztro-py>=0.1.0->-r requirements.txt (line 8)) (2.9.0.post0)
+Requirement already satisfied: lunarcalendar>=0.0.9 in C:\Users\DELL\AppData\Roaming\Python\Python313\site-packages (from iztro-py>=0.1.0->-r requirements.txt (line 8)) (0.0.9)
+Requirement already satisfied: charset_normalizer<4,>=2 in C:\Users\DELL\AppData\Roaming\Python\Python313\site-packages (from requests>=2.28.0->-r requirements.txt (line 12)) (3.4.3)
+Requirement already satisfied: idna<4,>=2.5 in C:\Users\DELL\AppData\Roaming\Python\Python313\site-packages (from requests>=2.28.0->-r requirements.txt (line 12)) (3.10)
+Requirement already satisfied: urllib3<3,>=1.21.1 in C:\Users\DELL\AppData\Roaming\Python\Python313\site-packages (from requests>=2.28.0->-r requirements.txt (line 12)) (2.5.0)
+Requirement already satisfied: certifi>=2017.4.17 in C:\Users\DELL\AppData\Roaming\Python\Python313\site-packages (from requests>=2.28.0->-r requirements.txt (line 12)) (2025.8.3)
+Requirement already satisfied: ephem>=3.7.5.3 in C:\Users\DELL\AppData\Roaming\Python\Python313\site-packages (from lunarcalendar>=0.0.9->iztro-py>=0.1.0->-r requirements.txt (line 8)) (4.2.1)
+Requirement already satisfied: pytz in C:\Users\DELL\AppData\Roaming\Python\Python313\site-packages (from lunarcalendar>=0.0.9->iztro-py>=0.1.0->-r requirements.txt (line 8)) (2026.2)
+Requirement already satisfied: annotated-types>=0.6.0 in C:\Users\DELL\AppData\Roaming\Python\Python313\site-packages (from pydantic>=2.0.0->iztro-py>=0.1.0->-r requirements.txt (line 8)) (0.7.0)
+Requirement already satisfied: pydantic-core==2.41.5 in C:\Users\DELL\AppData\Roaming\Python\Python313\site-packages (from pydantic>=2.0.0->iztro-py>=0.1.0->-r requirements.txt (line 8)) (2.41.5)
+Requirement already satisfied: typing-extensions>=4.14.1 in C:\Python313\Lib\site-packages (from pydantic>=2.0.0->iztro-py>=0.1.0->-r requirements.txt (line 8)) (4.15.0)
+Requirement already satisfied: typing-inspection>=0.4.2 in C:\Users\DELL\AppData\Roaming\Python\Python313\site-packages (from pydantic>=2.0.0->iztro-py>=0.1.0->-r requirements.txt (line 8)) (0.4.2)
+Requirement already satisfied: six>=1.5 in C:\Users\DELL\AppData\Roaming\Python\Python313\site-packages (from python-dateutil>=2.8.0->iztro-py>=0.1.0->-r requirements.txt (line 8)) (1.17.0)
+Downloading ichingshifa-3.1.9-py3-none-any.whl (38 kB)
+Installing collected packages: ichingshifa
+Successfully installed ichingshifa-3.1.9
+
+[2/3] Setup complete!
+
+Quick start:
+  python scripts/bazi_calc.py 1990-05-15 --gender male --hour 15
+  python scripts/yunqi_calc.py 2026
+  python scripts/full_consultation.py 1990-05-15
+
+Or open visual/index.html for the Web Dashboard
+
+
+
+---
+
+### 0.2 AI Agent 自动安装与配置（AI 读完本文件后立即执行）
+
+> **AI Agent 执行以下流程，用户无需手动操作。**
 
 ```text
 0. 检测本包实际路径：由当前文件所在目录推导，记为 <SKILL_ROOT>
