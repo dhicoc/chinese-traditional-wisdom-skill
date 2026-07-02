@@ -515,11 +515,6 @@ function eightMansionsRender(canvasId, data) {
   CORE.drawCenterText(ctx, masterGroup, cx, cy + 34, {
     size: 11, color: "#888"
   });
-
-  // 卦名 + 年命标注（底部小字）
-  CORE.drawCenterText(ctx, year + "\u5E74" + gender + "\u547D\uFF0C" + masterTri + "\u547D", cx, cy + centerR + 14, {
-    size: 11, color: "#999"
-  });
 }
 
 

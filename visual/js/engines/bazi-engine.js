@@ -174,6 +174,9 @@
         };
       });
       return {
+        engineName: "BaziEngine",
+        mode: "local-approx",
+        confidenceNote: "纯 JS 本地快速排盘；月柱使用近似节气，起运按 3 岁简化，适合可视化与学习参考。",
         pillars: pillars,
         dayMaster: pillars.day.stem,
         dayMasterWuxing: STEM_WX[dm],

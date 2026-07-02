@@ -112,10 +112,17 @@
         return DISEASE_MAP[t] || "";
       }).filter(Boolean).join("，") || "无明显特殊倾向";
 
+      var currentStep = getCurrentStep(year, zhuke);
+      var kezhujialin = getKeZhuJiaLin(currentStep ? currentStep.qi : "", currentStep ? currentStep.zhuqi : "");
+
       return {
+        engineName: "YunqiEngine",
+        mode: "local-approx",
+        confidenceNote: "按公历年份干支推算岁运、司天在泉与客气六步；大寒定年和节气日为近似处理。",
         year: year,
         tiangan: tiangan,
         dizhi: dizhi,
+        yearBoundary: "近似按公历年处理，未接入精确大寒节气表",
         wuyun: {
           dayun: dayun,
           zhuyun: zhuyun,
@@ -124,12 +131,37 @@
         liuqi: {
           sitian: sitian,
           zaiquan: zaiquan,
-          zhuke: zhuke
+          zhuke: zhuke,
+          current_step: currentStep,
+          kezhujialin: kezhujialin
         },
         disease_tendency: disease_tendency
       };
     }
   };
+
+  function getCurrentStep(year, zhuke) {
+    var now = new Date();
+    var month = now.getFullYear() === year ? now.getMonth() + 1 : 1;
+    var idx = Math.min(5, Math.max(0, Math.floor((month - 1) / 2)));
+    var zhuqi = ["厥阴风木", "少阴君火", "少阳相火", "太阴湿土", "阳明燥金", "太阳寒水"];
+    return Object.assign({ zhuqi: zhuqi[idx] }, zhuke[idx]);
+  }
+
+  function getKeZhuJiaLin(keqi, zhuqi) {
+    if (!keqi || !zhuqi) return "未知";
+    if (keqi === zhuqi) return "同气";
+    var wx = {"厥阴风木":"木","少阴君火":"火","少阳相火":"火","太阴湿土":"土","阳明燥金":"金","太阳寒水":"水"};
+    var cycle = ["木","火","土","金","水"];
+    var k = cycle.indexOf(wx[keqi]);
+    var z = cycle.indexOf(wx[zhuqi]);
+    if (k < 0 || z < 0) return "未知";
+    if ((k + 1) % 5 === z) return "客生主";
+    if ((z + 1) % 5 === k) return "主生客";
+    if ((k + 2) % 5 === z) return "客克主";
+    if ((z + 2) % 5 === k) return "主克客";
+    return "同类";
+  }
 
   function extractWuxing(dayun) {
     const chars = ["金","木","水","火","土"];

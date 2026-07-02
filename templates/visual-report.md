@@ -107,6 +107,12 @@
 <!-- ─── 分析数据 ─── -->
 <script>
 window.REPORT_DATA = {
+  version: "0.2.0",
+  generatedAt: "2026-07-02T00:00:00+08:00",
+  sourceNotes: [
+    "八字与五运六气可来自本地近似引擎，节气/历法存在简化。",
+    "紫微、六爻、梅花字段为 null 时自动隐藏；演示数据不得写成精确排盘。"
+  ],
   // === 八字 (必填) ===
   bazi: {
     year:   { stem: "庚", branch: "午", hidden: ["丁","己"] },
@@ -232,6 +238,9 @@ window.REPORT_DATA = {
 
 | 字段 | 类型 | AI 必须填 | 说明 |
 |------|------|----------|------|
+| version | String | 是 | REPORT_DATA 结构版本，当前为 `0.2.0` |
+| generatedAt | String | 是 | 报告生成时间，ISO 字符串 |
+| sourceNotes | Array | 是 | 数据来源、近似算法和外部引擎边界说明 |
 | bazi | Object | **是** | 八字四柱: {year,month,day,hour 各 {stem,branch,hidden[]}, dayMaster, gender} |
 | wuxing | Object | **是** | 五行计数: {"木":n,"火":n,"土":n,"金":n,"水":n} |
 | ziwei | Object | 否 | 紫微命盘数据: {birthInfo, mingGua, palaces:{宫名:{stars[],position,miaoxian}}, sihua, mainStars} |
@@ -245,5 +254,5 @@ window.REPORT_DATA = {
 ## 注意事项
 
 1. 模板中的 `../js/` 路径假设 HTML 文件与 `visual/` 同级。如保存到其他位置，需调整路径或内联 JS
-2. 所有可选字段设为 `null` 时对应板块自动隐藏
+2. 所有可选字段设为 `null` 时对应板块自动隐藏；字段缺失时应在文字报告中说明原因
 3. 文件名格式：`visual-report-{脱敏标识}.html`，避免覆盖

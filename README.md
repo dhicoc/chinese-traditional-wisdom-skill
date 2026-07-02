@@ -8,7 +8,7 @@
 <p align="center"><em style="font-family: 'KaiTi', 'STKaiti', 'SimSun', serif; font-size: 1.3em; color: #999;">究天人之际，通古今之变</em></p>
 
 <p align="center">BaZi / Ziwei / Liuyao / Meihua / Fengshui / WuYun-LiuQi / Constitution / Daoism / Buddhism — 全融合智慧引擎<br/>
-11 标签页可视化 Dashboard · 古籍知识库 · 纯前端排盘引擎 · 自动化测试</p>
+11 标签页可视化 Dashboard · 能力边界标识 · 古籍知识库 · 纯前端排盘引擎 · 自动化测试</p>
 
 <p align="center">
   <a href="https://github.com/dhicoc/chinese-traditional-wisdom-skill/stargazers"><img src="https://img.shields.io/github/stars/dhicoc/chinese-traditional-wisdom-skill?style=flat&logo=github" alt="stars"></a>
@@ -85,7 +85,7 @@ file://<SKILL_ROOT>/visual/index.html
 
 11 标签页：八字 / 五行 / 紫微 / 六爻 / 梅花 / 风水罗盘 / 流年飞星 / 八宅 / 五运六气 / 体质 / 知识图谱
 
-双击 `visual/test-runner.html` 可运行 131 项自动化测试。
+双击 `visual/test-runner.html` 可运行自动化测试套件，页面会展示浏览器环境、失败详情、总数统计和截图建议。
 
 <p align="right">(<a href="#快速开始">返回顶部</a>)</p>
 
@@ -108,6 +108,20 @@ file://<SKILL_ROOT>/visual/index.html
 | 可视化报告 | `templates/visual-report.md` |
 | 自动化测试 | `visual/test-runner.html` |
 
+
+### 能力边界与 v0.2 接口
+
+Dashboard 会在每个标签页显示能力状态，避免把演示数据误认为精确排盘：
+
+| 类型 | 含义 | 当前覆盖 |
+|------|------|----------|
+| 本地规则计算 | 浏览器内可重复、确定性规则 | 流年飞星、八宅、风水罗盘 |
+| 本地近似计算 | 可离线运行，但存在节气/历法近似 | 八字、五运六气 |
+| 演示数据 | 用于可视化结构展示，不代表真实排盘 | 紫微、六爻、梅花 |
+| 需外部引擎 | 真实排盘需要接入外部库或人工规则 | 紫微、六爻、梅花精算 |
+| 可选 CDN | 仅增强知识图谱展示，失败时有离线提示 | Mermaid 知识图谱 |
+
+公开入口保持 `window.FORTUNE`，新增 `getCapabilities()` 和 `exportReportData()`。后者返回脱敏快照，可直接填入 `REPORT_DATA`，并包含 `version`、`generatedAt`、`sourceNotes`。
 ### 关键文件
 
 | 文件 | 用途 |
@@ -116,6 +130,7 @@ file://<SKILL_ROOT>/visual/index.html
 | [RULES.md](RULES.md) | 行为规则链（§9 Fail-Two / §10 输入完整性） |
 | [tool-index.md](tool-index.md) | 六引擎 + 六映射 + 可视化依赖表 |
 | [EVOLUTION.md](EVOLUTION.md) | 三阶段演进记录与架构决策理由 |
+| [ROADMAP.md](ROADMAP.md) | v0.2 优化与新功能演进路线图 |
 
 ### 仓库结构
 
@@ -138,7 +153,8 @@ file://<SKILL_ROOT>/visual/index.html
 │   ├── index.html              # 11 标签页 Dashboard
 │   ├── test-runner.html        # 测试运行器
 │   ├── js/engines/             # 纯 JS 排盘引擎
-│   └── js/tests/               # 131 项自动化测试
+│   ├── js/capabilities.js      # 能力标识、报告导出、诊断入口
+│   └── js/tests/               # 自动化测试与 schema 校验
 │
 └── field-journal/              # 经验沉淀
 ```
@@ -227,11 +243,11 @@ field-journal/ → 经验沉淀
 A holistic life consulting AI Agent Skill Pack integrating BaZi, Ziwei, Liuyao, Meihua, Fengshui, WuYun-LiuQi, TCM Constitution, Daoist philosophy, and Buddhist psychology.
 
 **Features:**
-- 11-tab Canvas 2D visualization dashboard (zero external JS dependencies)
+- 11-tab Canvas 2D visualization dashboard with capability badges and offline Mermaid fallback
 - Pure frontend BaZi and WuYun-LiuQi calculation engines
 - 30-file classic text knowledge base (16+ Fengshui classics)
 - 6 deterministic JSON mapping tables
-- 131 automated tests
+- Enhanced browser test runner and JSON mapping schema checks
 - 7 professional consulting report templates
 - Global search across 284 terms, 6 mappings, and 30 classic texts
 

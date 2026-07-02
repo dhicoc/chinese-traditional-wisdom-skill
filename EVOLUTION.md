@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-07 v0.2 稳定化与能力边界
+
+### Dashboard 可信度与离线能力
+
+- **变更**：新增 `visual/js/capabilities.js`，统一维护 11 个标签页的能力状态、可信度说明、引擎 Adapter、输入校验、报告导出、诊断入口。
+- **能力边界**：八字/五运六气标注为本地近似计算；紫微/六爻/梅花标注为演示数据且真实计算需外部引擎；飞星/八宅/风水罗盘标注为本地规则计算。
+- **离线降级**：Mermaid CDN 不可用时，知识图谱显示源码降级提示，Canvas 标签页继续可用。
+- **隐私**：`FORTUNE.exportReportData()` 只导出年份和性别等脱敏字段，不把完整出生日期写入长期日志；案例草稿也按脱敏字段生成。
+
+### 测试与数据契约
+
+- **测试入口**：`visual/test-runner.html` 增加环境信息、失败详情展开、总数统计、截图建议，并新增 v0.2 质量基线测试。
+- **映射表校验**：新增 knowledge-base/fengshui/mappings/SCHEMA.md 与 `visual/js/tests/check-mapping-schema.mjs`，校验 6 个 JSON 映射表的字段和覆盖范围。
+- **报告契约**：`REPORT_DATA` 增加 `version`、`generatedAt`、`sourceNotes`，旧字段保持兼容。
+
+---
 ## 2026-06 可视化系统 + 风水知识库
 
 ### 11 标签页可视化系统

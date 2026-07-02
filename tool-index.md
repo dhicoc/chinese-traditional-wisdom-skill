@@ -30,6 +30,20 @@
 
 ---
 
+## Dashboard 能力边界
+
+| 模块 | Dashboard 状态 | 说明 |
+|------|----------------|------|
+| 八字 | 本地近似计算 | 使用 `visual/js/engines/bazi-engine.js`，月柱节气和起运为简化算法。 |
+| 五运六气 | 本地近似计算 | 使用 `visual/js/engines/yunqi-engine.js`，大寒定年未接入精确 API。 |
+| 紫微斗数 | 演示数据 / 需外部引擎 | 真实排盘需 `iztro-py` 或等价引擎。 |
+| 六爻 | 演示数据 / 需外部引擎 | 真实起卦需 `ichingshifa` 或人工纳甲规则。 |
+| 梅花易数 | 演示数据 / 需外部引擎 | 真实起卦需外部库或手工规则。 |
+| 风水罗盘 / 飞星 / 八宅 | 本地规则计算 | 基于 Canvas 和 JSON 映射表离线运行。 |
+
+能力状态统一由 `visual/js/capabilities.js` 管理，Dashboard 通过 `FORTUNE.getCapabilities()` 暴露只读查询。
+---
+
 ## 键值映射表（JSON）
 
 用于确定性命理/风水查表，替代 embedding / 向量检索。**无外部依赖，文件存在即可用。**
@@ -41,7 +55,7 @@
 | 二十四山 | knowledge-base/fengshui/mappings/twenty-four-mountains.json | 24山方位+五行+吉凶属性 | 24 |
 | 流年飞星 | knowledge-base/fengshui/mappings/yearly-flying-stars.json | 紫白九星逐年飞布+吉凶色+化解 | ~180 |
 | 阳宅三要 | knowledge-base/fengshui/mappings/three-essentials.json | 门主灶三要+六事吉凶 | ~24 |
-| 形煞分类与化解 | knowledge-base/fengshui/mappings/form-sha-cures.json | 30+种形煞的识别+影响+化解方法 | 30+ |
+| 形煞分类与化解 | knowledge-base/fengshui/mappings/form-sha-cures.json | 19 种形煞的识别+影响+化解方法 | 19 |
 
 ---
 
@@ -50,8 +64,10 @@
 | 工具 | 类型 | 入口 | 注意事项 |
 |------|------|------|---------|
 | Canvas 2D API | 浏览器原生 | visual/index.html | 无需依赖 |
-| Mermaid.js v10.9.1 | CDN | visual/index.html (script src) | 需要网络，tab 切换时重新渲染 |
+| Mermaid.js v10.9.1 | 可选 CDN | visual/index.html (script src) | 网络失败时显示离线降级提示，不阻塞 Canvas 模块 |
 | Chart.js | CDN | visual/index.html (script src) | 雷达图 + 扇形图 |
+| 文档契约检查 | Node.js | `node visual/js/tests/check-doc-contracts.mjs` | 校验 README/SKILL/tool-index/ROADMAP 与入口文件、报告字段、隐私约束一致 |
+| 全局同步回归 | 浏览器 | `visual/test-runner.html` | 校验 FORTUNE 全局更新后各标签页控件与画布同步 |
 
 ---
 
@@ -83,7 +99,7 @@ flowchart TD
 | 症状 | 可能原因 | 处理 |
 |------|---------|------|
 | 排盘结果全空 | 引擎未安装或版本不兼容 | 切手工排盘（参考 bootstrap 指南） |
-| 六爻起卦返回错误 | API 参数格式不对 | 检查 ichingshifa 输入格式，或用梅花替代 |
-| JSON mapping 文件读不到 | 路径不对或文件缺失 | 检查 knowledge-base/fengshui/mappings/ 下文件 |
-| Mermaid 图不显示 | CDN 加载失败 / display:none 渲染 | F5 刷新或切换到其他tab再切回 |
+| 六爻起卦返回错误 | API 参数格式不对 | 检查 `ichingshifa` 输入格式，或用梅花替代 |
+| JSON mapping 文件读不到 | 路径不对或文件缺失 | 检查 knowledge-base/fengshui/mappings/ 下文件，并运行 `node visual/js/tests/check-mapping-schema.mjs` |
+| Mermaid 图不显示 | CDN 加载失败 / display:none 渲染 | 查看离线提示；Canvas 核心模块可继续使用 |
 | 可视化页面打不开 | 未双击 index.html | 直接在浏览器打开 visual/index.html |

@@ -110,7 +110,7 @@
     const crossRef = computeCrossReferences(baziData, yunqiData, constitution, mingGua);
 
     return {
-      meta: { source: "engine", computedAt: Date.now() },
+      meta: { source: "engine", computedAt: Date.now(), reportDataVersion: (window.CapabilityRegistry && CapabilityRegistry.version) || "0.1.0" },
       birth: {
         year: y, month: m, day: d, hour: h,
         gender: birth.gender, isLunar: birth.isLunar
@@ -125,7 +125,7 @@
       },
       constitution: constitution,
       divination: divination,
-      ziwei: generateZiweiDefault(y, birth.gender, mingGua),
+      ziwei: generateZiweiDefault(birth, mingGua),
       crossRef: crossRef
     };
   }
@@ -279,6 +279,7 @@
         lines: lines,
         hexagramName: trigrams[upper] + trigrams[lower],
         isOriginal: true,
+        yongShen: relationCycle[Math.abs(seed) % relationCycle.length],
         shiYao: Math.floor(rng() * 6) + 1,
         yingYao: Math.floor(rng() * 6) + 1
       },
@@ -293,33 +294,44 @@
   }
 
   /** 生成基于生辰的紫微默认数据 */
-  function generateZiweiDefault(year, gender, mingGua) {
+  function generateZiweiDefault(birth, mingGua) {
+    const year = Number(birth.year) || DEFAULT_BIRTH.year;
+    const gender = birth.gender || DEFAULT_BIRTH.gender;
+    const month = Number(birth.month) || DEFAULT_BIRTH.month;
+    const day = Number(birth.day) || DEFAULT_BIRTH.day;
+    const hour = Number(birth.hour) || DEFAULT_BIRTH.hour;
+    const seedBase = year * 1000000 + month * 10000 + day * 100 + hour + (gender === "女" ? 7 : 3);
+    let seed = seedBase % 233280;
+    function nextRand() {
+      seed = (seed * 9301 + 49297) % 233280;
+      return seed / 233280;
+    }
+
     const palaceNames = ["命宫","兄弟","夫妻","子女","财帛","疾厄","迁移","交友","官禄","田宅","福德","父母"];
     const stars = ["紫微","天机","太阳","武曲","天同","廉贞","天府","太阴","贪狼","巨门","天相","天梁","七杀","破军"];
     const positions = ["寅","卯","辰","巳","午","未","申","酉","戌","亥","子","丑"];
     const brightness = ["庙","旺","得","利","平","陷"];
     const palaces = {};
     palaceNames.forEach(function(name, i) {
-      const n = Math.floor(Math.random() * 3) + 1; // 1-3 stars per palace
+      const n = Math.floor(nextRand() * 3) + 1;
       const pStars = [];
       for (let j = 0; j < n; j++) {
-        pStars.push(stars[Math.floor(Math.random() * stars.length)]);
+        pStars.push(stars[Math.floor(nextRand() * stars.length)]);
       }
       palaces[name] = {
-        stars: [...new Set(pStars)], // deduplicate
-        position: positions[i % 12],
-        miaoxian: brightness[Math.floor(Math.random() * brightness.length)]
+        stars: [...new Set(pStars)],
+        position: positions[(i + month - 1) % 12],
+        miaoxian: brightness[Math.floor(nextRand() * brightness.length)]
       };
     });
     return {
-      birthInfo: { year: year, gender: gender },
+      birthInfo: { year: year, month: month, day: day, hour: hour, gender: gender },
       mingGua: mingGua,
       palaces: palaces,
       sihua: {"廉贞":"禄","破军":"权","武曲":"科","太阳":"忌"},
       mainStars: stars
     };
   }
-
   // ═══════════════════════════════════════════════════════
   //  数据变更通知
   // ═══════════════════════════════════════════════════════
@@ -332,55 +344,94 @@
   //  刷新所有标签页
   // ═══════════════════════════════════════════════════════
 
+  function setControlValue(id, value) {
+    var el = document.getElementById(id);
+    if (el && value !== undefined && value !== null) el.value = String(value);
+  }
+
+  function pillarText(pillar) {
+    if (!pillar) return "";
+    return (pillar.stem || "") + (pillar.branch || "");
+  }
+
   function refreshAllTabs() {
     if (!_data) return;
     const d = _data;
-    // 八字
+    setControlValue("gi-year", d.birth.year);
+    setControlValue("gi-month", d.birth.month);
+    setControlValue("gi-day", d.birth.day);
+    setControlValue("gi-hour", d.birth.hour);
+    setControlValue("gi-gender", d.birth.gender);
+
     if (d.baziRender && typeof VizModules !== "undefined" && VizModules.bazi) {
+      setControlValue("bazi-year", pillarText(d.baziRender.year));
+      setControlValue("bazi-month", pillarText(d.baziRender.month));
+      setControlValue("bazi-day", pillarText(d.baziRender.day));
+      setControlValue("bazi-hour", pillarText(d.baziRender.hour));
+      setControlValue("bazi-gender", d.birth.gender);
       VizModules.bazi.render("bazi-canvas", d.baziRender);
-      if (d.bazi.elements) {
+      if (d.bazi && d.bazi.elements) {
+        setControlValue("wx-wood", d.bazi.elements.木 || 0);
+        setControlValue("wx-fire", d.bazi.elements.火 || 0);
+        setControlValue("wx-earth", d.bazi.elements.土 || 0);
+        setControlValue("wx-metal", d.bazi.elements.金 || 0);
+        setControlValue("wx-water", d.bazi.elements.水 || 0);
         VizModules.bazi.renderWuxing("wuxing-canvas", d.bazi.elements);
       }
     }
-    // 紫微
+
     if (d.ziwei && VizModules.ziwei) {
+      setControlValue("zw-year", d.birth.year);
+      setControlValue("zw-gender", d.birth.gender);
       VizModules.ziwei.render("ziwei-canvas", d.ziwei);
     }
-    // 六爻
+
     if (d.divination && d.divination.liuyao && VizModules.divination) {
+      setControlValue("ly-hexagram", d.divination.liuyao.hexagramName);
+      setControlValue("ly-yongshen", d.divination.liuyao.yongShen);
       VizModules.divination.renderLiuyao("liuyao-canvas", d.divination.liuyao);
     }
-    // 梅花
+
     if (d.divination && d.divination.meihua && VizModules.divination) {
+      setControlValue("mh-upper", d.divination.meihua.upperTrigram && d.divination.meihua.upperTrigram.name);
+      setControlValue("mh-lower", d.divination.meihua.lowerTrigram && d.divination.meihua.lowerTrigram.name);
+      setControlValue("mh-moving", (d.divination.meihua.changingLine || 0) + 1);
       VizModules.divination.renderMeihua("meihua-canvas", d.divination.meihua);
     }
-    // 五运六气
+
     if (d.yunqi && VizModules.health) {
+      setControlValue("yq-year", d.birth.year);
       VizModules.health.renderYunqi("yunqi-canvas", d.yunqi);
     }
-    // 体质
+
     if (d.constitution && VizModules.health) {
+      var names = ["平和质","气虚质","阳虚质","阴虚质","痰湿质","湿热质","血瘀质","气郁质","特禀质"];
+      var ids = ["c1","c2","c3","c4","c5","c6","c7","c8","c9"];
+      names.forEach(function(name, i) { setControlValue(ids[i], d.constitution.scores[name]); });
+      var dominantEl = document.getElementById("dominant-constitution");
+      if (dominantEl) dominantEl.textContent = d.constitution.dominant;
       VizModules.health.renderConstitution("constitution-canvas", d.constitution);
     }
-    // 风水罗盘 (无数据依赖, 始终渲染)
+
     if (VizModules.fengshui) {
-      VizModules.fengshui.renderCompass('compass-canvas');
+      VizModules.fengshui.renderCompass("compass-canvas");
     }
-    // 风水飞星/八宅 (同步到 DOM 控件再调原有函数)
+
+    setControlValue("fs-year", d.birth.year);
     if (typeof updateFlyingStars === "function") {
-      document.getElementById("fs-year").value = d.birth.year;
       updateFlyingStars();
+    } else if (VizModules.fengshui && typeof VizModules.fengshui.renderFlyingStars === "function") {
+      VizModules.fengshui.renderFlyingStars("flying-stars-canvas", { year: d.birth.year });
     }
+
+    setControlValue("bz-year", d.birth.year);
+    setControlValue("bz-gender", d.birth.gender === "女" ? "女" : "男");
     if (typeof updateEightMansions === "function") {
-      // 同步八宅输入到新生辰
-      var bzYear = document.getElementById("bz-year");
-      var bzGender = document.getElementById("bz-gender");
-      if (bzYear) bzYear.value = d.birth.year;
-      if (bzGender) bzGender.value = d.birth.gender === "女" ? "女" : "男";
       updateEightMansions();
+    } else if (VizModules.fengshui && typeof VizModules.fengshui.renderEightMansions === "function") {
+      VizModules.fengshui.renderEightMansions("eight-mansions-canvas", { year: d.birth.year, gender: d.birth.gender });
     }
   }
-
   // ═══════════════════════════════════════════════════════
   //  全局输入面板
   // ═══════════════════════════════════════════════════════
@@ -406,31 +457,31 @@
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;">
         <div style="flex:1;min-width:80px;">
-          <label style="display:block;font-size:11px;color:#BCAAA4;margin-bottom:3px;">公历年份</label>
+          <label for="gi-year" style="display:block;font-size:11px;color:#BCAAA4;margin-bottom:3px;">公历年份</label>
           <input type="number" id="gi-year" value="${_birth.year}"
             style="width:100%;padding:6px 10px;border:1px solid #8D6E63;border-radius:6px;
                    background:#4E342E;color:#F5F0EB;font-size:14px;box-sizing:border-box;">
         </div>
         <div style="flex:1;min-width:60px;">
-          <label style="display:block;font-size:11px;color:#BCAAA4;margin-bottom:3px;">月</label>
+          <label for="gi-month" style="display:block;font-size:11px;color:#BCAAA4;margin-bottom:3px;">月</label>
           <input type="number" id="gi-month" value="${_birth.month}" min="1" max="12"
             style="width:100%;padding:6px 10px;border:1px solid #8D6E63;border-radius:6px;
                    background:#4E342E;color:#F5F0EB;font-size:14px;box-sizing:border-box;">
         </div>
         <div style="flex:1;min-width:60px;">
-          <label style="display:block;font-size:11px;color:#BCAAA4;margin-bottom:3px;">日</label>
+          <label for="gi-day" style="display:block;font-size:11px;color:#BCAAA4;margin-bottom:3px;">日</label>
           <input type="number" id="gi-day" value="${_birth.day}" min="1" max="31"
             style="width:100%;padding:6px 10px;border:1px solid #8D6E63;border-radius:6px;
                    background:#4E342E;color:#F5F0EB;font-size:14px;box-sizing:border-box;">
         </div>
         <div style="flex:1;min-width:60px;">
-          <label style="display:block;font-size:11px;color:#BCAAA4;margin-bottom:3px;">时 (0-23)</label>
+          <label for="gi-hour" style="display:block;font-size:11px;color:#BCAAA4;margin-bottom:3px;">时 (0-23)</label>
           <input type="number" id="gi-hour" value="${_birth.hour}" min="0" max="23"
             style="width:100%;padding:6px 10px;border:1px solid #8D6E63;border-radius:6px;
                    background:#4E342E;color:#F5F0EB;font-size:14px;box-sizing:border-box;">
         </div>
         <div style="flex:0 0 80px;">
-          <label style="display:block;font-size:11px;color:#BCAAA4;margin-bottom:3px;">性别</label>
+          <label for="gi-gender" style="display:block;font-size:11px;color:#BCAAA4;margin-bottom:3px;">性别</label>
           <select id="gi-gender"
             style="width:100%;padding:6px 10px;border:1px solid #8D6E63;border-radius:6px;
                    background:#4E342E;color:#F5F0EB;font-size:14px;">
@@ -448,6 +499,7 @@
           </button>
         </div>
       </div>
+      <div id="gi-error" class="input-error" style="display:none;"></div>
       <div id="gi-summary" style="margin-top:10px;font-size:12px;color:#A1887F;">
         点击「更新全局」将使用此生辰数据刷新所有标签页
       </div>
@@ -463,17 +515,42 @@
 
     // 绑定更新按钮
     document.getElementById("gi-update").addEventListener("click", function() {
-      const gy = parseInt(document.getElementById("gi-year").value) || 1990;
-      const gm = parseInt(document.getElementById("gi-month").value) || 1;
-      const gd = parseInt(document.getElementById("gi-day").value) || 1;
-      const gh = parseInt(document.getElementById("gi-hour").value) || 12;
-      const gg = document.getElementById("gi-gender").value;
-      updateBirth({ year: gy, month: gm, day: gd, hour: gh, gender: gg });
+      const raw = {
+        year: document.getElementById("gi-year").value,
+        month: document.getElementById("gi-month").value,
+        day: document.getElementById("gi-day").value,
+        hour: document.getElementById("gi-hour").value,
+        gender: document.getElementById("gi-gender").value
+      };
+      const validator = window.CapabilityRegistry && CapabilityRegistry.validateBirthInput;
+      const result = validator ? validator(raw) : { ok: true, value: {
+        year: parseInt(raw.year, 10), month: parseInt(raw.month, 10), day: parseInt(raw.day, 10), hour: parseInt(raw.hour, 10), gender: raw.gender
+      }, errors: [] };
+      const errorEl = document.getElementById("gi-error");
+      if (!result.ok) {
+        if (errorEl) {
+          errorEl.style.display = "block";
+          errorEl.innerHTML = result.errors.join("<br>");
+        }
+        return;
+      }
+      if (errorEl) {
+        errorEl.style.display = "none";
+        errorEl.textContent = "";
+      }
+      updateBirth(result.value);
     });
   }
 
   /** 更新全局作息并刷新 */
   function updateBirth(newBirth) {
+    if (window.CapabilityRegistry && CapabilityRegistry.validateBirthInput) {
+      var checked = CapabilityRegistry.validateBirthInput(Object.assign({}, _birth, newBirth));
+      if (!checked.ok) {
+        throw new Error(checked.errors.join("; "));
+      }
+      newBirth = checked.value;
+    }
     _birth = Object.assign({}, _birth, newBirth);
     _data = computeAll(_birth);
     notifyListeners();
@@ -557,6 +634,11 @@
           sourceText = info.source;
         }
 
+        if (window.CapabilityRegistry && CapabilityRegistry.showCitation) {
+          CapabilityRegistry.showCitation(info.label, bodyText, sourceText, e.clientX + 12, e.clientY + 8);
+          return;
+        }
+
         titleEl.textContent = info.label;
         bodyEl.innerHTML = bodyText;
         srcEl.textContent = sourceText;
@@ -598,11 +680,24 @@
     /** 获取风水数据 */
     getFengshui: function() { return _data && _data.fengshui; },
 
+    /** 获取模块能力状态 */
+    getCapabilities: function() {
+      return window.CapabilityRegistry ? CapabilityRegistry.getCapabilities() : {};
+    },
+
+    /** 导出可填入 REPORT_DATA 的脱敏快照 */
+    exportReportData: function() {
+      return window.CapabilityRegistry ? CapabilityRegistry.exportReportData(_data) : null;
+    },
+
     /** 初始化: 创建输入面板 + 计算默认数据 + 刷新 */
     init: function(defaultBirth) {
       if (defaultBirth) _birth = Object.assign({}, DEFAULT_BIRTH, defaultBirth);
       createGlobalInputPanel();
       _data = computeAll(_birth);
+      if (window.CapabilityRegistry) {
+        CapabilityRegistry.init(function() { return _data; });
+      }
       // 延迟刷新 (等 DOM 渲染完成)
       setTimeout(function() {
         refreshAllTabs();

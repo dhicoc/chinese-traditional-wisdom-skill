@@ -6,7 +6,7 @@
 <title>中国传统文化智慧 · 可视化工具箱</title>
 <link rel="stylesheet" href="css/style.css">
 <!-- Mermaid for diagram rendering -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js" onerror="window.MERMAID_CDN_FAILED=true"></script>
 </head>
 <body>
 
@@ -514,6 +514,7 @@ flowchart LR
 <script src="js/health.js"></script>
 <!-- ═══ 数据桥接 (全局输入 + 引擎) ═══ -->
 <script src="js/search.js"></script>
+<script src="js/capabilities.js"></script>
 <script src="js/engines/bazi-engine.js"></script>
 <script src="js/engines/yunqi-engine.js"></script>
 <script src="js/data-bridge.js"></script>
@@ -533,6 +534,25 @@ function switchTab(name) {
   }
 }
 
+
+function normalizeFormLabels(root) {
+  var scope = root || document;
+  var autoId = 0;
+  scope.querySelectorAll('label').forEach(function(label) {
+    if (label.htmlFor) return;
+    var control = label.nextElementSibling;
+    while (control && !/^(INPUT|SELECT|TEXTAREA)$/.test(control.tagName)) {
+      control = control.nextElementSibling;
+    }
+    if (!control) control = label.querySelector('input,select,textarea');
+    if (!control) return;
+    if (!control.id) {
+      autoId++;
+      control.id = 'auto-form-control-' + autoId;
+    }
+    label.htmlFor = control.id;
+  });
+}
 // 页面加载时从 hash 恢复 tab
 if (location.hash && location.hash.length > 1) {
   var hashTab = location.hash.substring(1);
@@ -550,7 +570,8 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
 
-// ─── Init Mermaid (manual control) ─────────
+// ─── Init Mermaid (manual control, optional CDN) ─────────
+if (window.mermaid) {
 mermaid.initialize({
   startOnLoad: false,
   theme: 'default',
@@ -564,11 +585,21 @@ mermaid.initialize({
     tertiaryColor: '#FAFAF7'
   }
 });
+}
 
 // Render all .mermaid elements (re-renders every time for tab visibility safety)
 function renderMermaid() {
   var els = document.querySelectorAll('.mermaid');
   if (els.length === 0) return;
+  if (!window.mermaid) {
+    els.forEach(function(el) {
+      if (!el.dataset.source) el.dataset.source = el.textContent.trim();
+      el.innerHTML = '<div class="offline-note">Mermaid CDN 未加载，当前离线显示源码。<pre>' +
+        el.dataset.source.replace(/[&<>]/g, function(ch){ return ({'&':'&amp;','<':'&lt;','>':'&gt;'})[ch]; }) +
+        '</pre></div>';
+    });
+    return;
+  }
   // Restore original source text and clear data-processed for re-render
   els.forEach(function(el) {
     if (el.dataset.source) {
@@ -611,32 +642,45 @@ function updateWuxing() {
 function updateZiwei() {
   const year = parseInt(document.getElementById('zw-year').value) || 1990;
   const gender = document.getElementById('zw-gender').value;
+  const baseBirth = (typeof FORTUNE !== 'undefined' && FORTUNE.getBirth) ? FORTUNE.getBirth() : {};
+  const birth = Object.assign({}, baseBirth, {year, gender});
   const mingGua = CORE.calcMingGua(year, gender);
-  const zwData = generateZiweiDemoData(year, gender, mingGua);
+  const zwData = generateZiweiDemoData(birth, mingGua);
   if(VizModules.ziwei) VizModules.ziwei.render('ziwei-canvas', zwData);
 }
 
-function generateZiweiDemoData(year, gender, mingGua) {
-  const palaces = {
-    "命宫": {stars:["紫微","天相"],position:"寅",miaoxian:"庙"},
-    "兄弟": {stars:["天机"],position:"卯",miaoxian:"旺"},
-    "夫妻": {stars:["太阳","巨门"],position:"辰",miaoxian:"得"},
-    "子女": {stars:["武曲","天同"],position:"巳",miaoxian:"利"},
-    "财帛": {stars:["廉贞","天府"],position:"午",miaoxian:"庙"},
-    "疾厄": {stars:[],position:"未",miaoxian:""},
-    "迁移": {stars:["破军"],position:"申",miaoxian:"旺"},
-    "交友": {stars:["七杀"],position:"酉",miaoxian:"旺"},
-    "官禄": {stars:["天梁"],position:"戌",miaoxian:"庙"},
-    "田宅": {stars:["太阴"],position:"亥",miaoxian:"旺"},
-    "福德": {stars:["贪狼"],position:"子",miaoxian:"旺"},
-    "父母": {stars:["太阴"],position:"丑",miaoxian:"旺"}
-  };
+function generateZiweiDemoData(birth, mingGua) {
+  const year = Number(birth.year) || 1990;
+  const month = Number(birth.month) || 1;
+  const day = Number(birth.day) || 1;
+  const hour = Number(birth.hour) || 0;
+  const gender = birth.gender || "男";
+  let seed = (year * 1000000 + month * 10000 + day * 100 + hour + (gender === "女" ? 7 : 3)) % 233280;
+  function nextRand() {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  }
+  const palaceNames = ["命宫","兄弟","夫妻","子女","财帛","疾厄","迁移","交友","官禄","田宅","福德","父母"];
+  const stars = ["紫微","天机","太阳","武曲","天同","廉贞","天府","太阴","贪狼","巨门","天相","天梁","七杀","破军"];
+  const positions = ["寅","卯","辰","巳","午","未","申","酉","戌","亥","子","丑"];
+  const brightness = ["庙","旺","得","利","平","陷"];
+  const palaces = {};
+  palaceNames.forEach(function(name, i) {
+    const n = Math.floor(nextRand() * 3) + 1;
+    const pStars = [];
+    for (let j = 0; j < n; j++) pStars.push(stars[Math.floor(nextRand() * stars.length)]);
+    palaces[name] = {
+      stars: [...new Set(pStars)],
+      position: positions[(i + month - 1) % 12],
+      miaoxian: brightness[Math.floor(nextRand() * brightness.length)]
+    };
+  });
   return {
-    birthInfo: {year, gender},
+    birthInfo: {year, month, day, hour, gender},
     mingGua,
     palaces,
     sihua: {"廉贞":"禄","破军":"权","武曲":"科","太阳":"忌"},
-    mainStars: ["紫微","天机","太阳","武曲","天同","廉贞","天府","太阴","贪狼","巨门","天相","天梁","七杀","破军"]
+    mainStars: stars
   };
 }
 
@@ -698,32 +742,12 @@ function updateEightMansions() {
 // ─── 五运六气 ────────────────────────────
 function updateYunqi() {
   const year = parseInt(document.getElementById('yq-year').value) || 2026;
-  const tgTable = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
-  const dzTable = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
-  const tiangan = tgTable[(year-4)%10];
-  const dizhi = dzTable[(year-4)%12];
-  const yunTable = {甲:"土",乙:"金",丙:"水",丁:"木",戊:"火",己:"土",庚:"金",辛:"水",壬:"木",癸:"火"};
-  const yunOver = {土:"土运太过",金:"金运太过",水:"水运太过",木:"木运太过",火:"火运太过"};
-  const qiTable = {
-    子:"少阴君火",午:"少阴君火",丑:"太阴湿土",未:"太阴湿土",
-    寅:"少阳相火",申:"少阳相火",卯:"阳明燥金",酉:"阳明燥金",
-    辰:"太阳寒水",戌:"太阳寒水",巳:"厥阴风木",亥:"厥阴风木"
-  };
-  const zaiquanMap = {"少阴君火":"阳明燥金","太阴湿土":"太阳寒水","少阳相火":"厥阴风木","阳明燥金":"少阴君火","太阳寒水":"太阴湿土","厥阴风木":"少阳相火"};
-  const steps = ["初之气","二之气","三之气","四之气","五之气","六之气"];
-  const qis = ["太阳寒水","厥阴风木","少阴君火","太阴湿土","少阳相火","阳明燥金"];
-  const terms = [
-    ["大寒","春分"],["春分","小满"],["小满","大暑"],
-    ["大暑","秋分"],["秋分","小雪"],["小雪","大寒"]
-  ];
-  const data = {
-    year, tiangan, dizhi,
-    wuyun: {dayun: yunOver[yunTable[tiangan]] || "土运太过"},
-    liuqi: {
-      sitian: qiTable[dizhi] || "厥阴风木",
-      zaiquan: zaiquanMap[qiTable[dizhi]] || "少阳相火",
-      zhuke: steps.map((s,i)=>({step:s, qi:qis[i], start:terms[i][0], end:terms[i][1]}))
-    }
+  const data = (typeof YunqiEngine !== "undefined") ? YunqiEngine.calculate(year) : {
+    year: year,
+    tiangan: "",
+    dizhi: "",
+    wuyun: {dayun: ""},
+    liuqi: {sitian: "", zaiquan: "", zhuke: []}
   };
   if(VizModules.health) VizModules.health.renderYunqi('yunqi-canvas', data);
 }
@@ -745,6 +769,7 @@ function updateConstitution() {
 
 // ─── Auto-init on first load ──────────────
 window.addEventListener('DOMContentLoaded', () => {
+  normalizeFormLabels(document);
   // 创建图例面板
   setTimeout(() => {
     CORE.createLegendPanel('legend-bazi', ['stems', 'branches', 'shishen']);
@@ -762,7 +787,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // 初始化全局数据桥接层 (根据显示延迟确保 DOM 就绪)
   if (typeof FORTUNE !== 'undefined') {
-    setTimeout(() => { FORTUNE.init(); }, 500);
+    setTimeout(() => { FORTUNE.init(); setTimeout(() => normalizeFormLabels(document), 150); }, 500);
   } else {
     // 降级: 无数据桥接时使用演示数据
     setTimeout(() => {

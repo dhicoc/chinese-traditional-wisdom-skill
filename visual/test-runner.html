@@ -7,30 +7,38 @@
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
   body{font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;background:#F5F0EB;color:#2C1810;padding:30px;}
-  h1{font-size:22px;color:#3E2723;border-bottom:2px solid #D7CCC8;padding-bottom:12px;margin-bottom:20px;}
-  .suite{background:#FFF;border-radius:10px;padding:16px 20px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:1px solid #EFEBE6;}
-  .suite h2{font-size:14px;color:#5D4037;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
-  .summary{margin-top:6px;font-size:13px;}
+  h1{font-size:22px;color:#3E2723;border-bottom:2px solid #D7CCC8;padding-bottom:12px;margin-bottom:16px;}
+  .panel{background:#FFF;border:1px solid #EFEBE6;border-radius:8px;padding:14px 18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+  .env-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px 18px;font-size:12px;color:#6D4C41;line-height:1.6;}
+  .suite{background:#FFF;border-radius:8px;padding:16px 20px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:1px solid #EFEBE6;}
+  .suite h2{font-size:14px;color:#5D4037;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .summary{margin-top:6px;font-size:13px;line-height:1.7;}
   .pass{color:#2E7D32;}
   .fail{color:#C62828;}
   .warn{color:#F9A825;}
-  .detail{font-size:12px;color:#666;margin-top:6px;padding:8px;background:#FAFAF5;border-radius:6px;max-height:200px;overflow-y:auto;display:none;}
+  .detail{font-size:12px;color:#5D4037;margin-top:10px;padding:10px;background:#FAFAF5;border-radius:6px;max-height:220px;overflow-y:auto;display:none;line-height:1.7;}
   .detail.show{display:block;}
   button{background:#5D4037;color:#FFF;border:none;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;}
   button:hover{background:#4E342E;}
   .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;}
   .badge-pass{background:#E8F5E9;color:#2E7D32;}
   .badge-fail{background:#FFEBEE;color:#C62828;}
+  .badge-warn{background:#FFF8E1;color:#8D6E00;}
   .progress-bar{height:6px;border-radius:3px;background:#EFEBE6;margin:10px 0;overflow:hidden;}
   .progress-fill{height:100%;border-radius:3px;background:#2E7D32;transition:width 0.5s;width:0%;}
   #viz-section canvas{display:none;}
-  #report-created{text-align:center;font-size:11px;color:#BCAAA4;margin-top:20px;}
+  #report-created{text-align:center;font-size:12px;color:#6D4C41;margin-top:20px;}
+  .shot-note{font-size:12px;color:#8D6E63;margin-top:8px;}
 </style>
 </head>
 <body>
-<h1>🔬 chinese-traditional-wisdom-skill · 自动化测试套件</h1>
+<h1>chinese-traditional-wisdom-skill · 自动化测试套件</h1>
 
-<div id="progress" style="margin-bottom:20px;">
+<div id="env" class="panel">
+  <div class="env-grid" id="env-grid"></div>
+</div>
+
+<div id="progress" class="panel">
   <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
   <div id="progress-text" style="font-size:12px;color:#8D6E63;">准备中...</div>
 </div>
@@ -39,17 +47,25 @@
 <div id="viz-section"></div>
 <div id="report-created"></div>
 
-<!-- ─── 加载引擎 ─── -->
+<!-- ─── 加载引擎与公共模块 ─── -->
 <script src="js/core.js"></script>
+<script src="js/search.js"></script>
+<script src="js/capabilities.js"></script>
 <script src="js/engines/bazi-engine.js"></script>
 <script src="js/engines/yunqi-engine.js"></script>
+<script src="js/ziwei.js"></script>
+<script src="js/divination.js"></script>
+<script src="js/fengshui.js"></script>
+<script src="js/data-bridge.js"></script>
 
 <!-- ─── 加载测试 ─── -->
 <script src="js/tests/test-bazi.js"></script>
 <script src="js/tests/test-yunqi.js"></script>
 <script src="js/tests/test-data-bridge.js"></script>
+<script src="js/tests/test-v02-quality.js"></script>
+<script src="js/tests/test-global-sync.js"></script>
 
-<!-- ─── 可视化测试 (加载 viz 模块并尝试渲染) ─── -->
+<!-- ─── 可视化测试模块 ─── -->
 <script src="js/bazi.js"></script>
 <script src="js/health.js"></script>
 
@@ -59,21 +75,62 @@
   var fillEl = document.getElementById("progress-fill");
   var textEl = document.getElementById("progress-text");
   var vizEl = document.getElementById("viz-section");
-  var overall = { passed: 0, failed: 0 };
-  var testOrder = ["TestBazi", "TestYunqi", "TestDataBridge"];
-  var testLabels = ["八字引擎", "五运六气引擎", "数据桥接"];
+  var overall = { passed: 0, failed: 0, suites: 0 };
+  var testOrder = ["TestBazi", "TestYunqi", "TestDataBridge", "TestV02Quality", "TestGlobalSync"];
+  var testLabels = ["八字引擎", "五运六气引擎", "数据桥接", "v0.2 质量基线", "全局同步回归"];
   var suiteHTML = "";
   var currentSuite = 0;
+
+  function escapeHtml(str) {
+    var div = document.createElement("div");
+    div.appendChild(document.createTextNode(String(str || "")));
+    return div.innerHTML;
+  }
+
+  function renderEnv() {
+    var stats = window.GlobalSearch && GlobalSearch.getIndexStats ? GlobalSearch.getIndexStats() : { mappings: "?", knowledgeBase: "?" };
+    document.getElementById("env-grid").innerHTML =
+      '<div><b>浏览器</b><br>' + escapeHtml(navigator.userAgent) + '</div>' +
+      '<div><b>页面协议</b><br>' + escapeHtml(location.protocol) + '</div>' +
+      '<div><b>能力注册</b><br>' + (window.CapabilityRegistry ? '已加载 v' + CapabilityRegistry.version : '未加载') + '</div>' +
+      '<div><b>搜索索引</b><br>映射表 ' + stats.mappings + ' · 古籍 ' + stats.knowledgeBase + '</div>' +
+      '<div><b>截图建议</b><br>失败时截取本页和控制台，优先保留首个失败详情。</div>';
+  }
 
   function updateProgress(pct, text) {
     fillEl.style.width = pct + "%";
     textEl.textContent = text;
   }
 
+  function detailHtml(result) {
+    var list = result.details || result.tests || [];
+    if (result.error) list = ["错误: " + result.error].concat(list);
+    if (!list.length) return "";
+    var lines = list.map(function(x) { return escapeHtml(x); }).join("<br>");
+    return '<button type="button" onclick="this.nextElementSibling.classList.toggle(\'show\')">展开详情</button>' +
+      '<div class="detail">' + lines + '</div>';
+  }
+
+  function appendSuite(label, result) {
+    var p = typeof result.passed === "number" ? result.passed : 0;
+    var f = typeof result.failed === "number" ? result.failed : 1;
+    var total = typeof result.total === "number" ? result.total : p + f;
+    var status = f === 0 ? "通过" : "失败";
+    var badgeClass = f === 0 ? "badge-pass" : "badge-fail";
+    suiteHTML += '<div class="suite">' +
+      '<h2>' + label + ' <span class="badge ' + badgeClass + '">' + status + '</span><span class="badge badge-warn">' + total + ' 项</span></h2>' +
+      '<div class="summary">通过: <span class="pass">' + p + '</span> · 失败: <span class="fail">' + f + '</span></div>' +
+      detailHtml(result) +
+      '</div>';
+    resultsEl.innerHTML = suiteHTML;
+    overall.passed += p;
+    overall.failed += f;
+    overall.suites++;
+  }
+
   function runNextSuite() {
     if (currentSuite >= testOrder.length) {
-      // 所有测试完成 → 运行可视化测试
-      updateProgress(90, "运行可视化渲染测试...");
+      updateProgress(88, "运行可视化渲染测试...");
       runVizTest();
       return;
     }
@@ -81,110 +138,95 @@
     var name = testOrder[currentSuite];
     var label = testLabels[currentSuite];
     var testObj = window[name];
-    updateProgress((currentSuite / testOrder.length) * 100, "正在测试: " + label + "...");
+    updateProgress(Math.round((currentSuite / testOrder.length) * 80), "正在测试: " + label + "...");
 
     setTimeout(function() {
       var result;
       try {
+        if (!testObj || typeof testObj.run !== "function") throw new Error(name + " 未加载");
         result = testObj.run();
       } catch(e) {
-        result = { passed: 0, failed: 1, error: e.message };
+        result = { passed: 0, failed: 1, total: 1, error: e.message };
       }
-      // 防御 NaN (当 result 无 passed/failed 时)
-      var p = typeof result.passed === 'number' ? result.passed : 0;
-      var f = typeof result.failed === 'number' ? result.failed : 1;
-      var total = p + f;
-
-      var pct = currentSuite > 0 ? (p / Math.max(total, 1)) * 100 : 0;
-      var status = f === 0 ? "✅" : "❌";
-      var badgeClass = f === 0 ? "badge-pass" : "badge-fail";
-      suiteHTML += '<div class="suite">' +
-        '<h2>' + status + ' ' + label +
-        ' <span class="badge ' + badgeClass + '">' + total + ' 项</span></h2>' +
-        '<div class="summary">通过: <span class="pass">' + p + '</span> · 失败: <span class="fail">' + f + '</span></div>' +
-        (result.error ? '<div class="warn">⚠️ ' + result.error + '</div>' : '') +
-        '</div>';
-
-      resultsEl.innerHTML = suiteHTML;
-      overall.passed += p;
-      overall.failed += f;
-
+      appendSuite(label, result || { passed: 0, failed: 1, total: 1, error: "测试未返回结果" });
       currentSuite++;
       runNextSuite();
-    }, 200);
+    }, 160);
+  }
+
+  function canvasHasPixels(canvas) {
+    var ctx = canvas.getContext("2d");
+    var data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    for (var i = 3; i < data.length; i += 4) if (data[i] !== 0) return true;
+    return false;
   }
 
   function runVizTest() {
-    // 创建隐藏的 canvases 测试渲染
-    var canvasIds = ["viz-bazi", "viz-wuxing", "viz-yunqi", "viz-constitution"];
     var vizPassed = 0, vizFailed = 0;
     var vizDetails = [];
+    var baziData = null;
 
-    // 八字
+    function checkCanvas(canvas, label) {
+      if (!canvasHasPixels(canvas)) throw new Error(label + " 画布为空");
+    }
+
     try {
-      var baziData = BaziEngine.calculate({year:1990, month:6, day:15, hour:12, gender:"男"});
+      baziData = BaziEngine.calculate({year:1990, month:6, day:15, hour:12, gender:"男"});
       var renderData = BaziEngine.getRenderData(baziData);
       var c1 = document.createElement("canvas"); c1.id = "viz-bazi"; c1.width = 600; c1.height = 400;
       vizEl.appendChild(c1);
       VizModules.bazi.render("viz-bazi", renderData);
-      vizPassed++; vizDetails.push("✅ 八字命盘渲染成功");
-    } catch(e) { vizFailed++; vizDetails.push("❌ 八字命盘渲染失败: " + e.message); }
+      checkCanvas(c1, "八字命盘");
+      vizPassed++; vizDetails.push("八字命盘渲染成功且非空");
+    } catch(e) { vizFailed++; vizDetails.push("八字命盘渲染失败: " + e.message); }
 
-    // 五行
     try {
+      if (!baziData) baziData = BaziEngine.calculate({year:1990, month:6, day:15, hour:12, gender:"男"});
       var c2 = document.createElement("canvas"); c2.id = "viz-wuxing"; c2.width = 520; c2.height = 440;
       vizEl.appendChild(c2);
       VizModules.bazi.renderWuxing("viz-wuxing", baziData.elements);
-      vizPassed++; vizDetails.push("✅ 五行平衡图渲染成功");
-    } catch(e) { vizFailed++; vizDetails.push("❌ 五行平衡图渲染失败: " + e.message); }
+      checkCanvas(c2, "五行平衡图");
+      vizPassed++; vizDetails.push("五行平衡图渲染成功且非空");
+    } catch(e) { vizFailed++; vizDetails.push("五行平衡图渲染失败: " + e.message); }
 
-    // 五运六气
     try {
       var yunqiData = YunqiEngine.calculate(1990);
       var c3 = document.createElement("canvas"); c3.id = "viz-yunqi"; c3.width = 550; c3.height = 450;
       vizEl.appendChild(c3);
       VizModules.health.renderYunqi("viz-yunqi", yunqiData);
-      vizPassed++; vizDetails.push("✅ 五运六气渲染成功");
-    } catch(e) { vizFailed++; vizDetails.push("❌ 五运六气渲染失败: " + e.message); }
+      checkCanvas(c3, "五运六气");
+      vizPassed++; vizDetails.push("五运六气渲染成功且非空");
+    } catch(e) { vizFailed++; vizDetails.push("五运六气渲染失败: " + e.message); }
 
-    // 体质
     try {
       var c4 = document.createElement("canvas"); c4.id = "viz-constitution"; c4.width = 400; c4.height = 400;
       vizEl.appendChild(c4);
       var conData = { scores: {"平和质":60,"气虚质":20,"阳虚质":20,"阴虚质":20,"痰湿质":20,"湿热质":20,"血瘀质":20,"气郁质":20,"特禀质":10}, dominant: "平和质" };
       VizModules.health.renderConstitution("viz-constitution", conData);
-      vizPassed++; vizDetails.push("✅ 体质雷达图渲染成功");
-    } catch(e) { vizFailed++; vizDetails.push("❌ 体质雷达图渲染失败: " + e.message); }
+      checkCanvas(c4, "体质雷达图");
+      vizPassed++; vizDetails.push("体质雷达图渲染成功且非空");
+    } catch(e) { vizFailed++; vizDetails.push("体质雷达图渲染失败: " + e.message); }
 
-    overall.passed += vizPassed;
-    overall.failed += vizFailed;
+    appendSuite("可视化渲染", { passed: vizPassed, failed: vizFailed, total: vizPassed + vizFailed, details: vizDetails });
+    finish();
+  }
 
-    var pct = overall.passed / Math.max(overall.passed + overall.failed, 1);
-    var status = vizFailed === 0 ? "✅" : "❌";
-    suiteHTML += '<div class="suite">' +
-      '<h2>' + status + ' 可视化渲染 ' +
-      '<span class="badge ' + (vizFailed===0?'badge-pass':'badge-fail') + '">' + (vizPassed+vizFailed) + ' 项</span></h2>' +
-      '<div class="summary">通过: <span class="pass">' + vizPassed + '</span> · 失败: <span class="fail">' + vizFailed + '</span></div>' +
-      '<div class="detail show">' + vizDetails.join("<br>") + '</div>' +
-      '</div>';
-
-    resultsEl.innerHTML = suiteHTML;
-
-    // 最终报告
-    var finalPct = overall.failed === 0 ? 100 : Math.round((overall.passed / (overall.passed + overall.failed)) * 100);
+  function finish() {
+    var total = overall.passed + overall.failed;
+    var finalPct = overall.failed === 0 ? 100 : Math.round((overall.passed / Math.max(total, 1)) * 100);
     updateProgress(100, "测试完成");
-    var finalStatus = overall.failed === 0 ? "🎉 全部通过" : "⚠️ 有 " + overall.failed + " 项失败";
+    var finalStatus = overall.failed === 0 ? "全部通过" : "有 " + overall.failed + " 项失败";
     document.getElementById("report-created").innerHTML =
-      '<div style="margin-top:20px;padding:16px 20px;background:#FFF;border-radius:10px;border:1px solid #EFEBE6;">' +
+      '<div class="panel">' +
       '<strong style="font-size:16px;">' + finalStatus + '</strong><br>' +
-      '总测试: ' + (overall.passed + overall.failed) + ' 项 · 通过: ' + overall.passed + ' · 失败: ' + overall.failed +
-      ' · 通过率: ' + finalPct + '%' +
+      '测试套件: ' + overall.suites + ' 组 · 总测试: ' + total + ' 项 · 通过: ' + overall.passed + ' · 失败: ' + overall.failed + ' · 通过率: ' + finalPct + '%' +
+      '<div class="shot-note">验收截图建议：保留本页总览、展开的失败详情和浏览器控制台。</div>' +
       '</div>';
   }
 
-  // 开始
+  renderEnv();
   updateProgress(5, "加载引擎...");
-  setTimeout(runNextSuite, 500);
+  setTimeout(runNextSuite, 400);
 })();
 </script>
 </body>

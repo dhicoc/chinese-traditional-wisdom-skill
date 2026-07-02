@@ -102,13 +102,26 @@ else → 提示用户提供更多信息（参照 §10 输入完整性）
 2. **系统已安装引擎**：查 tool-index.md 确认本地可用
 3. **引擎缺失**：按 bootstrap/ 目录下引导文件接入，询问用户是否安装
 
+
+## 2.1 能力边界声明
+
+AI Agent 输出结论时必须区分以下四类状态：
+
+| 状态 | 说明 | 当前模块 |
+|------|------|----------|
+| 本地规则计算 | 浏览器内确定性规则，可复现 | 流年飞星、八宅、风水罗盘 |
+| 本地近似计算 | 离线可用，但节气/历法存在简化 | 八字、五运六气 |
+| 演示数据 | 仅用于可视化结构展示 | 紫微、六爻、梅花 |
+| 需外部引擎 | 真实排盘必须接入外部库或人工规则 | 紫微、六爻、梅花精算 |
+
+Dashboard 中可通过 `window.FORTUNE.getCapabilities()` 获取能力状态，通过 `window.FORTUNE.exportReportData()` 获取脱敏 `REPORT_DATA` 快照。`REPORT_DATA` v0.2 新增 `version`、`generatedAt`、`sourceNotes`，旧字段保持兼容。
 ## 3. 可视化报告生成
 
 ### 模式 A：静态 HTML 报告（对话内联）
 
 ```markdown
 1. 打开 templates/visual-report.md
-2. 将推算结果填充到 REPORT_DATA JSON 区块
+2. 将推算结果填充到 REPORT_DATA JSON 区块，并保留 `version`、`generatedAt`、`sourceNotes`
 3. 取消不需要的模块注释（如 ziwei/liuyao 等）
 4. 保存为独立 .html 文件
 5. 在对话中呈现文字报告摘要 + 提供 HTML 文件链接
@@ -134,6 +147,7 @@ else → 提示用户提供更多信息（参照 §10 输入完整性）
 | [bootstrap/](bootstrap/) | 六引擎接入引导 |
 | [templates/visual-report.md](templates/visual-report.md) | 静态 HTML 报告模板 |
 | [visual/index.html](visual/index.html) | 交互式 Web Dashboard |
+| [ROADMAP.md](ROADMAP.md) | v0.2 优化与发布路线图 |
 
 ## 5. 全球搜索
 

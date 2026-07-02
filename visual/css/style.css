@@ -321,3 +321,97 @@ canvas.viz-canvas {
   letter-spacing: 1px;
   margin-bottom: 4px;
 }
+
+/* ─── v0.2 capability / roadmap controls ───────────── */
+.wizard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.wizard-card {
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: #FAFAF7;
+  color: var(--text-primary);
+  text-align: left;
+  padding: 12px 14px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.wizard-card:hover { border-color: var(--accent-gold); background: #FFF8E1; }
+.wizard-card b { display: block; font-size: 14px; margin-bottom: 4px; }
+.wizard-card span { display: block; font-size: 12px; color: var(--text-muted); }
+.action-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.action-row button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  background: var(--bg-header);
+  color: #FFF;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+}
+.action-row button:hover { background: #5D4037; }
+.capability-note b { font-weight: 700; }
+.input-error {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #FFEBEE;
+  border: 1px solid #FFCDD2;
+  color: #B71C1C;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.offline-note {
+  text-align: left;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.offline-note pre {
+  margin-top: 8px;
+  padding: 10px;
+  background: #FAFAF7;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  white-space: pre-wrap;
+  color: var(--text-primary);
+}
+.diag-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9997;
+  background: rgba(0,0,0,0.38);
+}
+.diag-dialog {
+  position: fixed;
+  z-index: 9998;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(860px, 92vw);
+  max-height: 78vh;
+  overflow: auto;
+  background: #FFF;
+  border-radius: 10px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.24);
+  padding: 22px;
+  color: var(--text-primary);
+}
+.diag-close {
+  position: absolute;
+  right: 12px;
+  top: 10px;
+  border: none;
+  background: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+.diag-dialog h2 { font-size: 18px; margin-bottom: 12px; }
+.diag-dialog p { font-size: 13px; color: var(--text-secondary); margin: 8px 0; }
+.diag-dialog table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 12px; }
+.diag-dialog th, .diag-dialog td { border: 1px solid var(--border-light); padding: 8px; text-align: left; vertical-align: top; }
+.diag-dialog th { background: #FAFAF7; color: var(--text-secondary); }
