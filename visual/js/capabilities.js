@@ -18,9 +18,9 @@
     },
     bazi: {
       label: "八字命盘",
-      mode: "local-approx",
-      modeLabel: "本地近似计算",
-      note: "纯 JS 计算四柱、藏干、十神、五行和大运；月柱用近似节气，起运按 3 岁简化。"
+      mode: "local-exact",
+      modeLabel: "本地精确计算",
+      note: "内置 lunar-javascript 读取精确节气干支；用户关闭精确历法时回退纯 JS 近似模式。"
     },
     ziwei: {
       label: "紫微斗数",
@@ -36,9 +36,9 @@
     },
     meihua: {
       label: "梅花易数",
-      mode: "demo",
-      modeLabel: "演示数据",
-      note: "当前 Dashboard 展示体用生克图；真实起卦需按 bootstrap 指南接入。"
+      mode: "local",
+      modeLabel: "本地规则计算",
+      note: "内置时间起卦规则，按年月日时生成上下卦、动爻、互卦、变卦与体用生克；不同流派可能存在口径差异。"
     },
     fengshui: {
       label: "风水罗盘",
@@ -60,9 +60,9 @@
     },
     yunqi: {
       label: "五运六气",
-      mode: "local-approx",
-      modeLabel: "本地近似计算",
-      note: "按年干支推算岁运、司天在泉、客气六步；暂未接入精确大寒节气表。"
+      mode: "local-exact",
+      modeLabel: "本地精确边界",
+      note: "内置 lunar-javascript 按大寒边界修正运气年份；用户关闭精确历法时回退公历年近似模式。"
     },
     tizhi: {
       label: "体质辨识",
@@ -80,8 +80,10 @@
 
   var MODE_LABELS = {
     local: "本地真实计算",
+    "local-exact": "本地精确计算",
     "local-approx": "本地近似计算",
     demo: "演示数据",
+    "fallback-demo": "降级演示",
     knowledge: "知识/映射",
     derived: "推导数据",
     "optional-cdn": "可选 CDN"
@@ -89,49 +91,15 @@
 
   var MODE_COLORS = {
     local: "#2E7D32",
+    "local-exact": "#1B5E20",
     "local-approx": "#B26A00",
     demo: "#8D3DAF",
+    "fallback-demo": "#795548",
     knowledge: "#1565C0",
     derived: "#5D4037",
     "optional-cdn": "#6D4C41"
   };
 
-  var EngineAdapters = {
-    bazi: {
-      engineName: "BaziEngine",
-      mode: "local-approx",
-      inputSchema: "year/month/day/hour/gender/isLunar",
-      confidenceNote: CAPABILITIES.bazi.note,
-      calculate: function (input) { return window.BaziEngine.calculate(input); },
-      toRenderData: function (result) { return window.BaziEngine.getRenderData(result); }
-    },
-    yunqi: {
-      engineName: "YunqiEngine",
-      mode: "local-approx",
-      inputSchema: "year",
-      confidenceNote: CAPABILITIES.yunqi.note,
-      calculate: function (input) { return window.YunqiEngine.calculate(input.year || input); },
-      toRenderData: function (result) { return result; }
-    },
-    ziwei: {
-      engineName: "iztro/iztro-py",
-      mode: "external-required",
-      inputSchema: "year/month/day/hour/gender/lunar",
-      confidenceNote: "Dashboard 中为演示数据；真实排盘需外部引擎。"
-    },
-    liuyao: {
-      engineName: "ichingshifa",
-      mode: "external-required",
-      inputSchema: "question/method/time-or-coins",
-      confidenceNote: "Dashboard 中为演示数据；真实起卦需外部引擎。"
-    },
-    meihua: {
-      engineName: "meihua-yishu",
-      mode: "external-required",
-      inputSchema: "time/number/object/sound/direction",
-      confidenceNote: "Dashboard 中为演示数据；真实起卦需外部引擎或手工规则。"
-    }
-  };
 
   function getCapabilities() {
     return JSON.parse(JSON.stringify(CAPABILITIES));
@@ -162,7 +130,7 @@
       ok: errors.length === 0,
       valid: errors.length === 0,
       errors: errors,
-      value: { year: y, month: m, day: d, hour: h, gender: gender || "男", isLunar: !!input.isLunar }
+      value: { year: y, month: m, day: d, hour: h, gender: gender || "男", isLunar: !!input.isLunar, useExactCalendar: input.useExactCalendar !== false }
     };
   }
 
@@ -425,7 +393,7 @@
   window.CapabilityRegistry = {
     version: REPORT_DATA_VERSION,
     capabilities: CAPABILITIES,
-    adapters: EngineAdapters,
+    get adapters() { return window.EngineAdapterRegistry ? EngineAdapterRegistry.getAll() : {}; },
     modeLabels: MODE_LABELS,
     getCapabilities: getCapabilities,
     validateBirthInput: validateBirthInput,

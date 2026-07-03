@@ -517,11 +517,30 @@ flowchart LR
 <script src="js/capabilities.js"></script>
 <script src="js/engines/bazi-engine.js"></script>
 <script src="js/engines/yunqi-engine.js"></script>
+<script src="vendor/lunar-javascript-1.7.7.js"></script>
+<script src="js/engine-adapters.js"></script>
 <script src="js/data-bridge.js"></script>
 
 <script>
 // ─── Tab switching ─────────────────────────
+var DEMO_TAB_CONFIRM_TEXT = {
+  ziwei: "紫微斗数当前仍为十二宫演示结构，真实排盘引擎尚未内置。是否继续查看演示结构？",
+  liuyao: "六爻当前仍为演示卦象，真实纳甲起卦引擎尚未内置。是否继续查看演示结构？",
+  meihua: "梅花易数当前仍为演示卦象，真实起卦规则尚未内置。是否继续查看演示结构？"
+};
+var demoTabConfirmed = {};
+
+function shouldConfirmDemoTab(name) {
+  if (!DEMO_TAB_CONFIRM_TEXT[name] || demoTabConfirmed[name]) return false;
+  var adapter = window.EngineAdapterRegistry && EngineAdapterRegistry.get ? EngineAdapterRegistry.get(name) : null;
+  return !adapter || adapter.mode === "demo" || adapter.mode === "external-required";
+}
+
 function switchTab(name) {
+  if (shouldConfirmDemoTab(name)) {
+    if (!window.confirm(DEMO_TAB_CONFIRM_TEXT[name])) return false;
+    demoTabConfirmed[name] = true;
+  }
   document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.remove('active'); });
   document.querySelectorAll('.tab-btn').forEach(function(el) { el.classList.remove('active'); });
   document.getElementById('tab-' + name).classList.add('active');
@@ -532,9 +551,8 @@ function switchTab(name) {
   if (name === 'mermaid') {
     setTimeout(renderMermaid, 100);
   }
+  return true;
 }
-
-
 function normalizeFormLabels(root) {
   var scope = root || document;
   var autoId = 0;

@@ -1,8 +1,9 @@
-{
+﻿{
   "name": "chinese-traditional-wisdom-skill",
   "version": "1.0.0",
   "description": "Chinese Traditional Wisdom AI Agent Skill Pack",
   "dependencies": {
-    "bazi-ziwei-skill": "^1.0.0"
+    "bazi-ziwei-skill": "^1.0.0",
+    "lunar-javascript": "^1.7.7"
   }
 }

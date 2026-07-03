@@ -21,7 +21,7 @@
   // ─── 默认生辰 ───
   const DEFAULT_BIRTH = {
     year: 1990, month: 6, day: 15, hour: 12, minute: 0,
-    gender: "男", isLunar: false
+    gender: "男", isLunar: false, useExactCalendar: true
   };
 
   // ─── 内部数据 ───
@@ -29,6 +29,31 @@
   let _data = null;       // 当前完整数据快照
   let _listeners = [];    // 数据变更回调
 
+  function getEngineAdapter(name) {
+    return window.EngineAdapterRegistry && EngineAdapterRegistry.get ? EngineAdapterRegistry.get(name) : null;
+  }
+
+  function calculateWithAdapter(name, input) {
+    var adapter = getEngineAdapter(name);
+    if (!adapter || typeof adapter.calculate !== "function") return null;
+    try {
+      return adapter.calculate(input || {});
+    } catch (e) {
+      console.warn(name + " adapter fallback:", e.message || e);
+      return null;
+    }
+  }
+
+  function renderDataWithAdapter(name, result, input) {
+    var adapter = getEngineAdapter(name);
+    if (!adapter || typeof adapter.toRenderData !== "function") return null;
+    try {
+      return adapter.toRenderData(result, input || {});
+    } catch (e) {
+      console.warn(name + " render adapter fallback:", e.message || e);
+      return null;
+    }
+  }
   // ═══════════════════════════════════════════════════════
   //  核心引擎调度
   // ═══════════════════════════════════════════════════════
@@ -38,14 +63,12 @@
     const y = birth.year, m = birth.month, d = birth.day, h = birth.hour;
 
     // 1. 八字
-    let baziData = null, baziRender = null;
-    if (typeof BaziEngine !== "undefined") {
-      baziData = BaziEngine.calculate({
-        year: y, month: m, day: d, hour: h,
-        gender: birth.gender, isLunar: birth.isLunar
-      });
-      baziRender = BaziEngine.getRenderData(baziData);
-    } else {
+    let baziData = calculateWithAdapter("bazi", {
+      year: y, month: m, day: d, hour: h,
+      gender: birth.gender, isLunar: birth.isLunar, useExactCalendar: birth.useExactCalendar !== false
+    });
+    let baziRender = baziData ? renderDataWithAdapter("bazi", baziData, birth) : null;
+    if (!baziData || !baziRender) {
       // fallback: 仅计算年柱+日柱
       const yStem = (y - 4) % 10, yBranch = (y - 4) % 12;
       const ref = new Date(1900,0,1), tgt = new Date(y, m-1, d);
@@ -58,7 +81,8 @@
           day:   { stem: "甲乙丙丁戊己庚辛壬癸"[sexa%10], branch: "子丑寅卯辰巳午未申酉戌亥"[sexa%12] },
           hour:  { stem: "甲", branch: "子" }
         },
-        dayMaster: "甲", elements: {木:0,火:0,土:0,金:0,水:0}, luck: []
+        dayMaster: "甲", elements: {木:0,火:0,土:0,金:0,水:0}, luck: [],
+        engineName: "FallbackBazi", mode: "fallback-demo", confidenceNote: "BaziEngine 不可用时的最低限度 fallback。"
       };
       baziRender = {
         year: {stem:baziData.pillars.year.stem,branch:baziData.pillars.year.branch,hidden:[]},
@@ -70,10 +94,8 @@
     }
 
     // 2. 五运六气
-    let yunqiData = null;
-    if (typeof YunqiEngine !== "undefined") {
-      yunqiData = YunqiEngine.calculate(y);
-    } else {
+    let yunqiData = calculateWithAdapter("yunqi", birth);
+    if (!yunqiData) {
       const tgIdx = (y - 4) % 10, dzIdx = (y - 4) % 12;
       yunqiData = {
         year: y,
@@ -91,7 +113,8 @@
             {step:"六之气",qi:"太阳寒水",start:"小雪",end:"大寒"}
           ]
         },
-        disease_tendency: ""
+        disease_tendency: "",
+        engineName: "FallbackYunqi", mode: "fallback-demo", confidenceNote: "YunqiEngine 不可用时的最低限度 fallback。"
       };
     }
 
@@ -102,9 +125,15 @@
     // 4. 体质 (根据八字五行生成合理模拟数据)
     const constitution = generateConstitution(baziData);
 
-    // 5. 六爻 + 梅花 (种子随机, 基于生辰)
+    // 5. 六爻 + 梅花 (Adapter 优先, 原演示生成兜底)
     const seed = y * 10000 + m * 100 + d + h;
-    const divination = generateDivination(seed, birth);
+    const divinationFallback = generateDivination(seed, birth);
+    const divination = {
+      liuyao: calculateWithAdapter("liuyao", { birth: birth, seed: seed }) || divinationFallback.liuyao,
+      meihua: calculateWithAdapter("meihua", { birth: birth, seed: seed }) || divinationFallback.meihua
+    };
+
+    const ziweiData = calculateWithAdapter("ziwei", { birth: birth, mingGua: mingGua }) || generateZiweiDefault(birth, mingGua);
 
     // 6. 交叉引用 (跨标签页关联)
     const crossRef = computeCrossReferences(baziData, yunqiData, constitution, mingGua);
@@ -113,7 +142,7 @@
       meta: { source: "engine", computedAt: Date.now(), reportDataVersion: (window.CapabilityRegistry && CapabilityRegistry.version) || "0.1.0" },
       birth: {
         year: y, month: m, day: d, hour: h,
-        gender: birth.gender, isLunar: birth.isLunar
+        gender: birth.gender, isLunar: birth.isLunar, useExactCalendar: birth.useExactCalendar !== false, useExactCalendar: birth.useExactCalendar !== false
       },
       bazi: baziData,
       baziRender: baziRender,
@@ -125,7 +154,7 @@
       },
       constitution: constitution,
       divination: divination,
-      ziwei: generateZiweiDefault(birth, mingGua),
+      ziwei: ziweiData,
       crossRef: crossRef
     };
   }
@@ -273,7 +302,7 @@
     const trigrams = ["乾","兑","离","震","巽","坎","艮","坤"];
     const upper = Math.floor(rng() * 8);
     const lower = Math.floor(rng() * 8);
-    const moving = Math.floor(rng() * 6);
+    const moving = Math.floor(rng() * 6) + 1;
     return {
       liuyao: {
         lines: lines,
@@ -346,7 +375,9 @@
 
   function setControlValue(id, value) {
     var el = document.getElementById(id);
-    if (el && value !== undefined && value !== null) el.value = String(value);
+    if (!el || value === undefined || value === null) return;
+    if (el.type === "checkbox") el.checked = value !== false && value !== "false";
+    else el.value = String(value);
   }
 
   function pillarText(pillar) {
@@ -362,6 +393,7 @@
     setControlValue("gi-day", d.birth.day);
     setControlValue("gi-hour", d.birth.hour);
     setControlValue("gi-gender", d.birth.gender);
+    setControlValue("gi-exact-calendar", d.birth.useExactCalendar !== false);
 
     if (d.baziRender && typeof VizModules !== "undefined" && VizModules.bazi) {
       setControlValue("bazi-year", pillarText(d.baziRender.year));
@@ -395,7 +427,7 @@
     if (d.divination && d.divination.meihua && VizModules.divination) {
       setControlValue("mh-upper", d.divination.meihua.upperTrigram && d.divination.meihua.upperTrigram.name);
       setControlValue("mh-lower", d.divination.meihua.lowerTrigram && d.divination.meihua.lowerTrigram.name);
-      setControlValue("mh-moving", (d.divination.meihua.changingLine || 0) + 1);
+      setControlValue("mh-moving", d.divination.meihua.changingLine || 1);
       VizModules.divination.renderMeihua("meihua-canvas", d.divination.meihua);
     }
 
@@ -489,6 +521,12 @@
             <option value="女" ${_birth.gender==="女"?"selected":""}>女</option>
           </select>
         </div>
+        <div style="flex:0 0 150px;min-width:145px;padding-bottom:7px;">
+          <label for="gi-exact-calendar" style="display:flex;align-items:center;gap:6px;font-size:12px;color:#F5F0EB;cursor:pointer;white-space:nowrap;">
+            <input type="checkbox" id="gi-exact-calendar" ${_birth.useExactCalendar!==false?"checked":""} style="accent-color:#F9A825;">
+            精确历法测算
+          </label>
+        </div>
         <div style="flex:0 0 auto;">
           <button id="gi-update"
             style="padding:8px 24px;background:linear-gradient(135deg,#D4A017,#F9A825);
@@ -520,7 +558,8 @@
         month: document.getElementById("gi-month").value,
         day: document.getElementById("gi-day").value,
         hour: document.getElementById("gi-hour").value,
-        gender: document.getElementById("gi-gender").value
+        gender: document.getElementById("gi-gender").value,
+        useExactCalendar: document.getElementById("gi-exact-calendar") ? document.getElementById("gi-exact-calendar").checked : true
       };
       const validator = window.CapabilityRegistry && CapabilityRegistry.validateBirthInput;
       const result = validator ? validator(raw) : { ok: true, value: {

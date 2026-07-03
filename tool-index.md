@@ -34,11 +34,11 @@
 
 | 模块 | Dashboard 状态 | 说明 |
 |------|----------------|------|
-| 八字 | 本地近似计算 | 使用 `visual/js/engines/bazi-engine.js`，月柱节气和起运为简化算法。 |
-| 五运六气 | 本地近似计算 | 使用 `visual/js/engines/yunqi-engine.js`，大寒定年未接入精确 API。 |
+| 八字 | 本地精确计算 / 本地近似计算 fallback | 默认加载 `visual/vendor/lunar-javascript-1.7.7.js` 读取精确节气干支；关闭精确历法或加载失败时回退 `visual/js/engines/bazi-engine.js`。 |
+| 五运六气 | 本地精确边界 / 本地近似计算 fallback | 默认加载 `visual/vendor/lunar-javascript-1.7.7.js` 按大寒边界修正运气年份；关闭精确历法或加载失败时回退公历年近似。 |
 | 紫微斗数 | 演示数据 / 需外部引擎 | 真实排盘需 `iztro-py` 或等价引擎。 |
 | 六爻 | 演示数据 / 需外部引擎 | 真实起卦需 `ichingshifa` 或人工纳甲规则。 |
-| 梅花易数 | 演示数据 / 需外部引擎 | 真实起卦需外部库或手工规则。 |
+| 梅花易数 | 本地规则计算 | 内置时间起卦 Adapter，按年月日时生成上下卦、动爻、互卦、变卦和体用生克；不同流派可能存在口径差异。 |
 | 风水罗盘 / 飞星 / 八宅 | 本地规则计算 | 基于 Canvas 和 JSON 映射表离线运行。 |
 
 能力状态统一由 `visual/js/capabilities.js` 管理，Dashboard 通过 `FORTUNE.getCapabilities()` 暴露只读查询。
@@ -66,6 +66,8 @@
 | Canvas 2D API | 浏览器原生 | visual/index.html | 无需依赖 |
 | Mermaid.js v10.9.1 | 可选 CDN | visual/index.html (script src) | 网络失败时显示离线降级提示，不阻塞 Canvas 模块 |
 | Chart.js | CDN | visual/index.html (script src) | 雷达图 + 扇形图 |
+| lunar-javascript 1.7.7 | 浏览器内置 vendor | `visual/vendor/lunar-javascript-1.7.7.js` | MIT；提供 `Solar` / `Lunar` / `EightChar`，用于八字节气干支和五运六气大寒边界 |
+| 引擎 Adapter 注册表 | 浏览器原生 | `visual/js/engine-adapters.js` | 统一八字、五运六气、紫微、六爻、梅花的 `calculate()` / `toRenderData()` 契约 |
 | 文档契约检查 | Node.js | `node visual/js/tests/check-doc-contracts.mjs` | 校验 README/SKILL/tool-index/ROADMAP 与入口文件、报告字段、隐私约束一致 |
 | 全局同步回归 | 浏览器 | `visual/test-runner.html` | 校验 FORTUNE 全局更新后各标签页控件与画布同步 |
 

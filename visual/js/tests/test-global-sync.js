@@ -43,6 +43,15 @@
     parent.appendChild(select);
   }
 
+  function ensureCheckbox(parent, id, checked) {
+    if (document.getElementById(id)) return;
+    var input = document.createElement("input");
+    input.type = "checkbox";
+    input.id = id;
+    input.checked = checked !== false;
+    parent.appendChild(input);
+  }
+
   function ensureCanvas(parent, id, width, height) {
     if (document.getElementById(id)) return;
     var canvas = document.createElement("canvas");
@@ -65,6 +74,7 @@
       ensureInput(fixture, id, "");
     });
     ensureSelect(fixture, "gi-gender", ["男","女"], "男");
+    ensureCheckbox(fixture, "gi-exact-calendar", true);
     ensureSelect(fixture, "bazi-gender", ["男","女"], "男");
     ensureSelect(fixture, "zw-gender", ["男","女"], "男");
     ensureSelect(fixture, "ly-yongshen", ["父母","兄弟","官鬼","妻财","子孙"], "妻财");
@@ -122,6 +132,7 @@
         assert(data.ziwei.birthInfo.year === 1993 && data.ziwei.birthInfo.month === 6 && data.ziwei.birthInfo.day === 15 && data.ziwei.birthInfo.hour === 12 && data.ziwei.birthInfo.gender === "女", "紫微 birthInfo 未同步完整生辰");
 
         assert(val("gi-year") === "1993" && val("gi-month") === "6" && val("gi-day") === "15" && val("gi-hour") === "12" && val("gi-gender") === "女", "全局输入面板未同步");
+        assert(document.getElementById("gi-exact-calendar").checked === true, "精确历法开关未保持开启");
         assert(val("zw-year") === "1993" && val("zw-gender") === "女", "紫微控件未同步");
         assert(val("fs-year") === "1993", "流年飞星年份未同步");
         assert(val("bz-year") === "1993" && val("bz-gender") === "女", "八宅控件未同步");
@@ -131,7 +142,7 @@
         assert(val("ly-yongshen") === data.divination.liuyao.yongShen, "六爻用神未同步");
         assert(val("mh-upper") === data.divination.meihua.upperTrigram.name, "梅花上卦未同步");
         assert(val("mh-lower") === data.divination.meihua.lowerTrigram.name, "梅花下卦未同步");
-        assert(val("mh-moving") === String((data.divination.meihua.changingLine || 0) + 1), "梅花动爻未同步");
+        assert(val("mh-moving") === String(data.divination.meihua.changingLine || 1), "梅花动爻未同步");
       }, state);
 
       runTest("全局同步后核心画布非空", function() {
