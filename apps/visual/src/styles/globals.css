@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --background: 18 18 18;
+  --foreground: 235 231 222;
+  --surface: 30 30 36;
+  --surface-raised: 37 38 43;
+  --border: 45 47 54;
+  --cinnabar: 174 32 18;
+  --jade: 10 147 150;
+  --wood: 42 157 143;
+  --fire: 231 111 81;
+  --earth: 233 196 106;
+  --metal: 229 229 229;
+  --water: 38 70 83;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: #121212;
+}
+
+body {
+  min-height: 100dvh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(174, 32, 18, 0.16), transparent 30rem),
+    radial-gradient(circle at 84% 10%, rgba(10, 147, 150, 0.14), transparent 26rem),
+    linear-gradient(180deg, #121212 0%, #17181a 44%, #111 100%);
+  color: rgb(var(--foreground));
+  font-family: Inter, "Noto Sans SC", "Microsoft YaHei", sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: rgba(10, 147, 150, 0.35);
+}
+
+.instrument-grid {
+  background-image:
+    linear-gradient(rgba(229, 229, 229, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(229, 229, 229, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+}

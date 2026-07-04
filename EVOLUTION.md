@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-07 React Shell 迁移进展（v0.3 进行中）
+
+### React + Tailwind + Shadcn 迁移基座
+
+- **变更**：新增 `apps/visual/`，采用 Vite + React + TypeScript + Tailwind 作为新前端外壳，服务于 `TASTE_SKILL_UI.md` 中定义的新中式数据主义 / Academic Dark Mode 视觉方向。
+- **App Shell**：已搭建 `SidebarNav`、`CommandBar`、`WorkspaceTabs`，并以 `workspaceRegistry.tsx` 统一管理工作区路由，避免在 `AppShell` 中继续堆叠条件分支。
+- **Legacy 兼容层**：新增 `loadLegacyScripts.ts`、`canvasRenderers.ts`、`toolRegistry.ts`，通过 `?raw` 导入旧脚本并桥接 `LegacyCORE`、`LegacyVizModules`、`ToolManifest`、`CapabilityRegistry`，优先复用稳定的 Canvas renderer。
+
+### 已迁移工作区
+
+- **已接入 React Shell**：八字命盘、五行平衡、五运六气、体质辨识、风水罗盘、流年飞星、八宅大游年、梅花易数、六爻占卜、紫微斗数。
+- **定位**：当前多数工作区属于“React 外壳 + 旧 renderer 兼容层”；紫微、六爻仍然使用演示结构数据，不宣称真实排盘；梅花先保留结构输入，后续再接时间 / 数字起卦规则。
+- **目录策略**：工作区目录统一转向英文业务语义，如 `features/constitution/`、`features/yunqi/`、`features/fengshui/`、`features/ziwei/`、`features/meihua/`、`features/liuyao/`。保留 `tizhi` 作为模块 id，但不再新增 `features/tizhi/` 新实现。
+
+### 验证与回归
+
+- **Node 冒烟测试**：新增 `apps/visual/scripts/smoke-react-shell.mjs`，验证 `#bazi` / `#yunqi` / `#tizhi` / `#fengshui` / `#feixing` / `#bazhai` / `#meihua` / `#liuyao` / `#ziwei` 的 Canvas 工作区数量与 registry 契约。
+- **人工回归页**：构建后生成 `apps/visual/dist/verify.html`，列出当前已迁移 hash 路由，便于人工逐页检查 Canvas 非空、控件可编辑、复制按钮可用。
+- **当前结果**：`npm --prefix apps/visual run build`、`npm --prefix apps/visual test`、`node visual/js/tests/check-doc-contracts.mjs` 均通过。
+
 ## 2026-07 v0.2 稳定化与能力边界
 
 ### Dashboard 可信度与离线能力

@@ -13,6 +13,12 @@ Thumbs.db
 node_modules/
 npm-debug.log*
 
+# Vite / TypeScript build artifacts
+dist/
+*.tsbuildinfo
+vite.config.d.ts
+vite.config.js
+
 # Python
 __pycache__/
 *.pyc

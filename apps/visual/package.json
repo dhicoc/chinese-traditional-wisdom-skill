@@ -1,0 +1,33 @@
+{
+  "name": "chinese-traditional-wisdom-visual",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && node scripts/generate-verify-page.mjs",
+    "preview": "vite preview",
+    "typecheck": "tsc -b",
+    "test": "node scripts/smoke-react-shell.mjs",
+    "verify:gen": "node scripts/generate-verify-page.mjs"
+  },
+  "dependencies": {
+    "@radix-ui/react-slot": "latest",
+    "@vitejs/plugin-react": "latest",
+    "autoprefixer": "latest",
+    "class-variance-authority": "latest",
+    "clsx": "latest",
+    "postcss": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "tailwind-merge": "latest",
+    "tailwindcss": "^3.4.17",
+    "typescript": "latest",
+    "vite": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "@types/react": "latest",
+    "@types/react-dom": "latest"
+  }
+}

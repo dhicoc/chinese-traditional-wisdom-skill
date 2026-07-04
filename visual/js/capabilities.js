@@ -323,8 +323,9 @@
       "<button id=\"case-draft-btn\">生成脱敏案例草稿</button>" +
       "<button id=\"diagnostics-btn\">打开开发者诊断</button>" +
       "</div>";
-    var grid = home.querySelector(".tool-grid");
-    home.insertBefore(actions, grid || home.children[1]);
+    var anchor = home.querySelector(".home-note") || home.children[1] || null;
+    if (anchor && anchor.parentNode !== home) anchor = null;
+    home.insertBefore(actions, anchor);
     document.getElementById("export-report-btn").addEventListener("click", function () { downloadReport(getData()); });
     document.getElementById("case-draft-btn").addEventListener("click", function () { downloadCaseDraft(getData()); });
     document.getElementById("diagnostics-btn").addEventListener("click", function () { openDiagnostics(getData()); });

@@ -1,0 +1,424 @@
+/**
+ * smoke-react-shell.mjs — React Shell 轻量结构冒烟测试
+ *
+ * 零依赖、纯 Node 脚本，沿用 visual/js/tests/check-doc-contracts.mjs 的风格。
+ * 验证 React app 关键运行时契约（不启动浏览器）：
+ *   - #bazi 工作区渲染 2 个 canvas（八字四柱 + 五行平衡）
+ *   - #yunqi 工作区渲染 1 个 canvas（岁运 · 司天 · 在泉）
+ *   - #meihua 工作区渲染 1 个 canvas（梅花易数）
+ *   - #liuyao 工作区渲染 1 个 canvas（六爻占卜）
+ *   - #ziwei 工作区渲染 1 个 canvas（紫微斗数）
+ *   - #feixing 工作区渲染 1 个 canvas（流年飞星）
+ *   - #bazhai 工作区渲染 1 个 canvas（八宅大游年）
+ *   - #fengshui 工作区渲染 1 个 canvas（二十四山罗盘）
+ *   - AppShell 通过统一 workspace registry 路由各工作区
+ *   - legacy registry 桥接已建立（LegacyVizModules / ToolManifest / CapabilityRegistry）
+ *   - legacy loader 引用的旧脚本文件确实存在
+ *   - canvasRenderers 暴露预期的 renderer 包装函数
+ *
+ * 运行：node apps/visual/scripts/smoke-react-shell.mjs
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const appRoot = path.resolve(__dirname, '..');
+const srcRoot = path.join(appRoot, 'src');
+const repoRoot = path.resolve(appRoot, '../..');
+
+let passed = 0;
+let failed = 0;
+const failures = [];
+
+function check(condition, message) {
+  if (condition) {
+    passed++;
+  } else {
+    failed++;
+    failures.push(message);
+  }
+}
+
+function read(relPath) {
+  return fs.readFileSync(relPath, 'utf8');
+}
+
+function exists(relPath) {
+  return fs.existsSync(relPath);
+}
+
+function countOccurrences(haystack, needle) {
+  let count = 0;
+  let index = haystack.indexOf(needle);
+  while (index !== -1) {
+    count++;
+    index = haystack.indexOf(needle, index + needle.length);
+  }
+  return count;
+}
+
+// ── 1. #bazi 有 2 个 canvas ──────────────────────────────
+const baziWorkspace = read(path.join(srcRoot, 'features/bazi/BaziWorkspace.tsx'));
+const baziCanvasCount = countOccurrences(baziWorkspace, '<CanvasPanel');
+check(baziCanvasCount === 2, `#bazi 应渲染 2 个 canvas，实际 <CanvasPanel 出现 ${baziCanvasCount} 次`);
+
+// ── 2. #yunqi 有 1 个 canvas ─────────────────────────────
+const yunqiPath = path.join(srcRoot, 'features/yunqi/YunqiWorkspace.tsx');
+check(exists(yunqiPath), 'YunqiWorkspace.tsx 应位于 features/yunqi/ 目录');
+if (exists(yunqiPath)) {
+  const yunqiWorkspace = read(yunqiPath);
+  const yunqiCanvasCount = countOccurrences(yunqiWorkspace, '<CanvasPanel');
+  check(yunqiCanvasCount === 1, `#yunqi 应渲染 1 个 canvas，实际 <CanvasPanel 出现 ${yunqiCanvasCount} 次`);
+}
+
+// 旧路径不应再存在（已迁移）
+check(
+  !exists(path.join(srcRoot, 'features/bazi/YunqiWorkspace.tsx')),
+  'features/bazi/YunqiWorkspace.tsx 已迁移，旧路径不应存在',
+);
+
+// tizhi 模块由 ConstitutionWorkspace 承载，旧 TizhiWorkspace.tsx 是死代码不应存在
+check(
+  !exists(path.join(srcRoot, 'features/tizhi/TizhiWorkspace.tsx')),
+  'features/tizhi/TizhiWorkspace.tsx 是死代码（tizhi 由 ConstitutionWorkspace 承载），应已删除',
+);
+check(
+  !exists(path.join(srcRoot, 'features/tizhi')),
+  'features/tizhi 空目录应已清理',
+);
+
+// ── 3. #tizhi 有 1 个 canvas（体质辨识迁移） ─────────────
+const tizhiPath = path.join(srcRoot, 'features/constitution/ConstitutionWorkspace.tsx');
+check(exists(tizhiPath), 'ConstitutionWorkspace.tsx 应位于 features/constitution/ 目录');
+if (exists(tizhiPath)) {
+  const tizhiWorkspace = read(tizhiPath);
+  const tizhiCanvasCount = countOccurrences(tizhiWorkspace, '<CanvasPanel');
+  check(tizhiCanvasCount === 1, `#tizhi 应渲染 1 个 canvas，实际 <CanvasPanel 出现 ${tizhiCanvasCount} 次`);
+  check(
+    tizhiWorkspace.includes('renderLegacyConstitution'),
+    'TizhiWorkspace 应调用 renderLegacyConstitution 复用旧 health renderer',
+  );
+}
+
+// ── 3b. #meihua 有 1 个 canvas（梅花易数迁移） ────────────
+const meihuaPath = path.join(srcRoot, 'features/meihua/MeihuaWorkspace.tsx');
+check(exists(meihuaPath), 'MeihuaWorkspace.tsx 应位于 features/meihua/ 目录');
+if (exists(meihuaPath)) {
+  const meihuaWorkspace = read(meihuaPath);
+  const meihuaCanvasCount = countOccurrences(meihuaWorkspace, '<CanvasPanel');
+  check(meihuaCanvasCount === 1, `#meihua 应渲染 1 个 canvas，实际 <CanvasPanel 出现 ${meihuaCanvasCount} 次`);
+  check(
+    meihuaWorkspace.includes('renderLegacyMeihua'),
+    'MeihuaWorkspace 应调用 renderLegacyMeihua 复用旧 divination renderer',
+  );
+}
+
+// ── 3c. #liuyao 有 1 个 canvas（六爻迁移） ────────────────
+const liuyaoPath = path.join(srcRoot, 'features/liuyao/LiuyaoWorkspace.tsx');
+check(exists(liuyaoPath), 'LiuyaoWorkspace.tsx 应位于 features/liuyao/ 目录');
+if (exists(liuyaoPath)) {
+  const liuyaoWorkspace = read(liuyaoPath);
+  const liuyaoCanvasCount = countOccurrences(liuyaoWorkspace, '<CanvasPanel');
+  check(liuyaoCanvasCount === 1, `#liuyao 应渲染 1 个 canvas，实际 <CanvasPanel 出现 ${liuyaoCanvasCount} 次`);
+  check(
+    liuyaoWorkspace.includes('renderLegacyLiuyao'),
+    'LiuyaoWorkspace 应调用 renderLegacyLiuyao 复用旧 divination renderer',
+  );
+}
+
+// ── 3d. #ziwei 有 1 个 canvas（紫微斗数迁移） ────────────
+const ziweiPath = path.join(srcRoot, 'features/ziwei/ZiweiWorkspace.tsx');
+check(exists(ziweiPath), 'ZiweiWorkspace.tsx 应位于 features/ziwei/ 目录');
+if (exists(ziweiPath)) {
+  const ziweiWorkspace = read(ziweiPath);
+  const ziweiCanvasCount = countOccurrences(ziweiWorkspace, '<CanvasPanel');
+  check(ziweiCanvasCount === 1, `#ziwei 应渲染 1 个 canvas，实际 <CanvasPanel 出现 ${ziweiCanvasCount} 次`);
+  check(
+    ziweiWorkspace.includes('LegacyVizModules?.ziwei'),
+    'ZiweiWorkspace 应调用旧 ziwei renderer 复用命盘绘制',
+  );
+}
+
+// ── 3e. #feixing 有 1 个 canvas（流年飞星迁移） ──────────
+const feixingPath = path.join(srcRoot, 'features/feixing/FeixingWorkspace.tsx');
+check(exists(feixingPath), 'FeixingWorkspace.tsx 应位于 features/feixing/ 目录');
+if (exists(feixingPath)) {
+  const feixingWorkspace = read(feixingPath);
+  const feixingCanvasCount = countOccurrences(feixingWorkspace, '<CanvasPanel');
+  check(feixingCanvasCount === 1, `#feixing 应渲染 1 个 canvas，实际 <CanvasPanel 出现 ${feixingCanvasCount} 次`);
+  check(
+    feixingWorkspace.includes('renderLegacyFlyingStars'),
+    'FeixingWorkspace 应调用 renderLegacyFlyingStars 复用旧 fengshui renderer',
+  );
+}
+
+// ── 3c. #bazhai 有 1 个 canvas（八宅大游年迁移） ─────────
+const bazhaiPath = path.join(srcRoot, 'features/bazhai/BazhaiWorkspace.tsx');
+check(exists(bazhaiPath), 'BazhaiWorkspace.tsx 应位于 features/bazhai/ 目录');
+if (exists(bazhaiPath)) {
+  const bazhaiWorkspace = read(bazhaiPath);
+  const bazhaiCanvasCount = countOccurrences(bazhaiWorkspace, '<CanvasPanel');
+  check(bazhaiCanvasCount === 1, `#bazhai 应渲染 1 个 canvas，实际 <CanvasPanel 出现 ${bazhaiCanvasCount} 次`);
+  check(
+    bazhaiWorkspace.includes('renderLegacyEightMansions'),
+    'BazhaiWorkspace 应调用 renderLegacyEightMansions 复用旧 fengshui renderer',
+  );
+}
+
+// ── 3d. #fengshui 有 1 个 canvas（风水罗盘迁移） ─────────
+const fengshuiPath = path.join(srcRoot, 'features/fengshui/FengshuiWorkspace.tsx');
+check(exists(fengshuiPath), 'FengshuiWorkspace.tsx 应位于 features/fengshui/ 目录');
+if (exists(fengshuiPath)) {
+  const fengshuiWorkspace = read(fengshuiPath);
+  const fengshuiCanvasCount = countOccurrences(fengshuiWorkspace, '<CanvasPanel');
+  check(fengshuiCanvasCount === 1, `#fengshui 应渲染 1 个 canvas，实际 <CanvasPanel 出现 ${fengshuiCanvasCount} 次`);
+  check(
+    fengshuiWorkspace.includes('renderLegacyCompass'),
+    'FengshuiWorkspace 应调用 renderLegacyCompass 复用旧 fengshui renderer',
+  );
+}
+
+// ── 3e. #mermaid 迁移（知识图谱，不使用 canvas，CDN + 离线降级） ──
+const mermaidPath = path.join(srcRoot, 'features/mermaid/MermaidWorkspace.tsx');
+check(exists(mermaidPath), 'MermaidWorkspace.tsx 应位于 features/mermaid/ 目录');
+if (exists(mermaidPath)) {
+  const mermaidWorkspace = read(mermaidPath);
+  // mermaid 不使用 CanvasPanel，而是 Mermaid DOM 渲染
+  const mermaidCanvasCount = countOccurrences(mermaidWorkspace, '<CanvasPanel');
+  check(mermaidCanvasCount === 0, `#mermaid 不应使用 CanvasPanel（使用 Mermaid DOM 渲染），实际出现 ${mermaidCanvasCount} 次`);
+  check(
+    mermaidWorkspace.includes('MERMAID_DIAGRAMS'),
+    'MermaidWorkspace 应内置 MERMAID_DIAGRAMS 图源码数据',
+  );
+  check(
+    mermaidWorkspace.includes('loadMermaidScript'),
+    'MermaidWorkspace 应实现 CDN 加载与离线降级',
+  );
+  // 应包含与旧版对齐的 5 张图
+  check(mermaidWorkspace.includes('五行生克图'), 'MermaidWorkspace 应包含五行生克图');
+  check(mermaidWorkspace.includes('风水堪舆分析流程'), 'MermaidWorkspace 应包含风水堪舆分析流程');
+  check(mermaidWorkspace.includes('形煞分类体系'), 'MermaidWorkspace 应包含形煞分类体系');
+  check(mermaidWorkspace.includes('八字分析决策树'), 'MermaidWorkspace 应包含八字分析决策树');
+  check(mermaidWorkspace.includes('十神关系图'), 'MermaidWorkspace 应包含十神关系图');
+}
+
+// ── 3f. #testing 迁移（测试控制台，Phase 9 第一版） ──────
+const testingPath = path.join(srcRoot, 'features/testing/TestRunnerConsole.tsx');
+check(exists(testingPath), 'TestRunnerConsole.tsx 应位于 features/testing/ 目录');
+if (exists(testingPath)) {
+  const testingWorkspace = read(testingPath);
+  // 测试控制台不使用 CanvasPanel
+  const testingCanvasCount = countOccurrences(testingWorkspace, '<CanvasPanel');
+  check(testingCanvasCount === 0, `#testing 不应使用 CanvasPanel，实际出现 ${testingCanvasCount} 次`);
+  check(
+    testingWorkspace.includes('TEST_SUITES'),
+    'TestRunnerConsole 应引用 TEST_SUITES 测试套件注册表',
+  );
+  check(
+    testingWorkspace.includes('test-runner.html'),
+    'TestRunnerConsole 应提供跳转旧 test-runner.html 的链接',
+  );
+  check(
+    testingWorkspace.includes('verify.html'),
+    'TestRunnerConsole 应提供跳转 verify.html 的链接',
+  );
+  check(
+    testingWorkspace.includes('collectEnvInfo') || testingWorkspace.includes('EnvInfo'),
+    'TestRunnerConsole 应包含环境诊断信息',
+  );
+}
+
+// ── 3g. testRegistry 测试套件注册表 ──────────────────────
+const testRegistryPath = path.join(srcRoot, 'legacy/testRegistry.ts');
+check(exists(testRegistryPath), 'testRegistry.ts 应位于 legacy/ 目录');
+if (exists(testRegistryPath)) {
+  const testRegistry = read(testRegistryPath);
+  check(testRegistry.includes('smoke-react-shell'), 'testRegistry 应注册 smoke-react-shell 套件');
+  check(testRegistry.includes('check-doc-contracts'), 'testRegistry 应注册 check-doc-contracts 套件');
+  check(testRegistry.includes('test-bazi'), 'testRegistry 应注册 test-bazi 套件');
+  check(testRegistry.includes('verify-page'), 'testRegistry 应注册 verify-page 套件');
+  check(testRegistry.includes('TestSuiteType'), 'testRegistry 应导出 TestSuiteType 类型');
+}
+
+// ── 3h. #reader 迁移（古籍 Split Reader，Phase 8） ──────
+const readerPath = path.join(srcRoot, 'features/knowledge/AncientTextSplitReader.tsx');
+check(exists(readerPath), 'AncientTextSplitReader.tsx 应位于 features/knowledge/ 目录');
+if (exists(readerPath)) {
+  const readerWorkspace = read(readerPath);
+  const readerCanvasCount = countOccurrences(readerWorkspace, '<CanvasPanel');
+  check(readerCanvasCount === 0, `#reader 不应使用 CanvasPanel，实际出现 ${readerCanvasCount} 次`);
+  check(
+    readerWorkspace.includes('TEXT_PAIRS'),
+    'AncientTextSplitReader 应内置 TEXT_PAIRS 文本对数据',
+  );
+  check(
+    readerWorkspace.includes('?raw'),
+    'AncientTextSplitReader 应通过 Vite ?raw 导入古籍原文和映射 JSON',
+  );
+  check(
+    readerWorkspace.includes('八宅明镜'),
+    'AncientTextSplitReader 应包含八宅明镜古籍',
+  );
+  check(
+    readerWorkspace.includes('eight-mansions.json'),
+    'AncientTextSplitReader 应包含八宅映射 JSON',
+  );
+  check(
+    readerWorkspace.includes('highlightJson') || readerWorkspace.includes('renderMarkdownLite'),
+    'AncientTextSplitReader 应实现 Markdown 渲染和 JSON 高亮',
+  );
+}
+
+// ── 3i. CommandBar 命令面板（Phase 7） ──────────────────
+const commandBarPath = path.join(srcRoot, 'components/app-shell/CommandBar.tsx');
+const commandBar = read(commandBarPath);
+check(
+  commandBar.includes('CommandPalette'),
+  'CommandBar 应包含 CommandPalette 命令面板组件',
+);
+check(
+  commandBar.includes("'k'") && commandBar.includes('metaKey'),
+  'CommandBar 应监听 ⌘K/Ctrl+K 快捷键',
+);
+check(
+  commandBar.includes('fuzzyMatch'),
+  'CommandBar 应实现模糊搜索',
+);
+check(
+  commandBar.includes('ArrowDown') && commandBar.includes('ArrowUp') && commandBar.includes('Enter'),
+  'CommandBar 应支持键盘导航（↑↓Enter）',
+);
+check(
+  commandBar.includes('action-testing'),
+  'CommandBar 应包含跳转测试控制台的快捷操作',
+);
+
+// ── 3j. BirthPanel 全局出生资料同步 ──────────────────────
+const birthPanelPath = path.join(srcRoot, 'components/shared/BirthPanel.tsx');
+check(exists(birthPanelPath), 'BirthPanel.tsx 应位于 components/shared/ 目录');
+if (exists(birthPanelPath)) {
+  const birthPanel = read(birthPanelPath);
+  check(birthPanel.includes('useBirth'), 'BirthPanel 应使用 useBirth hook');
+  check(birthPanel.includes('updateBirth'), 'BirthPanel 应调用 updateBirth 更新出生资料');
+  check(birthPanel.includes('全局生辰'), 'BirthPanel 应显示全局生辰摘要');
+  check(birthPanel.includes('legacyReady'), 'BirthPanel 应显示 legacy 同步状态');
+}
+
+const birthContextPath = path.join(srcRoot, 'lib/birthContext.tsx');
+check(exists(birthContextPath), 'birthContext.tsx 应位于 lib/ 目录');
+if (exists(birthContextPath)) {
+  const birthContext = read(birthContextPath);
+  check(birthContext.includes('BirthProvider'), 'birthContext 应导出 BirthProvider');
+  check(birthContext.includes('useBirth'), 'birthContext 应导出 useBirth hook');
+  check(birthContext.includes('readFortuneBirth'), 'birthContext 应从旧 FORTUNE 读取出生资料');
+}
+
+const birthBridgePath = path.join(srcRoot, 'legacy/birthBridge.ts');
+check(exists(birthBridgePath), 'birthBridge.ts 应位于 legacy/ 目录');
+if (exists(birthBridgePath)) {
+  const birthBridge = read(birthBridgePath);
+  check(birthBridge.includes('writeFortuneBirth'), 'birthBridge 应导出 writeFortuneBirth');
+  check(birthBridge.includes('readFortuneBirth'), 'birthBridge 应导出 readFortuneBirth');
+}
+
+// ── 3l. App.tsx 接入 BirthProvider ──────────────────────
+const appTsx = read(path.join(srcRoot, 'App.tsx'));
+check(appTsx.includes('BirthProvider'), 'App.tsx 应使用 BirthProvider 包裹 AppShell');
+
+// ── 4. AppShell 路由契约 ─────────────────────────────────
+const appShell = read(path.join(srcRoot, 'components/app-shell/AppShell.tsx'));
+check(appShell.includes("resolveWorkspace(activeModule)"), 'AppShell 应使用统一 workspace registry 解析工作区');
+
+const workspaceRegistry = read(path.join(srcRoot, 'components/app-shell/workspaceRegistry.tsx'));
+check(workspaceRegistry.includes("meihua: MeihuaWorkspace"), 'workspaceRegistry 应注册 meihua 工作区');
+check(workspaceRegistry.includes("liuyao: LiuyaoWorkspace"), 'workspaceRegistry 应注册 liuyao 工作区');
+check(workspaceRegistry.includes("ziwei: ZiweiWorkspace"), 'workspaceRegistry 应注册 ziwei 工作区');
+check(workspaceRegistry.includes("fengshui: FengshuiWorkspace"), 'workspaceRegistry 应注册 fengshui 工作区');
+check(workspaceRegistry.includes("mermaid: MermaidWorkspace"), 'workspaceRegistry 应注册 mermaid 工作区');
+check(workspaceRegistry.includes("testing: TestRunnerConsole"), 'workspaceRegistry 应注册 testing 工作区');
+check(workspaceRegistry.includes("reader: AncientTextSplitReader"), 'workspaceRegistry 应注册 reader 工作区');
+check(workspaceRegistry.includes("bazi: BaziWorkspace"), 'workspaceRegistry 应注册 bazi 工作区');
+check(workspaceRegistry.includes("yunqi: YunqiWorkspace"), 'workspaceRegistry 应注册 yunqi 工作区');
+check(workspaceRegistry.includes("tizhi: ConstitutionWorkspace"), 'workspaceRegistry 应注册 tizhi 工作区');
+check(workspaceRegistry.includes("resolveWorkspace"), 'workspaceRegistry 应导出 resolveWorkspace');
+
+// ── 3k. AppShell 接入 BirthPanel ────────────────────────
+check(appShell.includes('BirthPanel'), 'AppShell 应接入 BirthPanel');
+
+// ── 5. legacy registry 桥接已建立 ────────────────────────
+const loadLegacy = read(path.join(srcRoot, 'legacy/loadLegacyScripts.ts'));
+check(loadLegacy.includes('window.LegacyVizModules'), 'loadLegacyScripts 应桥接 window.LegacyVizModules');
+check(loadLegacy.includes('window.LegacyCORE'), 'loadLegacyScripts 应桥接 window.LegacyCORE');
+check(loadLegacy.includes('window.LegacyRegisterVizModule'), 'loadLegacyScripts 应桥接 window.LegacyRegisterVizModule');
+
+const toolRegistry = read(path.join(srcRoot, 'legacy/toolRegistry.ts'));
+check(
+  toolRegistry.includes('window.ToolManifest') || toolRegistry.includes('ToolManifest'),
+  'toolRegistry 应接入旧 ToolManifest registry',
+);
+check(
+  toolRegistry.includes('window.CapabilityRegistry') || toolRegistry.includes('CapabilityRegistry'),
+  'toolRegistry 应接入旧 CapabilityRegistry registry',
+);
+
+// ── 6. legacy loader 引用的旧脚本确实存在 ─────────────────
+const legacyScripts = [
+  'visual/js/core.js',
+  'visual/js/tool-manifest.js',
+  'visual/js/capabilities.js',
+  'visual/js/bazi.js',
+  'visual/js/divination.js',
+  'visual/js/fengshui.js',
+  'visual/js/engines/yunqi-engine.js',
+  'visual/js/health.js',
+];
+for (const rel of legacyScripts) {
+  check(exists(path.join(repoRoot, rel)), `legacy loader 引用的旧脚本应存在: ${rel}`);
+}
+
+// ── 7. canvasRenderers 暴露预期 renderer 包装 ─────────────
+const canvasRenderers = read(path.join(srcRoot, 'legacy/canvasRenderers.ts'));
+const expectedRenderers = [
+  'renderLegacyBazi',
+  'renderLegacyWuxing',
+  'renderLegacyYunqi',
+  'renderLegacyCompass',
+  'renderLegacyMeihua',
+  'renderLegacyLiuyao',
+  'renderLegacyConstitution',
+  'renderLegacyFlyingStars',
+  'renderLegacyEightMansions',
+  'calculateLegacyYunqi',
+  'getLegacyBaziModule',
+  'getLegacyHealthModule',
+  'getLegacyFengshuiModule',
+  'getLegacyCORE',
+  'deriveDominantConstitution',
+  'getFeixingSummary',
+  'getBazhaiSummary',
+];
+for (const name of expectedRenderers) {
+  check(canvasRenderers.includes(name), `canvasRenderers 应导出 ${name}`);
+}
+
+// ── 8. CopyContextButton 成功反馈契约 ─────────────────────
+const copyButton = read(path.join(srcRoot, 'components/shared/CopyContextButton.tsx'));
+check(copyButton.includes("'copied'"), 'CopyContextButton 应包含 copied 状态');
+check(copyButton.includes("'Copied'"), 'CopyContextButton 复制成功应显示 Copied');
+
+// ── 汇总 ─────────────────────────────────────────────────
+const line = '─'.repeat(56);
+console.log(line);
+console.log('React Shell smoke test');
+console.log(line);
+console.log(`passed: ${passed}`);
+console.log(`failed: ${failed}`);
+if (failures.length > 0) {
+  console.log('');
+  console.log('failures:');
+  for (const f of failures) console.log(`  ✗ ${f}`);
+}
+console.log(line);
+
+if (failed > 0) process.exit(1);

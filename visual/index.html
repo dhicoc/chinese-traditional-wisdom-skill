@@ -10,13 +10,14 @@
 </head>
 <body>
 
-<div class="header" style="position:relative;padding-right:110px;">
-  <h1 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">☯ 中国传统文化智慧 · 可视化工具箱</h1>
-  <span class="subtitle">chinese-traditional-wisdom-skill</span>
-  <button id="gs-trigger" onclick="GlobalSearch.open()" title="全局搜索"
-    style="position:absolute;right:20px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;border-radius:8px;padding:6px 14px;color:#F5F0EB;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background 0.2s;"
-    onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
-    🔍 <span style="font-size:12px;">搜索</span>
+<div class="header">
+  <div class="header-mark" aria-hidden="true">中</div>
+  <div class="header-copy">
+    <h1>中国传统文化智慧工具台</h1>
+    <span class="subtitle">chinese-traditional-wisdom-skill</span>
+  </div>
+  <button id="gs-trigger" class="search-trigger" onclick="GlobalSearch.open()" title="全局搜索" type="button">
+    <span aria-hidden="true">⌕</span><span>搜索</span>
   </button>
 </div>
 
@@ -40,66 +41,36 @@
 
 <!-- ═══════════ 首页 ═══════════ -->
 <div id="tab-home" class="tab-content active">
-  <div class="card">
-    <div class="card-title">📐 可视化工具箱介绍</div>
-    <p style="color:#5D4037; line-height:1.8; font-size:14px;">
-      本工具为 <strong>chinese-traditional-wisdom-skill</strong> 的可视化前端模块，将玄学五术（山医命相卜）的核心概念以图形方式呈现。
-      所有图表使用 HTML5 Canvas 绘制，无需任何外部依赖，可在浏览器中直接运行。
-    </p>
-  </div>
+  <section class="home-hero">
+    <div class="home-hero-copy">
+      <p class="home-kicker">本地计算 · 能力透明</p>
+      <h2>把命理、卜筮、风水与体质工具收进一张清晰工作台。</h2>
+      <p>先看能力边界，再进入对应工具。真实计算、近似模型和演示结构会明确区分。</p>
+      <div class="hero-actions" aria-label="首页快捷操作">
+        <button type="button" onclick="switchTab('bazi')">进入八字</button>
+        <button type="button" onclick="switchTab('mermaid')">看知识图谱</button>
+      </div>
+    </div>
+    <div class="home-hero-panel" aria-label="当前能力概览">
+      <div class="hero-orbit" aria-hidden="true">
+        <span>命</span><span>卜</span><span>相</span><span>医</span>
+      </div>
+      <div class="hero-metric"><b id="home-tool-count">10</b><span>工具入口</span></div>
+      <div class="hero-metric"><b id="home-local-count">0</b><span>本地能力</span></div>
+      <div class="hero-metric"><b id="home-demo-count">0</b><span>演示边界</span></div>
+    </div>
+  </section>
 
-  <div class="tool-grid">
-    <div class="tool-card" onclick="switchTab('bazi')">
-      <span class="icon">🟢</span><h3>八字命盘</h3>
-      <p>四柱八字可视化：天干地支、五行分布、日主强弱。输入生辰快速排盘。</p>
+  <section id="home-tool-directory" class="home-tool-directory" aria-label="工具目录"></section>
+
+  <section class="home-note">
+    <div>
+      <strong>使用说明</strong>
+      <p>先从工具卡片进入对应模块，再用全局命盘数据统一刷新所有标签。报告和案例草稿默认脱敏，不保存完整姓名、完整出生日期或具体地点。</p>
     </div>
-    <div class="tool-card" onclick="switchTab('ziwei')">
-      <span class="icon">🔮</span><h3>紫微斗数</h3>
-      <p>十二宫盘全图：十四主星分布、四化飞星、命卦定位。经典布局呈现。</p>
-    </div>
-    <div class="tool-card" onclick="switchTab('liuyao')">
-      <span class="icon">📜</span><h3>六爻占卜</h3>
-      <p>六爻卦象可视化：纳甲装卦、六亲六神、世应定位、动变爻标记。</p>
-    </div>
-    <div class="tool-card" onclick="switchTab('meihua')">
-      <span class="icon">🌸</span><h3>梅花易数</h3>
-      <p>体用生克图：上下卦、互卦变卦、体用关系一目了然。</p>
-    </div>
-    <div class="tool-card" onclick="switchTab('fengshui')">
-      <span class="icon">🧭</span><h3>风水罗盘</h3>
-      <p>二十四山罗盘图：三层环形（廿四山/八卦/方位），阴阳五行配色。</p>
-    </div>
-    <div class="tool-card" onclick="switchTab('feixing')">
-      <span class="icon">⭐</span><h3>流年飞星</h3>
-      <p>九宫飞星图：每年入中星推算、九宫飞布、五黄二黑煞位提示。</p>
-    </div>
-    <div class="tool-card" onclick="switchTab('bazhai')">
-      <span class="icon">🏠</span><h3>八宅大游年</h3>
-      <p>八宅吉凶图：命卦推算、八方吉凶星曜、64组组合速查。</p>
-    </div>
-    <div class="tool-card" onclick="switchTab('yunqi')">
-      <span class="icon">🌤</span><h3>五运六气</h3>
-      <p>岁运 + 司天在泉 + 客气六步：全年气候与疾病倾向图示。</p>
-    </div>
-    <div class="tool-card" onclick="switchTab('tizhi')">
-      <span class="icon">🧬</span><h3>体质辨识</h3>
-      <p>九种体质雷达图：体质评分多维对比、主要体质高亮。</p>
-    </div>
-    <div class="tool-card" onclick="switchTab('mermaid')">
-      <span class="icon">📊</span><h3>知识图谱</h3>
-      <p>Mermaid 动态图表：五行生克、风水分析流程、形煞分类等。</p>
-    </div>
-  </div>
-  <div class="card" style="margin-top:16px;">
-    <div class="card-title">💡 使用说明</div>
-    <p style="color:#5D4037; font-size:13px; line-height:1.8;">
-      点击上方标签切换工具。每个工具提供默认示例数据，可直接查看效果。
-      通过左侧输入控件修改参数后点击"生成"按钮重新渲染。<br>
-      本工具仅供学习参考，所有命理分析结果不能替代专业咨询。
-    </p>
-  </div>
+    <button type="button" onclick="switchTab('mermaid')">查看知识图谱</button>
+  </section>
 </div>
-
 <!-- ═══════════ 八字 ═══════════ -->
 <div id="tab-bazi" class="tab-content">
   <div class="card">
@@ -514,6 +485,7 @@ flowchart LR
 <script src="js/health.js"></script>
 <!-- ═══ 数据桥接 (全局输入 + 引擎) ═══ -->
 <script src="js/search.js"></script>
+<script src="js/tool-manifest.js"></script>
 <script src="js/capabilities.js"></script>
 <script src="js/engines/bazi-engine.js"></script>
 <script src="js/engines/yunqi-engine.js"></script>
@@ -525,8 +497,7 @@ flowchart LR
 // ─── Tab switching ─────────────────────────
 var DEMO_TAB_CONFIRM_TEXT = {
   ziwei: "紫微斗数当前仍为十二宫演示结构，真实排盘引擎尚未内置。是否继续查看演示结构？",
-  liuyao: "六爻当前仍为演示卦象，真实纳甲起卦引擎尚未内置。是否继续查看演示结构？",
-  meihua: "梅花易数当前仍为演示卦象，真实起卦规则尚未内置。是否继续查看演示结构？"
+  liuyao: "六爻当前仍为演示卦象，真实纳甲起卦引擎尚未内置。是否继续查看演示结构？"
 };
 var demoTabConfirmed = {};
 
@@ -552,6 +523,64 @@ function switchTab(name) {
     setTimeout(renderMermaid, 100);
   }
   return true;
+}
+function escapeHomeHtml(value) {
+  var div = document.createElement("div");
+  div.appendChild(document.createTextNode(String(value || "")));
+  return div.innerHTML;
+}
+
+function getHomeModeMeta(tool) {
+  var caps = window.CapabilityRegistry && CapabilityRegistry.getCapabilities ? CapabilityRegistry.getCapabilities() : {};
+  var cap = caps[tool.capabilityKey] || {};
+  var mode = cap.mode || "unknown";
+  var labels = window.CapabilityRegistry && CapabilityRegistry.modeLabels ? CapabilityRegistry.modeLabels : {};
+  return {
+    mode: mode,
+    label: cap.modeLabel || labels[mode] || "能力待确认",
+    note: cap.note || tool.description || ""
+  };
+}
+
+function renderHomeToolDirectory() {
+  var mount = document.getElementById("home-tool-directory");
+  if (!mount || !window.ToolManifest) return;
+  var categories = ToolManifest.getCategories().filter(function(category) { return category !== "入口"; });
+  var tools = ToolManifest.getVisibleTools();
+  var localCount = 0;
+  var demoCount = 0;
+
+  tools.forEach(function(tool) {
+    var meta = getHomeModeMeta(tool);
+    if (/^local|knowledge|derived/.test(meta.mode)) localCount++;
+    if (meta.mode === "demo" || meta.mode === "external-required") demoCount++;
+  });
+
+  var html = categories.map(function(category) {
+    var group = ToolManifest.getByCategory(category);
+    if (!group.length) return "";
+    return '<div class="tool-category">' +
+      '<div class="tool-category-head"><span>' + escapeHomeHtml(category) + '</span><small>' + group.length + ' 个入口</small></div>' +
+      '<div class="tool-grid home-tool-grid">' + group.map(function(tool) {
+        var meta = getHomeModeMeta(tool);
+        return '<button type="button" class="tool-card home-tool-card" data-tool="' + escapeHomeHtml(tool.id) + '" onclick="switchTab(\'' + escapeHomeHtml(tool.entryTab) + '\')" style="--tool-accent:' + escapeHomeHtml(tool.accent) + '">' +
+          '<span class="tool-icon" aria-hidden="true">' + escapeHomeHtml(tool.icon) + '</span>' +
+          '<span class="tool-card-top"><strong>' + escapeHomeHtml(tool.title) + '</strong><em class="mode-pill mode-' + escapeHomeHtml(meta.mode) + '">' + escapeHomeHtml(meta.label) + '</em></span>' +
+          '<span class="tool-intro">' + escapeHomeHtml(tool.intro) + '</span>' +
+          '<span class="tool-desc">' + escapeHomeHtml(tool.description) + '</span>' +
+          '<span class="tool-meta"><span>' + escapeHomeHtml(tool.questionTypes.join(" / ")) + '</span><span>' + escapeHomeHtml(tool.privacyLevel) + '</span></span>' +
+        '</button>';
+      }).join("") + '</div>' +
+    '</div>';
+  }).join("");
+
+  mount.innerHTML = html;
+  var toolCount = document.getElementById("home-tool-count");
+  var localEl = document.getElementById("home-local-count");
+  var demoEl = document.getElementById("home-demo-count");
+  if (toolCount) toolCount.textContent = String(tools.length);
+  if (localEl) localEl.textContent = String(localCount);
+  if (demoEl) demoEl.textContent = String(demoCount);
 }
 function normalizeFormLabels(root) {
   var scope = root || document;
@@ -583,6 +612,8 @@ if (location.hash && location.hash.length > 1) {
     }, 50);
   });
 }
+
+window.addEventListener('DOMContentLoaded', renderHomeToolDirectory);
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab));

@@ -34,6 +34,20 @@
         assert(caps.meihua && caps.meihua.mode === "local", "梅花能力状态不正确");
       }, state);
 
+      runTest("ToolManifest 声明首页工具目录元数据", function() {
+        assert(window.ToolManifest, "缺少 ToolManifest");
+        var tools = ToolManifest.getVisibleTools();
+        var categories = ToolManifest.getCategories();
+        assert(tools.length === 10, "首页工具数量不正确");
+        ["命盘", "卜筮", "风水", "健康", "知识"].forEach(function(category) {
+          assert(categories.indexOf(category) >= 0, "缺少工具分类: " + category);
+        });
+        tools.forEach(function(tool) {
+          assert(tool.id && tool.title && tool.entryTab && tool.capabilityKey, tool.id + " manifest 核心字段缺失");
+          assert(Array.isArray(tool.requiredInputs) && tool.privacyLevel && tool.reportSection, tool.id + " manifest 隐私或报告字段缺失");
+        });
+        assert(ToolManifest.getById("bazi").capabilityKey === "bazi", "bazi manifest 查询异常");
+      }, state);
       runTest("生辰输入校验拦截非法日期", function() {
         var ok = CapabilityRegistry.validateBirthInput({ year: 1990, month: 6, day: 15, hour: 12, gender: "男" });
         var badDate = CapabilityRegistry.validateBirthInput({ year: 1990, month: 2, day: 31, hour: 12, gender: "男" });

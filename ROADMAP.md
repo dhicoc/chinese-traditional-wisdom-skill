@@ -71,7 +71,190 @@
 - 外部引擎加载失败时不得阻塞 Dashboard；必须回退到当前演示或近似模式，并在标签页显示降级原因。
 - 不得把完整姓名、完整出生日期、具体出生地写入长期日志或导出文件名。
 
-## Public Interfaces / Data Contracts
+## suanle-me 复用评估与接入计划
+
+> 调研日期：2026-07-03。来源：`https://github.com/lyyxqg-lyy/suanle-me`，许可证 MIT，当前仓库为 Next.js 15 + TypeScript 应用，README 声明免费、开源、本地计算、无需登录，并提供 PWA、收藏、历史记录和本地规则化解读。该项目更适合作为产品体验与轻量本地规则参考，不应作为八字、紫微、六爻的精确排盘来源。
+
+### 可复用能力分级
+
+| 方向 | suanle-me 现状 | 本项目复用方式 | 优先级 | 边界 |
+|------|----------------|----------------|--------|------|
+| 工具目录与信息架构 | `fortuneTools` 用 `slug/title/intro/description/icon/accent/category` 统一管理紫微、八字、梅花、奇门、六爻、塔罗、解梦、每日运势、黄历、姓名、五行、AI 解读 | 新增 `visual/js/tool-manifest.js`，把当前 11 标签页和未来日用工具统一成 manifest；咨询向导、首页卡片、诊断页和报告导出都从 manifest 读取标题、分类、能力状态和入口 | P1 | 保持静态 Dashboard 架构，不迁移 Next.js/React |
+| 结构化 Reading 契约 | `getToolReading()` 输出 `title/summary/score/tags/sections/chart/lines` | 在 `REPORT_DATA` 外新增 `READING_DATA` 或 `reading` 字段：用于报告摘要、咨询向导结果页、历史记录卡片；由各 Adapter 的 `toReading()` 生成 | P1 | `score` 只能作为体验指标，不得宣称精确吉凶分数 |
+| 本地收藏与历史 | Zustand persist 保存 `favorites/history`，历史限制 30 条 | 用原生 `localStorage` 实现 `FORTUNE_HISTORY` 和 `FORTUNE_FAVORITES`，默认只保存脱敏摘要、模块、生成时间、能力模式，不保存完整生日、姓名、地点 | P1 | 必须提供清空入口；隐私测试覆盖不得泄露完整生辰 |
+| PWA 与离线体验 | `manifest.webmanifest` + `sw.js`，强调本地计算和隐私 | 增加可选 `visual/manifest.webmanifest` 与轻量 `visual/sw.js`，缓存 `index.html`、核心 JS、vendor、CSS；诊断页显示 service worker 状态 | P2 | 双击 file 模式仍必须可用；PWA 只在 http/https 本地服务下启用 |
+| 日用工具扩展 | 每日运势、黄历、姓名分析、周公解梦、五行分析、规则化 AI 解读 | 新增“日用工具”二级入口：黄历、姓名五行、梦境意象、每日节律；先作为本地规则模块接入，不影响核心命盘 | P2 | 解梦/运势为民俗体验和自我观察，不进严肃命盘结论 |
+| 奇门遁甲入口 | 简化输出门、星、宫位和行动建议 | 作为第 12 个候选标签或咨询向导入口加入 roadmap；先定义 `QimenAdapter` 契约和演示确认，后续再接真实排盘/排局规则 | P3 | suanle-me 的奇门是 seed 化简化结果，不能直接标注为真实排局 |
+| 三牌塔罗 | 本地三牌阵和提示语 | 不纳入传统文化核心 Dashboard；可作为“跨文化占卜体验”独立可选模块 | P3 | 避免稀释中国传统文化定位 |
+
+### 不建议直接复用的部分
+
+- 八字：`suanle-me` 的四柱计算是轻量日期/JDN 近似，缺少节气边界、子初换日、起运等严肃口径；本项目已内置 `lunar-javascript`，不应退回该实现。
+- 紫微：`suanle-me` 只按 seed 挑选宫位和主星摘要，不是完整十二宫排盘；本项目仍优先接 `SylarLong/iztro`。
+- 六爻：`suanle-me` 用 seed 生成老阴/少阳/少阴/老阳字符串和世应提示，不含纳甲、六亲、六神、卦宫、伏神等完整规则；只能作为演示文案参考。
+- 梅花：本项目已实现本地时间起卦 Adapter；`suanle-me` 的数字起卦思路可补充为“数字起卦模式”，但不替代现有时间起卦。
+- 远期 UI 栈：Next.js、React、Tailwind、Framer Motion、Recharts、Zustand 不作为当前静态 Dashboard 的必选迁移方向。
+
+### 具体落地任务
+
+1. `ToolManifest`：新增 `visual/js/tool-manifest.js`，字段包括 `id/title/category/entryTab/capabilityKey/questionTypes/requiredInputs/privacyLevel/reportSection`；工具入口、咨询向导和诊断页逐步改为读取 manifest。
+2. `toReading()` 契约：扩展 Adapter 可选方法 `toReading(result, input)`，返回 `title/summary/tags/sections/chart/sourceNotes`；报告导出优先使用该结构生成摘要。
+3. 本地历史与收藏：新增 `FORTUNE.storage` 或 `HistoryStore`，保存最近 30 条脱敏 reading 摘要；增加“清空历史”和隐私测试。
+4. 日用工具路线：新增黄历、姓名五行、梦境意象、每日节律四个轻量本地模块，复用 `suanle-me` 的工具分类思路和小型词表结构，但输出必须带“民俗体验/非预测结论”说明。
+5. 数字起卦补强：在梅花 Adapter 中增加 `method: time|number`，使用 `numberA/numberB/question` 生成数字起卦，作为当前时间起卦的用户可选模式。
+6. PWA 试点：在不破坏双击打开的前提下，为本地 HTTP 访问增加 manifest 和 service worker；测试覆盖首次加载、断网刷新、vendor 缓存命中、注销缓存。
+7. 来源归档：若复制或改写 `suanle-me` 的常量词表、工具描述或策略文案，必须在 `tool-index.md` 记录 MIT 来源、文件路径、采纳字段和改写范围。
+
+### 验收标准
+
+- 工具入口、咨询向导、诊断页和报告导出能从同一份 ToolManifest 读取模块元信息。
+- 历史/收藏只保存脱敏摘要；隐私测试证明不保存完整姓名、完整出生日期、具体地点。
+- 新增日用工具均有 `mode`、`confidenceNote`、`sourceNotes`，且不会进入严肃命盘结论。
+- PWA 不影响 `file://` 双击可用；断网测试下核心 Canvas、内置 vendor、历史记录可用。
+- `README.md`、`tool-index.md`、`EVOLUTION.md` 同步记录 `suanle-me` 的 MIT 参考来源和不复用精确算法的原因。
+
+## React + Shadcn + Tailwind 迁移路线
+
+> 规划日期：2026-07-03。依据 `TASTE_SKILL_UI.md`，目标是把当前静态 `visual/` Dashboard 逐步迁移为 React + Shadcn + Tailwind 的“新中式数据主义 / Academic Dark Mode”前端，同时保留现有 11 标签页、确定性引擎、Canvas 渲染、能力标识和测试契约。迁移策略采用 Strangler Fig：旧 `visual/index.html` 继续可用，新 React 应用先并行建设，验证充分后再切主入口。
+
+### 迁移原则
+
+- 不一次性重写 11 个标签页；先搭 App Shell，再逐个迁移工具页。
+- 不破坏现有公开契约：tab id、`window.FORTUNE`、`ToolManifest`、`CapabilityRegistry`、`EngineAdapterRegistry`、Canvas renderer 接口和测试入口保持兼容。
+- 先复用现有 `visual/js/` 的确定性计算与渲染模块，再逐步把高价值图表替换为 React/SVG 组件。
+- 新 UI 以 `TASTE_SKILL_UI.md` 为最高设计方向：暗色底、朱砂红重点态、碧玉青 AI/洞察态、低饱和五行色、专业仪器感，避免玄学俗套、赛博霓虹和 Shadcn 默认皮肤。
+- 在迁移完成前，旧静态页面和新 React 页面必须能并行测试、并行回归。
+
+### Phase 0：冻结当前契约
+
+- 建立 `visual/MIGRATION_REACT.md`，记录旧系统与新系统并存方式、不可破坏的接口、已知风险和回滚方式。
+- 固定 11 个 tab id：`home`、`bazi`、`ziwei`、`liuyao`、`meihua`、`fengshui`、`feixing`、`bazhai`、`yunqi`、`tizhi`、`mermaid`。
+- 记录当前基线：截图、浏览器控制台状态、`visual/test-runner.html` 结果、`node visual/js/tests/check-doc-contracts.mjs` 结果。
+- 明确测试分类：Node contract tests、浏览器环境 tests、Canvas smoke tests、隐私测试。
+
+### Phase 1：创建新前端基座
+
+- 新建独立应用目录，建议路径：`apps/visual/`。
+- 技术栈：Vite + React + TypeScript + Tailwind CSS + Shadcn UI + Radix primitives。
+- 初始文件建议：
+  - `apps/visual/package.json`
+  - `apps/visual/vite.config.ts`
+  - `apps/visual/tsconfig.json`
+  - `apps/visual/index.html`
+  - `apps/visual/src/main.tsx`
+  - `apps/visual/src/App.tsx`
+  - `apps/visual/src/styles/globals.css`
+- 第一阶段不引入 Next.js，不立即引入 ECharts/Recharts，不把所有 Canvas 重写成 React 图表。
+
+### Phase 2：落地设计 Tokens
+
+- 把 `TASTE_SKILL_UI.md` 转换为 Tailwind 和 CSS variables：
+  - 深炭背景：`#121212` / `#1a1c1e`
+  - 卡片表面：`#1e1e24` / `#25262b`
+  - 朱砂红：`#ae2012`
+  - 碧玉青：`#0a9396`
+  - 五行色：木 `#2a9d8f`、火 `#e76f51`、土 `#e9c46a`、金 `#e5e5e5`、水 `#264653`
+- 字体策略：数据与代码使用 `JetBrains Mono` / `Inter`，标题与干支卦名使用 `Noto Serif CJK SC` 或系统宋体系 fallback。
+- Shadcn 组件必须重设 radius、border、surface、accent 和 focus ring，不允许默认主题直接上线。
+
+### Phase 3：Legacy Adapter 包装层
+
+- 在 React 侧新增兼容层，不直接散落调用 `window` 全局对象：
+  - `apps/visual/src/legacy/loadLegacyScripts.ts`
+  - `apps/visual/src/legacy/legacyGlobals.ts`
+  - `apps/visual/src/legacy/canvasRenderers.ts`
+  - `apps/visual/src/legacy/capabilities.ts`
+  - `apps/visual/src/legacy/toolManifest.ts`
+- 第一阶段允许继续加载旧 `visual/js/core.js`、`bazi.js`、`ziwei.js`、`divination.js`、`fengshui.js`、`health.js`、`tool-manifest.js`、`capabilities.js`、`engine-adapters.js`。
+- 等功能稳定后，再把旧 JS 模块逐步改成 ESM 和 TypeScript 类型声明。
+
+### Phase 4：搭建 App Shell 与 11 标签导航
+
+- 组件结构建议：
+  - `components/app-shell/AppShell.tsx`
+  - `components/app-shell/SidebarNav.tsx`
+  - `components/app-shell/WorkspaceTabs.tsx`
+  - `components/app-shell/CommandBar.tsx`
+  - `components/app-shell/AgentStatusCard.tsx`
+  - `features/home/HomeDashboard.tsx`
+- 桌面端使用 Two-Tier Hybrid Layout：左侧模块导航，右侧工作区，顶部 CommandBar。
+- 移动端使用顶部模块切换或抽屉导航，禁止 11 个标签在窄屏横向失控。
+- `MODULES` 常量必须从现有 tab 和 `ToolManifest` 对齐，不新增含义不明的入口。
+
+### Phase 5：迁移 Home Dashboard
+
+- 首页先迁移为 React 静态版，再接入 legacy `ToolManifest` 与 `CapabilityRegistry`。
+- 首页展示：工具总数、本地能力数、演示边界数、模块分组、能力状态、隐私等级、问题类型。
+- 每个工具卡片增加 `Copy context for AI` 按钮，输出当前工具的 LLM 友好 Markdown 上下文。
+- 验收标准：数量与旧首页一致，能力 label 一致，点击工具可切换到对应 tab，不引入假数据。
+
+### Phase 6：迁移 Canvas 型工具页
+
+- 先做通用组件：
+  - `CanvasPanel.tsx`
+  - `ControlField.tsx`
+  - `InterpretationCard.tsx`
+  - `LegendPanel.tsx`
+  - `CopyContextButton.tsx`
+- 迁移顺序建议：八字、五行、五运六气、体质、风水、流年飞星、八宅、紫微、六爻、梅花；当前 React Shell 已覆盖这批高可见模块的工作区外壳。
+- 目录策略统一为英文业务语义目录：`features/constitution/`、`features/yunqi/`、`features/fengshui/`、`features/ziwei/`、`features/meihua/`、`features/liuyao/`；保留 `tizhi` 作为模块 id，不再新增 `features/tizhi/` 新实现。
+- 每迁移一个 tab 都必须验证：输入变化后 Canvas 刷新、图例存在、解读文本保留、上下文可复制、移动端不溢出。
+- 旧 renderer 若只接受 canvas id，第一阶段保留 id 方式；后续再改为接收 canvas element。
+- 构建产物额外生成 `apps/visual/dist/verify.html`，用于人工逐路由回归；Node 侧保留 `scripts/smoke-react-shell.mjs` 进行结构级冒烟测试。
+
+### Phase 7：CommandBar 全局调度
+
+- 第一版能力：搜索工具名、切换 tab、输入年份跳转相关 tab、复制当前上下文、打开测试控制台。
+- 第二版能力：全局修改出生资料、一键刷新所有 tab、起卦快捷命令、搜索古籍文本。
+- CommandBar 只能 dispatch state action，不得直接改 DOM。
+- 快捷键：`Ctrl+K` / `Cmd+K` 打开；必须支持键盘选择和可访问焦点状态。
+
+### Phase 8：知识图谱与古籍 Split Reader
+
+- Mermaid 先迁移为 React 组件，并保留 CDN/npm 加载失败时的源码降级显示。
+- 第二步实现 `AncientTextSplitReader`：左侧显示古籍 markdown 原文，右侧显示 JSON AST / 映射结构，高亮关联字段。
+- 若浏览器端无法直接读取本地古籍文件，则新增 manifest JSON 或构建时 import，不临时硬编码文件清单。
+
+### Phase 9：TestRunnerConsole
+
+- 第一版：在新 React app 中提供测试入口、结果摘要和跳转旧 `visual/test-runner.html` 的链接。
+- 第二版：浏览器端动态加载测试脚本，展示 rolling logs、verified badge、失败 diff 和环境信息。
+- 必须区分 Node 测试与浏览器测试，避免在 Node 中直接运行依赖 `window` 的测试。
+
+### Phase 10：逐步替换图表组件
+
+- 不为 React 化而重写稳定 Canvas；优先替换交互收益高的模块：`FiveElementsRadar`、`QiWheel`、`NinePalaceGrid`、`HexagramLines`、`ZiweiPalaceGrid`。
+- 密集仪表优先 SVG 自绘；关系图谱继续保留 Mermaid；复杂布局必要时继续使用 Canvas。
+- 替换前后必须做同输入对照，确保确定性输出无视觉漂移和数据漂移。
+
+### Phase 11：测试与切换入口
+
+- 新增测试建议：
+  - `apps/visual/src/__tests__/modules.test.ts`
+  - `apps/visual/src/__tests__/copy-context.test.ts`
+  - `apps/visual/src/__tests__/command-bar.test.ts`
+  - `apps/visual/src/__tests__/legacy-adapter.test.ts`
+  - `apps/visual/e2e/smoke.spec.ts`
+  - `apps/visual/e2e/navigation.spec.ts`
+  - `apps/visual/e2e/canvas-render.spec.ts`
+- 切换入口分三步：先新增 `visual/react.html` 或独立 dev server；稳定后 Vite build 输出到 `visual/dist/`；全部通过后再决定是否替换 `visual/index.html`。
+- 主入口切换前，必须确认 11 tab 全部可打开、默认数据可渲染、CommandBar 可切换、Copy context 有效、375px 移动端不横向溢出、暗黑模式 contrast 合格、Mermaid fallback 可用。
+
+### Sprint 建议
+
+1. **Sprint 1：安全搭架**：创建 `apps/visual/`、安装 React/Tailwind/Shadcn、落地 tokens、实现 AppShell + 11 tab 导航 + HomeDashboard 静态版。
+2. **Sprint 2：复用旧引擎**：完成 legacy script loader、CanvasPanel、迁移八字/五行/五运六气/体质、实现 Copy context。
+3. **Sprint 3：补齐 11 tabs**：迁移风水/飞星/八宅/紫微/六爻/梅花、迁移 Mermaid、加入测试控制台入口。
+4. **Sprint 4：新交互**：实现 CommandBar、全局出生资料同步、AncientTextSplitReader 雏形、浏览器 E2E smoke tests。
+
+### 暂不做事项
+
+- 不直接把旧 `visual/index.html` 改成 React 挂载点并一次性搬迁所有逻辑。
+- 不在第一阶段引入 Next.js。
+- 不一开始把所有 Canvas 改为 Recharts/ECharts。
+- 不破坏 tab id、hash 行为和现有测试入口。
+- 不使用 Shadcn 默认主题、赛博霓虹、玄学装饰或大面积发光效果。
+
 
 - `window.FORTUNE` 保持公开入口，新增只读方法：
   - `getCapabilities()`：返回各模块能力状态。
@@ -90,8 +273,10 @@
 - 隐私测试：报告导出和案例沉淀不得写入完整姓名、完整出生日期、具体出生地。
 - 验收标准：测试页面全部通过；Dashboard 无控制台致命错误；每个标签页都有能力标识；可成功导出一份静态 HTML 报告。
 
-## 当前 v0.2 落地范围
+## 当前 v0.3 进行中范围
 
 - 已落地：能力注册、标签页能力标识、统一引擎 Adapter 注册表、内置 `lunar-javascript` 精确历法、梅花时间起卦 Adapter、全局精确历法测算开关、输入校验、脱敏报告导出、脱敏案例草稿、开发者诊断页、Mermaid 离线降级、搜索索引对齐、测试页增强、JSON schema 校验脚本、文档契约检查脚本、全局命盘同步回归测试。
 - 仍为边界说明：紫微、六爻在 Dashboard 中仍使用演示数据；梅花已内置时间起卦规则。后续开发目标不是长期依赖外部服务，而是把可用开源引擎或自研规则内置到本地 Adapter。真实引擎未接入前，Dashboard 必须询问用户是否继续查看演示结构，不能默认把演示结构当作测算结果。
 - 已内置精确历法：Dashboard 默认加载 `visual/vendor/lunar-javascript-1.7.7.js`，八字使用精确节气干支，五运六气使用大寒边界修正；用户可关闭“精确历法测算”回退近似模式。
+- v0.3 信息架构已开始落地：新增 `visual/js/tool-manifest.js`，工具目录可按 manifest 分组渲染；视觉方案重新设计，不再沿用 suanle-me 参考方向。
+- React Shell 迁移面已落地：`apps/visual/` 已具备 App Shell、统一 `workspaceRegistry.tsx`、legacy script loader、`CanvasPanel` / `ControlField` / `CopyContextButton`、Node 冒烟测试与 `verify.html` 人工回归页；已迁移工作区包括八字、五行、五运六气、体质辨识、风水罗盘、流年飞星、八宅大游年、梅花易数、六爻占卜、紫微斗数。

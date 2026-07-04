@@ -38,6 +38,7 @@ const requiredFiles = [
   "visual/index.html",
   "visual/test-runner.html",
   "visual/js/capabilities.js",
+  "visual/js/tool-manifest.js",
   "visual/js/engine-adapters.js",
   "visual/vendor/lunar-javascript-1.7.7.js",
   "visual/vendor/lunar-javascript-1.7.7.LICENSE",
