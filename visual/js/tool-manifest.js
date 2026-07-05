@@ -32,7 +32,7 @@
       intro: "四柱、五行和日主结构。",
       description: "内置精确历法读取节气干支，可关闭后回退本地近似模式。"
     },
-    {
+        {
       id: "ziwei",
       title: "紫微斗数",
       icon: "✦",
@@ -45,7 +45,7 @@
       reportSection: "ziwei",
       accent: "#A77BD8",
       intro: "十二宫结构展示。",
-      description: "当前为演示结构；真实排盘将接入本地紫微 Adapter。"
+      description: "采用 SylarLong/iztro (v2.5.8) 本地引擎；未加载时回退演示结构。"
     },
     {
       id: "liuyao",

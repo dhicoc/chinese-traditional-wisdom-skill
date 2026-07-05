@@ -12,6 +12,7 @@ import { FengshuiWorkspace } from '@/features/fengshui/FengshuiWorkspace';
 import { MermaidWorkspace } from '@/features/mermaid/MermaidWorkspace';
 import { TestRunnerConsole } from '@/features/testing/TestRunnerConsole';
 import { AncientTextSplitReader } from '@/features/knowledge/AncientTextSplitReader';
+import { HistoryWorkspace } from '@/features/history/HistoryPanel';
 import type { ModuleId } from '@/lib/modules';
 
 interface WorkspaceProps {
@@ -32,6 +33,7 @@ export const WORKSPACE_COMPONENTS: Partial<Record<ModuleId, ComponentType<Worksp
   mermaid: MermaidWorkspace,
   testing: TestRunnerConsole,
   reader: AncientTextSplitReader,
+  history: HistoryWorkspace,
 };
 
 export function resolveWorkspace(moduleId: ModuleId): ComponentType<WorkspaceProps> {

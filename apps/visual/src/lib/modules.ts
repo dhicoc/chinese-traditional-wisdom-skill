@@ -15,7 +15,8 @@ export type ModuleId =
   | 'tizhi'
   | 'mermaid'
   | 'testing'
-  | 'reader';
+  | 'reader'
+  | 'history';
 
 export interface WisdomModule {
   id: ModuleId;
@@ -186,6 +187,18 @@ export const MODULES: WisdomModule[] = [
     questionTypes: ['古籍原文', '映射 JSON', '对照'],
     accent: '#e9c46a',
     description: '左侧古籍 Markdown 原文与右侧映射 JSON 结构对照阅读，支持关键词搜索高亮。',
+  },
+  {
+    id: 'history',
+    group: '开发者',
+    title: '本地历史与收藏',
+    shortTitle: '历史',
+    status: 'derived',
+    statusLabel: '本地存储',
+    privacyLevel: '脱敏摘要',
+    questionTypes: ['历史', '收藏', '隐私'],
+    accent: '#a78bfa',
+    description: '自动保存最近 30 条脱敏阅读摘要，不保存完整姓名、完整出生日期或具体地点。',
   },
 ];
 

@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>中国传统文化智慧 · 可视化工具箱</title>
 <link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2C1810">
 <!-- Mermaid for diagram rendering -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js" onerror="window.MERMAID_CDN_FAILED=true"></script>
 </head>
@@ -486,17 +488,18 @@ flowchart LR
 <!-- ═══ 数据桥接 (全局输入 + 引擎) ═══ -->
 <script src="js/search.js"></script>
 <script src="js/tool-manifest.js"></script>
+<script src="js/history-store.js"></script>
 <script src="js/capabilities.js"></script>
 <script src="js/engines/bazi-engine.js"></script>
 <script src="js/engines/yunqi-engine.js"></script>
 <script src="vendor/lunar-javascript-1.7.7.js"></script>
+<script src="vendor/iztro-2.5.8.min.js"></script>
 <script src="js/engine-adapters.js"></script>
 <script src="js/data-bridge.js"></script>
 
 <script>
 // ─── Tab switching ─────────────────────────
 var DEMO_TAB_CONFIRM_TEXT = {
-  ziwei: "紫微斗数当前仍为十二宫演示结构，真实排盘引擎尚未内置。是否继续查看演示结构？",
   liuyao: "六爻当前仍为演示卦象，真实纳甲起卦引擎尚未内置。是否继续查看演示结构？"
 };
 var demoTabConfirmed = {};
@@ -857,6 +860,19 @@ window.addEventListener('DOMContentLoaded', () => {
   <div id="cite-popup-source" style="margin-top:8px;font-size:11px;color:#BCAAA4;border-top:1px solid #EFEBE6;padding-top:6px;"></div>
   <button onclick="document.getElementById('cite-popup').style.display='none'" style="position:absolute;top:6px;right:10px;background:none;border:none;font-size:16px;cursor:pointer;color:#BCAAA4;">✕</button>
 </div>
+
+<script>
+// PWA Service Worker — 仅在 http/https 环境下注册，file:// 双击不加载
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("./sw.js").then(function (reg) {
+      console.log("[PWA] Service Worker 注册成功，scope:", reg.scope);
+    }).catch(function (err) {
+      console.warn("[PWA] Service Worker 注册失败：", err.message);
+    });
+  });
+}
+</script>
 
 </body>
 </html>

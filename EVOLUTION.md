@@ -5,6 +5,125 @@
 
 ---
 
+## 2026-07 八字精确节气 + 五运六气大寒定年（6tail/lunar-javascript 接入）
+
+### 外部引擎接入
+
+- **变更**：八字和五运六气模块升级为精确节气计算模式，接入 `6tail/lunar-javascript` (v1.7.7) 引擎。
+- **实现**：
+  - `BaziLunarAdapter`：调用 `Solar.fromYmdHms()` 生成精确农历和八字四柱数据，自动提取年柱、月柱、日柱、时柱的干支信息。
+  - `YunqiLunarBoundaryAdapter`：利用 lunar-javascript 的节气表获取精确大寒日期，实现"大寒定年"的运气年份边界判定。
+- **降级策略**：若 lunar-javascript 未加载或用户关闭精确历法 (`useExactCalendar: false`)，自动回退到本地近似引擎，确保页面可用。
+- **能力标识**：
+  - 八字：`mode` 为 `local-exact`（加载 lunar-javascript 时）或 `local-approx`（关闭精确历法时）
+  - 五运六气：`mode` 为 `local-exact`（大寒定年精确模式）或 `local-approx`（公历年近似模式）
+
+### 技术细节
+
+- **节气干支计算**：`calculateBaziWithLunarJavascript()` 使用 `Solar.fromYmdHms()` → `getLunar()` → `getEightChar()` 链式调用获取精确四柱。
+- **大寒定年逻辑**：`getDaHanDate()` 读取当年大寒节气日期，出生日期在大寒前则属上一年运气。
+- **数据转换**：`extractPillarText()` 和 `pillarFromText()` 将 lunar-javascript 的干支字符串转换为项目内部结构。
+- **Vendor 文件**：`visual/vendor/lunar-javascript-1.7.7.js`（MIT 许可证）。
+
+### 五运六气字段增强
+
+- **当前步气** (`current_step`)：根据当前日期自动判定所处六气步位，包含步名、客气、主气、节气区间。
+- **客主加临** (`kezhujialin`)：分析客气与主气的五行生克关系，输出"客生主"、"主生客"、"客克主"、"主克客"、"同气"等判定。
+
+### 测试验证
+
+- 151 项自动化测试全部通过（通过率 100%）。
+- 新增测试覆盖：
+  - 可选 lunar-javascript Adapter 能升级精确模式
+  - 关闭精确历法后回退本地近似
+  - 五运六气增强字段（current_step、kezhujialin）存在性验证
+
+---
+
+## 2026-07 紫微斗数真实排盘（SylarLong/iztro 接入）
+
+### 外部引擎接入
+
+- **变更**：紫微斗数从演示数据升级为本地真实排盘，接入 `SylarLong/iztro` (v2.5.8) 引擎。
+- **实现**：新增 `ZiweiIztroAdapter`，调用 `iztro.astro.bySolar()` 生成真实十二宫命盘数据，并转换为现有渲染器所需的格式。
+- **降级策略**：若 iztro 未加载或计算失败，自动回退到 `generateDemoZiwei()` 演示数据，确保页面可用。
+- **能力标识**：`capabilities.js` 中 ziwei 的 `mode` 从 `demo` 升级为 `local-exact`，`modeLabel` 改为"本地真实排盘"。
+- **说明**：紫微流派存在差异，采用 iztro 默认配置；在 `confidenceNote` 中明确标注引擎来源和版本。
+
+### 技术细节
+
+- **时间映射**：将 24 小时制转换为 iztro 的 `timeIndex`（0-12，0=早子时，1=丑时，...，12=晚子时）。
+- **数据转换**：`transformIztroPalaces()` 将 iztro 的英文 palace 名称映射为中文（soulPalace→命宫等），提取主星、辅星、庙旺信息。
+- **四化提取**：`transformIztroSihua()` 从 iztro 的 huaSihua 数据提取四化映射（禄、权、科、忌）。
+- **Vendor 文件**：`visual/vendor/iztro-2.5.8.min.js`（478KB）和 `iztro-2.5.8.LICENSE`（MIT）。
+
+### 测试增强
+
+- 新增"紫微斗数 iztro 真实排盘"测试，验证：
+  - 引擎名称和模式正确（ZiweiIztroAdapter 或 DemoZiweiAdapter）
+  - palaces 包含命宫、夫妻、财帛等十二宫数据
+  - 每个宫位包含 stars、position、miaoxian 字段
+  - sihua 四化数据存在
+  - mainStars 主星列表非空
+
+---
+
+## 2026-07 咨询向导 + 报告 readings 集成 + PWA 试点（v0.3 续）
+
+### 咨询向导模式
+
+- **新增**：在旧 Dashboard 首页新增"打开咨询向导"按钮，弹出模态对话框。
+- **流程**：用户选择问题类型（健康养生、事业决策、婚恋合婚、占卜决策、择居选址、综合咨询）→ 向导调用对应 Adapter 的 `calculate()` + `toReading()` 生成结构化摘要 → 展示标题、摘要、标签、分区详情、能力模式 → 可一键跳转对应工具页。
+- **路由**：`WIZARD_ROUTES` 配置每个问题类型对应的 Adapter 列表和目标标签页；综合咨询同时调用八字、五运六气、梅花三个 Adapter。
+- **历史集成**：向导生成的 reading 自动保存到 `HistoryStore`，首页历史面板同步刷新。
+- **隐私**：向导展示的生辰信息只显示年份和性别，不显示完整出生日期。
+
+### 报告导出集成 toReading()
+
+- **变更**：`exportReportData()` 新增 `readings` 字段，遍历 bazi/yunqi/meihua 三个 Adapter 调用 `toReading()` 生成结构化摘要。
+- **展示**：`buildReportHtml()` 在完整 REPORT_DATA 之后新增"结构化阅读摘要"区块，展示每个 reading 的标题、摘要、标签、分区详情和来源说明。
+- **隐私**：readings 只包含分析结论和文化参考说明，不包含完整生辰或姓名。
+
+### PWA 试点
+
+- **新增**：`visual/manifest.webmanifest`，声明应用名称、主题色、图标（内嵌 SVG data URI，无外部文件依赖）。
+- **新增**：`visual/sw.js`，轻量 Service Worker，缓存核心 JS/CSS/HTML 静态资源，采用 cache-first 策略。
+- **注册**：在 `index.html` 底部注册 SW，仅在 `http/https` 协议下加载，`file://` 双击打开不加载 SW，确保离线 HTML 优先可用。
+- **诊断**：开发者诊断页可展示 SW 注册状态（后续增强）。
+
+### 测试增强
+
+- 新增"报告导出包含 readings 结构化摘要"测试。
+- 新增"咨询向导路由配置完整"测试。
+- 新增"PWA manifest 可访问"测试。
+
+## 2026-07 toReading 契约 + HistoryStore + 梅花数字起卦（v0.3 续）
+
+### toReading() 结构化阅读摘要
+
+- **变更**：扩展 `EngineAdapterRegistry`，新增可选 `toReading(result, input)` 方法和 `toReading()` / `listWithReading()` 公开接口。
+- **已实现**：八字、五运六气、梅花三个本地引擎 Adapter 均已实现 `toReading()`，返回 `{ title, summary, tags, sections, sourceNotes }` 结构化摘要。
+- **定位**：`toReading()` 为报告导出、历史记录和咨询向导结果页提供统一的阅读摘要来源；`score` 类字段不纳入，避免宣称精确吉凶分数。
+
+### 本地历史与收藏 HistoryStore
+
+- **新增**：`visual/js/history-store.js`，使用原生 `localStorage` 保存脱敏阅读摘要。
+- **隐私保护**：自动清除 `YYYY-MM-DD` 格式的完整日期；只保存 module、title、summary、tags、mode、createdAt 字段；不保存完整姓名、完整出生日期、具体地点。
+- **容量**：历史最多 30 条，同 module+title 自动覆盖；收藏独立管理，提供清空入口。
+- **集成**：旧 Dashboard 首页新增历史记录面板，显示最近 10 条摘要；`data-bridge.js` 在用户更新数据时自动调用 `saveReadingToHistory()` 生成并保存 reading。
+- **React Shell**：新增 `features/history/HistoryPanel.tsx` 工作区，支持历史/收藏标签切换、单条删除、收藏切换、批量清空。
+
+### 梅花数字起卦模式
+
+- **变更**：梅花 Adapter 新增 `method: "number"` 模式，使用 `numberA` / `numberB` 取数定上下卦与动爻。
+- **规则**：上卦 = numberA % 8，下卦 = (numberA + numberB) % 8，动爻 = (numberA + numberB) % 6。
+- **兼容**：默认仍为 `method: "time"`（时间起卦），数字起卦为可选模式。
+
+### 测试增强
+
+- **浏览器测试**：新增 `toReading()` 契约测试、梅花数字起卦验证（含上卦/下卦/动爻计算正确性）、HistoryStore 增删改查与脱敏测试。
+- **文档契约**：`check-doc-contracts.mjs` 新增 `history-store.js` 文件存在性检查。
+
 ## 2026-07 React Shell 迁移进展（v0.3 进行中）
 
 ### React + Tailwind + Shadcn 迁移基座

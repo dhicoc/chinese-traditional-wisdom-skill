@@ -68,6 +68,8 @@
 | Chart.js | CDN | visual/index.html (script src) | 雷达图 + 扇形图 |
 | lunar-javascript 1.7.7 | 浏览器内置 vendor | `visual/vendor/lunar-javascript-1.7.7.js` | MIT；提供 `Solar` / `Lunar` / `EightChar`，用于八字节气干支和五运六气大寒边界 |
 | ToolManifest 工具目录 | 浏览器原生 | `visual/js/tool-manifest.js` | 统一首页卡片、工具分类、入口标签、能力键、隐私等级和报告区块元数据 |
+| HistoryStore 本地历史与收藏 | 浏览器原生 | `visual/js/history-store.js` | localStorage 存储脱敏阅读摘要，最多 30 条，自动清除完整日期，提供清空入口 |
+| toReading() 结构化阅读摘要 | 浏览器原生 | `visual/js/engine-adapters.js` | Adapter 可选方法，返回 title/summary/tags/sections/sourceNotes，用于历史记录和报告摘要 |
 | 引擎 Adapter 注册表 | 浏览器原生 | `visual/js/engine-adapters.js` | 统一八字、五运六气、紫微、六爻、梅花的 `calculate()` / `toRenderData()` 契约 |
 | 文档契约检查 | Node.js | `node visual/js/tests/check-doc-contracts.mjs` | 校验 README/SKILL/tool-index/ROADMAP 与入口文件、报告字段、隐私约束一致 |
 | 全局同步回归 | 浏览器 | `visual/test-runner.html` | 校验 FORTUNE 全局更新后各标签页控件与画布同步 |

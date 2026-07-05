@@ -29,7 +29,7 @@
 - 搜索能力升级：将 `search.js` 的内置古籍索引与实际 `knowledge-base/fengshui` 文件清单对齐；结果展示增加来源、完整性、类别。
 - 报告生成规范化：固化 `REPORT_DATA` 版本号，静态 HTML 报告模板增加字段缺失提示、模块隐藏规则和数据来源说明。
 - 风水映射校验：为 6 个 JSON 映射表增加 schema 文档和可执行校验脚本，保证字段完整、方位覆盖、九星/八宅规则可查。
-- 紫微真实排盘：优先接入 `SylarLong/iztro`，把当前 `generateZiweiDefault()` 演示数据替换为可选真实排盘 Adapter；保留演示 fallback 和能力标识。
+- ✅ 紫微真实排盘：已接入 `SylarLong/iztro` v2.5.8，新增 `ZiweiIztroAdapter` 实现真实十二宫排盘；保留演示 fallback 和能力标识。
 - 六爻与梅花路线：六爻先参考 `bopo/najia` 抽象纳甲数据契约，梅花优先自研小型 JS 起卦规则；不直接嵌入许可证受限或成熟度不足的项目。
 
 ## 第 3 个月：新功能与发布沉淀
@@ -280,3 +280,6 @@
 - 已内置精确历法：Dashboard 默认加载 `visual/vendor/lunar-javascript-1.7.7.js`，八字使用精确节气干支，五运六气使用大寒边界修正；用户可关闭“精确历法测算”回退近似模式。
 - v0.3 信息架构已开始落地：新增 `visual/js/tool-manifest.js`，工具目录可按 manifest 分组渲染；视觉方案重新设计，不再沿用 suanle-me 参考方向。
 - React Shell 迁移面已落地：`apps/visual/` 已具备 App Shell、统一 `workspaceRegistry.tsx`、legacy script loader、`CanvasPanel` / `ControlField` / `CopyContextButton`、Node 冒烟测试与 `verify.html` 人工回归页；已迁移工作区包括八字、五行、五运六气、体质辨识、风水罗盘、流年飞星、八宅大游年、梅花易数、六爻占卜、紫微斗数。
+- v0.3 结构化阅读与历史已落地：`EngineAdapterRegistry.toReading()` 契约已实现于八字/五运六气/梅花三个 Adapter；`HistoryStore` 本地历史与收藏已集成到旧 Dashboard 首页和 React Shell `history` 工作区；梅花数字起卦模式已内置。
+- v0.3 咨询向导已落地：旧 Dashboard 首页新增"打开咨询向导"按钮，提供六类问题入口，调用 `toReading()` 生成结构化摘要并保存到历史；报告导出 `exportReportData()` 已集成 `readings` 字段并在 HTML 报告中展示。
+- v0.3 PWA 试点已落地：新增 `manifest.webmanifest` 和 `sw.js`，仅在 http/https 下注册 Service Worker，`file://` 双击不加载 SW。

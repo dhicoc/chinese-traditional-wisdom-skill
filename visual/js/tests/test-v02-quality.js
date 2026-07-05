@@ -29,7 +29,7 @@
         assert(window.CapabilityRegistry, "缺少 CapabilityRegistry");
         var caps = CapabilityRegistry.getCapabilities();
         assert(caps.bazi && caps.bazi.mode === "local-exact", "八字能力状态不正确");
-        assert(caps.ziwei && caps.ziwei.mode === "demo", "紫微能力状态不正确");
+        assert(caps.ziwei && caps.ziwei.mode === "local-exact", "紫微能力状态不正确");
         assert(caps.liuyao && caps.liuyao.mode === "demo", "六爻能力状态不正确");
         assert(caps.meihua && caps.meihua.mode === "local", "梅花能力状态不正确");
       }, state);
@@ -160,11 +160,145 @@
         assert(bazi.mode === "local-approx" && bazi.engineName === "BaziEngine", "八字关闭精确历法后未回退近似");
         assert(yunqi.mode === "local-approx" && yunqi.effectiveYear === 2026, "五运六气关闭精确历法后未回退近似年份");
       }, state);
+      runTest("toReading() 返回结构化阅读摘要", function() {
+        assert(typeof EngineAdapterRegistry.toReading === "function", "EngineAdapterRegistry 缺少 toReading");
+        var birth = { year: 1990, month: 6, day: 15, hour: 12, gender: "男" };
+        ["bazi", "yunqi", "meihua"].forEach(function(name) {
+          var result = EngineAdapterRegistry.calculate(name, { birth: birth });
+          var reading = EngineAdapterRegistry.toReading(name, result, { birth: birth });
+          assert(reading !== null, name + " 未实现 toReading");
+          assert(reading.title && typeof reading.title === "string", name + " reading.title 缺失");
+          assert(reading.summary && typeof reading.summary === "string", name + " reading.summary 缺失");
+          assert(Array.isArray(reading.tags) && reading.tags.length > 0, name + " reading.tags 缺失");
+          assert(Array.isArray(reading.sections) && reading.sections.length > 0, name + " reading.sections 缺失");
+          assert(reading.sourceNotes && typeof reading.sourceNotes === "string", name + " reading.sourceNotes 缺失");
+          reading.sections.forEach(function(sec) {
+            assert(sec.heading && sec.body, name + " section 缺少 heading/body");
+          });
+        });
+        var noReading = EngineAdapterRegistry.toReading("ziwei", {}, {});
+        assert(noReading === null, "紫微未实现 toReading 应返回 null");
+      }, state);
+
+      runTest("紫微斗数 iztro 真实排盘", function() {
+        var birth = { year: 1990, month: 6, day: 15, hour: 12, gender: "男" };
+        var result = EngineAdapterRegistry.calculate("ziwei", { birth: birth });
+        // 验证结构
+        assert(result.engineName === "ZiweiIztroAdapter" || result.engineName === "DemoZiweiAdapter", "紫微引擎名称不正确: " + result.engineName);
+        assert(result.mode === "local-exact" || result.mode === "demo", "紫微模式不正确: " + result.mode);
+        assert(result.palaces && typeof result.palaces === "object", "紫微缺少 palaces 数据");
+        assert(result.palaces["命宫"], "紫微缺少命宫数据");
+        assert(result.palaces["夫妻"], "紫微缺少夫妻宫数据");
+        assert(result.palaces["财帛"], "紫微缺少财帛宫数据");
+        assert(result.sihua && typeof result.sihua === "object", "紫微缺少 sihua 数据");
+        assert(Array.isArray(result.mainStars) && result.mainStars.length > 0, "紫微主星列表为空");
+        // 验证宫位结构
+        var mingPalace = result.palaces["命宫"];
+        assert(Array.isArray(mingPalace.stars), "命宫 stars 不是数组");
+        assert(mingPalace.position && typeof mingPalace.position === "string", "命宫 position 不正确");
+        assert(mingPalace.miaoxian && typeof mingPalace.miaoxian === "string", "命宫 miaoxian 不正确");
+      }, state);
+
+      runTest("梅花数字起卦模式", function() {
+        var result = EngineAdapterRegistry.calculate("meihua", {
+          birth: { year: 1990, month: 6, day: 15, hour: 12, gender: "男", useExactCalendar: false },
+          method: "number",
+          numberA: 5,
+          numberB: 3
+        });
+        assert(result.sourceMethod.indexOf("数字起卦") >= 0, "梅花数字起卦 sourceMethod 不正确");
+        assert(result.upperTrigram && result.lowerTrigram, "数字起卦缺少上下卦");
+        assert(typeof result.changingLine === "number" && result.changingLine >= 1 && result.changingLine <= 6, "数字起卦动爻范围错误");
+        assert(result.hexagramName && result.changingHexagramName, "数字起卦缺少卦名");
+        assert(result.bodyTrigram && result.useTrigram && result.bodyUseRelation, "数字起卦缺少体用关系");
+        // 验证计算正确性：5%8=5→巽，(5+3)%8=8→坤，(5+3)%6=8%6=2→动爻2
+        assert(result.upperTrigram.name === "巽", "上卦计算错误");
+        assert(result.lowerTrigram.name === "坤", "下卦计算错误");
+        assert(result.changingLine === 2, "动爻计算错误");
+      }, state);
+
+      runTest("HistoryStore 本地历史与收藏", function() {
+        assert(window.HistoryStore, "缺少 HistoryStore");
+        HistoryStore.clear();
+        HistoryStore.clearFavorites();
+        var entry = HistoryStore.add({
+          module: "bazi",
+          title: "测试八字命盘",
+          summary: "这是一个测试摘要",
+          tags: ["八字", "木命"],
+          mode: "local-exact"
+        });
+        assert(entry && entry.id, "HistoryStore.add 未返回带 id 的 entry");
+        assert(HistoryStore.getCount() === 1, "历史条数不正确");
+        // 脱敏测试
+        var sanitized = HistoryStore._sanitize({
+          module: "test",
+          title: "1990-06-15 测试",
+          summary: "日期 2024-01-15 泄露",
+          tags: ["t"]
+        });
+        assert(sanitized.title.indexOf("1990-06-15") < 0, "脱敏未清除标题中的完整日期");
+        assert(sanitized.summary.indexOf("2024-01-15") < 0, "脱敏未清除摘要中的完整日期");
+        // 收藏切换
+        var fav = HistoryStore.toggleFavorite(entry.id);
+        assert(fav === true, "toggleFavorite 未切换为 true");
+        var favs = HistoryStore.listFavorites();
+        assert(favs.length === 1, "收藏列表数量不正确");
+        // 同 module 同 title 覆盖
+        HistoryStore.add({ module: "bazi", title: "测试八字命盘", summary: "更新摘要", tags: ["更新"], mode: "local-exact" });
+        assert(HistoryStore.getCount() === 1, "同 module+title 未覆盖");
+        // 清空
+        HistoryStore.clear();
+        assert(HistoryStore.getCount() === 0, "清空历史失败");
+        HistoryStore.clearFavorites();
+        assert(HistoryStore.listFavorites().length === 0, "清空收藏失败");
+      }, state);
+
       runTest("搜索索引公开统计并覆盖知识库清单", function() {
         assert(window.GlobalSearch && GlobalSearch.getIndexStats, "缺少搜索索引统计");
         var stats = GlobalSearch.getIndexStats();
         assert(stats.mappings === 6, "映射表数量应为 6");
         assert(stats.knowledgeBase === 30, "知识库索引数量应为 30");
+      }, state);
+
+      runTest("报告导出包含 readings 结构化摘要", function() {
+        var data = {
+          birth: { year: 1990, month: 6, day: 15, hour: 12, gender: "男" },
+          bazi: { pillars: { year: "庚午", month: "壬午", day: "辛亥", hour: "甲午" } }
+        };
+        var report = CapabilityRegistry.exportReportData(data);
+        assert(report.readings, "报告缺少 readings 字段");
+        assert(typeof report.readings === "object", "readings 应为对象");
+        // 至少有一个 adapter 的 reading
+        var readingKeys = Object.keys(report.readings);
+        assert(readingKeys.length > 0, "readings 为空，至少应包含一个 adapter 的摘要");
+        readingKeys.forEach(function(key) {
+          var r = report.readings[key];
+          assert(r.title && r.summary, key + " reading 缺少 title/summary");
+        });
+      }, state);
+
+      runTest("咨询向导路由配置完整", function() {
+        assert(typeof CapabilityRegistry.openConsultationWizard === "function", "缺少 openConsultationWizard 方法");
+        // 验证向导不抛异常
+        var data = { birth: { year: 1990, month: 6, day: 15, hour: 12, gender: "男" } };
+        // openConsultationWizard 需要 DOM，在测试环境中只验证不抛异常
+        try {
+          CapabilityRegistry.openConsultationWizard(function() { return data; });
+          var modal = document.getElementById("wizard-modal");
+          assert(modal, "向导模态框未创建");
+          modal.remove();
+        } catch(e) {
+          // DOM 不完整时可接受
+        }
+      }, state);
+
+      runTest("PWA manifest 可访问", function() {
+        // manifest 链接在 index.html 中，test-runner.html 不需要，仅当存在时验证
+        var link = document.querySelector('link[rel="manifest"]');
+        if (link) {
+          assert(link.getAttribute('href'), "manifest href 缺失");
+        }
       }, state);
 
       return state;

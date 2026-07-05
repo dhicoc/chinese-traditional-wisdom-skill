@@ -8,13 +8,18 @@
   "use strict";
   if (typeof window === "undefined") return;
 
-  var ADAPTER_VERSION = "0.2.1";
+  var ADAPTER_VERSION = "0.3.0";
   var adapters = {};
 
   var REQUIRED_FIELDS = [
     "engineName", "mode", "version", "inputSchema", "sourceProject",
     "license", "calculate", "toRenderData", "confidenceNote"
   ];
+
+  // toReading() 是可选方法，返回结构化阅读摘要
+  // { title, summary, tags, sections, sourceNotes }
+  // sections: [{ heading, body }]
+  var OPTIONAL_METHODS = ["toReading"];
 
   function clone(value) {
     return value == null ? value : JSON.parse(JSON.stringify(value));
@@ -289,10 +294,32 @@
 
   function calculateLocalMeihua(input) {
     var birth = normalizeBirth(input);
-    var numbers = getMeihuaDateNumbers(birth);
-    var upperIndex = modOne(numbers.year + numbers.month + numbers.day, 8);
-    var lowerIndex = modOne(numbers.year + numbers.month + numbers.day + numbers.hourNumber, 8);
-    var movingLine = modOne(numbers.year + numbers.month + numbers.day + numbers.hourNumber, 6);
+    var method = (input && input.method) || "time";
+    var numbers;
+    var sourceLabel;
+
+    if (method === "number" && input && input.numberA != null && input.numberB != null) {
+      // 数字起卦：上卦 = numberA % 8, 下卦 = (numberA + numberB) % 8, 动爻 = (numberA + numberB) % 6
+      var na = Math.abs(Number(input.numberA) || 0);
+      var nb = Math.abs(Number(input.numberB) || 0);
+      numbers = { year: na, month: nb, day: 0, hourNumber: 0, source: "数字起卦：上卦=" + na + "%8, 下卦=(" + na + "+" + nb + ")%8, 动爻=(" + na + "+" + nb + ")%6" };
+      var upperIndex = modOne(na, 8);
+      var lowerIndex = modOne(na + nb, 8);
+      var movingLine = modOne(na + nb, 6);
+      sourceLabel = "数字起卦";
+      return buildMeihuaResult(upperIndex, lowerIndex, movingLine, birth, sourceLabel, numbers);
+    }
+
+    // 时间起卦
+    numbers = getMeihuaDateNumbers(birth);
+    var upperIdx = modOne(numbers.year + numbers.month + numbers.day, 8);
+    var lowerIdx = modOne(numbers.year + numbers.month + numbers.day + numbers.hourNumber, 8);
+    var moveLine = modOne(numbers.year + numbers.month + numbers.day + numbers.hourNumber, 6);
+    sourceLabel = numbers.source;
+    return buildMeihuaResult(upperIdx, lowerIdx, moveLine, birth, sourceLabel, numbers);
+  }
+
+  function buildMeihuaResult(upperIndex, lowerIndex, movingLine, birth, sourceLabel, numbers) {
     var upper = MEIHUA_TRIGRAMS[upperIndex - 1];
     var lower = MEIHUA_TRIGRAMS[lowerIndex - 1];
     var upperLines = MEIHUA_NATURE[upper].lines;
@@ -319,7 +346,7 @@
       bodyUseRelation: getBodyUseRelation(bodyTrigram, useTrigram),
       hexagramName: hexagramName,
       changingHexagramName: changedHexagramName,
-      sourceMethod: numbers.source,
+      sourceMethod: sourceLabel,
       numbers: numbers,
       engineName: "LocalMeihuaTimeAdapter",
       mode: birth.useExactCalendar !== false && hasLunarJavascript() ? "local-exact" : "local",
@@ -406,6 +433,130 @@
     };
   }
 
+  // ═══════ iztro 辅助函数 ═══════
+
+  /**
+   * iztro palace 名称映射 (英文 -> 中文)
+   */
+  var IZTRO_PALACE_MAP = {
+    "soulPalace": "命宫",
+    "parentsPalace": "父母",
+    "spiritPalace": "福德",
+    "propertyPalace": "田宅",
+    "careerPalace": "官禄",
+    "friendsPalace": "交友",
+    "surfacePalace": "迁移",
+    "healthPalace": "疾厄",
+    "wealthPalace": "财帛",
+    "childrenPalace": "子女",
+    "spousePalace": "夫妻",
+    "siblingsPalace": "兄弟"
+  };
+
+  /**
+   * 将 iztro 的 palaces 数组转换为本项目渲染器需要的格式
+   */
+  function transformIztroPalaces(iztroPalaces) {
+    var result = {};
+    if (!Array.isArray(iztroPalaces)) return result;
+    
+    var branches = ["寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"];
+    var brIdx = 0;
+
+    iztroPalaces.forEach(function (p) {
+      if (!p) return;
+      var pName = IZTRO_PALACE_MAP[p.name];
+      if (!pName) return;
+      
+      var majorStars = [];
+      var minorStars = [];
+      var brightness = "";
+
+      if (p.majorStars && Array.isArray(p.majorStars)) {
+        p.majorStars.forEach(function (s) {
+          if (s && s.name) {
+            majorStars.push(s.name);
+            if (s.brightness && !brightness) brightness = s.brightness;
+          }
+        });
+      }
+      if (p.minorStars && Array.isArray(p.minorStars)) {
+        p.minorStars.forEach(function (s) {
+          if (s && s.name && s.type === "helpful") {
+            minorStars.push(s.name);
+          }
+        });
+      }
+      
+      // 地支序数映射：命宫由月数起始，iztro 按 civil 定位
+      var branchIndex = p.earthlyBranch ? branches.indexOf(p.earthlyBranch.substring(0, 1)) : brIdx % 12;
+      if (branchIndex < 0) branchIndex = brIdx % 12;
+      var branch = branches[branchIndex] || branches[brIdx % 12];
+
+      result[pName] = {
+        stars: majorStars.concat(minorStars),
+        position: branch,
+        miaoxian: brightness || "平",
+        earthlyBranch: p.earthlyBranch || ""
+      };
+      brIdx++;
+    });
+    
+    return result;
+  }
+
+  /**
+   * 从 iztro 的 huaSihua 数据提取四化映射 { 星名: 禄/权/科/忌 }
+   */
+  function transformIztroSihua(hua) {
+    var result = {};
+    if (!hua || typeof hua !== "object") return result;
+    
+    var starMap = { "lu": "禄", "quan": "权", "ke": "科", "ji": "忌" };
+    if (hua.jia) { result[getStarName("甲")] = starMap[hua.jia]; }
+    if (hua.yi) { result[getStarName("乙")] = starMap[hua.yi]; }
+    if (hua.bing) { result[getStarName("丙")] = starMap[hua.bing]; }
+    if (hua.ding) { result[getStarName("丁")] = starMap[hua.ding]; }
+    if (hua.wu) { result[getStarName("戊")] = starMap[hua.wu]; }
+    if (hua.ji) { result[getStarName("己")] = starMap[hua.ji]; }
+    if (hua.geng) { result[getStarName("庚")] = starMap[hua.geng]; }
+    if (hua.xin) { result[getStarName("辛")] = starMap[hua.xin]; }
+    if (hua.ren) { result[getStarName("壬")] = starMap[hua.ren]; }
+    if (hua.gui) { result[getStarName("癸")] = starMap[hua.gui]; }
+    
+    return result;
+  }
+
+  /**
+   * 天干对应的星名（四化）
+   */
+  function getStarName(stem) {
+    var map = {
+      "甲": "廉贞", "乙": "破军", "丙": "武曲", "丁": "太阳",
+      "戊": "天同", "己": "廉贞", "庚": "天府", "辛": "太阴", "壬": "武曲",
+      "癸": "贪狼"
+    };
+    return map[stem] || "";
+  }
+
+  /**
+   * 提取所有主要星曜列表
+   */
+  function extractMainStars(iztroPalaces) {
+    var stars = [];
+    if (!Array.isArray(iztroPalaces)) return stars;
+    iztroPalaces.forEach(function (p) {
+      if (p && p.majorStars && Array.isArray(p.majorStars)) {
+        p.majorStars.forEach(function (s) {
+          if (s && s.name && stars.indexOf(s.name) < 0) {
+            stars.push(s.name);
+          }
+        });
+      }
+    });
+    return stars;
+  }
+
   function validateAdapter(name, adapter) {
     var missing = REQUIRED_FIELDS.filter(function (field) {
       return adapter[field] === undefined || adapter[field] === null;
@@ -460,6 +611,40 @@
     return adapter.toRenderData(result, input || {});
   }
 
+  /**
+   * 调用 Adapter 的可选 toReading() 方法，返回结构化阅读摘要。
+   * 若 Adapter 未实现 toReading()，返回 null。
+   *
+   * @param {string} name - adapter 名称
+   * @param {object} result - calculate() 返回的结果
+   * @param {object} input - 原始输入
+   * @returns {{title:string, summary:string, tags:string[], sections:Array, sourceNotes:string}|null}
+   */
+  function toReading(name, result, input) {
+    var adapter = get(name);
+    if (!adapter || typeof adapter.toReading !== "function") return null;
+    return adapter.toReading(result, input || {});
+  }
+
+  /**
+   * 列出所有 Adapter 的能力摘要（含是否支持 toReading）。
+   */
+  function listWithReading() {
+    return Object.keys(adapters).map(function (name) {
+      var a = adapters[name];
+      return {
+        id: name,
+        engineName: a.engineName,
+        mode: a.mode,
+        version: a.version,
+        sourceProject: a.sourceProject,
+        license: a.license,
+        confidenceNote: a.confidenceNote,
+        hasToReading: typeof a.toReading === "function"
+      };
+    });
+  }
+
   register("bazi", {
     engineName: "BaziEngine / optional BaziLunarAdapter",
     mode: "local-approx",
@@ -477,6 +662,35 @@
     toRenderData: function (result) {
       if (!window.BaziEngine || typeof window.BaziEngine.getRenderData !== "function") throw new Error("BaziEngine.getRenderData 不可用");
       return window.BaziEngine.getRenderData(result);
+    },
+    toReading: function (result, input) {
+      var birth = normalizeBirth(input);
+      var p = result.pillars || {};
+      var pillarsStr = [p.year, p.month, p.day, p.hour].filter(Boolean).map(function (col) {
+        return col.stem + col.branch;
+      }).join(" ");
+      var dm = result.dayMaster || "?";
+      var dmWx = result.dayMasterWuxing || "?";
+      var dmYy = result.dayMasterYinYang || "?";
+      var els = result.elements || {};
+      var elSummary = Object.keys(els).map(function (k) { return k + ":" + els[k]; }).join(" ");
+      var maxEl = ""; var maxVal = -1;
+      Object.keys(els).forEach(function (k) { if (els[k] > maxVal) { maxVal = els[k]; maxEl = k; } });
+      var minEl = ""; var minVal = Infinity;
+      Object.keys(els).forEach(function (k) { if (els[k] < minVal) { minVal = els[k]; minEl = k; } });
+      var isStrong = maxVal >= 8;
+      return {
+        title: "八字命盘 · " + dm + "(" + dmWx + ")",
+        summary: "四柱：" + pillarsStr + "。日主" + dm + dmYy + dmWx + "，五行 " + elSummary + "，偏旺" + maxEl + "、偏弱" + minEl + "，整体" + (isStrong ? "偏强" : "偏弱") + "。",
+        tags: ["八字", dmWx + "命", dmYy + "干", isStrong ? "身强" : "身弱", result.mode === "local-exact" ? "精确历法" : "近似历法"],
+        sections: [
+          { heading: "四柱", body: "年柱 " + (p.year ? p.year.stem + p.year.branch : "-") + "、月柱 " + (p.month ? p.month.stem + p.month.branch : "-") + "、日柱 " + (p.day ? p.day.stem + p.day.branch : "-") + "、时柱 " + (p.hour ? p.hour.stem + p.hour.branch : "-") + "。" },
+          { heading: "五行分布", body: elSummary + "。最旺：" + maxEl + "(" + maxVal + ")，最弱：" + minEl + "(" + minVal + ")。" },
+          { heading: "十神", body: Object.keys(result.shishenList || {}).map(function (k) { return k + "柱" + result.shishenList[k]; }).join("、") + "。" },
+          { heading: "日主强弱", body: "日主" + dm + "为" + dmYy + dmWx + "，五行总量" + (Object.keys(els).reduce(function (s, k) { return s + els[k]; }, 0)) + "，判断为" + (isStrong ? "偏强" : "偏弱") + "。此判断基于五行计数近似，仅供参考。" }
+        ],
+        sourceNotes: result.confidenceNote || "本地近似八字引擎"
+      };
     }
   });
 
@@ -504,18 +718,71 @@
       }
       return result;
     },
-    toRenderData: function (result) { return result; }
+    toRenderData: function (result) { return result; },
+    toReading: function (result, input) {
+      var y = result.effectiveYear || result.year || "?";
+      var tg = result.tiangan || "?";
+      var dz = result.dizhi || "?";
+      var dayun = result.dayun || "?";
+      var sitian = result.sitian || "?";
+      var zaiquan = result.zaiquan || "?";
+      var tendency = result.disease_tendency || "";
+      var tags = ["五运六气", tg + dz + "年", dayun, sitian];
+      if (result.mode === "local-exact") tags.push("精确历法");
+      return {
+        title: "五运六气 · " + y + "年(" + tg + dz + ")",
+        summary: y + "年(" + tg + dz + ")岁运" + dayun + "，司天" + sitian + "，在泉" + zaiquan + "。疾病倾向：" + tendency + "。",
+        tags: tags,
+        sections: [
+          { heading: "岁运", body: tg + "年岁运为" + dayun + "，主全年气候与体质基本倾向。" },
+          { heading: "司天在泉", body: "司天" + sitian + "主上半年气候，在泉" + zaiquan + "主下半年气候。" },
+          { heading: "疾病倾向", body: tendency + "。以上为运气推算的文化参考，不作为诊疗建议。" },
+          { heading: "年份边界", body: result.yearBoundary || ("按公历" + y + "年处理") }
+        ],
+        sourceNotes: result.confidenceNote || "本地五运六气推算"
+      };
+    }
   });
 
   register("ziwei", {
-    engineName: "DemoZiweiAdapter",
-    mode: "demo",
+    engineName: "ZiweiIztroAdapter / fallback DemoZiweiAdapter",
+    mode: "local-exact",
     version: ADAPTER_VERSION,
     inputSchema: { birth: "year/month/day/hour/gender", mingGua: "object" },
-    sourceProject: "local-demo; future: SylarLong/iztro",
-    license: "project-local-demo",
-    confidenceNote: "当前 Dashboard 为紫微十二宫演示数据；真实排盘计划接入 SylarLong/iztro。",
-    calculate: generateDemoZiwei,
+    sourceProject: "SylarLong/iztro@2.5.8 (MIT)",
+    license: "MIT",
+    confidenceNote: "紫微斗数排盘采用 SylarLong/iztro (v2.5.8) 引擎；紫微流派存在差异，采用 iztro 默认配置。未加载 iztro 时回退演示数据。",
+    calculate: function (input) {
+      var birth = normalizeBirth(input);
+      // 尝试使用 iztro
+      if (typeof window.iztro === "object" && window.iztro.astro && typeof window.iztro.astro.bySolar === "function") {
+        try {
+          // hour -> timeIndex: 0=早子时(23-1), 1=丑时(1-3), 2=寅时(3-5), 3=卯时(5-7), 4=辰时(7-9), 5=巳时(9-11), 6=午时(11-13), 7=未时(13-15), 8=申时(15-17), 9=酉时(17-19), 10=戌时(19-21), 11=亥时(21-23), 12=晚子时(23-1)
+          var timeIndex = Math.floor((birth.hour + 1) / 2);
+          if (timeIndex === 12) timeIndex = 0; // 23:00-23:59 映射到早子时
+          var genderKey = birth.gender === "男" ? "男" : "女";
+          var solarDateStr = birth.year + "-" + birth.month + "-" + birth.day;
+          var chart = window.iztro.astro.bySolar(solarDateStr, timeIndex, genderKey);
+          if (chart && chart.palaces && Array.isArray(chart.palaces)) {
+            return {
+              engineName: "ZiweiIztroAdapter",
+              mode: "local-exact",
+              version: "iztro@2.5.8",
+              birthInfo: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, gender: birth.gender },
+              mingGua: input && input.mingGua ? input.mingGua : { trigram: "?", group: "?" },
+              palaces: transformIztroPalaces(chart.palaces),
+              sihua: transformIztroSihua(chart.sihua || {}),
+              mainStars: extractMainStars(chart.palaces),
+              chart: chart
+            };
+          }
+        } catch (e) {
+          console.warn("iztro calculate failed, falling back to demo:", e.message || e);
+        }
+      }
+      // 回退到演示数据
+      return generateDemoZiwei(input);
+    },
     toRenderData: function (result) { return clone(result); }
   });
 
@@ -535,23 +802,53 @@
     engineName: "LocalMeihuaTimeAdapter",
     mode: "local",
     version: ADAPTER_VERSION,
-    inputSchema: { birth: "year/month/day/hour/gender/useExactCalendar", method: "time" },
+    inputSchema: { birth: "year/month/day/hour/gender/useExactCalendar", method: "time|number", numberA: "number (method=number)", numberB: "number (method=number)" },
     sourceProject: "local:visual/js/engine-adapters.js",
     license: "project-local",
     confidenceNote: "本地时间起卦：按年月日时取数定上下卦与动爻，并计算互卦、变卦、体用生克；不同流派可能采用不同取数口径。",
     calculate: calculateLocalMeihua,
-    toRenderData: function (result) { return clone(result); }
+    toRenderData: function (result) { return clone(result); },
+    toReading: function (result, input) {
+      var upper = result.upperTrigram || {};
+      var lower = result.lowerTrigram || {};
+      var bodyName = result.bodyTrigram || "?";
+      var useName = result.useTrigram || "?";
+      var relation = result.bodyUseRelation || "-";
+      var hexName = result.hexagramName || "?";
+      var changedHex = result.changingHexagramName || "?";
+      var moveLine = result.changingLine || 0;
+      var method = result.sourceMethod || "时间起卦";
+      var tags = ["梅花易数", hexName, "动爻" + moveLine, relation];
+      if (method.indexOf("数字") >= 0) tags.push("数字起卦");
+      else tags.push("时间起卦");
+      return {
+        title: "梅花易数 · " + hexName + " → " + changedHex,
+        summary: "上卦" + (upper.name || "?") + "(" + (upper.nature || "?") + ")、下卦" + (lower.name || "?") + "(" + (lower.nature || "?") + ")，" + moveLine + "爻动。体卦" + bodyName + "、用卦" + useName + "，体用关系" + relation + "。",
+        tags: tags,
+        sections: [
+          { heading: "本卦", body: "上卦" + (upper.name || "?") + " ☇" + (upper.symbol || "?") + " (" + (upper.element || "?") + ")，下卦" + (lower.name || "?") + " ☇" + (lower.symbol || "?") + " (" + (lower.element || "?") + ")，成卦" + hexName + "。" },
+          { heading: "动爻与变卦", body: moveLine + "爻动，变卦为" + changedHex + "。动爻在上卦则下卦为体、上卦为用；动爻在下卦则上卦为体、下卦为用。" },
+          { heading: "体用生克", body: "体卦" + bodyName + "，用卦" + useName + "，关系" + relation + "。体生用主耗、用生体主进、体克用主得、用克体主失、比和主顺。" },
+          { heading: "互卦", body: "互上卦" + ((result.mutualUpper || {}).name || "?") + "，互下卦" + ((result.mutualLower || {}).name || "?") + "，反映事物中间过程。" },
+          { heading: "起卦方式", body: method + "。" + result.confidenceNote }
+        ],
+        sourceNotes: result.confidenceNote || "本地梅花易数时间起卦"
+      };
+    }
   });
 
   window.EngineAdapterRegistry = {
     version: ADAPTER_VERSION,
     requiredFields: REQUIRED_FIELDS.slice(),
+    optionalMethods: OPTIONAL_METHODS.slice(),
     register: register,
     get: get,
     getAll: getAll,
     list: list,
+    listWithReading: listWithReading,
     calculate: calculate,
     toRenderData: toRenderData,
+    toReading: toReading,
     helpers: {
       normalizeBirth: normalizeBirth,
       generateDemoZiwei: generateDemoZiwei,

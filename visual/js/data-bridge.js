@@ -736,6 +736,12 @@
       _data = computeAll(_birth);
       if (window.CapabilityRegistry) {
         CapabilityRegistry.init(function() { return _data; });
+        // 注册历史保存监听：当用户更新数据时自动生成 reading 并保存脱敏摘要
+        if (CapabilityRegistry.saveReadingToHistory) {
+          _listeners.push(function(data) {
+            try { CapabilityRegistry.saveReadingToHistory(data); } catch(e) {}
+          });
+        }
       }
       // 延迟刷新 (等 DOM 渲染完成)
       setTimeout(function() {

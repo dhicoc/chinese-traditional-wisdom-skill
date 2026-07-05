@@ -1,0 +1,22 @@
+{
+  "name": "中国传统文化智慧工具台",
+  "short_name": "传统智慧",
+  "description": "八字、紫微、六爻、梅花、风水、五运六气一体化可视化工具",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F5F0EB",
+  "theme_color": "#2C1810",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%232C1810' rx='24'/%3E%3Ctext x='96' y='130' font-size='100' fill='%23D4A017' text-anchor='middle' font-family='serif'%3E中%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%232C1810' rx='64'/%3E%3Ctext x='256' y='350' font-size='280' fill='%23D4A017' text-anchor='middle' font-family='serif'%3E中%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

@@ -24,9 +24,9 @@
     },
     ziwei: {
       label: "紫微斗数",
-      mode: "demo",
-      modeLabel: "演示数据",
-      note: "当前 Dashboard 仅展示十二宫可视化结构；严肃排盘需接入 iztro/iztro-py。"
+      mode: "local-exact",
+      modeLabel: "本地真实排盘",
+      note: "采用 SylarLong/iztro (v2.5.8) 引擎，紫微流派存在差异。未加载 iztro 时回退演示数据。"
     },
     liuyao: {
       label: "六爻占卜",
@@ -149,6 +149,16 @@
     data = data || {};
     var birth = data.birth || {};
     var bazi = data.bazi || {};
+    var readings = {};
+    if (window.EngineAdapterRegistry && typeof EngineAdapterRegistry.toReading === "function") {
+      ["bazi", "yunqi", "meihua"].forEach(function (name) {
+        try {
+          var result = EngineAdapterRegistry.calculate(name, { birth: birth });
+          var reading = EngineAdapterRegistry.toReading(name, result, { birth: birth });
+          if (reading) readings[name] = reading;
+        } catch (e) {}
+      });
+    }
     return {
       version: REPORT_DATA_VERSION,
       generatedAt: new Date().toISOString(),
@@ -173,7 +183,8 @@
       feixing: birth.year ? { year: birth.year } : null,
       bazhai: data.fengshui ? { year: birth.year, gender: birth.gender, mingGua: data.fengshui.mingGua } : null,
       yunqi: data.yunqi || null,
-      constitution: data.constitution || null
+      constitution: data.constitution || null,
+      readings: readings
     };
   }
 
@@ -212,8 +223,30 @@
       ["木", "火", "土", "金", "水"].map(function (k) {
         return "<div class=\"item\"><b>" + k + "</b><br>" + (wx[k] == null ? "-" : wx[k]) + "</div>";
       }).join("") + "</div></div>" +
-      "<div class=\"card\"><h2>完整 REPORT_DATA</h2><pre>" + escapeHtml(JSON.stringify(reportData, null, 2)) + "</pre></div>" +
-      "</div></body></html>";
+      "<div class=\"card\"><h2>完整 REPORT_DATA</h2><pre>" + escapeHtml(JSON.stringify(reportData, null, 2)) + "</pre></div>";
+    if (reportData.readings && Object.keys(reportData.readings).length) {
+      html += "<div class=\"card\"><h2>结构化阅读摘要 (readings)</h2>";
+      Object.keys(reportData.readings).forEach(function (name) {
+        var r = reportData.readings[name];
+        html += "<div class='item' style='margin-bottom:10px;'><b>" + escapeHtml(r.title) + "</b><br>" +
+          "<span style='font-size:13px;color:#5D4037;'>" + escapeHtml(r.summary) + "</span><br>";
+        if (r.tags && r.tags.length) {
+          html += "<div style='margin-top:4px;'>" + r.tags.map(function (t) {
+            return "<span style='display:inline-block;background:#FAFAF7;border:1px solid #eee;border-radius:3px;padding:1px 6px;font-size:11px;color:#888;margin-right:4px;'>" + escapeHtml(t) + "</span>";
+          }).join("") + "</div>";
+        }
+        if (r.sections && r.sections.length) {
+          html += "<details style='margin-top:6px;'><summary style='cursor:pointer;font-size:12px;color:#999;'>详细分区（" + r.sections.length + "段）</summary><div style='padding:6px 0;'>";
+          r.sections.forEach(function (sec) {
+            html += "<div style='margin-bottom:4px;font-size:13px;'><b>" + escapeHtml(sec.heading) + "</b>：" + escapeHtml(sec.body) + "</div>";
+          });
+          html += "</div></details>";
+        }
+        html += "<p style='font-size:11px;color:#aaa;margin-top:4px;'>" + escapeHtml(r.sourceNotes) + "</p></div>";
+      });
+      html += "</div>";
+    }
+    html += "</div></body></html>";
   }
 
   function escapeHtml(str) {
@@ -322,6 +355,7 @@
       "<button id=\"export-report-btn\">导出静态 HTML 报告</button>" +
       "<button id=\"case-draft-btn\">生成脱敏案例草稿</button>" +
       "<button id=\"diagnostics-btn\">打开开发者诊断</button>" +
+      "<button id=\"wizard-btn\">打开咨询向导</button>" +
       "</div>";
     var anchor = home.querySelector(".home-note") || home.children[1] || null;
     if (anchor && anchor.parentNode !== home) anchor = null;
@@ -329,6 +363,113 @@
     document.getElementById("export-report-btn").addEventListener("click", function () { downloadReport(getData()); });
     document.getElementById("case-draft-btn").addEventListener("click", function () { downloadCaseDraft(getData()); });
     document.getElementById("diagnostics-btn").addEventListener("click", function () { openDiagnostics(getData()); });
+    var wizardBtn = document.getElementById("wizard-btn");
+    if (wizardBtn) wizardBtn.addEventListener("click", function () { openConsultationWizard(getData()); });
+    renderHistoryPanel(home);
+  }
+
+  /**
+   * 渲染历史记录面板。
+   * 在首页显示最近 10 条脱敏阅读摘要，提供"查看全部"和"清空历史"入口。
+   */
+  function renderHistoryPanel(homeEl) {
+    var existing = document.getElementById("history-panel");
+    if (existing) existing.remove();
+    if (!window.HistoryStore) return;
+
+    var panel = document.createElement("div");
+    panel.id = "history-panel";
+    panel.className = "card";
+    panel.style.marginTop = "16px";
+
+    var history = HistoryStore.list();
+    var favorites = HistoryStore.listFavorites();
+    var preview = history.slice(0, 10);
+
+    var historyHtml = preview.length ? preview.map(function (entry) {
+      var tagsHtml = (entry.tags || []).slice(0, 4).map(function (t) {
+        return "<span class=\"history-tag\">" + escapeHtml(t) + "</span>";
+      }).join("");
+      var favMark = entry.favorite ? "★" : "☆";
+      return "<div class=\"history-entry\" data-id=\"" + escapeHtml(entry.id) + "\">" +
+        "<div class=\"history-entry-head\"><span class=\"history-fav-btn\" data-id=\"" + escapeHtml(entry.id) + "\">" + favMark + "</span>" +
+        "<strong>" + escapeHtml(entry.title) + "</strong>" +
+        "<span class=\"history-module\">" + escapeHtml(entry.module) + "</span></div>" +
+        "<p class=\"history-summary\">" + escapeHtml(entry.summary) + "</p>" +
+        (tagsHtml ? "<div class=\"history-tags\">" + tagsHtml + "</div>" : "") +
+        "<span class=\"history-time\">" + escapeHtml((entry.createdAt || "").slice(0, 16).replace("T", " ")) + "</span>" +
+        "</div>";
+    }).join("") : "<p style='color:#888;font-size:13px;'>暂无历史记录。生成命盘或起卦后将自动保存脱敏摘要。</p>";
+
+    var favHtml = favorites.length ? "<span style='color:#666;font-size:12px;'>收藏 " + favorites.length + " 条</span>" : "";
+
+    panel.innerHTML =
+      "<div class=\"card-title\">📋 本地历史与收藏</div>" +
+      "<p style='color:#666;font-size:12px;margin-bottom:10px;'>仅保存脱敏摘要，不保存完整姓名、完整出生日期或具体地点。最多保留 30 条。</p>" +
+      "<div class=\"history-list\">" + historyHtml + "</div>" +
+      "<div style='margin-top:10px;display:flex;gap:8px;align-items:center;'>" +
+      favHtml +
+      "<button id=\"history-clear-btn\" style='font-size:12px;padding:4px 10px;background:#f5f5f0;border:1px solid #ddd;border-radius:4px;cursor:pointer;color:#666;'>清空历史</button>" +
+      "<button id=\"history-clear-fav-btn\" style='font-size:12px;padding:4px 10px;background:#f5f5f0;border:1px solid #ddd;border-radius:4px;cursor:pointer;color:#666;'>清空收藏</button>" +
+      "</div>";
+
+    homeEl.appendChild(panel);
+
+    // 绑定收藏切换
+    panel.querySelectorAll(".history-fav-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var id = btn.getAttribute("data-id");
+        HistoryStore.toggleFavorite(id);
+        renderHistoryPanel(homeEl);
+      });
+    });
+
+    // 绑定清空按钮
+    var clearBtn = document.getElementById("history-clear-btn");
+    if (clearBtn) {
+      clearBtn.addEventListener("click", function () {
+        if (confirm("确定清空全部历史记录？收藏不会删除。")) {
+          HistoryStore.clear();
+          renderHistoryPanel(homeEl);
+        }
+      });
+    }
+    var clearFavBtn = document.getElementById("history-clear-fav-btn");
+    if (clearFavBtn) {
+      clearFavBtn.addEventListener("click", function () {
+        if (confirm("确定清空全部收藏？")) {
+          HistoryStore.clearFavorites();
+          renderHistoryPanel(homeEl);
+        }
+      });
+    }
+  }
+
+  /**
+   * 从当前数据生成 reading 并保存到历史。
+   * 在 FORTUNE.onUpdate 中调用。
+   */
+  function saveReadingToHistory(data) {
+    if (!window.HistoryStore || !window.EngineAdapterRegistry) return;
+    if (!data || !data.birth) return;
+    var adaptersWithReading = ["bazi", "yunqi", "meihua"];
+    adaptersWithReading.forEach(function (adapterName) {
+      try {
+        var result = EngineAdapterRegistry.calculate(adapterName, { birth: data.birth });
+        var reading = EngineAdapterRegistry.toReading(adapterName, result, { birth: data.birth });
+        if (reading) {
+          HistoryStore.add({
+            module: adapterName,
+            title: reading.title,
+            summary: reading.summary,
+            tags: reading.tags,
+            mode: result.mode || "unknown"
+          });
+        }
+      } catch (e) {
+        // 静默忽略单个 adapter 失败
+      }
+    });
   }
 
   function wizardButton(title, tab, desc) {
@@ -344,6 +485,125 @@
         if (typeof window.switchTab === "function") window.switchTab(tab);
       });
     });
+  }
+
+  /**
+   * 咨询向导：引导用户选择问题类型，生成 toReading() 摘要，再跳转对应工具。
+   */
+  var WIZARD_ROUTES = {
+    "健康养生": { adapters: ["yunqi"], tab: "yunqi", desc: "五运六气与体质偏向分析" },
+    "事业决策": { adapters: ["bazi"], tab: "bazi", desc: "八字命盘与五行强弱分析" },
+    "婚恋合婚": { adapters: ["bazi"], tab: "bazi", desc: "八字日主与十神关系分析" },
+    "占卜决策": { adapters: ["meihua"], tab: "meihua", desc: "梅花易数时间起卦与体用生克" },
+    "择居选址": { adapters: ["bazi"], tab: "fengshui", desc: "命卦与方位吉凶分析" },
+    "综合咨询": { adapters: ["bazi", "yunqi", "meihua"], tab: "mermaid", desc: "多维度交叉分析" }
+  };
+
+  function openConsultationWizard(getData) {
+    var existing = document.getElementById("wizard-modal");
+    if (existing) existing.remove();
+    var data = (typeof getData === "function") ? getData() : {};
+    var birth = (data && data.birth) || {};
+
+    var modal = document.createElement("div");
+    modal.id = "wizard-modal";
+    modal.innerHTML = "<div class='diag-overlay'></div><div class='diag-dialog wizard-dialog'>" +
+      "<button class='diag-close' title='关闭'>×</button>" +
+      "<h2>咨询向导</h2>" +
+      "<p style='color:#666;font-size:13px;margin-bottom:14px;'>选择问题类型，生成结构化分析摘要。当前生辰：" + escapeHtml(String(birth.year || "YYYY")) + "年 " + escapeHtml(birth.gender || "NA") + "命。</p>" +
+      "<div id='wizard-types' class='wizard-types'></div>" +
+      "<div id='wizard-result'></div>" +
+      "</div>";
+    document.body.appendChild(modal);
+    modal.querySelector(".diag-overlay").addEventListener("click", function () { modal.remove(); });
+    modal.querySelector(".diag-close").addEventListener("click", function () { modal.remove(); });
+
+    var typesContainer = modal.querySelector("#wizard-types");
+    Object.keys(WIZARD_ROUTES).forEach(function (qType) {
+      var route = WIZARD_ROUTES[qType];
+      var btn = document.createElement("button");
+      btn.className = "wizard-type-btn";
+      btn.innerHTML = "<strong>" + escapeHtml(qType) + "</strong><span>" + escapeHtml(route.desc) + "</span>";
+      btn.addEventListener("click", function () {
+        renderWizardResult(modal, qType, route, data);
+      });
+      typesContainer.appendChild(btn);
+    });
+  }
+
+  function renderWizardResult(modal, qType, route, data) {
+    var resultEl = modal.querySelector("#wizard-result");
+    if (!resultEl) return;
+    var birth = (data && data.birth) || {};
+    var readings = [];
+
+    route.adapters.forEach(function (adapterName) {
+      try {
+        var result = EngineAdapterRegistry.calculate(adapterName, { birth: birth });
+        var reading = EngineAdapterRegistry.toReading(adapterName, result, { birth: birth });
+        if (reading) {
+          readings.push({ adapter: adapterName, reading: reading, mode: result.mode });
+        }
+      } catch (e) {
+        readings.push({ adapter: adapterName, error: e.message || String(e) });
+      }
+    });
+
+    var html = "<div style='margin-top:16px;border-top:1px solid #eee;padding-top:14px;'>" +
+      "<h3 style='color:#5D4037;'>" + escapeHtml(qType) + " · 分析摘要</h3>";
+
+    readings.forEach(function (item) {
+      if (item.error) {
+        html += "<div class='wizard-reading-error'><strong>" + escapeHtml(item.adapter) + "</strong> 生成失败：" + escapeHtml(item.error) + "</div>";
+        return;
+      }
+      var r = item.reading;
+      html += "<div class='wizard-reading-card'>" +
+        "<div class='wizard-reading-head'><strong>" + escapeHtml(r.title) + "</strong>" +
+        "<span class='wizard-mode-pill' style='background:#f0f0e8;color:#666;font-size:11px;padding:2px 8px;border-radius:10px;'>" + escapeHtml(item.mode) + "</span></div>" +
+        "<p style='color:#5D4037;font-size:13px;line-height:1.7;margin:6px 0;'>" + escapeHtml(r.summary) + "</p>";
+      if (r.tags && r.tags.length) {
+        html += "<div style='margin:4px 0;'>" + r.tags.map(function (t) {
+          return "<span style='display:inline-block;background:#FAFAF7;border:1px solid #eee;border-radius:3px;padding:1px 6px;font-size:11px;color:#888;margin-right:4px;'>" + escapeHtml(t) + "</span>";
+        }).join("") + "</div>";
+      }
+      if (r.sections && r.sections.length) {
+        html += "<details style='margin-top:8px;'><summary style='cursor:pointer;font-size:12px;color:#999;'>详细分区（" + r.sections.length + "段）</summary><div style='padding:8px 0;'>";
+        r.sections.forEach(function (sec) {
+          html += "<div style='margin-bottom:6px;'><b style='color:#5D4037;'>" + escapeHtml(sec.heading) + "</b>：" + escapeHtml(sec.body) + "</div>";
+        });
+        html += "</div></details>";
+      }
+      html += "<p style='font-size:11px;color:#aaa;margin-top:6px;'>" + escapeHtml(r.sourceNotes) + "</p>";
+      html += "</div>";
+    });
+
+    // 保存到历史
+    readings.forEach(function (item) {
+      if (!item.reading || !window.HistoryStore) return;
+      HistoryStore.add({
+        module: item.adapter,
+        title: item.reading.title,
+        summary: item.reading.summary,
+        tags: item.reading.tags,
+        mode: item.mode || "unknown"
+      });
+    });
+
+    html += "<div style='margin-top:14px;display:flex;gap:8px;'>" +
+      "<button id='wizard-goto-tab' class='wizard-action-btn'>进入" + escapeHtml(route.tab) + "工具页</button>" +
+      "<button id='wizard-close' class='wizard-action-btn'>关闭向导</button>" +
+      "</div>";
+
+    resultEl.innerHTML = html + "</div>";
+
+    var gotoBtn = resultEl.querySelector("#wizard-goto-tab");
+    if (gotoBtn) gotoBtn.addEventListener("click", function () {
+      modal.remove();
+      if (typeof window.switchTab === "function") window.switchTab(route.tab);
+    });
+    var closeBtn = resultEl.querySelector("#wizard-close");
+    if (closeBtn) closeBtn.addEventListener("click", function () { modal.remove(); });
   }
 
   function openDiagnostics(data) {
@@ -402,6 +662,9 @@
     downloadReport: downloadReport,
     downloadCaseDraft: downloadCaseDraft,
     showCitation: showCitation,
+    saveReadingToHistory: saveReadingToHistory,
+    openConsultationWizard: openConsultationWizard,
+    refreshHistoryPanel: function () { var home = document.getElementById("tab-home"); if (home) renderHistoryPanel(home); },
     init: init
   };
 })();
