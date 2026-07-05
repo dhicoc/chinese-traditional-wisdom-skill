@@ -31,7 +31,7 @@ export const TEST_SUITES: TestSuite[] = [
     name: 'React Shell 结构冒烟测试',
     type: 'node',
     description: '验证 React Shell 的文件结构、路由注册、canvas 数量、legacy 桥接、CopyContextButton 契约等。',
-    expectedCount: 118,
+    expectedCount: 121,
     cliCommand: 'cd apps/visual && pnpm test',
     covers: ['AppShell', 'workspaceRegistry', 'CanvasPanel', 'loadLegacyScripts', 'CopyContextButton'],
   },
@@ -52,6 +52,26 @@ export const TEST_SUITES: TestSuite[] = [
     expectedCount: 476,
     cliCommand: 'node visual/js/tests/check-mapping-schema.mjs',
     covers: ['life-trigram.json', 'eight-mansions.json', 'twenty-four-mountains.json', 'yearly-flying-stars.json', 'three-essentials.json', 'form-sha-cures.json'],
+  },
+
+  {
+    id: 'check-knowledge-references',
+    name: '知识引用浏览器校验',
+    type: 'node',
+    description: '验证知识引用查询模块、React 面板接入，以及二十四山、八宅、飞星等映射表可命中。',
+    expectedCount: 37,
+    cliCommand: 'node visual/js/tests/check-knowledge-references.mjs',
+    covers: ['KnowledgeReferencePanel', 'queryKnowledgeReferences', 'fengshui/_index.md', 'fengshui/mappings'],
+  },
+
+  {
+    id: 'check-search-index',
+    name: '全局搜索索引校验',
+    type: 'node',
+    description: '验证 search.js 的风水古籍索引与实际文件清单对齐，并展示来源、类别、完整性字段。',
+    expectedCount: 59,
+    cliCommand: 'node visual/js/tests/check-search-index.mjs',
+    covers: ['visual/js/search.js', 'knowledge-base/fengshui', 'GlobalSearch', 'KB_INDEX'],
   },
 
   // ── 浏览器端测试（test-runner.html） ────────────────
@@ -117,7 +137,7 @@ export const TEST_SUITES: TestSuite[] = [
     type: 'verify',
     description: '构建后生成的 dist/verify.html，自动访问每个 hash 路由，检查标题、canvas 数量与非空像素。',
     expectedCount: 11,
-    cliCommand: 'cd apps/visual && npm run build && npm run preview',
+    cliCommand: 'cd apps/visual && pnpm run build && pnpm run preview',
     url: '/verify.html',
     covers: ['所有模块路由', 'h2 标题', 'canvas 数量', 'canvas 像素'],
   },

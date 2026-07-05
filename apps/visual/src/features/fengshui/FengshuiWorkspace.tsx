@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CanvasPanel } from '@/components/shared/CanvasPanel';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { renderLegacyCompass } from '@/legacy/canvasRenderers';
 import type { LegacyState } from '@/legacy/legacyGlobals';
@@ -59,6 +60,12 @@ export function FengshuiWorkspace() {
           <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-zinc-400">
             罗盘展示仅作传统文化学习与方位认知参考，不构成实地勘测或布局建议。
           </p>
+
+          <KnowledgeReferencePanel
+            initialTerm="坎"
+            terms={["坎", "离", "二十四山", "壬", "子", "癸", "反弓煞"]}
+            description="点击罗盘术语或输入山名，查看二十四山、形煞与古籍索引引用。"
+          />
         </aside>
 
         <CanvasPanel

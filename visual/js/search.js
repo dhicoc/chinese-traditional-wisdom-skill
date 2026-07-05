@@ -16,12 +16,12 @@
 
   /** 映射表索引 (自包含, 不依赖外部文件) */
   var MAPPING_INDEX = [
-    {file:"life-trigram.json", title:"命卦速查表", summary:"根据出生年份和性别计算东四命/西四命", tags:["命卦","东四命","西四命","八宅","八卦"]},
-    {file:"eight-mansions.json", title:"八宅大游年", summary:"八宅派的八方吉凶星曜（生气/天医/延年/伏位/绝命/五鬼/六煞/祸害）", tags:["八宅","大游年","吉星","凶星","生气","绝命"]},
-    {file:"twenty-four-mountains.json", title:"二十四山", summary:"24山方位度数、五行属性、吉凶信息", tags:["二十四山","方位","罗盘","度數"]},
-    {file:"yearly-flying-stars.json", title:"流年飞星", summary:"玄空九星逐年飞布方位、吉凶色、化解方法", tags:["飞星","玄空","九星","流年","紫白"]},
-    {file:"three-essentials.json", title:"阳宅三要", summary:"阳宅门主灶三要素的吉凶判断", tags:["阳宅","三要","门","主","灶"]},
-    {file:"form-sha-cures.json", title:"形煞分类与化解", summary:"常见风水形煞的识别、影响和化解方法", tags:["形煞","煞气","化解","风水"]}
+    {file:"life-trigram.json", title:"命卦速查表", source:"knowledge-base/fengshui/mappings/life-trigram.json", category:"八宅命卦", completeness:"完整映射", summary:"根据出生年份和性别计算东四命/西四命", tags:["命卦","东四命","西四命","八宅","八卦"]},
+    {file:"eight-mansions.json", title:"八宅大游年", source:"knowledge-base/fengshui/mappings/eight-mansions.json", category:"八宅大游年", completeness:"完整映射", summary:"八宅派的八方吉凶星曜（生气/天医/延年/伏位/绝命/五鬼/六煞/祸害）", tags:["八宅","大游年","吉星","凶星","生气","绝命"]},
+    {file:"twenty-four-mountains.json", title:"二十四山", source:"knowledge-base/fengshui/mappings/twenty-four-mountains.json", category:"罗盘方位", completeness:"完整映射", summary:"24山方位度数、五行属性、吉凶信息", tags:["二十四山","方位","罗盘","度数"]},
+    {file:"yearly-flying-stars.json", title:"流年飞星", source:"knowledge-base/fengshui/mappings/yearly-flying-stars.json", category:"玄空飞星", completeness:"完整映射", summary:"玄空九星逐年飞布方位、吉凶色、化解方法", tags:["飞星","玄空","九星","流年","紫白"]},
+    {file:"three-essentials.json", title:"阳宅三要", source:"knowledge-base/fengshui/mappings/three-essentials.json", category:"阳宅门主灶", completeness:"完整映射", summary:"阳宅门主灶三要素的吉凶判断", tags:["阳宅","三要","门","主","灶"]},
+    {file:"form-sha-cures.json", title:"形煞分类与化解", source:"knowledge-base/fengshui/mappings/form-sha-cures.json", category:"形煞化解", completeness:"完整映射", summary:"常见风水形煞的识别、影响和化解方法", tags:["形煞","煞气","化解","风水"]}
   ];
 
   /** 古籍索引 (从 _index.md 提取) */
@@ -83,7 +83,7 @@
       if (m.summary.toLowerCase().indexOf(q) !== -1) score += 2;
       m.tags.forEach(function(t) { if (t.toLowerCase().indexOf(q) !== -1) score += 3; });
       if (score > 0) {
-        mappings.push({ file: m.file, title: m.title, summary: m.summary, score: score });
+        mappings.push({ file: m.file, source: m.source, title: m.title, category: m.category, completeness: m.completeness, summary: m.summary, score: score });
       }
     });
     mappings.sort(function(a,b) { return b.score - a.score; });
@@ -184,6 +184,7 @@
             '<span style="font-size:11px;background:#D4A017;color:#FFF;padding:1px 6px;border-radius:4px;font-weight:bold;">JSON</span>' +
             '<span style="font-size:13px;font-weight:bold;color:#3E2723;">' + highlight(m.title, query) + '</span>' +
           '</div>' +
+          '<div style="font-size:11px;color:#A1887F;margin-top:3px;">' + escapeHtml(m.category || '未分类') + ' · ' + escapeHtml(m.completeness || '未知') + ' · ' + escapeHtml(m.source || m.file) + '</div>' +
           '<div style="font-size:12px;color:#8D6E63;margin-top:3px;">' + highlight(m.summary, query) + '</div>' +
         '</div>';
       });
@@ -258,7 +259,12 @@
     close: closeSearch,
     searchAll: searchAll,
     getIndexStats: function() {
-      return { mappings: MAPPING_INDEX.length, knowledgeBase: KB_INDEX.length };
+      return {
+        mappings: MAPPING_INDEX.length,
+        knowledgeBase: KB_INDEX.length,
+        mappingFiles: MAPPING_INDEX.map(function(item) { return item.file; }),
+        knowledgeBaseFiles: KB_INDEX.map(function(item) { return item.file; })
+      };
     }
   };
 })();

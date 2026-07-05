@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CanvasPanel } from '@/components/shared/CanvasPanel';
 import { ControlField } from '@/components/shared/ControlField';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
 import {
   getBazhaiSummary,
   renderLegacyEightMansions,
@@ -102,6 +103,12 @@ export function BazhaiWorkspace() {
           <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-zinc-400">
             八宅游年仅作传统文化学习与方位参考，不构成风水操作或决策建议。
           </p>
+
+          <KnowledgeReferencePanel
+            initialTerm={summary?.trigram ?? "生气"}
+            terms={[summary?.trigram ?? "坎", "东四命", "西四命", "生气", "天医", "绝命", "五鬼"]}
+            description="点击命卦、命组或游年星，查看八宅映射表与古籍索引线索。"
+          />
         </aside>
 
         <CanvasPanel

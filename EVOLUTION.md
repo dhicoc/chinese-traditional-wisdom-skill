@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-07 搜索索引可信度升级
+
+- 将旧版全局搜索 `visual/js/search.js` 的风水古籍索引与 `knowledge-base/fengshui` 实际 Markdown 文件清单建立契约校验，避免索引漂移。
+- 映射表搜索结果补充来源路径、类别与完整性字段，和知识引用浏览器的口径保持一致。
+- 新增 `visual/js/tests/check-search-index.mjs`，并纳入 React 测试控制台与结构冒烟测试。
+
+## 2026-07 知识引用浏览器接入风水工作区
+
+- **变更**：新增 `apps/visual/src/lib/knowledgeReference.ts` 与 `KnowledgeReferencePanel`，在风水罗盘、八宅大游年、流年飞星三个 React 工作区展示“知识引用”面板。
+- **数据来源**：直接读取 6 个风水 JSON 映射表与 `knowledge-base/fengshui/_index.md`，点击“坎 / 生气 / 五黄 / 反弓煞”等术语即可返回映射表条目、字段来源、完整性标识和古籍索引线索。
+- **测试**：新增 `visual/js/tests/check-knowledge-references.mjs`，覆盖查询模块、React 面板接入、二十四山/八宅/飞星/阳宅三要/形煞映射命中，并注册到 React 测试控制台。
+- **原则**：先做确定性映射和索引线索，不引入复杂 RAG；所有引用均标注来源文件与字段，避免把通用 tooltip 误当作可追溯知识引用。
+
+---
+
 ## 2026-07 风水映射校验纳入 React 测试控制台
 
 - **变更**：将既有 `visual/js/tests/check-mapping-schema.mjs` 注册到 `apps/visual/src/legacy/testRegistry.ts`，React 测试控制台可直接看到“风水映射表 schema 校验”套件。

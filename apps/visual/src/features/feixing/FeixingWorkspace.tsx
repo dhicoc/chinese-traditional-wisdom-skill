@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CanvasPanel } from '@/components/shared/CanvasPanel';
 import { ControlField } from '@/components/shared/ControlField';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
 import {
   getFeixingSummary,
   renderLegacyFlyingStars,
@@ -88,6 +89,12 @@ export function FeixingWorkspace() {
           <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-zinc-400">
             飞星布局仅作传统文化学习与方位参考，不构成风水操作或决策建议。
           </p>
+
+          <KnowledgeReferencePanel
+            initialTerm={summary?.starName ?? "五黄"}
+            terms={[summary?.starName ?? "廉贞", "一白", "二黑", "五黄", "九紫", "病符", "文昌"]}
+            description="点击中宫星、九星名或飞星术语，查看流年飞星映射与古籍索引线索。"
+          />
         </aside>
 
         <CanvasPanel
