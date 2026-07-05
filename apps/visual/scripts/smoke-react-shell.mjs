@@ -348,6 +348,22 @@ if (exists(birthBridgePath)) {
   check(birthBridge.includes('readFortuneBirth'), 'birthBridge 应导出 readFortuneBirth');
 }
 
+// ── 3l. 动态天盘背景 ─────────────────────────────────
+const tianpanPath = path.join(srcRoot, 'components/app-shell/DynamicTianPanBackground.tsx');
+check(exists(tianpanPath), 'DynamicTianPanBackground.tsx 应位于 app-shell 目录');
+if (exists(tianpanPath)) {
+  const tianpan = read(tianpanPath);
+  check(tianpan.includes('dynamic-tianpan-background'), '动态背景组件应输出 dynamic-tianpan-background 根节点');
+  check(tianpan.includes('aria-hidden="true"'), '动态背景应 aria-hidden，避免干扰辅助技术');
+  check(tianpan.includes('length: 24'), '动态背景应包含二十四山刻度');
+  check(tianpan.includes('tianpan-qi-wood') && tianpan.includes('tianpan-qi-water'), '动态背景应包含五行气机层');
+}
+
+const globalStyles = read(path.join(srcRoot, 'styles/globals.css'));
+check(globalStyles.includes('.dynamic-tianpan-background'), 'globals.css 应定义动态天盘背景样式');
+check(globalStyles.includes('tianpan-disc-rotate'), '动态天盘应使用慢速旋转动画');
+check(globalStyles.includes('prefers-reduced-motion: reduce'), '动态天盘应支持 reduced-motion 降级');
+
 // ── 3l. App.tsx 接入 BirthProvider ──────────────────────
 const appTsx = read(path.join(srcRoot, 'App.tsx'));
 check(appTsx.includes('BirthProvider'), 'App.tsx 应使用 BirthProvider 包裹 AppShell');

@@ -225,7 +225,7 @@
 
 ### Phase 10：逐步替换图表组件（✅ 第一阶段完成）
 
-- ✅ 第一阶段不为 React 化而重写稳定 Canvas；已新增 `InterpretationCard` / `LegendPanel` 作为 React 外围解释与图例组件，后续再替换交互收益高的模块：`FiveElementsRadar`、`QiWheel`、`NinePalaceGrid`、`HexagramLines`、`ZiweiPalaceGrid`。
+- ✅ 第一阶段不为 React 化而重写稳定 Canvas；已新增 `InterpretationCard` / `LegendPanel` 作为 React 外围解释与图例组件，并新增 `DynamicTianPanBackground` 作为低亮度动态天盘气场背景；后续再替换交互收益高的模块：`FiveElementsRadar`、`QiWheel`、`NinePalaceGrid`、`HexagramLines`、`ZiweiPalaceGrid`。
 - 密集仪表优先 SVG 自绘；关系图谱继续保留 Mermaid；复杂布局必要时继续使用 Canvas。
 - 替换前后必须做同输入对照，确保确定性输出无视觉漂移和数据漂移。
 

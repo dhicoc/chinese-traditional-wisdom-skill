@@ -31,9 +31,9 @@ export const TEST_SUITES: TestSuite[] = [
     name: 'React Shell 结构冒烟测试',
     type: 'node',
     description: '验证 React Shell 的文件结构、路由注册、canvas 数量、legacy 桥接、CopyContextButton 契约等。',
-    expectedCount: 153,
+    expectedCount: 161,
     cliCommand: 'cd apps/visual && pnpm test',
-    covers: ['AppShell', 'workspaceRegistry', 'CanvasPanel', 'loadLegacyScripts', 'CopyContextButton'],
+    covers: ['AppShell', 'workspaceRegistry', 'CanvasPanel', 'loadLegacyScripts', 'CopyContextButton', 'DynamicTianPanBackground'],
   },
   {
     id: 'check-react-migration',

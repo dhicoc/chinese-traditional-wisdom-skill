@@ -5,6 +5,7 @@ import { WorkspaceTabs } from './WorkspaceTabs';
 import { BirthPanel } from '@/components/shared/BirthPanel';
 import { resolveWorkspace } from './workspaceRegistry';
 import { HomeDashboard } from '@/features/home/HomeDashboard';
+import { DynamicTianPanBackground } from './DynamicTianPanBackground';
 
 interface AppShellProps {
   activeModule: ModuleId;
@@ -15,8 +16,9 @@ export function AppShell({ activeModule, onSelectModule }: AppShellProps) {
   const Workspace = resolveWorkspace(activeModule);
 
   return (
-    <div className="instrument-grid min-h-screen p-3 text-zinc-100 md:p-5">
-      <div className="mx-auto grid max-w-[1480px] gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+    <div className="instrument-grid relative min-h-[100dvh] overflow-hidden p-3 text-zinc-100 md:p-5">
+      <DynamicTianPanBackground />
+      <div className="relative z-10 mx-auto grid max-w-[1480px] gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
         <div className="hidden lg:block lg:h-[calc(100dvh-2.5rem)] lg:sticky lg:top-5">
           <SidebarNav activeModule={activeModule} onSelectModule={onSelectModule} />
         </div>

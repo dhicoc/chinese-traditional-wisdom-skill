@@ -5,6 +5,15 @@
 
 ---
 
+## 2026-07 React 可视化动态天盘背景
+
+- **变更**：新增 `DynamicTianPanBackground`，在 React Shell 底层加入低亮度天盘刻度、二十四山刻线、五行气机光团与仪器网格。背景使用纯 CSS 动画，不引入 Three.js 或额外运行时依赖。
+- **设计原则**：服务“天人合一 / 五行流转 / 历法仪器”理念，保持 Academic Dark Mode 与数据可读性，不采用 AI 紫色渐变、赛博霓虹或高强度粒子效果。
+- **可访问性**：背景标记为 `aria-hidden`，不参与交互；`prefers-reduced-motion: reduce` 下停止天盘旋转和气机漂移动画。
+- **验证**：`smoke-react-shell.mjs` 已增加动态背景组件、样式、二十四山刻度、五行层与 reduced-motion 契约检查。
+
+---
+
 ## 2026-07 React 迁移 Phase 5-11 补齐
 
 - **变更**：补齐 React Shell 后续迁移闭环：Home Dashboard 已接入 legacy ToolManifest / CapabilityRegistry；CommandBar 支持工具搜索、Tab 切换、复制当前上下文、测试控制台入口，以及输入年份跳转流年飞星/五运六气。
