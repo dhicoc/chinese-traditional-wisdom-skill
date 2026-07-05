@@ -100,6 +100,18 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
             >
               看五运六气
             </button>
+            <CopyContextButton
+              commandScope="home"
+              title="首页工具目录上下文"
+              payload={{
+                module: selected,
+                tools: tools.length,
+                localCapabilities: counts.local,
+                demoBoundaries: counts.demo,
+                legacyReady,
+                source: 'ToolManifest + CapabilityRegistry + React HomeDashboard',
+              }}
+            />
           </div>
         </div>
 

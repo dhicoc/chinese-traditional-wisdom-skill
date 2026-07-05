@@ -26,7 +26,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const appRoot = path.resolve(__dirname, '..');
 const srcRoot = path.join(appRoot, 'src');
 const repoRoot = path.resolve(appRoot, '../..');
-
 let passed = 0;
 let failed = 0;
 const failures = [];
@@ -58,10 +57,14 @@ function countOccurrences(haystack, needle) {
   return count;
 }
 
+check(exists(path.join(repoRoot, 'visual/react.html')), 'visual/react.html 应存在，作为 React 并行验证入口');
+
 // ── 1. #bazi 有 2 个 canvas ──────────────────────────────
 const baziWorkspace = read(path.join(srcRoot, 'features/bazi/BaziWorkspace.tsx'));
 const baziCanvasCount = countOccurrences(baziWorkspace, '<CanvasPanel');
 check(baziCanvasCount === 2, `#bazi 应渲染 2 个 canvas，实际 <CanvasPanel 出现 ${baziCanvasCount} 次`);
+check(baziWorkspace.includes('calculateWithLegacyAdapter'), '#bazi 应通过 EngineAdapterRegistry 计算四柱');
+check(baziWorkspace.includes('useBirth'), '#bazi 应读取全局生辰上下文');
 
 // ── 2. #yunqi 有 1 个 canvas ─────────────────────────────
 const yunqiPath = path.join(srcRoot, 'features/yunqi/YunqiWorkspace.tsx');
@@ -135,8 +138,16 @@ if (exists(ziweiPath)) {
   const ziweiCanvasCount = countOccurrences(ziweiWorkspace, '<CanvasPanel');
   check(ziweiCanvasCount === 1, `#ziwei 应渲染 1 个 canvas，实际 <CanvasPanel 出现 ${ziweiCanvasCount} 次`);
   check(
-    ziweiWorkspace.includes('LegacyVizModules?.ziwei'),
-    'ZiweiWorkspace 应调用旧 ziwei renderer 复用命盘绘制',
+    ziweiWorkspace.includes('renderLegacyZiwei'),
+    'ZiweiWorkspace 应调用 renderLegacyZiwei 复用命盘绘制',
+  );
+  check(
+    ziweiWorkspace.includes('calculateWithLegacyAdapter') && ziweiWorkspace.includes('ZiweiIztroAdapter'),
+    'ZiweiWorkspace 应通过 EngineAdapterRegistry 接入 ZiweiIztroAdapter',
+  );
+  check(
+    ziweiWorkspace.includes('useBirth'),
+    'ZiweiWorkspace 应读取全局生辰上下文',
   );
 }
 
@@ -296,6 +307,18 @@ check(
   commandBar.includes('action-testing'),
   'CommandBar 应包含跳转测试控制台的快捷操作',
 );
+check(
+  !commandBar.includes('querySelector'),
+  'CommandBar 不应通过 querySelector 直接操作 DOM',
+);
+check(
+  commandBar.includes('dispatchCopyContextIntent(active.id)'),
+  'CommandBar 复制当前上下文应派发 copy intent',
+);
+check(
+  commandBar.includes("dispatchYearIntent('feixing'") && commandBar.includes("dispatchYearIntent('yunqi'"),
+  'CommandBar 应支持输入年份跳转飞星/五运六气',
+);
 
 // ── 3j. BirthPanel 全局出生资料同步 ──────────────────────
 const birthPanelPath = path.join(srcRoot, 'components/shared/BirthPanel.tsx');
@@ -354,6 +377,18 @@ const loadLegacy = read(path.join(srcRoot, 'legacy/loadLegacyScripts.ts'));
 check(loadLegacy.includes('window.LegacyVizModules'), 'loadLegacyScripts 应桥接 window.LegacyVizModules');
 check(loadLegacy.includes('window.LegacyCORE'), 'loadLegacyScripts 应桥接 window.LegacyCORE');
 check(loadLegacy.includes('window.LegacyRegisterVizModule'), 'loadLegacyScripts 应桥接 window.LegacyRegisterVizModule');
+check(loadLegacy.includes('iztro-2.5.8.min.js?raw'), 'loadLegacyScripts 应加载 iztro vendor 以支持真实紫微排盘');
+check(loadLegacy.includes('lunar-javascript-1.7.7.js?raw'), 'loadLegacyScripts 应加载 lunar-javascript vendor 以支持精确历法');
+check(loadLegacy.includes('engine-adapters.js?raw'), 'loadLegacyScripts 应加载 EngineAdapterRegistry');
+check(loadLegacy.includes('data-bridge.js?raw'), 'loadLegacyScripts 应加载 FORTUNE data bridge');
+
+const engineAdaptersPath = path.join(srcRoot, 'legacy/engineAdapters.ts');
+check(exists(engineAdaptersPath), 'engineAdapters.ts 应位于 legacy/ 目录');
+if (exists(engineAdaptersPath)) {
+  const engineAdapters = read(engineAdaptersPath);
+  check(engineAdapters.includes('getLegacyEngineAdapter'), 'engineAdapters 应包装 EngineAdapterRegistry.get');
+  check(engineAdapters.includes('calculateWithLegacyAdapter'), 'engineAdapters 应包装 adapter.calculate');
+}
 
 const toolRegistry = read(path.join(srcRoot, 'legacy/toolRegistry.ts'));
 check(
@@ -374,6 +409,10 @@ const legacyScripts = [
   'visual/js/divination.js',
   'visual/js/fengshui.js',
   'visual/js/engines/yunqi-engine.js',
+  'visual/vendor/lunar-javascript-1.7.7.js',
+  'visual/vendor/iztro-2.5.8.min.js',
+  'visual/js/engine-adapters.js',
+  'visual/js/data-bridge.js',
   'visual/js/health.js',
 ];
 for (const rel of legacyScripts) {
@@ -396,6 +435,8 @@ const expectedRenderers = [
   'getLegacyBaziModule',
   'getLegacyHealthModule',
   'getLegacyFengshuiModule',
+  'getLegacyZiweiModule',
+  'renderLegacyZiwei',
   'getLegacyCORE',
   'deriveDominantConstitution',
   'getFeixingSummary',
@@ -405,10 +446,36 @@ for (const name of expectedRenderers) {
   check(canvasRenderers.includes(name), `canvasRenderers 应导出 ${name}`);
 }
 
-// ── 8. CopyContextButton 成功反馈契约 ─────────────────────
+// ── 8. CopyContextButton 与通用组件契约 ─────────────────
+const commandIntentsPath = path.join(srcRoot, 'lib/commandIntents.ts');
+check(exists(commandIntentsPath), 'commandIntents.ts 应位于 lib/ 目录');
+if (exists(commandIntentsPath)) {
+  const commandIntents = read(commandIntentsPath);
+  check(commandIntents.includes('ctw:copy-context'), 'commandIntents 应定义 copy context 事件');
+  check(commandIntents.includes('ctw:set-year'), 'commandIntents 应定义年份跳转事件');
+}
+
 const copyButton = read(path.join(srcRoot, 'components/shared/CopyContextButton.tsx'));
 check(copyButton.includes("'copied'"), 'CopyContextButton 应包含 copied 状态');
 check(copyButton.includes("'Copied'"), 'CopyContextButton 复制成功应显示 Copied');
+check(copyButton.includes('commandScope'), 'CopyContextButton 应支持 CommandBar commandScope');
+check(copyButton.includes('COPY_CONTEXT_INTENT'), 'CopyContextButton 应监听复制命令意图');
+
+const interpretationPath = path.join(srcRoot, 'components/shared/InterpretationCard.tsx');
+const legendPath = path.join(srcRoot, 'components/shared/LegendPanel.tsx');
+check(exists(interpretationPath), 'InterpretationCard.tsx 应位于 components/shared/ 目录');
+check(exists(legendPath), 'LegendPanel.tsx 应位于 components/shared/ 目录');
+if (exists(interpretationPath)) {
+  const interpretation = read(interpretationPath);
+  check(interpretation.includes('InterpretationItem'), 'InterpretationCard 应支持结构化解读条目');
+}
+if (exists(legendPath)) {
+  const legend = read(legendPath);
+  check(legend.includes('LegendItem'), 'LegendPanel 应支持结构化图例条目');
+}
+const feixingWorkspaceForShared = read(path.join(srcRoot, 'features/feixing/FeixingWorkspace.tsx'));
+check(feixingWorkspaceForShared.includes('InterpretationCard'), 'FeixingWorkspace 应接入 InterpretationCard');
+check(feixingWorkspaceForShared.includes('LegendPanel'), 'FeixingWorkspace 应接入 LegendPanel');
 
 // ── 汇总 ─────────────────────────────────────────────────
 const line = '─'.repeat(56);

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CanvasPanel } from '@/components/shared/CanvasPanel';
 import { ControlField } from '@/components/shared/ControlField';
+import { InterpretationCard } from '@/components/shared/InterpretationCard';
+import { LegendPanel, type LegendItem } from '@/components/shared/LegendPanel';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
 import {
@@ -10,10 +12,16 @@ import {
 } from '@/legacy/canvasRenderers';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import type { LegacyState } from '@/legacy/legacyGlobals';
+import {
+  YEAR_INTENT_EVENT,
+  normalizeCommandYear,
+  readPendingCommandYear,
+  type YearIntentDetail,
+} from '@/lib/commandIntents';
 
 export function FeixingWorkspace() {
   const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
-  const [year, setYear] = useState(2026);
+  const [year, setYear] = useState(() => readPendingCommandYear('feixing'));
 
   useEffect(() => {
     let mounted = true;
@@ -25,9 +33,30 @@ export function FeixingWorkspace() {
     };
   }, []);
 
+  useEffect(() => {
+    function handleYearIntent(event: Event) {
+      const detail = (event as CustomEvent<YearIntentDetail>).detail;
+      if (detail?.target === 'feixing') {
+        setYear(normalizeCommandYear(detail.year));
+      }
+    }
+    window.addEventListener(YEAR_INTENT_EVENT, handleYearIntent);
+    return () => window.removeEventListener(YEAR_INTENT_EVENT, handleYearIntent);
+  }, []);
+
   const ready = legacyState.mode === 'ready';
   const data = useMemo<FlyingStarsData>(() => ({ year }), [year]);
   const summary = useMemo(() => (ready ? getFeixingSummary(year) : null), [ready, year]);
+  const starLegend = useMemo<LegendItem[]>(
+    () => [
+      { label: '一白 / 水', color: '#264653', description: '偏向流动、信息与文昌语义。' },
+      { label: '三碧四绿 / 木', color: '#2a9d8f', description: '偏向生发、变动与学习语义。' },
+      { label: '二黑五黄八白 / 土', color: '#e9c46a', description: '偏向中宫、稳定与病符风险提示。' },
+      { label: '六白七赤 / 金', color: '#e5e5e5', description: '偏向秩序、权柄与肃杀语义。' },
+      { label: '九紫 / 火', color: '#e76f51', description: '偏向喜庆、显化与未来运语义。' },
+    ],
+    [],
+  );
 
   const contextPayload = useMemo(
     () => ({
@@ -50,7 +79,7 @@ export function FeixingWorkspace() {
               复用旧 fengshui.js 的九宫飞星 renderer，React 负责年份输入与中宫星摘要，与旧 visual/index.html 的 updateFlyingStars() 规则一致。
             </p>
           </div>
-          <CopyContextButton title="流年飞星 React 迁移上下文" payload={contextPayload} />
+          <CopyContextButton commandScope="feixing" title="流年飞星 React 迁移上下文" payload={contextPayload} />
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
@@ -69,22 +98,28 @@ export function FeixingWorkspace() {
             max={2100}
             inputMode="numeric"
             value={year}
-            onChange={(event) => setYear(Number.parseInt(event.target.value, 10) || 2026)}
+            onChange={(event) => setYear(normalizeCommandYear(event.target.value))}
           />
 
-          <div className="rounded-card border border-white/8 bg-white/[0.035] p-4">
-            <p className="text-sm font-semibold text-zinc-100">中宫飞星</p>
-            {summary ? (
-              <dl className="mt-3 space-y-2 text-sm text-zinc-400">
-                <div className="flex justify-between gap-3"><dt>星号</dt><dd className="text-zinc-100">{summary.centerStar}</dd></div>
-                <div className="flex justify-between gap-3"><dt>星名</dt><dd className="text-zinc-100">{summary.starName}</dd></div>
-                <div className="flex justify-between gap-3"><dt>五行</dt><dd className="text-zinc-100">{summary.wuxing}</dd></div>
-                <div className="flex justify-between gap-3"><dt>吉凶</dt><dd className="text-zinc-100">{summary.luck}</dd></div>
-              </dl>
-            ) : (
-              <p className="mt-2 text-sm text-zinc-500">等待旧引擎加载。</p>
-            )}
-          </div>
+          <InterpretationCard
+            title="中宫飞星"
+            badge="React 解读卡"
+            subtitle="以旧 renderer 计算结果为准，React 仅负责结构化展示。"
+            items={summary ? [
+              { label: '星号', value: summary.centerStar },
+              { label: '星名', value: summary.starName },
+              { label: '五行', value: summary.wuxing },
+              { label: '吉凶', value: summary.luck },
+            ] : []}
+          >
+            {!summary && <span className="text-zinc-500">等待旧引擎加载。</span>}
+          </InterpretationCard>
+
+          <LegendPanel
+            title="九星五行图例"
+            description="Phase 10 先保留稳定 Canvas，补齐 React 外围图例组件，后续再替换高收益图表。"
+            items={starLegend}
+          />
 
           <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-zinc-400">
             飞星布局仅作传统文化学习与方位参考，不构成风水操作或决策建议。

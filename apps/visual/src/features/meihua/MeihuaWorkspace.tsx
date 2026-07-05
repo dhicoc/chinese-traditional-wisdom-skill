@@ -84,7 +84,7 @@ export function MeihuaWorkspace() {
               先复用旧 divination renderer，React 负责上下卦、动爻和体用关系输入，作为后续接入本地时间起卦与数字起卦规则的外壳。
             </p>
           </div>
-          <CopyContextButton title="梅花易数 React 迁移上下文" payload={contextPayload} />
+          <CopyContextButton commandScope="meihua" title="梅花易数 React 迁移上下文" payload={contextPayload} />
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">

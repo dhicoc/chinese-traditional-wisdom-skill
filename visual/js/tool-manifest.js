@@ -75,7 +75,7 @@
       reportSection: "meihua",
       accent: "#D9B35F",
       intro: "上下卦、动爻、体用生克。",
-      description: "已内置本地时间起卦 Adapter，后续补数字起卦模式。"
+      description: "已内置本地时间起卦与数字起卦 Adapter，输出体用生克、互卦与变卦结构。"
     },
     {
       id: "fengshui",

@@ -195,7 +195,7 @@ export function HistoryWorkspace() {
               自动保存最近 30 条脱敏阅读摘要。仅保留模块、标题、摘要和标签，不保存完整姓名、完整出生日期或具体地点。
             </p>
           </div>
-          <CopyContextButton title="历史记录上下文" payload={contextPayload} />
+          <CopyContextButton commandScope="history" title="历史记录上下文" payload={contextPayload} />
         </div>
         {!store && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">

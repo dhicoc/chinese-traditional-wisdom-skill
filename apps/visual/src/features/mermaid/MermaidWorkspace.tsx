@@ -222,7 +222,7 @@ export function MermaidWorkspace() {
               使用 Mermaid.js 动态渲染传统文化知识体系结构图。图源码内置，CDN 未加载时离线显示源码，与旧 visual/index.html 的 tab-mermaid 对齐。
             </p>
           </div>
-          <CopyContextButton title="知识图谱 React 迁移上下文" payload={contextPayload} />
+          <CopyContextButton commandScope="mermaid" title="知识图谱 React 迁移上下文" payload={contextPayload} />
         </div>
         <p className="mt-3 text-xs text-zinc-500">
           状态：

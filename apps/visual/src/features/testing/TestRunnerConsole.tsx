@@ -175,7 +175,7 @@ export function TestRunnerConsole() {
               汇总所有测试入口：Node CLI 结构测试、浏览器端引擎测试、自动验证页。Phase 9 第一版——提供测试入口、结果摘要和跳转链接。
             </p>
           </div>
-          <CopyContextButton title="测试控制台上下文" payload={contextPayload} />
+          <CopyContextButton commandScope="testing" title="测试控制台上下文" payload={contextPayload} />
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">

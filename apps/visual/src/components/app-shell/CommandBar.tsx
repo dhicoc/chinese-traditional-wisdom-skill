@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ModuleId } from '@/lib/modules';
 import { MODULES, getModuleById } from '@/lib/modules';
+import { dispatchCopyContextIntent, dispatchYearIntent, extractCommandYear } from '@/lib/commandIntents';
 
 /* ── 类型 ─────────────────────────────────────────────── */
 
@@ -31,14 +32,20 @@ function fuzzyMatch(query: string, item: CommandItem): boolean {
 function CommandPalette({
   items,
   onDismiss,
+  getDynamicItems,
 }: {
   items: CommandItem[];
   onDismiss: () => void;
+  getDynamicItems?: (query: string) => CommandItem[];
 }) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const filtered = useMemo(() => items.filter((item) => fuzzyMatch(query, item)), [items, query]);
+  const allItems = useMemo(
+    () => [...items, ...(getDynamicItems?.(query) ?? [])],
+    [items, getDynamicItems, query],
+  );
+  const filtered = useMemo(() => allItems.filter((item) => fuzzyMatch(query, item)), [allItems, query]);
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -46,7 +53,7 @@ function CommandPalette({
 
   // 键盘导航
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Escape') {
         e.preventDefault();
         onDismiss();
@@ -92,7 +99,7 @@ function CommandPalette({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="搜索工具、切换标签、跳转测试…"
+            placeholder="搜索工具、切换标签、输入 2026 跳转年份、复制上下文…"
             className="flex-1 bg-transparent text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
           />
           <kbd className="rounded border border-white/10 bg-black/30 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500">
@@ -196,16 +203,44 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
         hint: `${active.title} · ${active.statusLabel}`,
         group: '操作',
         keywords: ['copy', 'context', 'AI', '复制', '上下文'],
-        action: () => {
-          // 触发当前模块的 CopyContextButton（通过事件）
-          const copyBtn = document.querySelector('[data-copy-status]') as HTMLButtonElement | null;
-          copyBtn?.click();
-        },
+        action: () => dispatchCopyContextIntent(active.id),
       },
     ];
 
     return [...moduleItems, ...actionItems];
   }, [active, onSelectModule]);
+
+  const getDynamicItems = useCallback(
+    (query: string): CommandItem[] => {
+      const year = extractCommandYear(query);
+      if (!year) return [];
+      return [
+        {
+          id: 'year-feixing-' + year,
+          label: '查看 ' + year + ' 流年飞星',
+          hint: '按年份跳转到流年飞星并更新九宫盘',
+          group: '年份',
+          keywords: [String(year), '流年', '飞星', '九宫', 'year', 'feixing'],
+          action: () => {
+            dispatchYearIntent('feixing', year);
+            onSelectModule('feixing');
+          },
+        },
+        {
+          id: 'year-yunqi-' + year,
+          label: '查看 ' + year + ' 五运六气',
+          hint: '按年份跳转到五运六气并更新岁运、司天、在泉',
+          group: '年份',
+          keywords: [String(year), '五运六气', '岁运', '司天', '在泉', 'year', 'yunqi'],
+          action: () => {
+            dispatchYearIntent('yunqi', year);
+            onSelectModule('yunqi');
+          },
+        },
+      ];
+    },
+    [onSelectModule],
+  );
 
   return (
     <>
@@ -219,7 +254,7 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
             aria-label="打开命令面板 (⌘K)"
           >
             <span className="font-mono text-jade-500">⌘K</span>
-            <span className="text-sm">搜索工具、切换标签、复制 AI 上下文</span>
+            <span className="text-sm">搜索工具、切换标签、输入年份、复制 AI 上下文</span>
           </button>
           <div className="flex flex-wrap gap-2">
             {MODULES.slice(0, 6).map((module) => (
@@ -254,7 +289,11 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
       </header>
 
       {paletteOpen && (
-        <CommandPalette items={items} onDismiss={() => setPaletteOpen(false)} />
+        <CommandPalette
+          items={items}
+          getDynamicItems={getDynamicItems}
+          onDismiss={() => setPaletteOpen(false)}
+        />
       )}
     </>
   );

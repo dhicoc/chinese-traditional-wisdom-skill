@@ -26,7 +26,9 @@ export function BirthProvider({ children }: { children: ReactNode }) {
       if (!mounted) return;
       if (state.mode === 'ready') {
         setLegacyReady(true);
-        setBirth(readFortuneBirth());
+        const currentBirth = readFortuneBirth();
+        writeFortuneBirth(currentBirth);
+        setBirth(currentBirth);
       }
     });
     return () => {

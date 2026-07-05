@@ -5,6 +5,17 @@
 
 ---
 
+## 2026-07 React 迁移 Phase 5-11 补齐
+
+- **变更**：补齐 React Shell 后续迁移闭环：Home Dashboard 已接入 legacy ToolManifest / CapabilityRegistry；CommandBar 支持工具搜索、Tab 切换、复制当前上下文、测试控制台入口，以及输入年份跳转流年飞星/五运六气。
+- **命令调度**：新增 `apps/visual/src/lib/commandIntents.ts`，CommandBar 只派发复制和年份跳转意图，不再通过 `querySelector` 直接操作 DOM；`CopyContextButton` 增加 `commandScope`，由当前工作区响应全局复制命令。
+- **React 外围组件**：新增 `InterpretationCard` 与 `LegendPanel`，先在流年飞星工作区承载中宫飞星摘要和九星五行图例；Phase 10 第一阶段保留稳定 Canvas，不为迁移而重写确定性渲染。
+- **年份跳转**：`FeixingWorkspace` 与 `YunqiWorkspace` 读取 `ctw.pendingYear` 并监听 `ctw:set-year`，命令面板输入如“2026”即可跳转相关年份工具页。
+- **测试**：新增 `visual/js/tests/check-react-migration.mjs`（49 项），并扩展 `apps/visual/scripts/smoke-react-shell.mjs` 到 135 项；React 测试控制台已注册迁移契约测试。
+- **入口策略**：旧 `visual/index.html` 不替换，React 应用继续在 `apps/visual/` 并行验证，构建后通过 `dist/verify.html` 做人工+自动回归。
+
+---
+
 ## 2026-07 搜索索引可信度升级
 
 - 将旧版全局搜索 `visual/js/search.js` 的风水古籍索引与 `knowledge-base/fengshui` 实际 Markdown 文件清单建立契约校验，避免索引漂移。
@@ -146,33 +157,33 @@
 - **浏览器测试**：新增 `toReading()` 契约测试、梅花数字起卦验证（含上卦/下卦/动爻计算正确性）、HistoryStore 增删改查与脱敏测试。
 - **文档契约**：`check-doc-contracts.mjs` 新增 `history-store.js` 文件存在性检查。
 
-## 2026-07 React Shell 迁移进展（v0.3 进行中）
+## 2026-07 React Shell 迁移完成版（v0.3 并行验证）
 
 ### React + Tailwind + Shadcn 迁移基座
 
 - **变更**：新增 `apps/visual/`，采用 Vite + React + TypeScript + Tailwind 作为新前端外壳，服务于 `TASTE_SKILL_UI.md` 中定义的新中式数据主义 / Academic Dark Mode 视觉方向。
 - **App Shell**：已搭建 `SidebarNav`、`CommandBar`、`WorkspaceTabs`，并以 `workspaceRegistry.tsx` 统一管理工作区路由，避免在 `AppShell` 中继续堆叠条件分支。
-- **Legacy 兼容层**：新增 `loadLegacyScripts.ts`、`canvasRenderers.ts`、`toolRegistry.ts`，通过 `?raw` 导入旧脚本并桥接 `LegacyCORE`、`LegacyVizModules`、`ToolManifest`、`CapabilityRegistry`，优先复用稳定的 Canvas renderer。
+- **Legacy 兼容层**：新增 `loadLegacyScripts.ts`、`canvasRenderers.ts`、`toolRegistry.ts`、`engineAdapters.ts`，通过 `?raw` 导入旧脚本、vendor、`engine-adapters.js` 与 `data-bridge.js`，并桥接 `LegacyCORE`、`LegacyVizModules`、`ToolManifest`、`CapabilityRegistry`、`EngineAdapterRegistry`，优先复用稳定的 Canvas renderer。
 
 ### 已迁移工作区
 
-- **已接入 React Shell**：八字命盘、五行平衡、五运六气、体质辨识、风水罗盘、流年飞星、八宅大游年、梅花易数、六爻占卜、紫微斗数。
-- **定位**：当前多数工作区属于“React 外壳 + 旧 renderer 兼容层”；紫微、六爻仍然使用演示结构数据，不宣称真实排盘；梅花先保留结构输入，后续再接时间 / 数字起卦规则。
+- **已接入 React Shell**：八字命盘、五行平衡、五运六气、体质辨识、风水罗盘、流年飞星、八宅大游年、梅花易数、六爻占卜、紫微斗数、知识图谱、古籍 Split Reader、测试控制台、本地历史。
+- **定位**：当前多数工作区属于“React 外壳 + 旧 renderer 兼容层”；八字和紫微已通过 React 侧 `engineAdapters.ts` 调用旧 `EngineAdapterRegistry`，其中八字走 `BaziLunarAdapter`，紫微走本地 `ZiweiIztroAdapter` / `SylarLong/iztro` v2.5.8。六爻仍然使用演示结构数据，不宣称真实起卦。
 - **目录策略**：工作区目录统一转向英文业务语义，如 `features/constitution/`、`features/yunqi/`、`features/fengshui/`、`features/ziwei/`、`features/meihua/`、`features/liuyao/`。保留 `tizhi` 作为模块 id，但不再新增 `features/tizhi/` 新实现。
 
 ### 验证与回归
 
 - **Node 冒烟测试**：新增 `apps/visual/scripts/smoke-react-shell.mjs`，验证 `#bazi` / `#yunqi` / `#tizhi` / `#fengshui` / `#feixing` / `#bazhai` / `#meihua` / `#liuyao` / `#ziwei` 的 Canvas 工作区数量与 registry 契约。
-- **人工回归页**：构建后生成 `apps/visual/dist/verify.html`，列出当前已迁移 hash 路由，便于人工逐页检查 Canvas 非空、控件可编辑、复制按钮可用。
-- **当前结果**：`npm --prefix apps/visual run build`、`npm --prefix apps/visual test`、`node visual/js/tests/check-doc-contracts.mjs` 均通过。
+- **人工回归页**：构建后生成 `apps/visual/dist/verify.html`，列出当前已迁移 hash 路由，便于人工逐页检查 Canvas 非空、控件可编辑、复制按钮可用；新增 `visual/react.html` 作为并行验证入口，旧 `visual/index.html` 不替换。
+- **当前结果**：`pnpm build`、`pnpm typecheck`、`pnpm test`、`node visual/js/tests/check-react-migration.mjs` 均通过；`verify.html` 中紫微标注为 `local-exact`。当前已知非阻断项是打包后主 chunk 较大，后续可用 lazy legacy loader / dynamic import 做拆包。
 
 ## 2026-07 v0.2 稳定化与能力边界
 
 ### Dashboard 可信度与离线能力
 
 - **变更**：新增 `visual/js/capabilities.js`，统一维护 11 个标签页的能力状态、可信度说明、输入校验、报告导出、诊断入口。
-- **引擎适配层**：新增 `visual/js/engine-adapters.js`，把八字、五运六气、紫微、六爻、梅花统一为 `calculate()` / `toRenderData()` 契约；已内置 `visual/vendor/lunar-javascript-1.7.7.js`，八字默认使用精确节气干支，五运六气默认使用大寒边界修正；用户可关闭精确历法测算回退本地近似；紫微、六爻仍为演示 Adapter；梅花已升级为本地时间起卦 Adapter。
-- **能力边界**：八字/五运六气标注为本地精确计算并保留近似 fallback；紫微/六爻标注为演示数据且真实计算需外部引擎；梅花标注为本地规则计算；飞星/八宅/风水罗盘标注为本地规则计算。
+- **引擎适配层**：新增 `visual/js/engine-adapters.js`，把八字、五运六气、紫微、六爻、梅花统一为 `calculate()` / `toRenderData()` 契约；已内置 `visual/vendor/lunar-javascript-1.7.7.js` 和 `visual/vendor/iztro-2.5.8.min.js`，八字默认使用精确节气干支，五运六气默认使用大寒边界修正，紫微默认使用 iztro 十二宫排盘；用户可关闭精确历法测算回退本地近似；六爻仍为演示 Adapter；梅花已升级为本地时间/数字起卦 Adapter。
+- **能力边界**：八字/五运六气/紫微标注为本地精确计算并保留 fallback；六爻标注为演示数据且真实起卦需继续补纳甲规则；梅花标注为本地规则计算；飞星/八宅/风水罗盘标注为本地规则计算。
 - **离线降级**：Mermaid CDN 不可用时，知识图谱显示源码降级提示，Canvas 标签页继续可用。
 - **隐私**：`FORTUNE.exportReportData()` 只导出年份和性别等脱敏字段，不把完整出生日期写入长期日志；案例草稿也按脱敏字段生成。
 

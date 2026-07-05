@@ -11,7 +11,7 @@ import type {
   YunqiData,
 } from './baseTypes';
 import type { LegacyWindow as BaseLegacyWindow } from './legacyGlobals';
-import type { LegacyBaziModule, LegacyFengshuiModule, LegacyHealthModule, LegacyCORE } from './legacyPrivateTypes';
+import type { LegacyBaziModule, LegacyFengshuiModule, LegacyHealthModule, LegacyZiweiModule, LegacyCORE } from './legacyPrivateTypes';
 export type {
   BaziPillars,
   ConstitutionData,
@@ -85,6 +85,7 @@ export interface LegacyWindow extends BaseLegacyWindow {
     health?: LegacyHealthModule;
     fengshui?: LegacyFengshuiModule;
     divination?: LegacyDivinationModule;
+    ziwei?: LegacyZiweiModule;
   };
   YunqiEngine?: {
     calculate: (year: number) => YunqiData;

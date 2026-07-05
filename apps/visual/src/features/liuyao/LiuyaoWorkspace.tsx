@@ -67,7 +67,7 @@ export function LiuyaoWorkspace() {
               先复用旧 divination renderer，React 负责卦名与用神输入，保留当前演示卦象结构作为迁移过渡层。
             </p>
           </div>
-          <CopyContextButton title="六爻 React 迁移上下文" payload={contextPayload} />
+          <CopyContextButton commandScope="liuyao" title="六爻 React 迁移上下文" payload={contextPayload} />
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">

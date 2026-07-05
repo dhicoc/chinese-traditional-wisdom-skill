@@ -48,6 +48,10 @@ export function getLegacyDivinationModule() {
   return legacyWindow().LegacyVizModules?.divination;
 }
 
+export function getLegacyZiweiModule() {
+  return legacyWindow().LegacyVizModules?.ziwei;
+}
+
 export function getLegacyCORE() {
   return legacyWindow().LegacyCORE;
 }
@@ -110,6 +114,12 @@ export function renderLegacyMeihua(canvasId: string, data: MeihuaData) {
   const divination = getLegacyDivinationModule();
   if (!divination) throw new Error('Legacy divination module is not loaded.');
   divination.renderMeihua(canvasId, data);
+}
+
+export function renderLegacyZiwei(canvasId: string, data: unknown) {
+  const ziwei = getLegacyZiweiModule();
+  if (!ziwei) throw new Error('Legacy ziwei module is not loaded.');
+  ziwei.render(canvasId, data);
 }
 
 export function deriveDominantConstitution(scores: ConstitutionScores): ConstitutionType | '' {

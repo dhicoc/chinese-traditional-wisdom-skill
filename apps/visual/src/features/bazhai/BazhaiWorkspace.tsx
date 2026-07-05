@@ -55,7 +55,7 @@ export function BazhaiWorkspace() {
               复用旧 fengshui.js 的八宅命盘 renderer，React 负责出生年与性别输入，与旧 visual/index.html 的 updateEightMansions() 规则一致。
             </p>
           </div>
-          <CopyContextButton title="八宅大游年 React 迁移上下文" payload={contextPayload} />
+          <CopyContextButton commandScope="bazhai" title="八宅大游年 React 迁移上下文" payload={contextPayload} />
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">

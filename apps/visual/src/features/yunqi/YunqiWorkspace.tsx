@@ -5,10 +5,16 @@ import { ControlField } from '@/components/shared/ControlField';
 import { calculateLegacyYunqi, renderLegacyYunqi, type YunqiData } from '@/legacy/canvasRenderers';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import type { LegacyState } from '@/legacy/legacyGlobals';
+import {
+  YEAR_INTENT_EVENT,
+  normalizeCommandYear,
+  readPendingCommandYear,
+  type YearIntentDetail,
+} from '@/lib/commandIntents';
 
 export function YunqiWorkspace() {
   const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
-  const [year, setYear] = useState(2026);
+  const [year, setYear] = useState(() => readPendingCommandYear('yunqi'));
   const [data, setData] = useState<YunqiData | null>(null);
 
   useEffect(() => {
@@ -29,6 +35,17 @@ export function YunqiWorkspace() {
     if (legacyState.mode !== 'ready') return;
     setData(calculateLegacyYunqi(year));
   }, [legacyState.mode, year]);
+
+  useEffect(() => {
+    function handleYearIntent(event: Event) {
+      const detail = (event as CustomEvent<YearIntentDetail>).detail;
+      if (detail?.target === 'yunqi') {
+        setYear(normalizeCommandYear(detail.year));
+      }
+    }
+    window.addEventListener(YEAR_INTENT_EVENT, handleYearIntent);
+    return () => window.removeEventListener(YEAR_INTENT_EVENT, handleYearIntent);
+  }, []);
 
   const ready = legacyState.mode === 'ready' && !!data;
   const contextPayload = useMemo(
@@ -53,7 +70,7 @@ export function YunqiWorkspace() {
               复用旧 YunqiEngine 计算链路与 health renderer，验证 React Shell 对本地规则引擎和 Canvas 图表的双重兼容。
             </p>
           </div>
-          <CopyContextButton title="五运六气 React 迁移上下文" payload={contextPayload} />
+          <CopyContextButton commandScope="yunqi" title="五运六气 React 迁移上下文" payload={contextPayload} />
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
@@ -72,7 +89,7 @@ export function YunqiWorkspace() {
             max={2100}
             inputMode="numeric"
             value={year}
-            onChange={(event) => setYear(Number.parseInt(event.target.value, 10) || 2026)}
+            onChange={(event) => setYear(normalizeCommandYear(event.target.value))}
           />
 
           <div className="rounded-card border border-white/8 bg-white/[0.035] p-4">

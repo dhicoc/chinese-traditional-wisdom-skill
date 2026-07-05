@@ -1,9 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { COPY_CONTEXT_INTENT, type CopyContextIntentDetail } from '@/lib/commandIntents';
 
 interface CopyContextButtonProps {
   label?: string;
   title: string;
   payload: unknown;
+  /** 与 CommandBar 派发的复制意图匹配；未设置时只响应按钮自身点击。 */
+  commandScope?: string;
 }
 
 type CopyStatus = 'idle' | 'copied' | 'error';
@@ -14,7 +17,7 @@ function toMarkdown(title: string, payload: unknown) {
 
 const FEEDBACK_MS = 1800;
 
-export function CopyContextButton({ label = 'Copy context for AI', title, payload }: CopyContextButtonProps) {
+export function CopyContextButton({ label = 'Copy context for AI', title, payload, commandScope }: CopyContextButtonProps) {
   const [status, setStatus] = useState<CopyStatus>('idle');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -24,7 +27,7 @@ export function CopyContextButton({ label = 'Copy context for AI', title, payloa
     };
   }, []);
 
-  async function copy() {
+  const copy = useCallback(async () => {
     const markdown = toMarkdown(title, payload);
     try {
       if (navigator.clipboard?.writeText) {
@@ -47,7 +50,19 @@ export function CopyContextButton({ label = 'Copy context for AI', title, payloa
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => setStatus('idle'), FEEDBACK_MS);
     }
-  }
+  }, [payload, title]);
+
+  useEffect(() => {
+    if (!commandScope) return undefined;
+    function handleCopyIntent(event: Event) {
+      const detail = (event as CustomEvent<CopyContextIntentDetail>).detail;
+      if (detail?.scope === commandScope) {
+        void copy();
+      }
+    }
+    window.addEventListener(COPY_CONTEXT_INTENT, handleCopyIntent);
+    return () => window.removeEventListener(COPY_CONTEXT_INTENT, handleCopyIntent);
+  }, [commandScope, copy]);
 
   const display = status === 'copied' ? 'Copied' : status === 'error' ? '复制失败' : label;
 

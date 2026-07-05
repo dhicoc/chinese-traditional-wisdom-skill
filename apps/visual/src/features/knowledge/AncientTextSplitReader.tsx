@@ -120,7 +120,7 @@ export function AncientTextSplitReader() {
               左侧显示古籍 Markdown 原文，右侧显示映射 JSON 结构，支持关键词搜索高亮。Phase 8 雏形——先内置八宅明镜与映射表对照。
             </p>
           </div>
-          <CopyContextButton title="Split Reader 上下文" payload={contextPayload} />
+          <CopyContextButton commandScope="reader" title="Split Reader 上下文" payload={contextPayload} />
         </div>
       </div>
 

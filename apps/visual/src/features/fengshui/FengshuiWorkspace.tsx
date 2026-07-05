@@ -42,7 +42,7 @@ export function FengshuiWorkspace() {
               复用旧 fengshui.js 的二十四山罗盘 renderer。React 只负责工作区结构、上下文复制和后续扩展入口。
             </p>
           </div>
-          <CopyContextButton title="风水罗盘 React 迁移上下文" payload={contextPayload} />
+          <CopyContextButton commandScope="fengshui" title="风水罗盘 React 迁移上下文" payload={contextPayload} />
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">

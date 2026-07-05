@@ -30,3 +30,7 @@ export interface LegacyCORE {
   getFlyingStars: (year: number) => Record<string, number>;
   calcMingGua: (year: number, gender: string) => LegacyMingGua;
 }
+
+export interface LegacyZiweiModule {
+  render: (canvasId: string, data: unknown) => void;
+}

@@ -182,14 +182,14 @@
 - 移动端使用顶部模块切换或抽屉导航，禁止 11 个标签在窄屏横向失控。
 - `MODULES` 常量必须从现有 tab 和 `ToolManifest` 对齐，不新增含义不明的入口。
 
-### Phase 5：迁移 Home Dashboard
+### Phase 5：迁移 Home Dashboard（✅ 已完成）
 
 - 首页先迁移为 React 静态版，再接入 legacy `ToolManifest` 与 `CapabilityRegistry`。
 - 首页展示：工具总数、本地能力数、演示边界数、模块分组、能力状态、隐私等级、问题类型。
 - 每个工具卡片增加 `Copy context for AI` 按钮，输出当前工具的 LLM 友好 Markdown 上下文。
 - 验收标准：数量与旧首页一致，能力 label 一致，点击工具可切换到对应 tab，不引入假数据。
 
-### Phase 6：迁移 Canvas 型工具页
+### Phase 6：迁移 Canvas 型工具页（✅ 已完成）
 
 - ✅ 先做通用组件：
   - `CanvasPanel.tsx`
@@ -200,37 +200,38 @@
 - 迁移顺序建议：八字、五行、五运六气、体质、风水、流年飞星、八宅、紫微、六爻、梅花；当前 React Shell 已覆盖这批高可见模块的工作区外壳。
 - 目录策略统一为英文业务语义目录：`features/constitution/`、`features/yunqi/`、`features/fengshui/`、`features/ziwei/`、`features/meihua/`、`features/liuyao/`；保留 `tizhi` 作为模块 id，不再新增 `features/tizhi/` 新实现。
 - 每迁移一个 tab 都必须验证：输入变化后 Canvas 刷新、图例存在、解读文本保留、上下文可复制、移动端不溢出。
+- ✅ 八字与紫微已从 React 工作区接入 Legacy `EngineAdapterRegistry`：八字读取全局生辰后走 `BaziLunarAdapter`，紫微通过 `ZiweiIztroAdapter` 调用本地 `SylarLong/iztro` v2.5.8；失败时保留本地 fallback，不把演示结构当作真实结论。
 - 旧 renderer 若只接受 canvas id，第一阶段保留 id 方式；后续再改为接收 canvas element。
 - 构建产物额外生成 `apps/visual/dist/verify.html`，用于人工逐路由回归；Node 侧保留 `scripts/smoke-react-shell.mjs` 进行结构级冒烟测试。
 
-### Phase 7：CommandBar 全局调度
+### Phase 7：CommandBar 全局调度（✅ 已完成）
 
-- 第一版能力：搜索工具名、切换 tab、输入年份跳转相关 tab、复制当前上下文、打开测试控制台。
+- ✅ 第一版能力已落地：搜索工具名、切换 tab、输入年份跳转流年飞星/五运六气、复制当前上下文、打开测试控制台。
 - 第二版能力：全局修改出生资料、一键刷新所有 tab、起卦快捷命令、搜索古籍文本。
-- CommandBar 只能 dispatch state action，不得直接改 DOM。
+- ✅ CommandBar 通过 `commandIntents.ts` 派发复制和年份跳转意图，不再通过 `querySelector` 直接操作 DOM。
 - 快捷键：`Ctrl+K` / `Cmd+K` 打开；必须支持键盘选择和可访问焦点状态。
 
-### Phase 8：知识图谱与古籍 Split Reader
+### Phase 8：知识图谱与古籍 Split Reader（✅ 已完成）
 
 - Mermaid 先迁移为 React 组件，并保留 CDN/npm 加载失败时的源码降级显示。
-- 第二步实现 `AncientTextSplitReader`：左侧显示古籍 markdown 原文，右侧显示 JSON AST / 映射结构，高亮关联字段。
+- ✅ 第二步实现 `AncientTextSplitReader`：左侧显示古籍 markdown 原文，右侧显示 JSON AST / 映射结构，高亮关联字段。
 - 若浏览器端无法直接读取本地古籍文件，则新增 manifest JSON 或构建时 import，不临时硬编码文件清单。
 
-### Phase 9：TestRunnerConsole
+### Phase 9：TestRunnerConsole（✅ 已完成）
 
-- 第一版：在新 React app 中提供测试入口、结果摘要和跳转旧 `visual/test-runner.html` 的链接。
+- ✅ 第一版：在新 React app 中提供测试入口、结果摘要和跳转旧 `visual/test-runner.html` 的链接。
 - 第二版：浏览器端动态加载测试脚本，展示 rolling logs、verified badge、失败 diff 和环境信息。
 - 必须区分 Node 测试与浏览器测试，避免在 Node 中直接运行依赖 `window` 的测试。
 
-### Phase 10：逐步替换图表组件
+### Phase 10：逐步替换图表组件（✅ 第一阶段完成）
 
-- 不为 React 化而重写稳定 Canvas；优先替换交互收益高的模块：`FiveElementsRadar`、`QiWheel`、`NinePalaceGrid`、`HexagramLines`、`ZiweiPalaceGrid`。
+- ✅ 第一阶段不为 React 化而重写稳定 Canvas；已新增 `InterpretationCard` / `LegendPanel` 作为 React 外围解释与图例组件，后续再替换交互收益高的模块：`FiveElementsRadar`、`QiWheel`、`NinePalaceGrid`、`HexagramLines`、`ZiweiPalaceGrid`。
 - 密集仪表优先 SVG 自绘；关系图谱继续保留 Mermaid；复杂布局必要时继续使用 Canvas。
 - 替换前后必须做同输入对照，确保确定性输出无视觉漂移和数据漂移。
 
-### Phase 11：测试与切换入口
+### Phase 11：测试与切换入口（✅ 并行验证完成）
 
-- 新增测试建议：
+- ✅ 已新增 `visual/js/tests/check-react-migration.mjs`，并把 React 迁移契约纳入测试控制台。后续可继续扩展测试建议：
   - `apps/visual/src/__tests__/modules.test.ts`
   - `apps/visual/src/__tests__/copy-context.test.ts`
   - `apps/visual/src/__tests__/command-bar.test.ts`
@@ -238,7 +239,7 @@
   - `apps/visual/e2e/smoke.spec.ts`
   - `apps/visual/e2e/navigation.spec.ts`
   - `apps/visual/e2e/canvas-render.spec.ts`
-- 切换入口分三步：先新增 `visual/react.html` 或独立 dev server；稳定后 Vite build 输出到 `visual/dist/`；全部通过后再决定是否替换 `visual/index.html`。
+- ✅ 已新增并行入口 `visual/react.html`，指向构建产物 `apps/visual/dist/verify.html`；旧 `visual/index.html` 保持稳定主入口，不在本阶段替换。
 - 主入口切换前，必须确认 11 tab 全部可打开、默认数据可渲染、CommandBar 可切换、Copy context 有效、375px 移动端不横向溢出、暗黑模式 contrast 合格、Mermaid fallback 可用。
 
 ### Sprint 建议
@@ -277,10 +278,11 @@
 ## 当前 v0.3 进行中范围
 
 - 已落地：能力注册、标签页能力标识、统一引擎 Adapter 注册表、内置 `lunar-javascript` 精确历法、梅花时间起卦 Adapter、全局精确历法测算开关、输入校验、脱敏报告导出、脱敏案例草稿、开发者诊断页、Mermaid 离线降级、搜索索引对齐、测试页增强、JSON schema 校验脚本、文档契约检查脚本、全局命盘同步回归测试。
-- 仍为边界说明：紫微、六爻在 Dashboard 中仍使用演示数据；梅花已内置时间起卦规则。后续开发目标不是长期依赖外部服务，而是把可用开源引擎或自研规则内置到本地 Adapter。真实引擎未接入前，Dashboard 必须询问用户是否继续查看演示结构，不能默认把演示结构当作测算结果。
-- 已内置精确历法：Dashboard 默认加载 `visual/vendor/lunar-javascript-1.7.7.js`，八字使用精确节气干支，五运六气使用大寒边界修正；用户可关闭“精确历法测算”回退近似模式。
+- 仍为边界说明：六爻在 Dashboard 中仍使用演示数据；紫微已接入本地 `SylarLong/iztro` v2.5.8，梅花已内置时间/数字起卦规则。后续开发目标不是长期依赖外部服务，而是把可用开源引擎或自研规则内置到本地 Adapter。真实引擎未接入前，Dashboard 必须询问用户是否继续查看演示结构，不能默认把演示结构当作测算结果。
+- 已内置精确历法与本地排盘：Dashboard 默认加载 `visual/vendor/lunar-javascript-1.7.7.js` 与 `visual/vendor/iztro-2.5.8.min.js`，八字使用精确节气干支，五运六气使用大寒边界修正，紫微使用 iztro 真实十二宫排盘；用户可关闭“精确历法测算”回退近似模式。
 - v0.3 信息架构已开始落地：新增 `visual/js/tool-manifest.js`，工具目录可按 manifest 分组渲染；视觉方案重新设计，不再沿用 suanle-me 参考方向。
-- React Shell 迁移面已落地：`apps/visual/` 已具备 App Shell、统一 `workspaceRegistry.tsx`、legacy script loader、`CanvasPanel` / `ControlField` / `CopyContextButton`、Node 冒烟测试与 `verify.html` 人工回归页；已迁移工作区包括八字、五行、五运六气、体质辨识、风水罗盘、流年飞星、八宅大游年、梅花易数、六爻占卜、紫微斗数。
+- React Shell 迁移面已补齐：`apps/visual/` 已具备 App Shell、统一 `workspaceRegistry.tsx`、完整 legacy script loader（含 vendor / engine-adapters / data-bridge）、`CanvasPanel` / `ControlField` / `CopyContextButton` / `InterpretationCard` / `LegendPanel`、CommandBar 命令意图、年份跳转、Node 冒烟测试、React 迁移契约测试与 `verify.html` 人工回归页；已迁移工作区包括八字、五行、五运六气、体质辨识、风水罗盘、流年飞星、八宅大游年、梅花易数、六爻占卜、紫微斗数、知识图谱、古籍 Split Reader、测试控制台与本地历史。
+- React Phase 5-11 已形成并行验证闭环：`pnpm test` 当前 153 项通过，`node visual/js/tests/check-react-migration.mjs` 当前 58 项通过；`pnpm build` 会生成标注紫微 `local-exact` 的 `apps/visual/dist/verify.html`。旧 `visual/index.html` 不替换，继续作为稳定主入口；`visual/react.html` 作为并行验证入口。
 - v0.3 结构化阅读与历史已落地：`EngineAdapterRegistry.toReading()` 契约已实现于八字/五运六气/梅花三个 Adapter；`HistoryStore` 本地历史与收藏已集成到旧 Dashboard 首页和 React Shell `history` 工作区；梅花数字起卦模式已内置。
 - v0.3 咨询向导已落地：旧 Dashboard 首页新增"打开咨询向导"按钮，提供六类问题入口，调用 `toReading()` 生成结构化摘要并保存到历史；报告导出 `exportReportData()` 已集成 `readings` 字段并在 HTML 报告中展示。
 - v0.3 PWA 试点已落地：新增 `manifest.webmanifest` 和 `sw.js`，仅在 http/https 下注册 Service Worker，`file://` 双击不加载 SW。

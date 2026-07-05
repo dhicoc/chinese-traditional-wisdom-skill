@@ -65,7 +65,7 @@ export function ConstitutionWorkspace() {
               复用旧 health renderer 的九种体质雷达图，用 React 状态驱动评分输入与主要体质派生。
             </p>
           </div>
-          <CopyContextButton title="体质辨识 React 迁移上下文" payload={contextPayload} />
+          <CopyContextButton commandScope="tizhi" title="体质辨识 React 迁移上下文" payload={contextPayload} />
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">

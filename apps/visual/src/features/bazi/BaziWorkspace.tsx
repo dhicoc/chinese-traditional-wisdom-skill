@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CanvasPanel } from '@/components/shared/CanvasPanel';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
-import { ControlField } from '@/components/shared/ControlField';
+import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
+import { renderDataWithLegacyAdapter, calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { renderLegacyBazi, renderLegacyWuxing, type BaziPillars, type WuxingStats } from '@/legacy/canvasRenderers';
+import type { BirthData } from '@/legacy/birthBridge';
 import type { LegacyState } from '@/legacy/legacyGlobals';
+import { useBirth } from '@/lib/birthContext';
 
 const DEFAULT_PILLARS: BaziPillars = {
   year: { stem: '甲', branch: '辰' },
@@ -16,17 +19,33 @@ const DEFAULT_PILLARS: BaziPillars = {
 };
 
 const DEFAULT_WUXING: WuxingStats = { 木: 2, 火: 3, 土: 1, 金: 0, 水: 2 };
-const PILLAR_FIELDS = [
-  ['year', '年柱'],
-  ['month', '月柱'],
-  ['day', '日柱'],
-  ['hour', '时柱'],
-] as const;
+
+interface BaziResult {
+  pillars?: unknown;
+  elements?: Partial<WuxingStats>;
+  dayMaster?: string;
+  dayMasterWuxing?: string;
+  engineName?: string;
+  mode?: string;
+  confidenceNote?: string;
+}
+
+function calculateBazi(birth: BirthData, ready: boolean) {
+  if (!ready) {
+    return { result: null, pillars: { ...DEFAULT_PILLARS, gender: birth.gender }, wuxing: DEFAULT_WUXING };
+  }
+  const result = calculateWithLegacyAdapter<BirthData, BaziResult>('bazi', birth);
+  const renderData = result ? renderDataWithLegacyAdapter<BirthData, BaziResult, BaziPillars>('bazi', result, birth) : null;
+  return {
+    result,
+    pillars: renderData ?? { ...DEFAULT_PILLARS, gender: birth.gender },
+    wuxing: { ...DEFAULT_WUXING, ...(result?.elements ?? {}) },
+  };
+}
 
 export function BaziWorkspace() {
+  const { birth } = useBirth();
   const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
-  const [pillars, setPillars] = useState(DEFAULT_PILLARS);
-  const [wuxing, setWuxing] = useState(DEFAULT_WUXING);
 
   useEffect(() => {
     let mounted = true;
@@ -39,31 +58,19 @@ export function BaziWorkspace() {
   }, []);
 
   const ready = legacyState.mode === 'ready';
+  const { result, pillars, wuxing } = useMemo(() => calculateBazi(birth, ready), [birth, ready]);
   const contextPayload = useMemo(
     () => ({
       module: 'bazi',
-      mode: 'legacy-canvas-react-shell',
+      mode: result?.mode ?? 'fallback-demo',
+      engineName: result?.engineName ?? '等待旧引擎',
+      birth,
       pillars,
       wuxing,
-      source: 'visual/js/core.js + visual/js/bazi.js',
+      source: 'visual/js/engine-adapters.js + visual/js/bazi.js',
     }),
-    [pillars, wuxing],
+    [birth, pillars, result, wuxing],
   );
-
-  function updatePillar(key: keyof Pick<BaziPillars, 'year' | 'month' | 'day' | 'hour'>, value: string) {
-    const normalized = value.trim().slice(0, 2);
-    const stem = normalized[0] || '';
-    const branch = normalized[1] || '';
-    setPillars((current: BaziPillars) => ({
-      ...current,
-      [key]: { ...current[key], stem, branch },
-      dayMaster: key === 'day' && stem ? stem : current.dayMaster,
-    }));
-  }
-
-  function updateWuxing(key: keyof WuxingStats, value: string) {
-    setWuxing((current: WuxingStats) => ({ ...current, [key]: Number.parseInt(value, 10) || 0 }));
-  }
 
   return (
     <section className="space-y-4">
@@ -72,10 +79,10 @@ export function BaziWorkspace() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-zinc-100">八字命盘与五行平衡</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-400">
-              Sprint 2 先复用旧版 Canvas renderer。React 负责状态、布局和上下文导出，绘制逻辑仍来自稳定的 visual/js/bazi.js。
+              React 工作区读取顶部全局生辰，优先调用 BaziEngine / lunar-javascript Adapter 生成四柱与五行，再复用旧 Canvas renderer。
             </p>
           </div>
-          <CopyContextButton title="八字命盘 React 迁移上下文" payload={contextPayload} />
+          <CopyContextButton commandScope="bazi" title="八字命盘 React 迁移上下文" payload={contextPayload} />
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
@@ -86,51 +93,21 @@ export function BaziWorkspace() {
 
       <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
         <aside className="space-y-4 rounded-panel border border-ink-700 bg-black/24 p-4">
-          <div>
-            <p className="text-sm font-semibold text-zinc-200">四柱输入</p>
-            <div className="mt-3 grid grid-cols-2 gap-3">
-              {PILLAR_FIELDS.map(([key, label]) => (
-                <ControlField
-                  key={key}
-                  label={label}
-                  value={`${pillars[key].stem}${pillars[key].branch}`}
-                  onChange={(event) => updatePillar(key, event.target.value)}
-                />
-              ))}
-            </div>
-          </div>
-
-          <ControlField label="性别">
-            <select
-              value={pillars.gender}
-              onChange={(event) => setPillars((current: BaziPillars) => ({ ...current, gender: event.target.value }))}
-              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-zinc-100 outline-none transition focus:border-jade-500/45"
-            >
-              <option value="男">男</option>
-              <option value="女">女</option>
-            </select>
-          </ControlField>
-
-          <div>
-            <p className="text-sm font-semibold text-zinc-200">五行评分</p>
-            <div className="mt-3 grid grid-cols-5 gap-2">
-              {(Object.keys(wuxing) as Array<keyof WuxingStats>).map((key) => (
-                <ControlField
-                  key={String(key)}
-                  label={String(key)}
-                  value={wuxing[key]}
-                  onChange={(event) => updateWuxing(key, event.target.value)}
-                  inputMode="numeric"
-                />
-              ))}
-            </div>
-          </div>
+          <InterpretationCard
+            title="全局生辰推算"
+            items={[
+              { label: '引擎', value: result?.engineName ?? '等待旧引擎'},
+              { label: '模式', value: result?.mode ?? '降级展示'},
+              { label: '日主', value: (result?.dayMaster ?? pillars.dayMaster ?? '?') + ' · ' + (result?.dayMasterWuxing ?? '?')},
+              { label: '说明', value: result?.confidenceNote ?? '请在顶部“全局生辰”面板修改出生资料。'},
+            ]}
+          />
         </aside>
 
         <div className="space-y-4">
           <CanvasPanel
             title="八字四柱"
-            description="与旧 visual/index.html 的默认八字输入对齐，调用同一个 bazi renderer。"
+            description="由统一 Adapter 计算，再调用同一个 bazi renderer。"
             data={pillars}
             width={600}
             height={480}
@@ -139,7 +116,7 @@ export function BaziWorkspace() {
           />
           <CanvasPanel
             title="五行平衡"
-            description="复用旧五行五芒星 renderer，用 React 状态驱动输入。"
+            description="五行统计来自同一次八字计算，避免 React 页与旧页口径分叉。"
             data={wuxing}
             width={520}
             height={460}
