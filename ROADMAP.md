@@ -13,33 +13,34 @@
 
 ## 第 1 个月：稳定化与可信度优化
 
-- 统一文档口径：同步 `README.md`、`README_AI.md`、`SKILL.md`、`tool-index.md`、`EVOLUTION.md` 中关于“真实计算 / 近似计算 / 演示数据 / 外部引擎”的描述。
-- 给 Dashboard 增加能力标识：每个标签页显示“本地规则计算”“本地近似计算”“演示数据”“需外部引擎”等状态。
-- 修复离线可用性问题：Mermaid CDN 不可用时显示降级提示，不阻塞 Canvas 标签页。
-- 强化输入校验：全局生辰输入增加年月日时范围校验、错误提示、非法日期拦截；不再静默回退到默认值。
-- 优化测试入口：`visual/test-runner.html` 增加测试详情展开、失败原因、浏览器环境信息、总数统计与截图建议。
-- 建立质量基线：记录测试总数、通过率、已知近似项和不可验证项，作为后续版本对照。
+- ✅ 统一文档口径：同步 `README.md`、`README_AI.md`、`SKILL.md`、`tool-index.md`、`EVOLUTION.md` 中关于"真实计算 / 近似计算 / 演示数据 / 外部引擎"的描述。
+- ✅ 给 Dashboard 增加能力标识：每个标签页显示"本地规则计算""本地近似计算""演示数据""需外部引擎"等状态。
+- ✅ 修复离线可用性问题：Mermaid CDN 不可用时显示降级提示，不阻塞 Canvas 标签页。
+- ✅ 强化输入校验：全局生辰输入增加年月日时范围校验、错误提示、非法日期拦截；不再静默回退到默认值。
+- ✅ 优化测试入口：`visual/test-runner.html` 增加测试详情展开、失败原因、浏览器环境信息、总数统计与截图建议。
+- ✅ 建立质量基线：记录测试总数、通过率、已知近似项和不可验证项，作为后续版本对照。
 
 ## 第 2 个月：核心能力增强
 
-- 抽象引擎适配层：为八字、五运六气、紫微、六爻、梅花定义统一 Adapter 接口，字段包括 `engineName`、`mode`、`inputSchema`、`calculate()`、`toRenderData()`、`confidenceNote`。
-- 八字引擎增强：保留当前纯 JS 引擎作为本地快速模式，优先接入 `6tail/lunar-javascript` 作为精确节气、干支、八字基础；输出中明确区分 `local-fast` 与 `lunar-javascript` 精确历法模式。
-- 五运六气增强：补充当前步气、客主加临关系字段；先用 `6tail/lunar-javascript` 补精确大寒定年和节气边界，再参考 `dhicoc/wuyun-liuqi-skills` 校验 JSON 输出结构。
-- 紫微/六爻/梅花体验策略：真实引擎内置前，标签页和咨询向导都要提供“真实测算尚未接入，是否查看演示结构”的确认；接入后默认走本地真实 Adapter，失败时才回退演示结构并显示降级原因。
+- ✅ 抽象引擎适配层：为八字、五运六气、紫微、六爻、梅花定义统一 Adapter 接口，字段包括 `engineName`、`mode`、`inputSchema`、`calculate()`、`toRenderData()`、`confidenceNote`。
+- ✅ 八字引擎增强：保留当前纯 JS 引擎作为本地快速模式，优先接入 `6tail/lunar-javascript` 作为精确节气、干支、八字基础；输出中明确区分 `local-fast` 与 `lunar-javascript` 精确历法模式。
+- ✅ 五运六气增强：补充当前步气、客主加临关系字段；先用 `6tail/lunar-javascript` 补精确大寒定年和节气边界，再参考 `dhicoc/wuyun-liuqi-skills` 校验 JSON 输出结构。
+- ✅ 紫微/六爻/梅花体验策略：真实引擎内置前，标签页和咨询向导都要提供"真实测算尚未接入，是否查看演示结构"的确认；接入后默认走本地真实 Adapter，失败时才回退演示结构并显示降级原因。
 - 搜索能力升级：将 `search.js` 的内置古籍索引与实际 `knowledge-base/fengshui` 文件清单对齐；结果展示增加来源、完整性、类别。
-- 报告生成规范化：固化 `REPORT_DATA` 版本号，静态 HTML 报告模板增加字段缺失提示、模块隐藏规则和数据来源说明。
+- ✅ 报告生成规范化：固化 `REPORT_DATA` 版本号，静态 HTML 报告模板增加字段缺失提示、模块隐藏规则和数据来源说明。
 - 风水映射校验：为 6 个 JSON 映射表增加 schema 文档和可执行校验脚本，保证字段完整、方位覆盖、九星/八宅规则可查。
 - ✅ 紫微真实排盘：已接入 `SylarLong/iztro` v2.5.8，新增 `ZiweiIztroAdapter` 实现真实十二宫排盘；保留演示 fallback 和能力标识。
-- 六爻与梅花路线：六爻先参考 `bopo/najia` 抽象纳甲数据契约，梅花优先自研小型 JS 起卦规则；不直接嵌入许可证受限或成熟度不足的项目。
+- ✅ 六爻与梅花路线：六爻先参考 `bopo/najia` 抽象纳甲数据契约，梅花优先自研小型 JS 起卦规则；不直接嵌入许可证受限或成熟度不足的项目。
+- ✅ 梅花数字起卦：已实现 `method: "number"` 模式，使用 `numberA/numberB` 取数定上下卦与动爻。
 
 ## 第 3 个月：新功能与发布沉淀
 
-- 新增“咨询向导”模式：在 Dashboard 首页提供健康、事业、婚恋、占卜、择居、综合六类入口，引导用户填写必要信息，再跳转对应标签页或生成报告数据。
-- 新增报告导出：支持从当前 `FORTUNE` 数据快照生成静态 HTML 报告；导出文件名采用脱敏标识和日期，不保存完整生辰到长期日志。
+- ✅ 新增"咨询向导"模式：在 Dashboard 首页提供健康、事业、婚恋、占卜、择居、综合六类入口，引导用户填写必要信息，再跳转对应标签页或生成报告数据。
+- ✅ 新增报告导出：支持从当前 `FORTUNE` 数据快照生成静态 HTML 报告；导出文件名采用脱敏标识和日期，不保存完整生辰到长期日志。
 - 新增知识引用浏览器：在风水、八宅、飞星相关标签页中点击术语或方位时，展示匹配的映射表条目和古籍索引，不只显示通用 tooltip。
-- 新增案例沉淀工具：基于 `field-journal/_template.md` 生成脱敏案例草稿，强制只保留年份、问题类型、主要学科、失败/成功经验。
-- 新增开发者诊断页：展示当前浏览器能力、脚本加载状态、引擎可用性、CDN 状态、测试入口链接。
-- 发布 `v0.2`：更新 `EVOLUTION.md`，新增 `ROADMAP.md`，整理贡献说明和已知限制，形成可对外展示的稳定版本。
+- ✅ 新增案例沉淀工具：基于 `field-journal/_template.md` 生成脱敏案例草稿，强制只保留年份、问题类型、主要学科、失败/成功经验。
+- ✅ 新增开发者诊断页：展示当前浏览器能力、脚本加载状态、引擎可用性、CDN 状态、测试入口链接。
+- ✅ 发布 `v0.2`：更新 `EVOLUTION.md`，新增 `ROADMAP.md`，整理贡献说明和已知限制，形成可对外展示的稳定版本。
 
 
 ## 外部引擎候选与接入策略
@@ -159,7 +160,7 @@
 
 ### Phase 3：Legacy Adapter 包装层
 
-- 在 React 侧新增兼容层，不直接散落调用 `window` 全局对象：
+- ✅ 在 React 侧新增兼容层，不直接散落调用 `window` 全局对象：
   - `apps/visual/src/legacy/loadLegacyScripts.ts`
   - `apps/visual/src/legacy/legacyGlobals.ts`
   - `apps/visual/src/legacy/canvasRenderers.ts`
@@ -170,7 +171,7 @@
 
 ### Phase 4：搭建 App Shell 与 11 标签导航
 
-- 组件结构建议：
+- ✅ 组件结构建议：
   - `components/app-shell/AppShell.tsx`
   - `components/app-shell/SidebarNav.tsx`
   - `components/app-shell/WorkspaceTabs.tsx`
@@ -190,7 +191,7 @@
 
 ### Phase 6：迁移 Canvas 型工具页
 
-- 先做通用组件：
+- ✅ 先做通用组件：
   - `CanvasPanel.tsx`
   - `ControlField.tsx`
   - `InterpretationCard.tsx`
