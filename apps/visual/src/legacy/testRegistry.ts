@@ -31,8 +31,8 @@ export const TEST_SUITES: TestSuite[] = [
     name: 'React Shell 结构冒烟测试',
     type: 'node',
     description: '验证 React Shell 的文件结构、路由注册、canvas 数量、legacy 桥接、CopyContextButton 契约等。',
-    expectedCount: 78,
-    cliCommand: 'cd apps/visual && npm test',
+    expectedCount: 118,
+    cliCommand: 'cd apps/visual && pnpm test',
     covers: ['AppShell', 'workspaceRegistry', 'CanvasPanel', 'loadLegacyScripts', 'CopyContextButton'],
   },
   {
@@ -40,9 +40,18 @@ export const TEST_SUITES: TestSuite[] = [
     name: '文档契约检查',
     type: 'node',
     description: '验证 README / SKILL / tool-index / EVOLUTION 等文档中引用的文件、映射表、引擎脚本确实存在。',
-    expectedCount: 57,
+    expectedCount: 58,
     cliCommand: 'node visual/js/tests/check-doc-contracts.mjs',
     covers: ['README.md', 'SKILL.md', 'tool-index.md', 'knowledge-base/mappings', 'visual/vendor'],
+  },
+  {
+    id: 'check-mapping-schema',
+    name: '风水映射表 schema 校验',
+    type: 'node',
+    description: '验证 6 个风水 JSON 映射表的字段完整性、方位覆盖、八宅与飞星规则结构。',
+    expectedCount: 476,
+    cliCommand: 'node visual/js/tests/check-mapping-schema.mjs',
+    covers: ['life-trigram.json', 'eight-mansions.json', 'twenty-four-mountains.json', 'yearly-flying-stars.json', 'three-essentials.json', 'form-sha-cures.json'],
   },
 
   // ── 浏览器端测试（test-runner.html） ────────────────

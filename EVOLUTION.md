@@ -5,6 +5,13 @@
 
 ---
 
+## 2026-07 风水映射校验纳入 React 测试控制台
+
+- **变更**：将既有 `visual/js/tests/check-mapping-schema.mjs` 注册到 `apps/visual/src/legacy/testRegistry.ts`，React 测试控制台可直接看到“风水映射表 schema 校验”套件。
+- **校验范围**：6 个风水 JSON 映射表，覆盖命卦、八宅、二十四山、流年飞星、阳宅三要和形煞化解字段结构。
+- **同步修正**：Node 测试命令改为 `pnpm test`，并将文档契约检查计数同步为当前实际输出。
+- **原则**：已有确定性校验脚本优先接入统一测试入口，不重复实现第二套校验逻辑。
+
 ## 2026-07 八字精确节气 + 五运六气大寒定年（6tail/lunar-javascript 接入）
 
 ### 外部引擎接入

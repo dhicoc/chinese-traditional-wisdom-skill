@@ -236,6 +236,7 @@ if (exists(testRegistryPath)) {
   const testRegistry = read(testRegistryPath);
   check(testRegistry.includes('smoke-react-shell'), 'testRegistry 应注册 smoke-react-shell 套件');
   check(testRegistry.includes('check-doc-contracts'), 'testRegistry 应注册 check-doc-contracts 套件');
+  check(testRegistry.includes('check-mapping-schema'), 'testRegistry 应注册 check-mapping-schema 套件');
   check(testRegistry.includes('test-bazi'), 'testRegistry 应注册 test-bazi 套件');
   check(testRegistry.includes('verify-page'), 'testRegistry 应注册 verify-page 套件');
   check(testRegistry.includes('TestSuiteType'), 'testRegistry 应导出 TestSuiteType 类型');
