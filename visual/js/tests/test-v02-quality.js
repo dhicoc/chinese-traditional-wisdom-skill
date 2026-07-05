@@ -276,6 +276,29 @@
           var r = report.readings[key];
           assert(r.title && r.summary, key + " reading 缺少 title/summary");
         });
+
+        var capturedHtml = "";
+        var OriginalBlob = window.Blob;
+        var originalCreateObjectURL = URL.createObjectURL;
+        var originalRevokeObjectURL = URL.revokeObjectURL;
+        var originalClick = HTMLAnchorElement.prototype.click;
+        try {
+          window.Blob = function(parts, options) {
+            capturedHtml = (parts || []).map(function(part) { return String(part); }).join("");
+            return new OriginalBlob(parts, options);
+          };
+          URL.createObjectURL = function() { return "blob:test-report"; };
+          URL.revokeObjectURL = function() {};
+          HTMLAnchorElement.prototype.click = function() {};
+          CapabilityRegistry.downloadReport(data);
+        } finally {
+          window.Blob = OriginalBlob;
+          URL.createObjectURL = originalCreateObjectURL;
+          URL.revokeObjectURL = originalRevokeObjectURL;
+          HTMLAnchorElement.prototype.click = originalClick;
+        }
+        assert(capturedHtml.indexOf("结构化阅读摘要") >= 0, "导出 HTML 未渲染 readings 区块");
+        assert(capturedHtml.indexOf(report.readings[readingKeys[0]].title) >= 0, "导出 HTML 未包含 reading 标题");
       }, state);
 
       runTest("咨询向导路由配置完整", function() {
