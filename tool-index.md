@@ -1,6 +1,6 @@
 # tool-index.md — 工具索引
 
-> 本文件记录 chinese-traditional-wisdom-skill 依赖的所有外部工具和键值映射表的状态。
+> 本文件记录 chinese-traditional-wisdom-ai-agent-workflow 依赖的所有外部工具和键值映射表的状态。
 > 用于诊断工具可用性、快速定位备用方案、识别缺失依赖。
 
 ---

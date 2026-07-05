@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-echo === Chinese Traditional Wisdom - Setup ===
+echo === Chinese Traditional Wisdom AI Agent Workflow - Setup ===
 echo.
 
 echo [1/3] Installing Python dependencies...

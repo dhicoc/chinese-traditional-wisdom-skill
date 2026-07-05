@@ -42,7 +42,7 @@ git clone https://github.com/dzcmemory-web/bazi-ziwei-skill.git
 # 将 calculator/ 目录和 SKILL.md 放入技能路径
 ```
 
-然后在 chinese-traditional-wisdom-skill 的咨询流程中，当需要八字排盘时，按本文件的输入输出规范调用其 calculator 模块。
+然后在 chinese-traditional-wisdom-ai-agent-workflow 的咨询流程中，当需要八字排盘时，按本文件的输入输出规范调用其 calculator 模块。
 
 ### 方式二：直接使用 lunar-typescript 库
 

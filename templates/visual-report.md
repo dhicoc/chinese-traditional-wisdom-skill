@@ -100,7 +100,7 @@
   </div>
 
   <div class="footer">
-    本报告由 chinese-traditional-wisdom-skill 生成 · 传统文化视角参考
+    本报告由 chinese-traditional-wisdom-ai-agent-workflow 生成 · 传统文化视角参考
   </div>
 </div>
 

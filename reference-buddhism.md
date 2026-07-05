@@ -1,6 +1,6 @@
 # 佛教心性知识体系（reference-buddhism）
 
-> 本文件为 chinese-traditional-wisdom-skill 的佛教知识参考。按需读取，用于"佛教"维度的分析。
+> 本文件为 chinese-traditional-wisdom-ai-agent-workflow 的佛教知识参考。按需读取，用于"佛教"维度的分析。
 
 ---
 

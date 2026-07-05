@@ -1,4 +1,4 @@
-# Chinese Traditional Wisdom — AI Agent Bootstrap
+# Chinese Traditional Wisdom AI Agent Workflow
 
 > **这是 AI Agent 的配置引导文件。如果你是 AI Agent，严格按以下流程执行。**
 
@@ -10,7 +10,7 @@
 
 ### 0.1 安装说明（人类用户手动安装用）
 
-=== Chinese Traditional Wisdom - Setup ===
+=== Chinese Traditional Wisdom AI Agent Workflow - Setup ===
 
 [1/3] Installing Python dependencies...
 Defaulting to user installation because normal site-packages is not writeable

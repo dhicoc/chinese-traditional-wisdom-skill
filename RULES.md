@@ -1,6 +1,6 @@
 # RULES.md — 伦理规则与免责声明
 
-> 本文件为 chinese-traditional-wisdom-skill 的核心伦理框架。**在每次执行咨询前必须读取并严格遵守。**
+> 本文件为 chinese-traditional-wisdom-ai-agent-workflow 的核心伦理框架。**在每次执行咨询前必须读取并严格遵守。**
 
 ---
 

@@ -1,6 +1,6 @@
 # EVOLUTION.md — 系统演进记录
 
-> 本文件记录 chinese-traditional-wisdom-skill 各阶段的架构决策、取舍理由和关键变更。
+> 本文件记录 chinese-traditional-wisdom-ai-agent-workflow 各阶段的架构决策、取舍理由和关键变更。
 > 日期倒序，最新在上。
 
 ---

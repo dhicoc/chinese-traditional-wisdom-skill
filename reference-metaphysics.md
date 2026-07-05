@@ -1,6 +1,6 @@
 # 玄学五术知识体系（reference-metaphysics）
 
-> 本文件为 chinese-traditional-wisdom-skill 的玄学知识参考。按需读取，用于"命/卜/相"维度的分析。
+> 本文件为 chinese-traditional-wisdom-ai-agent-workflow 的玄学知识参考。按需读取，用于"命/卜/相"维度的分析。
 
 ---
 

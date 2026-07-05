@@ -1,4 +1,4 @@
-# Chinese Traditional Wisdom 项目优化与新功能演进路线图
+# Chinese Traditional Wisdom AI Agent Workflow 项目优化与新功能演进路线图
 
 > 面向开发维护者，规划周期为 3 个月。目标是把当前“Skill 文档 + 静态 Dashboard + 知识库”的项目，从可演示状态推进到更稳定、可验证、可扩展的产品化状态。
 

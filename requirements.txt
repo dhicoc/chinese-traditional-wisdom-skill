@@ -1,4 +1,4 @@
-# Chinese Traditional Wisdom - Python Dependencies
+# Chinese Traditional Wisdom AI Agent Workflow - Python Dependencies
 # Install: pip install -r requirements.txt
 
 # Core calculation

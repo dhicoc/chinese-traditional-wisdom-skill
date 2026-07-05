@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "=== Chinese Traditional Wisdom - Setup ==="
+echo "=== Chinese Traditional Wisdom AI Agent Workflow - Setup ==="
 echo ""
 echo "[1/3] Installing Python dependencies..."
 pip3 install -r requirements.txt 2>/dev/null || pip install -r requirements.txt 2>/dev/null || echo "WARNING: pip install failed"

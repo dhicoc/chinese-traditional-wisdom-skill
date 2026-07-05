@@ -1,4 +1,4 @@
-# dhicoc/chinese-traditional-wisdom-skill - UI/UX Design System Spec
+# dhicoc/chinese-traditional-wisdom-ai-agent-workflow - UI/UX Design System Spec
 <!-- Target Agent: Claude Code / open-design / Cursor / Cline -->
 
 ## 1. Project Identity & Positioning

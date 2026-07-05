@@ -1,6 +1,6 @@
 # 道家哲学知识体系（reference-daoism）
 
-> 本文件为 chinese-traditional-wisdom-skill 的道家知识参考。按需读取，用于"道家"维度的分析。
+> 本文件为 chinese-traditional-wisdom-ai-agent-workflow 的道家知识参考。按需读取，用于"道家"维度的分析。
 
 ---
 

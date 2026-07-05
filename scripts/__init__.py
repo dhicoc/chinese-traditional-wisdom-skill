@@ -1,1 +1,1 @@
-# Chinese Traditional Wisdom - Scripts Package
+# Chinese Traditional Wisdom AI Agent Workflow - Scripts Package

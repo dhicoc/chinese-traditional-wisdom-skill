@@ -1,5 +1,5 @@
 /**
- * chinese-traditional-wisdom-skill — 可视化核心引擎
+ * chinese-traditional-wisdom-ai-agent-workflow — 可视化核心引擎
  * 共享工具函数、数据表和 Canvas/SVG 通用绘制方法
  */
 

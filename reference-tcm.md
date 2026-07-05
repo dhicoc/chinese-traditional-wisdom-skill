@@ -1,6 +1,6 @@
 # 中医融合知识体系（reference-tcm）
 
-> 本文件为 chinese-traditional-wisdom-skill 的中医知识参考。按需读取，用于"中医"维度的分析。
+> 本文件为 chinese-traditional-wisdom-ai-agent-workflow 的中医知识参考。按需读取，用于"中医"维度的分析。
 
 ---
 

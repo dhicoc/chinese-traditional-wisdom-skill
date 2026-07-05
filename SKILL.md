@@ -1,5 +1,5 @@
 ---
-name: chinese-traditional-wisdom-skill
+name: chinese-traditional-wisdom-ai-agent-workflow
 description: 中国传统文化整体智慧咨询系统。融合玄学五术（山医命相卜）、中医体质/五运六气、道家哲学、佛教心性的 holistic 人生咨询工作流。当用户提出人生困惑、健康调养、事业决策、婚姻合婚、择吉选址等问题时自动激活。
 ---
 

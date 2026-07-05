@@ -1,19 +1,19 @@
 <p align="center">
-  <img src="chinese-traditional-wisdom-skill.png" alt="chinese-traditional-wisdom-skill" width="140" />
+  <img src="chinese-traditional-wisdom-ai-agent-workflow.png" alt="Chinese Traditional Wisdom AI Agent Workflow" width="140" />
 </p>
 
-<h1 align="center">Chinese Traditional Wisdom</h1>
-<h3 align="center">中国传统文化整体智慧 AI Agent 技能包</h3>
+<h1 align="center">Chinese Traditional Wisdom AI Agent Workflow</h1>
+<h3 align="center">中国传统文化整体智慧 AI Agent 工作流系统</h3>
 
 <p align="center"><em style="font-family: 'KaiTi', 'STKaiti', 'SimSun', serif; font-size: 1.3em; color: #999;">究天人之际，通古今之变</em></p>
 
-<p align="center">BaZi / Ziwei / Liuyao / Meihua / Fengshui / WuYun-LiuQi / Constitution / Daoism / Buddhism — 全融合智慧引擎<br/>
-11 标签页可视化 Dashboard · 能力边界标识 · 古籍知识库 · 纯前端排盘引擎 · 自动化测试</p>
+<p align="center">BaZi / Ziwei / Liuyao / Meihua / Fengshui / WuYun-LiuQi / Constitution / Daoism / Buddhism — 全融合 AI Agent 咨询工作流<br/>
+三层路由 · 六引擎推算 · 知识库引用 · 11 标签页可视化 Dashboard · 能力边界标识 · 自动化测试</p>
 
 <p align="center">
-  <a href="https://github.com/dhicoc/chinese-traditional-wisdom-skill/stargazers"><img src="https://img.shields.io/github/stars/dhicoc/chinese-traditional-wisdom-skill?style=flat&logo=github" alt="stars"></a>
-  <a href="https://github.com/dhicoc/chinese-traditional-wisdom-skill/forks"><img src="https://img.shields.io/github/forks/dhicoc/chinese-traditional-wisdom-skill?style=flat&logo=github" alt="forks"></a>
-  <a href="https://github.com/dhicoc/chinese-traditional-wisdom-skill/issues"><img src="https://img.shields.io/github/issues/dhicoc/chinese-traditional-wisdom-skill?style=flat&logo=github" alt="issues"></a>
+  <a href="https://github.com/dhicoc/chinese-traditional-wisdom-ai-agent-workflow/stargazers"><img src="https://img.shields.io/github/stars/dhicoc/chinese-traditional-wisdom-ai-agent-workflow?style=flat&logo=github" alt="stars"></a>
+  <a href="https://github.com/dhicoc/chinese-traditional-wisdom-ai-agent-workflow/forks"><img src="https://img.shields.io/github/forks/dhicoc/chinese-traditional-wisdom-ai-agent-workflow?style=flat&logo=github" alt="forks"></a>
+  <a href="https://github.com/dhicoc/chinese-traditional-wisdom-ai-agent-workflow/issues"><img src="https://img.shields.io/github/issues/dhicoc/chinese-traditional-wisdom-ai-agent-workflow?style=flat&logo=github" alt="issues"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
 </p>
 
@@ -41,7 +41,7 @@
 
 > **如果你是 AI Agent，直接跳转到 [README_AI.md](README_AI.md)，严格按照内容要求执行。**
 
-当 AI Agent（Claude Code、Codex CLI、Cursor 等）遇到用户的人生困惑、健康调养、事业决策、婚姻合婚、择吉选址等问题时，本技能包提供从排盘推算 → 知识库检索 → 综合分析 → 可视化报告的全链路能力。
+当 AI Agent（Claude Code、Codex CLI、Cursor 等）遇到用户的人生困惑、健康调养、事业决策、婚姻合婚、择吉选址等问题时，本工作流系统提供从输入检查 → 三层路由 → 排盘推算 → 知识库检索 → 综合分析 → 可视化报告 → 经验沉淀的全链路能力。
 
 ```
 用户问题 → 三层路由(问题→学科→融合深度) → 六引擎推算 → 知识库引用 → 可视化报告 → 经验沉淀
@@ -242,9 +242,9 @@ field-journal/ → 经验沉淀
 
 ---
 
-# Chinese Traditional Wisdom — AI Agent Skill Pack
+# Chinese Traditional Wisdom AI Agent Workflow
 
-A holistic life consulting AI Agent Skill Pack integrating BaZi, Ziwei, Liuyao, Meihua, Fengshui, WuYun-LiuQi, TCM Constitution, Daoist philosophy, and Buddhist psychology.
+A holistic life consulting AI Agent workflow integrating BaZi, Ziwei, Liuyao, Meihua, Fengshui, WuYun-LiuQi, TCM Constitution, Daoist philosophy, and Buddhist psychology.
 
 **Features:**
 - 11-tab Canvas 2D visualization dashboard with capability badges and offline Mermaid fallback

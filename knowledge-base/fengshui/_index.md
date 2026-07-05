@@ -1,7 +1,7 @@
 # 风水（堪舆）知识库
 
 > 本目录收录16+部风水经典古籍的全文/部分文本，按派别和场景组织。
-> 供 chinese-traditional-wisdom-skill 的 RAG 知识库使用。
+> 供 chinese-traditional-wisdom-ai-agent-workflow 的 RAG 知识库使用。
 > 所有文本来源于公开的免费古籍数字化资源，仅供知识整理参考。
 
 ---
