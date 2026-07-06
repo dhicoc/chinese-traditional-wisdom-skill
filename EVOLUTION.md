@@ -5,6 +5,54 @@
 
 ---
 
+## 2026-07 v0.3 发布 — React Shell 全面落地
+
+### 发布概要
+
+- **版本号**: v0.3
+- **核心变更**: React + Vite + TypeScript 新前端外壳全面替代旧静态 Dashboard，11 个工具模块全部迁移完成
+- **引擎升级**: 八字精确历法、紫微真实排盘、六爻京房纳甲、梅花时间/数字起卦全部内置本地计算
+- **入口策略**: 旧 `visual/index.html` 保持可用作为 fallback，新 `apps/visual/` 构建产物通过 `visual/react.html` 访问
+
+### 已完成工作
+
+| 模块 | 状态 | 引擎/模式 |
+|------|------|-----------|
+| 八字命盘 | ✅ | lunar-javascript v1.7.7 精确节气干支 |
+| 紫微斗数 | ✅ | iztro v2.5.8 真实十二宫排盘 |
+| 六爻占卜 | ✅ | 自研京房八宫纳甲引擎 |
+| 梅花易数 | ✅ | 本地时间起卦 + 数字起卦 |
+| 五运六气 | ✅ | 大寒定年精确边界 |
+| 风水罗盘 | ✅ | 本地规则计算 |
+| 流年飞星 | ✅ | 本地规则计算 |
+| 八宅大游年 | ✅ | 本地规则计算 |
+| 体质辨识 | ✅ | 本地规则计算 |
+| 知识图谱 | ✅ | Mermaid + 古籍 Split Reader |
+| 测试控制台 | ✅ | 166 项冒烟测试 + 58 项契约测试 |
+
+### 新增能力
+
+- **咨询向导**: 六类问题入口（健康/事业/婚恋/占卜/择居/综合），调用 Adapter 生成结构化摘要
+- **本地历史**: HistoryStore 保存脱敏阅读记录，最多 30 条，不保存完整生辰
+- **报告导出**: 集成 `toReading()` 结构化摘要，HTML 报告展示分析结论和来源说明
+- **PWA 试点**: manifest + Service Worker，cache-first 离线策略
+- **动态天盘背景**: Canvas 2D 粒子系统（星宿/符箓/太极八卦/五行流转）
+
+### 测试基线
+
+- `pnpm test`: 162 项通过
+- `node apps/visual/scripts/smoke-react-shell.mjs`: 166 项通过
+- `node visual/js/tests/check-react-migration.mjs`: 58 项通过
+- `node visual/js/tests/test-liuyao-engine.js`: 17 项纳甲规则 oracle 通过
+
+### 入口说明
+
+- **稳定入口**: `visual/index.html`（旧版，纯静态，零构建依赖）
+- **新版入口**: `visual/react.html` → `apps/visual/dist/verify.html`（React Shell，需构建）
+- **开发模式**: `cd apps/visual && pnpm dev`
+
+---
+
 ## 2026-07 六爻从演示升级为本地真实纳甲引擎
 
 - **变更**：六爻占卜模块从 `demo` 演示数据升级为 `local-exact` 本地真实纳甲排盘。新增 `visual/js/engines/liuyao-engine.js`，自研京房八宫纳甲体系；`engine-adapters.js` 的 `register("liuyao")` 改调真实引擎并保留演示 fallback；`capabilities.js` liuyao `mode` 升为 `local-exact`。
