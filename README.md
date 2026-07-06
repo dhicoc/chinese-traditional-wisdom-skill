@@ -228,7 +228,7 @@ field-journal/ → 经验沉淀
 - 架构参考 [reverse-skill](https://github.com/zhaoxuya520/reverse-skill)（zhaoxuya520）
 - 八字引擎 [bazi-ziwei-skill](https://github.com/novertime/bazi-ziwei-skill)（MIT）
 - 紫微引擎 [iztro-py](https://github.com/syncretism/iztro-py)（MIT）
-- 六爻引擎 [ichingshifa](https://github.com/winetree94/ichingshifa)（MIT）
+- 六爻纳甲：Dashboard 已内置本地京房八宫纳甲引擎（自研，规则参考 [ichingshifa](https://github.com/winetree94/ichingshifa) MIT 与《京房易传》）
 - 梅花易数 [meihua-yishu](https://github.com/shtan1992/meihua-yishu)（CC BY-NC-SA）
 - 五运六气 [wuyun-liuqi-skills](https://github.com/dhicoc/wuyun-liuqi-skills)（MIT）
 

@@ -401,6 +401,31 @@
     };
   }
 
+  // 六爻真实纳甲：优先调用 visual/js/engines/liuyao-engine.js 的本地引擎；
+  // 引擎未加载或抛错时回退到演示数据(generateDemoDivination)，保证 Dashboard 可用并标注降级。
+  function calculateLocalLiuyao(input) {
+    var birth = normalizeBirth(input);
+    if (window.LiuyaoEngine && typeof window.LiuyaoEngine.calculate === "function") {
+      try {
+        var real = window.LiuyaoEngine.calculate({
+          birth: birth,
+          question: input && input.question,
+          method: (input && input.method) || "coin",
+          yaoValues: input && input.yaoValues,
+          seed: input && input.seed
+        });
+        if (real && real.lines && real.lines.length === 6) return real;
+      } catch (e) {
+        console.warn("liuyao najia engine fallback:", e.message || e);
+      }
+    }
+    var demo = generateDemoDivination(input).liuyao;
+    demo.engineName = "DemoLiuyaoAdapter (fallback)";
+    demo.mode = "fallback-demo";
+    demo.confidenceNote = "本地纳甲引擎不可用，已降级为演示卦象结构；真实纳甲起卦需加载 liuyao-engine.js。";
+    return demo;
+  }
+
   function generateDemoZiwei(input) {
     var birth = normalizeBirth(input);
     var mingGua = input && input.mingGua ? input.mingGua : { trigram: "?", group: "?" };
@@ -787,15 +812,50 @@
   });
 
   register("liuyao", {
-    engineName: "DemoLiuyaoAdapter",
-    mode: "demo",
+    engineName: "LocalLiuyaoNajiaAdapter",
+    mode: "local-exact",
     version: ADAPTER_VERSION,
-    inputSchema: { birth: "year/month/day/hour/gender", question: "optional", method: "optional" },
-    sourceProject: "local-demo; reference: bopo/najia",
-    license: "project-local-demo",
-    confidenceNote: "当前 Dashboard 为六爻演示数据；真实纳甲起卦需后续 Adapter 接入。",
-    calculate: function (input) { return generateDemoDivination(input).liuyao; },
-    toRenderData: function (result) { return clone(result); }
+    inputSchema: {
+      birth: "year/month/day/hour/minute/gender/useExactCalendar",
+      question: "optional — 用于自动选取用神",
+      method: "coin | time | manual (默认 coin 铜钱法)",
+      yaoValues: "method=manual 时传 6 位 6-9 字符串(初爻到上爻)"
+    },
+    sourceProject: "local:visual/js/engines/liuyao-engine.js; reference: bopo/najia, ichingshifa, 京房易传",
+    license: "project-local",
+    confidenceNote: "本地京房八宫纳甲自研规则：纳甲/六亲/六神/世应/用神/变卦；起卦支持铜钱法、时间起卦、手动爻值。不同流派在纳甲地支顺逆与六神起例上可能存在口径差异。",
+    calculate: calculateLocalLiuyao,
+    toRenderData: function (result) { return clone(result); },
+    toReading: function (result, input) {
+      if (!result) return null;
+      var hexName = result.hexagramName || "?";
+      var changedHex = result.changingHexagramName || hexName;
+      var moveYao = (result.changingYao || []).join("、") || "无";
+      var yong = result.yongShen || "世爻";
+      var palace = result.palace || "?";
+      var palaceEl = result.palaceElement || "?";
+      var tags = ["六爻纳甲", hexName, "宫" + palace, "用神" + yong, "动爻" + moveYao];
+      if (changedHex && changedHex !== hexName) tags.push("变" + changedHex);
+      var lines = (result.lines || []).map(function (l, i) {
+        var yaoNum = i + 1;
+        var yinYang = l.yin ? "阴" : "阳";
+        var change = l.changing ? "【动】" : "";
+        return yaoNum + "爻 " + (l.stem || "") + (l.branch || "") + " " + (l.relation || "") + " " + (l.god || "") + " " + yinYang + change;
+      });
+      return {
+        title: "六爻纳甲 · " + hexName + (changedHex !== hexName ? " → " + changedHex : ""),
+        summary: hexName + "，属" + palace + "(五行" + palaceEl + ")，世爻" + result.shiYao + "应爻" + result.yingYao + "，用神" + yong + "。动爻：" + moveYao + "。",
+        tags: tags,
+        sections: [
+          { heading: "卦象", body: "本卦" + hexName + (changedHex !== hexName ? "，动爻变出" + changedHex + "。" : "，无动爻。") + "属" + palace + "(五行" + palaceEl + ")。" },
+          { heading: "世应用神", body: "世爻在第" + result.shiYao + "爻(求测人)，应爻在第" + result.yingYao + "爻(对方/所测之事)。本次占问用神为" + yong + "。" },
+          { heading: "纳甲六亲六神", body: lines.join("；") + "。" },
+          { heading: "动爻与变卦", body: "动爻：" + moveYao + (changedHex !== hexName ? "，变卦为" + changedHex + "。" : "。") },
+          { heading: "边界说明", body: result.confidenceNote || "" }
+        ],
+        sourceNotes: result.confidenceNote || "本地京房八宫纳甲自研规则"
+      };
+    }
   });
 
   register("meihua", {

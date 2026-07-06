@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-07 六爻从演示升级为本地真实纳甲引擎
+
+- **变更**：六爻占卜模块从 `demo` 演示数据升级为 `local-exact` 本地真实纳甲排盘。新增 `visual/js/engines/liuyao-engine.js`，自研京房八宫纳甲体系；`engine-adapters.js` 的 `register("liuyao")` 改调真实引擎并保留演示 fallback；`capabilities.js` liuyao `mode` 升为 `local-exact`。
+- **领域规则实现**（依据 `reference-metaphysics.md` 纳甲表 + 《京房易传》）：
+  - 64 卦表与八宫归属：按京房八宫演变规则（本宫→一世→…→五世→游魂→归魂）确定性生成并校对，覆盖全部 64 卦无重复。
+  - 纳甲：每爻配天干+地支，阳卦(乾坎艮震)用阳支顺行、阴卦(巽离坤兑)用阴支逆行；八纯卦纳甲天干地支与权威表一致。
+  - 六亲：以宫五行为"我"按生克定父母/兄弟/子孙/妻财/官鬼。
+  - 六神：按日干从初爻安放（甲乙青龙起、丙丁朱雀起…壬癸玄武起）；日干取自 lunar-javascript 精确历法，未加载时回退近似。
+  - 世应：按八宫内卦序固定序列（本宫6/一世1/…/五世5/游魂4/归魂3），应爻与世爻隔两位。
+  - 用神：按问题事项自动选取（求财→妻财、升职/官非/病→官鬼、考试/房屋→父母、子女/医药→子孙、合伙→兄弟、男占婚恋→妻财/女占→官鬼）。
+  - 变卦：动爻阴阳互变后重查卦名。
+  - 起卦方式：铜钱法(默认，确定性 RNG)、时间起卦、手动爻值(6/7/8/9 字符串)。
+- **降级策略**：`liuyao-engine.js` 未加载或 calculate 抛错时，回退 `generateDemoDivination` 演示结构并标注 `fallback-demo`，不阻塞 Dashboard。
+- **toReading 契约**：为 liuyao Adapter 实现 `toReading()`，输出 title/summary/tags/5 sections（卦象/世应用神/纳甲六亲六神/动爻变卦/边界说明），供历史记录、咨询向导与报告导出使用。
+- **React 工作区**：`LiuyaoWorkspace` 重写为接 `calculateWithLegacyAdapter('liuyao')`，新增起卦方式切换、问题输入、本卦+变卦双 canvas、纳甲六爻明细表；`modules.ts` 状态升为 `local-exact`。
+- **测试**：新增 `visual/js/tests/test-liuyao-engine.js`（17 项领域规则 oracle：64卦覆盖、八宫演变、世应位置、八纯卦纳甲、六亲、六神、用神、起卦、变卦、确定性），注册到 `test-runner.html` 与 `testRegistry.ts`；`test-v02-quality.js` liuyao 断言从 `demo` 升为 `local-exact` 并增强纳甲字段校验；`smoke-react-shell.mjs` liuyao canvas 断言放宽为 `>=1` 并新增 Adapter 接入校验。
+- **原则**：前端优先沉淀纳甲 JS 规则，不引入 `bopo/najia` Python 运行依赖（ROADMAP 明确"项目较小且活跃度一般，不宜直接成为核心运行依赖"）；规则来源在 `confidenceNote` 标注，不同流派口径差异显式提示。
+
+---
+
 ## 2026-07 React 可视化动态天盘背景
 
 - **变更**：新增 `DynamicTianPanBackground`，在 React Shell 底层加入低亮度天盘刻度、二十四山刻线、五行气机光团与仪器网格。背景使用纯 CSS 动画，不引入 Three.js 或额外运行时依赖。

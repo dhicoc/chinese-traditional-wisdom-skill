@@ -39,7 +39,7 @@ const MODULE_SPECS = [
   { id: 'home', hash: '#home', mode: 'derived', workspace: 'features/home/HomeDashboard.tsx', titleMatch: '工作台', checkPixels: false, note: 'HomeDashboard 入口聚合' },
   { id: 'bazi', hash: '#bazi', mode: 'local-exact', workspace: 'features/bazi/BaziWorkspace.tsx', titleMatch: '八字命盘', checkPixels: true },
   { id: 'ziwei', hash: '#ziwei', mode: 'local-exact', workspace: 'features/ziwei/ZiweiWorkspace.tsx', titleMatch: '紫微斗数', checkPixels: true },
-  { id: 'liuyao', hash: '#liuyao', mode: 'demo', workspace: 'features/liuyao/LiuyaoWorkspace.tsx', titleMatch: '六爻占卜', checkPixels: true },
+  { id: 'liuyao', hash: '#liuyao', mode: 'local-exact', workspace: 'features/liuyao/LiuyaoWorkspace.tsx', titleMatch: '六爻占卜', checkPixels: true },
   { id: 'meihua', hash: '#meihua', mode: 'local-approx', workspace: 'features/meihua/MeihuaWorkspace.tsx', titleMatch: '梅花易数', checkPixels: true },
   { id: 'fengshui', hash: '#fengshui', mode: 'knowledge', workspace: 'features/fengshui/FengshuiWorkspace.tsx', titleMatch: '风水罗盘', checkPixels: true },
   { id: 'feixing', hash: '#feixing', mode: 'local-approx', workspace: 'features/feixing/FeixingWorkspace.tsx', titleMatch: '流年飞星', checkPixels: true },

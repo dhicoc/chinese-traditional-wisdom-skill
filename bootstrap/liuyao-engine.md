@@ -1,6 +1,8 @@
 # 六爻卜卦引擎集成指南
 
 > 本文件指导如何集成 ichingshifa Python 库，用于"卜"维度的周易六爻卜卦。
+>
+> ⚠️ **优先级提示**：Dashboard 与 React Shell 已内置本地京房八宫纳甲引擎 `visual/js/engines/liuyao-engine.js`（`mode: local-exact`），覆盖纳甲、六亲、六神、世应、用神、变卦与三种起卦方式，**无需 Python 依赖**。下方 ichingshifa 仅作为命令行/后端的可选 oracle 或规则交叉校验参考，不再是 Dashboard 的必需依赖。
 
 ---
 

@@ -30,7 +30,7 @@
 - ✅ 报告生成规范化：固化 `REPORT_DATA` 版本号，静态 HTML 报告模板增加字段缺失提示、模块隐藏规则和数据来源说明。
 - ✅ 风水映射校验：已为 6 个 JSON 映射表增加 `SCHEMA.md` 与 `check-mapping-schema.mjs`，覆盖字段完整性、方位覆盖、九星/八宅规则结构，并纳入 React 测试控制台。
 - ✅ 紫微真实排盘：已接入 `SylarLong/iztro` v2.5.8，新增 `ZiweiIztroAdapter` 实现真实十二宫排盘；保留演示 fallback 和能力标识。
-- ✅ 六爻与梅花路线：六爻先参考 `bopo/najia` 抽象纳甲数据契约，梅花优先自研小型 JS 起卦规则；不直接嵌入许可证受限或成熟度不足的项目。
+- ✅ 六爻与梅花路线：六爻已自研内置京房八宫纳甲引擎(`liuyao-engine.js`)，支持铜钱法/时间起卦/手动爻值，输出纳甲、六亲、六神、世应、用神、变卦；梅花优先自研小型 JS 起卦规则；不直接嵌入许可证受限或成熟度不足的项目。
 - ✅ 梅花数字起卦：已实现 `method: "number"` 模式，使用 `numberA/numberB` 取数定上下卦与动爻。
 
 ## 第 3 个月：新功能与发布沉淀
@@ -61,7 +61,7 @@
 1. `6tail/lunar-javascript`：先解决八字节气近似和五运六气大寒定年边界，是当前可信度收益最高、架构影响最小的改动。
 2. `SylarLong/iztro`：把紫微从演示数据升级为本地真实排盘，优先使用本地 vendor 文件或可选 npm 构建产物。
 3. 五运六气字段增强：以本地 JS 为主，参考 `dhicoc/wuyun-liuqi-skills` 的 JSON 字段和测试样例补当前步气、客主加临。
-4. 六爻：先抽象 `LiuyaoAdapter` 和纳甲数据契约，再决定是否接 Python adapter；默认 Dashboard 仍可使用演示 fallback。
+4. 六爻：✅ 已落地。自研 `LiuyaoAdapter` 与京房八宫纳甲 JS 引擎(`visual/js/engines/liuyao-engine.js`)，不接 Python 依赖；Dashboard 默认走真实 Adapter，引擎未加载时回退演示并标注 `fallback-demo`。
 5. 梅花：自研轻量 JS 引擎，避免非商业许可证项目进入运行代码。
 
 ### Adapter 验收标准
@@ -278,11 +278,11 @@
 ## 当前 v0.3 进行中范围
 
 - 已落地：能力注册、标签页能力标识、统一引擎 Adapter 注册表、内置 `lunar-javascript` 精确历法、梅花时间起卦 Adapter、全局精确历法测算开关、输入校验、脱敏报告导出、脱敏案例草稿、开发者诊断页、Mermaid 离线降级、搜索索引对齐、测试页增强、JSON schema 校验脚本、文档契约检查脚本、全局命盘同步回归测试。
-- 仍为边界说明：六爻在 Dashboard 中仍使用演示数据；紫微已接入本地 `SylarLong/iztro` v2.5.8，梅花已内置时间/数字起卦规则。后续开发目标不是长期依赖外部服务，而是把可用开源引擎或自研规则内置到本地 Adapter。真实引擎未接入前，Dashboard 必须询问用户是否继续查看演示结构，不能默认把演示结构当作测算结果。
+- 已边界收敛：六爻在 Dashboard 已升级为本地京房八宫纳甲引擎(`liuyao-engine.js`)，输出来自真实排盘而非演示；紫微已接入本地 `SylarLong/iztro` v2.5.8，梅花已内置时间/数字起卦规则。后续开发目标不是长期依赖外部服务，而是把可用开源引擎或自研规则内置到本地 Adapter。不同流派在纳甲地支顺逆与六神起例上可能存在口径差异，已在 `confidenceNote` 显式提示。
 - 已内置精确历法与本地排盘：Dashboard 默认加载 `visual/vendor/lunar-javascript-1.7.7.js` 与 `visual/vendor/iztro-2.5.8.min.js`，八字使用精确节气干支，五运六气使用大寒边界修正，紫微使用 iztro 真实十二宫排盘；用户可关闭“精确历法测算”回退近似模式。
 - v0.3 信息架构已开始落地：新增 `visual/js/tool-manifest.js`，工具目录可按 manifest 分组渲染；视觉方案重新设计，不再沿用 suanle-me 参考方向。
 - React Shell 迁移面已补齐：`apps/visual/` 已具备 App Shell、统一 `workspaceRegistry.tsx`、完整 legacy script loader（含 vendor / engine-adapters / data-bridge）、`CanvasPanel` / `ControlField` / `CopyContextButton` / `InterpretationCard` / `LegendPanel`、CommandBar 命令意图、年份跳转、Node 冒烟测试、React 迁移契约测试与 `verify.html` 人工回归页；已迁移工作区包括八字、五行、五运六气、体质辨识、风水罗盘、流年飞星、八宅大游年、梅花易数、六爻占卜、紫微斗数、知识图谱、古籍 Split Reader、测试控制台与本地历史。
-- React Phase 5-11 已形成并行验证闭环：`pnpm test` 当前 153 项通过，`node visual/js/tests/check-react-migration.mjs` 当前 58 项通过；`pnpm build` 会生成标注紫微 `local-exact` 的 `apps/visual/dist/verify.html`。旧 `visual/index.html` 不替换，继续作为稳定主入口；`visual/react.html` 作为并行验证入口。
+- React Phase 5-11 已形成并行验证闭环：`pnpm test` 当前 162 项通过，`node visual/js/tests/check-react-migration.mjs` 当前 58 项通过；浏览器端新增 `test-liuyao-engine.js`（17 项六爻纳甲领域规则 oracle）；`pnpm build` 会生成标注紫微与六爻 `local-exact` 的 `apps/visual/dist/verify.html`。旧 `visual/index.html` 不替换，继续作为稳定主入口；`visual/react.html` 作为并行验证入口。
 - v0.3 结构化阅读与历史已落地：`EngineAdapterRegistry.toReading()` 契约已实现于八字/五运六气/梅花三个 Adapter；`HistoryStore` 本地历史与收藏已集成到旧 Dashboard 首页和 React Shell `history` 工作区；梅花数字起卦模式已内置。
 - v0.3 咨询向导已落地：旧 Dashboard 首页新增"打开咨询向导"按钮，提供六类问题入口，调用 `toReading()` 生成结构化摘要并保存到历史；报告导出 `exportReportData()` 已集成 `readings` 字段并在 HTML 报告中展示。
 - v0.3 PWA 试点已落地：新增 `manifest.webmanifest` 和 `sw.js`，仅在 http/https 下注册 Service Worker，`file://` 双击不加载 SW。
