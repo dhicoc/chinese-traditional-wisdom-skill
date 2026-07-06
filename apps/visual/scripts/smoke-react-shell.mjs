@@ -355,12 +355,16 @@ if (exists(tianpanPath)) {
   const tianpan = read(tianpanPath);
   check(tianpan.includes('dynamic-tianpan-background'), '动态背景组件应输出 dynamic-tianpan-background 根节点');
   check(tianpan.includes('aria-hidden="true"'), '动态背景应 aria-hidden，避免干扰辅助技术');
-  check(tianpan.includes('length: 24'), '动态背景应包含二十四山刻度');
-  check(tianpan.includes('tianpan-qi-wood') && tianpan.includes('tianpan-qi-water'), '动态背景应包含五行气机层');
+  check(tianpan.includes('<canvas'), '动态背景应使用 Canvas 渲染粒子系统');
+  check(tianpan.includes('STARS_28'), '动态背景应包含二十八宿星图');
+  check(tianpan.includes('wood') && tianpan.includes('water'), '动态背景应包含五行粒子层');
+  check(tianpan.includes('BAGUA'), '动态背景应包含八卦爻线');
+  check(tianpan.includes('prefers-reduced-motion'), '动态背景组件应处理 reduced-motion 降级');
 }
 
 const globalStyles = read(path.join(srcRoot, 'styles/globals.css'));
 check(globalStyles.includes('.dynamic-tianpan-background'), 'globals.css 应定义动态天盘背景样式');
+check(globalStyles.includes('.tianpan-canvas'), 'globals.css 应定义 canvas 撑满样式');
 check(globalStyles.includes('tianpan-disc-rotate'), '动态天盘应使用慢速旋转动画');
 check(globalStyles.includes('prefers-reduced-motion: reduce'), '动态天盘应支持 reduced-motion 降级');
 
