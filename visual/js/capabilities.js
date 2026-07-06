@@ -30,9 +30,9 @@
     },
     liuyao: {
       label: "六爻占卜",
-      mode: "demo",
-      modeLabel: "演示数据",
-      note: "当前 Dashboard 展示卦象渲染格式；真实纳甲起卦需接入 ichingshifa。"
+      mode: "local-exact",
+      modeLabel: "本地真实纳甲",
+      note: "内置京房八宫纳甲引擎(liuyao-engine.js)：铜钱法/时间起卦/手动爻值，输出纳甲、六亲、六神、世应、用神、变卦；日干取自 lunar-javascript，未加载时回退近似。不同流派在纳甲地支顺逆与六神起例上可能存在口径差异。"
     },
     meihua: {
       label: "梅花易数",

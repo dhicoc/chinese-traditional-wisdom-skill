@@ -117,16 +117,20 @@ if (exists(meihuaPath)) {
   );
 }
 
-// ── 3c. #liuyao 有 1 个 canvas（六爻迁移） ────────────────
+// ── 3c. #liuyao 有 canvas 并接真实纳甲引擎 ────────────────
 const liuyaoPath = path.join(srcRoot, 'features/liuyao/LiuyaoWorkspace.tsx');
 check(exists(liuyaoPath), 'LiuyaoWorkspace.tsx 应位于 features/liuyao/ 目录');
 if (exists(liuyaoPath)) {
   const liuyaoWorkspace = read(liuyaoPath);
   const liuyaoCanvasCount = countOccurrences(liuyaoWorkspace, '<CanvasPanel');
-  check(liuyaoCanvasCount === 1, `#liuyao 应渲染 1 个 canvas，实际 <CanvasPanel 出现 ${liuyaoCanvasCount} 次`);
+  check(liuyaoCanvasCount >= 1, `#liuyao 应至少渲染 1 个 canvas，实际 <CanvasPanel 出现 ${liuyaoCanvasCount} 次`);
   check(
     liuyaoWorkspace.includes('renderLegacyLiuyao'),
     'LiuyaoWorkspace 应调用 renderLegacyLiuyao 复用旧 divination renderer',
+  );
+  check(
+    liuyaoWorkspace.includes("calculateWithLegacyAdapter") && liuyaoWorkspace.includes("'liuyao'"),
+    'LiuyaoWorkspace 应通过 calculateWithLegacyAdapter 接入 liuyao Adapter',
   );
 }
 

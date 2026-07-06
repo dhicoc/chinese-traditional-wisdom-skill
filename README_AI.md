@@ -91,7 +91,7 @@ else → 提示用户提供更多信息（参照 §10 输入完整性）
 |------|------|---------|------|
 | 八字 | npm | `npm install bazi-ziwei-skill` | 四柱/十神/大运/流年 |
 | 紫微斗数 | PyPI | `pip install iztro-py` | 十二宫/主星/四化 |
-| 六爻 | PyPI | `pip install ichingshifa` | 纳甲/六亲/世应/六神 |
+| 六爻 | 内置本地引擎 / 可选 PyPI | Dashboard 已内置 `liuyao-engine.js`；命令行可选 `pip install ichingshifa` | 纳甲/六亲/世应/六神 |
 | 梅花易数 | GitHub | 克隆 meihua-yishu 仓库 | 体用/生克/卦气 |
 | 五运六气 | API | 大寒 API 调用 | 岁运/客气/司天在泉 |
 | 体质 | 问卷 | N/A | 九种体质辨识 |

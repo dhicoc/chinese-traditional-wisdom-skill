@@ -11,7 +11,7 @@
 |------|------|---------------------|------|------|---------|------|
 | bazi-ziwei-skill (npm) | 八字排盘 | `npm list -g bazi-ziwei-skill` | 四柱字符串 | 天干地支+十神+大运+神煞 | 手工排盘表 | Node.js 18+ |
 | iztro-py (pip) | 紫微斗数排盘 | `pip show iztro-py` | 生辰+性别 | 12宫+14主星+四化+格局 | 手工排盘 | Python 3.9+ |
-| ichingshifa (pip) | 六爻起卦 | `pip show ichingshifa` | 起卦方式参数 | 卦象+纳甲+六亲+世应 | 梅花易数 | Python 3.8+ |
+| ichingshifa (pip) | 六爻起卦（可选 oracle） | `pip show ichingshifa` | 起卦方式参数 | 卦象+纳甲+六亲+世应 | 本地纳甲引擎 / 梅花易数 | Python 3.8+ |
 | meihua-yishu (pip) | 梅花易数起卦 | `pip show meihua-yishu` | 数字/时间/物象 | 卦象+体用生克 | 六爻 | Python 3.8+ |
 | yunqi-api | 五运六气推算 | API端点可达性 | 年份 | 岁运+司天在泉+六气 | 手工推算表 | 网络 |
 | constitution-questionnaire | 体质辨识问卷 | `pip show constitution-questionnaire` (?) | 60+题回答 | 九种体质评分 | 手工辨析 | Python 3.8+ |
@@ -37,7 +37,7 @@
 | 八字 | 本地精确计算 / 本地近似计算 fallback | 默认加载 `visual/vendor/lunar-javascript-1.7.7.js` 读取精确节气干支；关闭精确历法或加载失败时回退 `visual/js/engines/bazi-engine.js`。 |
 | 五运六气 | 本地精确边界 / 本地近似计算 fallback | 默认加载 `visual/vendor/lunar-javascript-1.7.7.js` 按大寒边界修正运气年份；关闭精确历法或加载失败时回退公历年近似。 |
 | 紫微斗数 | 演示数据 / 需外部引擎 | 真实排盘需 `iztro-py` 或等价引擎。 |
-| 六爻 | 演示数据 / 需外部引擎 | 真实起卦需 `ichingshifa` 或人工纳甲规则。 |
+| 六爻 | 本地真实纳甲计算 / 演示数据 fallback | 默认加载 `visual/js/engines/liuyao-engine.js` 自研京房八宫纳甲引擎：铜钱法/时间起卦/手动爻值，输出纳甲、六亲、六神、世应、用神、变卦；引擎未加载时回退演示结构。 |
 | 梅花易数 | 本地规则计算 | 内置时间起卦 Adapter，按年月日时生成上下卦、动爻、互卦、变卦和体用生克；不同流派可能存在口径差异。 |
 | 风水罗盘 / 飞星 / 八宅 | 本地规则计算 | 基于 Canvas 和 JSON 映射表离线运行。 |
 
@@ -104,7 +104,7 @@ flowchart TD
 | 症状 | 可能原因 | 处理 |
 |------|---------|------|
 | 排盘结果全空 | 引擎未安装或版本不兼容 | 切手工排盘（参考 bootstrap 指南） |
-| 六爻起卦返回错误 | API 参数格式不对 | 检查 `ichingshifa` 输入格式，或用梅花替代 |
+| 六爻起卦返回错误 | API 参数格式不对或本地引擎未加载 | Dashboard 默认走本地纳甲引擎；命令行 `ichingshifa` 失败时检查输入格式，或用梅花替代 |
 | JSON mapping 文件读不到 | 路径不对或文件缺失 | 检查 knowledge-base/fengshui/mappings/ 下文件，并运行 `node visual/js/tests/check-mapping-schema.mjs` |
 | Mermaid 图不显示 | CDN 加载失败 / display:none 渲染 | 查看离线提示；Canvas 核心模块可继续使用 |
 | 可视化页面打不开 | 未双击 index.html | 直接在浏览器打开 visual/index.html |

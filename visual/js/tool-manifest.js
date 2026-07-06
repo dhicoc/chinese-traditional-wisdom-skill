@@ -59,8 +59,8 @@
       privacyLevel: "question",
       reportSection: "liuyao",
       accent: "#9D7CE0",
-      intro: "六爻卦象与动爻。",
-      description: "当前为演示卦象；真实纳甲、六亲、六神规则待内置。"
+      intro: "六爻纳甲卦象：六亲、六神、世应、用神、动爻与变卦。",
+      description: "内置京房八宫纳甲引擎：铜钱法/时间起卦/手动爻值，输出纳甲、六亲、六神、世应、用神与变卦。"
     },
     {
       id: "meihua",

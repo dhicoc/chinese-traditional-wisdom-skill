@@ -56,6 +56,7 @@
 <script src="js/engines/bazi-engine.js"></script>
 <script src="js/engines/yunqi-engine.js"></script>
 <script src="vendor/lunar-javascript-1.7.7.js"></script>
+<script src="js/engines/liuyao-engine.js"></script>
 <script src="js/engine-adapters.js"></script>
 <script src="js/ziwei.js"></script>
 <script src="js/divination.js"></script>
@@ -67,6 +68,7 @@
 <script src="js/tests/test-yunqi.js"></script>
 <script src="js/tests/test-data-bridge.js"></script>
 <script src="js/tests/test-v02-quality.js"></script>
+<script src="js/tests/test-liuyao-engine.js"></script>
 <script src="js/tests/test-global-sync.js"></script>
 
 <!-- ─── 可视化测试模块 ─── -->
@@ -80,8 +82,8 @@
   var textEl = document.getElementById("progress-text");
   var vizEl = document.getElementById("viz-section");
   var overall = { passed: 0, failed: 0, suites: 0 };
-  var testOrder = ["TestBazi", "TestYunqi", "TestDataBridge", "TestV02Quality", "TestGlobalSync"];
-  var testLabels = ["八字引擎", "五运六气引擎", "数据桥接", "v0.2 质量基线", "全局同步回归"];
+  var testOrder = ["TestBazi", "TestYunqi", "TestDataBridge", "TestV02Quality", "TestLiuyaoEngine", "TestGlobalSync"];
+  var testLabels = ["八字引擎", "五运六气引擎", "数据桥接", "v0.2 质量基线", "六爻纳甲引擎", "全局同步回归"];
   var suiteHTML = "";
   var currentSuite = 0;
 

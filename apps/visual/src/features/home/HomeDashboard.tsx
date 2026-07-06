@@ -159,7 +159,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
           </dl>
           <div className="mt-5 rounded-[18px] border border-cinnabar-500/20 bg-cinnabar-500/8 p-3">
             <p className="text-xs font-semibold text-cinnabar-500">边界说明</p>
-            <p className="mt-1 text-xs leading-5 text-zinc-400">六爻仍为演示卦象；真实纳甲规则后续接入 Adapter。</p>
+            <p className="mt-1 text-xs leading-5 text-zinc-400">六爻已接入本地京房八宫纳甲引擎；不同流派在纳甲地支顺逆与六神起例上可能存在口径差异。</p>
           </div>
         </section>
       </div>

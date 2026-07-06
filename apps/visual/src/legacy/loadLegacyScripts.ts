@@ -11,6 +11,7 @@ import historyStoreSource from '../../../../visual/js/history-store.js?raw';
 import capabilitiesSource from '../../../../visual/js/capabilities.js?raw';
 import baziEngineSource from '../../../../visual/js/engines/bazi-engine.js?raw';
 import yunqiEngineSource from '../../../../visual/js/engines/yunqi-engine.js?raw';
+import liuyaoEngineSource from '../../../../visual/js/engines/liuyao-engine.js?raw';
 import lunarJavascriptSource from '../../../../visual/vendor/lunar-javascript-1.7.7.js?raw';
 import iztroSource from '../../../../visual/vendor/iztro-2.5.8.min.js?raw';
 import engineAdaptersSource from '../../../../visual/js/engine-adapters.js?raw';
@@ -31,6 +32,7 @@ const LEGACY_SCRIPT_NAMES = [
   'engines/yunqi-engine.js',
   'vendor/lunar-javascript-1.7.7.js',
   'vendor/iztro-2.5.8.min.js',
+  'engines/liuyao-engine.js',
   'engine-adapters.js',
   'data-bridge.js',
 ];
@@ -62,6 +64,7 @@ export async function loadLegacyScripts(): Promise<LegacyState> {
         yunqiEngineSource,
         lunarJavascriptSource,
         iztroSource,
+        liuyaoEngineSource,
         engineAdaptersSource,
         dataBridgeSource,
         bridge,

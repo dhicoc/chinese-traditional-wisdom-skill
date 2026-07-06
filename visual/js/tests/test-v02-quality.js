@@ -30,7 +30,7 @@
         var caps = CapabilityRegistry.getCapabilities();
         assert(caps.bazi && caps.bazi.mode === "local-exact", "八字能力状态不正确");
         assert(caps.ziwei && caps.ziwei.mode === "local-exact", "紫微能力状态不正确");
-        assert(caps.liuyao && caps.liuyao.mode === "demo", "六爻能力状态不正确");
+        assert(caps.liuyao && caps.liuyao.mode === "local-exact", "六爻能力状态不正确");
         assert(caps.meihua && caps.meihua.mode === "local", "梅花能力状态不正确");
       }, state);
 
@@ -106,6 +106,13 @@
         assert(yunqiResult.liuqi && yunqiResult.wuyun, "五运六气 Adapter 输出缺字段");
         assert(ziweiResult.birthInfo.year === 1993 && ziweiResult.palaces["命宫"], "紫微 Adapter 输出缺十二宫");
         assert(liuyaoResult.lines && liuyaoResult.lines.length === 6 && liuyaoResult.hexagramName, "六爻 Adapter 输出缺卦象");
+        assert(liuyaoResult.engineName === "LocalLiuyaoNajiaAdapter" && liuyaoResult.mode === "local-exact", "六爻未使用本地纳甲 Adapter");
+        assert(liuyaoResult.palace && liuyaoResult.palaceElement, "六爻 Adapter 输出缺宫属");
+        assert(liuyaoResult.shiYao >= 1 && liuyaoResult.shiYao <= 6 && liuyaoResult.yingYao >= 1 && liuyaoResult.yingYao <= 6, "六爻 Adapter 世应位置非法");
+        assert(liuyaoResult.lines.every(function (l) { return l.stem && l.branch && l.relation && l.god; }), "六爻 Adapter 爻缺纳甲/六亲/六神");
+        assert(liuyaoResult.changingHexagramName, "六爻 Adapter 输出缺变卦名");
+        var reading = EngineAdapterRegistry.toReading("liuyao", liuyaoResult, { birth: birth });
+        assert(reading && reading.title && reading.summary && reading.sections.length >= 4, "六爻 toReading 结构化摘要缺失");
         assert(meihuaResult.engineName === "LocalMeihuaTimeAdapter", "梅花未使用本地时间起卦 Adapter");
         assert(meihuaResult.upperTrigram && meihuaResult.lowerTrigram && typeof meihuaResult.changingLine === "number", "梅花 Adapter 输出缺卦象");
         assert(meihuaResult.mutualUpper && meihuaResult.mutualLower && meihuaResult.changingHexagramName, "梅花 Adapter 输出缺互卦或变卦");
