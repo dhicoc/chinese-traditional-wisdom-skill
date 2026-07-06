@@ -7,47 +7,68 @@ interface SidebarNavProps {
 }
 
 function statusTone(status: WisdomModule['status']) {
-  if (status === 'local-exact') return 'bg-jade-500/12 text-jade-500 ring-jade-500/20';
-  if (status === 'demo') return 'bg-cinnabar-500/12 text-cinnabar-500 ring-cinnabar-500/20';
-  return 'bg-white/7 text-zinc-300 ring-white/10';
+  if (status === 'local-exact') return 'border-jade-500/30 bg-jade-500/10 text-jade-500';
+  if (status === 'demo') return 'border-cinnabar-500/30 bg-cinnabar-500/10 text-cinnabar-500';
+  if (status === 'knowledge') return 'border-talisman-500/25 bg-talisman-500/10 text-talisman-500';
+  return 'border-white/10 bg-white/[0.04] text-zinc-400';
+}
+
+function moduleCode(index: number) {
+  return String(index + 1).padStart(2, '0');
 }
 
 export function SidebarNav({ activeModule, onSelectModule }: SidebarNavProps) {
   return (
-    <aside className="flex h-full min-h-0 flex-col rounded-panel border border-ink-700 bg-ink-850/92 p-3 shadow-instrument">
-      <div className="mb-4 rounded-card border border-white/8 bg-white/[0.035] p-4">
-        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-jade-500">Local-first</p>
-        <h1 className="mt-2 font-serif text-xl font-semibold text-zinc-100">中国传统文化智慧工具台</h1>
-        <p className="mt-2 text-sm leading-6 text-zinc-400">新中式数据主义界面预览，保留旧 Dashboard 的确定性引擎契约。</p>
+    <aside className="app-sidebar flex h-full min-h-0 flex-col rounded-[26px] border border-talisman-500/20 bg-ink-950/94 p-4 shadow-instrument">
+      <div className="sidebar-brand relative overflow-hidden rounded-[22px] border border-talisman-500/20 bg-black/30 p-4">
+        <div className="flex items-center gap-3">
+          <div className="brand-seal grid h-12 w-12 shrink-0 place-items-center rounded-full border border-talisman-500/30 bg-talisman-500/10 font-serif text-lg text-talisman-500">
+            玄
+          </div>
+          <div className="min-w-0">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-talisman-500">XUANTAN LOCAL</p>
+            <h1 className="mt-1 truncate text-lg font-semibold tracking-tight text-zinc-50">玄学排盘</h1>
+          </div>
+        </div>
+        <p className="mt-3 text-xs leading-5 text-zinc-400">本地引擎、能力边界、知识映射集中在一套可验证的传统智慧工具台。</p>
       </div>
 
-      <nav className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1" aria-label="模块导航">
+      <nav className="mt-4 min-h-0 flex-1 space-y-5 overflow-y-auto pr-1" aria-label="模块导航">
         {MODULE_GROUPS.map((group: ModuleGroup) => {
           const modules = MODULES.filter((module) => module.group === group);
           return (
             <section key={group}>
-              <h2 className="mb-2 px-2 text-xs font-semibold text-zinc-500">{group}</h2>
-              <div className="space-y-1">
+              <div className="mb-2 flex items-center justify-between px-1">
+                <h2 className="text-[11px] font-semibold tracking-[0.16em] text-zinc-500">{group}</h2>
+                <span className="font-mono text-[10px] text-zinc-600">{modules.length}</span>
+              </div>
+              <div className="space-y-1.5">
                 {modules.map((module) => {
                   const active = module.id === activeModule;
+                  const index = MODULES.findIndex((item) => item.id === module.id);
                   return (
                     <button
                       key={module.id}
                       type="button"
                       onClick={() => onSelectModule(module.id)}
                       className={[
-                        'group flex w-full items-center gap-3 rounded-card border px-3 py-2.5 text-left transition',
+                        'sidebar-nav-item group relative flex w-full items-center gap-3 rounded-[16px] border px-3 py-3 text-left transition active:scale-[0.99]',
                         active
-                          ? 'border-jade-500/35 bg-jade-500/10 text-zinc-50 shadow-glowJade'
+                          ? 'border-talisman-500/30 bg-talisman-500/10 text-zinc-50'
                           : 'border-transparent text-zinc-400 hover:border-white/10 hover:bg-white/[0.045] hover:text-zinc-100',
                       ].join(' ')}
                     >
-                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: module.accent }} />
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-white/8 bg-black/30 font-mono text-[11px]" style={{ color: module.accent }}>
+                        {moduleCode(index)}
+                      </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium">{module.title}</span>
                         <span className="mt-0.5 block truncate text-xs text-zinc-500">{module.questionTypes.join(' / ')}</span>
                       </span>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] ring-1 ${statusTone(module.status)}`}>
+                      <span className={[
+                        'hidden shrink-0 rounded-full border px-2 py-0.5 text-[10px] xl:inline-flex',
+                        statusTone(module.status),
+                      ].join(' ')}>
                         {module.statusLabel}
                       </span>
                     </button>
@@ -59,12 +80,15 @@ export function SidebarNav({ activeModule, onSelectModule }: SidebarNavProps) {
         })}
       </nav>
 
-      <div className="mt-4 rounded-card border border-white/8 bg-black/20 p-3">
+      <div className="mt-4 rounded-[20px] border border-talisman-500/20 bg-black/30 p-4">
         <div className="flex items-center justify-between text-xs text-zinc-400">
-          <span>Agent Status</span>
+          <span>本地坛场</span>
           <span className="text-jade-500">Ready</span>
         </div>
-        <p className="mt-2 text-xs leading-5 text-zinc-500">旧入口保留，新 React Shell 仅作为迁移预览。</p>
+        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/8">
+          <div className="h-full w-[72%] rounded-full bg-gradient-to-r from-jade-500 via-talisman-500 to-cinnabar-500" />
+        </div>
+        <p className="mt-3 text-xs leading-5 text-zinc-500">不上传完整生辰。演示、近似、真实排盘在模块内分别标注。</p>
       </div>
     </aside>
   );

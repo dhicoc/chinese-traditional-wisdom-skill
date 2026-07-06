@@ -42,8 +42,15 @@
 
     // ── 背景 ──
     ctx.save();
-    ctx.fillStyle = "#FAFAF5";
+    var bgGrad = ctx.createLinearGradient(0, 0, W, H);
+    bgGrad.addColorStop(0, "#050806");
+    bgGrad.addColorStop(0.55, "#0B1510");
+    bgGrad.addColorStop(1, "#160908");
+    ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = "rgba(219,176,83,0.22)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
     ctx.restore();
 
     // ── 布局参数 ──
@@ -66,7 +73,7 @@
 
     // ── 标题 ──
     CORE.drawCenterText(ctx, "八字四柱", W / 2, 14, {
-      size: 18, bold: true, color: "#3E2723"
+      size: 18, bold: true, color: "#EAD7A4"
     });
 
     // ── 逐柱绘制 ──
@@ -98,7 +105,7 @@
 
       // ── 柱标签 ──
       CORE.drawCenterText(ctx, col.label + "柱", x + cellW / 2, startY - 18, {
-        size: 12, color: "#8D6E63"
+        size: 12, color: "#9CA39C"
       });
 
       // ── 天干 ──
@@ -117,17 +124,17 @@
       // ── 地支五行微标 ──
       var wxLabel = stemWx + " / " + branchWx;
       CORE.drawCenterText(ctx, wxLabel, x + cellW / 2, startY + stemH + branchH + 16, {
-        size: 9, color: "#AAA"
+        size: 9, color: "#8E958F"
       });
 
       // ── 藏干 ──
       if (d.hidden && d.hidden.length) {
         var hiddenY = branchY + branchH + 18;
         var hiddenHActual = Math.max(hiddenH, 18 + d.hidden.length * 2);
-        CORE.drawRoundRect(ctx, x, hiddenY, cellW, hiddenHActual, 4, "#F5F5F5", "#E0E0E0", 1);
+        CORE.drawRoundRect(ctx, x, hiddenY, cellW, hiddenHActual, 4, "rgba(5,8,6,0.72)", "rgba(219,176,83,0.22)", 1);
         var hiddenText = d.hidden.join(" ");
         CORE.drawCenterText(ctx, hiddenText, x + cellW / 2, hiddenY + hiddenHActual / 2, {
-          size: 12, color: "#666"
+          size: 12, color: "#D8D0AD"
         });
       }
     });
@@ -170,7 +177,7 @@
 
     // 小标题
     CORE.drawCenterText(ctx, "五行分布", W / 2, barY - 16, {
-      size: 12, color: "#5D4037"
+      size: 12, color: "#EAD7A4"
     });
 
     wuxingOrder.forEach(function (wx, i) {
@@ -181,14 +188,14 @@
       var color = CORE.getWuxingColor(wx);
 
       // 背景
-      CORE.drawRoundRect(ctx, bx, barY, barMaxW, barH, 4, "#EDEDE8", "none");
+      CORE.drawRoundRect(ctx, bx, barY, barMaxW, barH, 4, "rgba(255,255,255,0.08)", "none");
       // 填充
       if (barW > 2) {
         CORE.drawRoundRect(ctx, bx, barY, barW, barH, 4, color, "none");
       }
       // 标签
       CORE.drawCenterText(ctx, wx + " " + count, bx + barMaxW / 2, barY + barH / 2, {
-        size: 11, color: "#333", bold: true
+        size: 11, color: "#F4EAD0", bold: true
       });
     });
 
@@ -224,8 +231,15 @@
 
     // ── 背景 ──
     ctx.save();
-    ctx.fillStyle = "#FAFAF5";
+    var bgGrad = ctx.createLinearGradient(0, 0, W, H);
+    bgGrad.addColorStop(0, "#050806");
+    bgGrad.addColorStop(0.55, "#0B1510");
+    bgGrad.addColorStop(1, "#160908");
+    ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = "rgba(219,176,83,0.22)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
     ctx.restore();
 
     // ── 布局 ──
@@ -282,7 +296,7 @@
 
     // ── 绘制外五边形（辅助线） ──
     ctx.save();
-    ctx.strokeStyle = "#DDD";
+    ctx.strokeStyle = "rgba(219,176,83,0.22)";
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
@@ -306,7 +320,7 @@
       var smx = (from.x + to.x) / 2;
       var smy = (from.y + to.y) / 2;
       CORE.drawCenterText(ctx, "\u751F", smx, smy - 14, {
-        size: 10, color: "#999"
+        size: 10, color: "#9CA39C"
       });
     }
 
@@ -328,7 +342,7 @@
     // ── 绘制内五边形（辅助） ──
     var innerR = 55;
     ctx.save();
-    ctx.strokeStyle = "#CCC";
+    ctx.strokeStyle = "rgba(216,208,173,0.22)";
     ctx.lineWidth = 0.8;
     ctx.setLineDash([2, 4]);
     ctx.beginPath();
@@ -344,7 +358,7 @@
 
     // ── 连接内外顶点（辐条） ──
     ctx.save();
-    ctx.strokeStyle = "#DDD";
+    ctx.strokeStyle = "rgba(219,176,83,0.22)";
     ctx.lineWidth = 0.5;
     for (var ri = 0; ri < 5; ri++) {
       var ra = (ri * 72 - 90 + 36) * Math.PI / 180;
@@ -386,7 +400,7 @@
       // 外圆
       var cr = 24;
       ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,0.08)";
+      ctx.shadowColor = "rgba(0,0,0,0.38)";
       ctx.shadowBlur = 6;
       ctx.shadowOffsetY = 2;
       ctx.beginPath();
@@ -414,14 +428,14 @@
 
     // ── 中心文字 ──
     CORE.drawCenterText(ctx, "五行\n平衡", cx, cy, {
-      size: 14, bold: true, color: "#5D4037", align: "center", baseline: "middle"
+      size: 14, bold: true, color: "#EAD7A4", align: "center", baseline: "middle"
     });
 
     // ── 图例 ──
     var legendY = cy + outerR + 48;
     // 图例 - 相生
     ctx.save();
-    ctx.strokeStyle = "#888";
+    ctx.strokeStyle = "rgba(216,208,173,0.55)";
     ctx.lineWidth = 2;
     ctx.setLineDash([5, 4]);
     ctx.beginPath();
@@ -429,7 +443,7 @@
     ctx.lineTo(cx - 90, legendY);
     ctx.stroke();
     ctx.restore();
-    CORE.drawCenterText(ctx, "相生", cx - 70, legendY, { size: 11, color: "#888" });
+    CORE.drawCenterText(ctx, "相生", cx - 70, legendY, { size: 11, color: "#D8D0AD" });
 
     // 图例 - 相克
     ctx.save();

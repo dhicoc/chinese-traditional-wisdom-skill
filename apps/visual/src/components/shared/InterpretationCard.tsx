@@ -16,7 +16,7 @@ interface InterpretationCardProps {
 
 export function InterpretationCard({ title, badge, subtitle, items = [], children }: InterpretationCardProps) {
   return (
-    <section className="rounded-card border border-white/8 bg-white/[0.035] p-4">
+    <section className="rounded-card border border-white/10 bg-ink-950/90 p-4 shadow-instrument">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-zinc-100">{title}</p>
@@ -32,7 +32,7 @@ export function InterpretationCard({ title, badge, subtitle, items = [], childre
       {items.length > 0 && (
         <dl className="mt-3 space-y-2 text-sm text-zinc-400">
           {items.map((item) => (
-            <div key={item.label} className="grid gap-1 rounded-card bg-black/16 px-3 py-2 sm:grid-cols-[80px_minmax(0,1fr)]">
+            <div key={item.label} className="grid gap-1 rounded-card bg-black/50 px-3 py-2 sm:grid-cols-[80px_minmax(0,1fr)]">
               <dt className="text-xs text-zinc-500">{item.label}</dt>
               <dd className="min-w-0 text-zinc-100">
                 {item.value}

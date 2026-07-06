@@ -4,18 +4,20 @@
 
 :root {
   color-scheme: dark;
-  --background: 18 18 18;
-  --foreground: 235 231 222;
-  --surface: 30 30 36;
-  --surface-raised: 37 38 43;
-  --border: 45 47 54;
-  --cinnabar: 174 32 18;
-  --jade: 10 147 150;
-  --wood: 42 157 143;
-  --fire: 231 111 81;
-  --earth: 233 196 106;
-  --metal: 229 229 229;
-  --water: 38 70 83;
+  --background: 5 8 6;
+  --foreground: 244 238 218;
+  --surface: 15 24 20;
+  --surface-raised: 21 34 28;
+  --border: 52 67 55;
+  --cinnabar: 198 48 31;
+  --jade: 21 155 110;
+  --talisman: 219 176 83;
+  --spirit: 78 122 104;
+  --wood: 42 157 117;
+  --fire: 221 88 54;
+  --earth: 219 176 83;
+  --metal: 238 232 204;
+  --water: 23 58 71;
 }
 
 * {
@@ -24,16 +26,17 @@
 
 html {
   min-height: 100%;
-  background: #121212;
+  background: #050806;
 }
 
 body {
   min-height: 100dvh;
   margin: 0;
   background:
-    radial-gradient(circle at 20% 0%, rgba(174, 32, 18, 0.08), transparent 30rem),
-    radial-gradient(circle at 84% 10%, rgba(10, 147, 150, 0.08), transparent 26rem),
-    linear-gradient(180deg, #0b0f14 0%, #121416 44%, #0f1011 100%);
+    radial-gradient(circle at 16% 12%, rgba(var(--jade), 0.14), transparent 28rem),
+    radial-gradient(circle at 74% 0%, rgba(var(--cinnabar), 0.12), transparent 25rem),
+    radial-gradient(circle at 50% 78%, rgba(var(--talisman), 0.08), transparent 34rem),
+    linear-gradient(180deg, #030504 0%, #07100c 42%, #050706 100%);
   color: rgb(var(--foreground));
   font-family: Inter, "Noto Sans SC", "Microsoft YaHei", sans-serif;
 }
@@ -50,16 +53,32 @@ button {
 }
 
 ::selection {
-  background: rgba(10, 147, 150, 0.35);
+  background: rgba(var(--cinnabar), 0.35);
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
 
 .instrument-grid {
   background-image:
-    linear-gradient(rgba(229, 229, 229, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(229, 229, 229, 0.03) 1px, transparent 1px);
-  background-size: 48px 48px;
+    linear-gradient(rgba(var(--talisman), 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--jade), 0.038) 1px, transparent 1px),
+    radial-gradient(circle at 68% 16%, rgba(var(--talisman), 0.07), transparent 26rem);
+  background-size: 52px 52px, 52px 52px, 100% 100%;
 }
 
+.rounded-panel,
+.rounded-card {
+  box-shadow:
+    inset 0 1px 0 rgba(var(--metal), 0.045),
+    0 22px 90px rgba(0, 0, 0, 0.38);
+}
 
 .dynamic-tianpan-background {
   position: fixed;
@@ -68,107 +87,185 @@ button {
   overflow: hidden;
   pointer-events: none;
   background:
-    radial-gradient(circle at 58% 46%, rgba(var(--jade), 0.05), transparent 22rem),
-    linear-gradient(180deg, rgba(11, 15, 20, 0.2), rgba(15, 16, 17, 0.88));
+    radial-gradient(circle at 54% 42%, rgba(var(--talisman), 0.10), transparent 18rem),
+    radial-gradient(circle at 68% 28%, rgba(var(--jade), 0.11), transparent 30rem),
+    linear-gradient(180deg, rgba(3, 5, 4, 0.1), rgba(4, 9, 7, 0.92));
   isolation: isolate;
+}
+
+.tianpan-veil {
+  position: absolute;
+  inset: -12%;
+  background:
+    conic-gradient(from 118deg at 62% 38%, transparent 0 18deg, rgba(var(--talisman), 0.12) 22deg 32deg, transparent 38deg 88deg, rgba(var(--cinnabar), 0.10) 94deg 105deg, transparent 112deg 360deg),
+    radial-gradient(circle at 24% 28%, rgba(var(--jade), 0.14), transparent 22rem),
+    radial-gradient(circle at 84% 70%, rgba(var(--water), 0.22), transparent 26rem);
+  filter: saturate(1.2);
+  opacity: 0.78;
 }
 
 .tianpan-qi {
   position: absolute;
-  width: 34rem;
-  height: 34rem;
+  width: 35rem;
+  height: 35rem;
   border-radius: 999px;
-  filter: blur(34px);
-  opacity: 0.16;
+  filter: blur(32px);
+  opacity: 0.24;
   mix-blend-mode: screen;
   transform: translate3d(0, 0, 0);
-  animation: tianpan-qi-drift 32s ease-in-out infinite alternate;
+  animation: tianpan-qi-drift 28s ease-in-out infinite alternate;
 }
 
 .tianpan-qi-wood {
-  left: 8%;
-  top: 18%;
-  background: radial-gradient(circle, rgba(var(--wood), 0.48), transparent 68%);
+  left: 4%;
+  top: 12%;
+  background: radial-gradient(circle, rgba(var(--wood), 0.58), transparent 66%);
 }
 
 .tianpan-qi-fire {
-  right: 8%;
-  top: 3%;
-  background: radial-gradient(circle, rgba(var(--cinnabar), 0.41), transparent 70%);
-  animation-duration: 28s;
+  right: 7%;
+  top: -5%;
+  background: radial-gradient(circle, rgba(var(--cinnabar), 0.55), transparent 68%);
+  animation-duration: 24s;
 }
 
 .tianpan-qi-earth {
-  left: 43%;
-  top: 44%;
-  width: 28rem;
-  height: 28rem;
-  background: radial-gradient(circle, rgba(var(--earth), 0.30), transparent 70%);
-  animation-duration: 36s;
+  left: 40%;
+  top: 39%;
+  width: 30rem;
+  height: 30rem;
+  background: radial-gradient(circle, rgba(var(--talisman), 0.42), transparent 70%);
+  animation-duration: 34s;
 }
 
 .tianpan-qi-metal {
-  right: 17%;
-  bottom: 6%;
+  right: 12%;
+  bottom: 2%;
   width: 26rem;
   height: 26rem;
-  background: radial-gradient(circle, rgba(var(--metal), 0.18), transparent 72%);
-  animation-duration: 40s;
+  background: radial-gradient(circle, rgba(var(--metal), 0.22), transparent 72%);
+  animation-duration: 38s;
 }
 
 .tianpan-qi-water {
-  left: 18%;
-  bottom: 2%;
-  background: radial-gradient(circle, rgba(var(--water), 0.56), transparent 72%);
-  animation-duration: 44s;
+  left: 14%;
+  bottom: -3%;
+  background: radial-gradient(circle, rgba(var(--water), 0.70), transparent 72%);
+  animation-duration: 42s;
 }
 
 .tianpan-grid-field {
   position: absolute;
   inset: -20%;
-  opacity: 0.20;
+  opacity: 0.36;
   background-image:
-    linear-gradient(rgba(229, 229, 229, 0.052) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(229, 229, 229, 0.046) 1px, transparent 1px),
-    radial-gradient(circle at 50% 50%, transparent 0 18rem, rgba(229, 229, 229, 0.063) 18.05rem 18.12rem, transparent 18.18rem);
-  background-size: 72px 72px, 72px 72px, 100% 100%;
-  mask-image: radial-gradient(circle at 60% 46%, black, transparent 70%);
+    linear-gradient(rgba(var(--talisman), 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--jade), 0.055) 1px, transparent 1px),
+    radial-gradient(circle at 59% 45%, transparent 0 17rem, rgba(var(--talisman), 0.16) 17.05rem 17.13rem, transparent 17.2rem),
+    radial-gradient(circle at 59% 45%, transparent 0 27rem, rgba(var(--jade), 0.12) 27.05rem 27.12rem, transparent 27.2rem);
+  background-size: 72px 72px, 72px 72px, 100% 100%, 100% 100%;
+  mask-image: radial-gradient(circle at 60% 46%, black, transparent 72%);
 }
+
+.tianpan-starfield {
+  position: absolute;
+  inset: 0;
+  opacity: 0.9;
+}
+
+.tianpan-star {
+  position: absolute;
+  left: calc(8% + (var(--star-index) * 2.53%));
+  top: calc(11% + ((var(--star-index) * 37) % 73) * 1%);
+  width: 2px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(var(--talisman), 0.76);
+  box-shadow: 0 0 12px rgba(var(--talisman), 0.72);
+  animation: tianpan-star-pulse 3.4s ease-in-out infinite;
+  animation-delay: calc(var(--star-index) * -0.17s);
+}
+
+.tianpan-talisman-field {
+  position: absolute;
+  inset: 0;
+  opacity: 0.1;
+  mask-image: linear-gradient(90deg, black, transparent 34%, transparent 66%, black);
+}
+
+.tianpan-talisman {
+  position: absolute;
+  writing-mode: vertical-rl;
+  color: rgba(var(--talisman), 0.42);
+  font-family: "Noto Serif CJK SC", "Songti SC", SimSun, serif;
+  font-size: clamp(1rem, 1.3vw, 1.45rem);
+  letter-spacing: 0.34em;
+  text-shadow: 0 0 24px rgba(var(--talisman), 0.55);
+  transform: translateY(-8%);
+  animation: talisman-rise 18s linear infinite;
+}
+
+.tianpan-talisman:nth-child(1) { left: 5%; top: 14%; animation-delay: -3s; }
+.tianpan-talisman:nth-child(2) { left: 12%; top: 54%; animation-delay: -9s; }
+.tianpan-talisman:nth-child(3) { right: 6%; top: 19%; animation-delay: -5s; }
+.tianpan-talisman:nth-child(4) { right: 14%; top: 58%; animation-delay: -12s; }
 
 .tianpan-disc {
   position: absolute;
-  right: max(-9rem, -6vw);
-  top: max(4rem, 9vh);
-  width: min(58rem, 76vw);
+  right: max(-7rem, -3vw);
+  top: max(1rem, 5vh);
+  width: min(66rem, 84vw);
   aspect-ratio: 1;
   border-radius: 999px;
-  opacity: 0.72;
-  animation: tianpan-disc-rotate 180s linear infinite;
+  opacity: 0.74;
+  animation: tianpan-disc-rotate 120s linear infinite;
+}
+
+.tianpan-disc:before {
+  content: "";
+  position: absolute;
+  inset: 10%;
+  border-radius: inherit;
+  background:
+    conic-gradient(from 0deg, rgba(var(--cinnabar), 0.0) 0 18deg, rgba(var(--cinnabar), 0.16) 22deg 36deg, transparent 42deg 78deg, rgba(var(--jade), 0.15) 86deg 102deg, transparent 108deg 360deg),
+    radial-gradient(circle, transparent 0 45%, rgba(var(--talisman), 0.10) 45.3% 45.8%, transparent 46.2%);
+  filter: blur(0.2px);
+}
+
+.tianpan-bagua-ring {
+  position: absolute;
+  inset: 7%;
+  border-radius: inherit;
+  background:
+    repeating-conic-gradient(from -11.25deg, rgba(var(--talisman), 0.16) 0deg 1deg, transparent 1deg 15deg),
+    conic-gradient(from 22deg, rgba(var(--jade), 0.08), transparent 18%, rgba(var(--cinnabar), 0.10), transparent 52%, rgba(var(--talisman), 0.12), transparent 100%);
+  mask-image: radial-gradient(circle, transparent 0 62%, black 62.4% 72%, transparent 72.5%);
+  animation: tianpan-bagua-counter 84s linear infinite reverse;
 }
 
 .tianpan-ring {
   position: absolute;
   inset: var(--ring-inset, 0);
   border-radius: inherit;
-  border: 1px solid rgba(var(--metal), var(--ring-opacity, 0.08));
+  border: 1px solid rgba(var(--talisman), var(--ring-opacity, 0.12));
   box-shadow:
-    inset 0 0 52px rgba(var(--jade), 0.025),
-    0 0 90px rgba(var(--jade), 0.025);
+    inset 0 0 42px rgba(var(--jade), 0.08),
+    0 0 92px rgba(var(--talisman), 0.08);
 }
 
 .tianpan-ring-outer {
   --ring-inset: 2%;
-  --ring-opacity: 0.15;
+  --ring-opacity: 0.28;
 }
 
 .tianpan-ring-middle {
   --ring-inset: 18%;
-  --ring-opacity: 0.10;
+  --ring-opacity: 0.18;
 }
 
 .tianpan-ring-inner {
   --ring-inset: 36%;
-  --ring-opacity: 0.09;
+  --ring-opacity: 0.20;
 }
 
 .tianpan-crosshair {
@@ -176,8 +273,8 @@ button {
   inset: 8%;
   border-radius: inherit;
   background:
-    linear-gradient(90deg, transparent calc(50% - 0.5px), rgba(var(--metal), 0.063) 50%, transparent calc(50% + 0.5px)),
-    linear-gradient(0deg, transparent calc(50% - 0.5px), rgba(var(--metal), 0.063) 50%, transparent calc(50% + 0.5px));
+    linear-gradient(90deg, transparent calc(50% - 0.5px), rgba(var(--talisman), 0.18) 50%, transparent calc(50% + 0.5px)),
+    linear-gradient(0deg, transparent calc(50% - 0.5px), rgba(var(--jade), 0.13) 50%, transparent calc(50% + 0.5px));
 }
 
 .tianpan-tick {
@@ -185,79 +282,672 @@ button {
   left: 50%;
   top: 50%;
   width: 1px;
-  height: 11%;
-  background: linear-gradient(to bottom, rgba(var(--earth), 0.27), rgba(var(--metal), 0.03));
+  height: 12%;
+  background: linear-gradient(to bottom, rgba(var(--talisman), 0.54), rgba(var(--metal), 0.04));
   transform: rotate(calc(var(--tick-index) * 15deg)) translateY(-410%);
   transform-origin: 0 410%;
+  box-shadow: 0 0 14px rgba(var(--talisman), 0.18);
 }
 
 .tianpan-tick:nth-child(3n) {
-  height: 15%;
-  background: linear-gradient(to bottom, rgba(var(--jade), 0.32), rgba(var(--metal), 0.035));
+  height: 16%;
+  width: 2px;
+  background: linear-gradient(to bottom, rgba(var(--jade), 0.58), rgba(var(--metal), 0.04));
 }
 
 .tianpan-label {
   position: absolute;
   left: 50%;
   top: 50%;
-  color: rgba(var(--metal), 0.23);
+  color: rgba(var(--talisman), 0.2);
   font-family: "Noto Serif CJK SC", "Songti SC", SimSun, serif;
-  font-size: clamp(0.8rem, 1vw, 1.15rem);
-  letter-spacing: 0.18em;
-  transform: rotate(var(--label-angle)) translateY(-25rem) rotate(calc(-1 * var(--label-angle)));
+  font-size: clamp(0.85rem, 1.05vw, 1.2rem);
+  letter-spacing: 0.2em;
+  text-shadow: 0 0 14px rgba(var(--talisman), 0.32);
+  transform: rotate(var(--label-angle)) translateY(-28rem) rotate(calc(-1 * var(--label-angle)));
   transform-origin: 0 0;
+}
+
+.tianpan-seal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 9.5rem;
+  height: 9.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--talisman), 0.34);
+  background:
+    radial-gradient(circle, rgba(var(--cinnabar), 0.19), transparent 62%),
+    rgba(4, 8, 6, 0.45);
+  color: rgba(var(--talisman), 0.78);
+  font-family: "Noto Serif CJK SC", "Songti SC", SimSun, serif;
+  font-size: 1.5rem;
+  letter-spacing: 0.22em;
+  text-shadow: 0 0 20px rgba(var(--talisman), 0.72);
+  transform: translate(-50%, -50%);
+  box-shadow:
+    inset 0 0 30px rgba(var(--cinnabar), 0.12),
+    0 0 52px rgba(var(--talisman), 0.16);
 }
 
 .tianpan-noise {
   position: absolute;
   inset: 0;
-  opacity: 0.04;
+  opacity: 0.08;
   background-image:
-    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.36) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 72% 46%, rgba(255, 255, 255, 0.3) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 45% 78%, rgba(255, 255, 255, 0.26) 0 1px, transparent 1.5px);
-  background-size: 96px 96px, 132px 132px, 168px 168px;
+    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.46) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 72% 46%, rgba(var(--talisman), 0.42) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 45% 78%, rgba(var(--jade), 0.34) 0 1px, transparent 1.5px);
+  background-size: 88px 88px, 126px 126px, 160px 160px;
 }
 
 @keyframes tianpan-disc-rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes tianpan-bagua-counter {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 @keyframes tianpan-qi-drift {
-  from {
-    transform: translate3d(-1.5rem, -0.75rem, 0) scale(0.96);
-  }
-  to {
-    transform: translate3d(1.75rem, 1.25rem, 0) scale(1.04);
-  }
+  from { transform: translate3d(-1.75rem, -0.85rem, 0) scale(0.95); }
+  to { transform: translate3d(2.25rem, 1.45rem, 0) scale(1.06); }
+}
+
+@keyframes tianpan-star-pulse {
+  0%, 100% { opacity: 0.22; transform: scale(0.7); }
+  50% { opacity: 1; transform: scale(1.35); }
+}
+
+@keyframes talisman-rise {
+  from { opacity: 0; transform: translateY(18%); }
+  18%, 72% { opacity: 1; }
+  to { opacity: 0; transform: translateY(-18%); }
 }
 
 @media (max-width: 768px) {
   .tianpan-disc {
-    right: -18rem;
-    top: 7rem;
-    width: 42rem;
-    opacity: 0.5;
+    right: -22rem;
+    top: 6rem;
+    width: 48rem;
+    opacity: 0.72;
   }
 
   .tianpan-label {
-    transform: rotate(var(--label-angle)) translateY(-18rem) rotate(calc(-1 * var(--label-angle)));
+    transform: rotate(var(--label-angle)) translateY(-20rem) rotate(calc(-1 * var(--label-angle)));
   }
 
   .tianpan-qi {
-    width: 24rem;
-    height: 24rem;
+    width: 25rem;
+    height: 25rem;
+  }
+
+  .tianpan-talisman-field {
+    opacity: 0.18;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .tianpan-disc,
-  .tianpan-qi {
+  .tianpan-bagua-ring,
+  .tianpan-qi,
+  .tianpan-star,
+  .tianpan-talisman {
     animation: none;
   }
+}
+
+
+/* 玄坛重设计：更明确的道教色彩、法盘主视觉和符箓光边。 */
+.dynamic-tianpan-background {
+  background:
+    radial-gradient(circle at 22% 18%, rgba(var(--jade), 0.2), transparent 26rem),
+    radial-gradient(circle at 82% 12%, rgba(var(--cinnabar), 0.2), transparent 24rem),
+    radial-gradient(circle at 68% 70%, rgba(var(--talisman), 0.14), transparent 34rem),
+    linear-gradient(145deg, #020302 0%, #06110d 42%, #140806 68%, #030504 100%);
+}
+
+.tianpan-aurora {
+  position: absolute;
+  inset: -30%;
+  opacity: 0.7;
+  background:
+    conic-gradient(from 240deg at 50% 50%, transparent 0deg, rgba(var(--jade), 0.18) 54deg, transparent 96deg, rgba(var(--talisman), 0.2) 155deg, transparent 210deg, rgba(var(--cinnabar), 0.16) 286deg, transparent 360deg);
+  filter: blur(26px) saturate(1.4);
+  animation: tianpan-aurora-turn 32s linear infinite;
+}
+
+.tianpan-lightning {
+  position: absolute;
+  top: -12%;
+  width: 18rem;
+  height: 130%;
+  opacity: 0.22;
+  background: linear-gradient(180deg, transparent, rgba(var(--talisman), 0.42), transparent);
+  clip-path: polygon(46% 0, 58% 20%, 50% 20%, 64% 48%, 54% 48%, 70% 100%, 38% 58%, 50% 58%, 35% 28%, 45% 28%);
+  filter: blur(0.5px) drop-shadow(0 0 28px rgba(var(--talisman), 0.35));
+  animation: talisman-flash 6s ease-in-out infinite;
+}
+
+.tianpan-lightning-left { left: 10%; animation-delay: -2s; }
+.tianpan-lightning-right { right: 5%; transform: scaleX(-1); animation-delay: -4s; }
+
+.tianpan-star {
+  left: var(--star-x);
+  top: var(--star-y);
+  width: var(--star-size);
+  height: var(--star-size);
+}
+
+.tianpan-rune-curtain {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0.08;
+  mask-image: linear-gradient(90deg, transparent, black 12%, transparent 45%, transparent 55%, black 88%, transparent);
+}
+
+.tianpan-rune-curtain span {
+  position: absolute;
+  top: -18%;
+  left: calc(var(--star-index) * 13%);
+  writing-mode: vertical-rl;
+  color: rgba(var(--talisman), 0.42);
+  font-family: "Noto Serif CJK SC", "Songti SC", SimSun, serif;
+  font-size: clamp(1.1rem, 1.7vw, 2rem);
+  letter-spacing: 0.42em;
+  text-shadow: 0 0 24px rgba(var(--talisman), 0.42);
+  animation: rune-curtain-drop 20s linear infinite;
+  animation-delay: calc(var(--star-index) * -2.2s);
+}
+
+.tianpan-disc {
+  right: max(-9rem, -6vw);
+  top: max(-3rem, 2vh);
+  width: min(76rem, 92vw);
+  opacity: 0.88;
+}
+
+.tianpan-disc:before {
+  background:
+    repeating-conic-gradient(from 0deg, rgba(var(--talisman), 0.2) 0deg 1deg, transparent 1deg 7.5deg),
+    conic-gradient(from 0deg, rgba(var(--cinnabar), 0.0) 0 18deg, rgba(var(--cinnabar), 0.2) 22deg 36deg, transparent 42deg 78deg, rgba(var(--jade), 0.2) 86deg 102deg, transparent 108deg 360deg),
+    radial-gradient(circle, transparent 0 43%, rgba(var(--talisman), 0.16) 43.4% 44%, transparent 44.4%);
+}
+
+.tianpan-bagua-ring {
+  background:
+    repeating-conic-gradient(from -11.25deg, rgba(var(--talisman), 0.26) 0deg 1.2deg, transparent 1.2deg 15deg),
+    conic-gradient(from 22deg, rgba(var(--jade), 0.14), transparent 18%, rgba(var(--cinnabar), 0.16), transparent 52%, rgba(var(--talisman), 0.18), transparent 100%);
+}
+
+.tianpan-trigram {
+  position: absolute;
+  color: rgba(var(--talisman), 0.34);
+  font-family: "Noto Serif CJK SC", "Songti SC", SimSun, serif;
+  font-size: clamp(1.8rem, 3vw, 3.7rem);
+  text-shadow: 0 0 30px rgba(var(--talisman), 0.58);
+}
+
+.tianpan-trigram-1 { left: 50%; top: 13%; transform: translateX(-50%); }
+.tianpan-trigram-2 { left: 50%; bottom: 13%; transform: translateX(-50%); }
+.tianpan-trigram-3 { left: 13%; top: 50%; transform: translateY(-50%); }
+.tianpan-trigram-4 { right: 13%; top: 50%; transform: translateY(-50%); }
+
+.oracle-hero {
+  min-height: 27rem;
+  background:
+    linear-gradient(135deg, rgba(var(--talisman), 0.13), transparent 28%),
+    linear-gradient(225deg, rgba(var(--cinnabar), 0.18), transparent 38%),
+    radial-gradient(circle at 72% 42%, rgba(var(--jade), 0.18), transparent 23rem),
+    rgba(3, 7, 5, 0.92);
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--talisman), 0.08),
+    inset 0 0 90px rgba(var(--talisman), 0.08),
+    0 28px 110px rgba(0, 0, 0, 0.62),
+    0 0 72px rgba(var(--cinnabar), 0.08);
+}
+
+.oracle-hero:before,
+.oracle-hero:after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.oracle-hero:before {
+  inset: 1rem;
+  border-radius: 24px;
+  border: 1px solid rgba(var(--talisman), 0.16);
+  background:
+    linear-gradient(90deg, rgba(var(--talisman), 0.22), transparent 16%, transparent 84%, rgba(var(--talisman), 0.22)) top / 100% 1px no-repeat,
+    linear-gradient(90deg, rgba(var(--talisman), 0.22), transparent 16%, transparent 84%, rgba(var(--talisman), 0.22)) bottom / 100% 1px no-repeat;
+}
+
+.oracle-hero:after {
+  right: -12rem;
+  top: -10rem;
+  width: 34rem;
+  height: 34rem;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--talisman), 0.12);
+  background: repeating-conic-gradient(from 0deg, rgba(var(--talisman), 0.22) 0deg 1deg, transparent 1deg 12deg);
+  mask-image: radial-gradient(circle, transparent 0 48%, black 49% 64%, transparent 65%);
+  animation: tianpan-disc-rotate 90s linear infinite;
+}
+
+.oracle-hero-glow {
+  position: absolute;
+  inset: -30% -12% auto auto;
+  width: 48rem;
+  height: 48rem;
+  background: conic-gradient(from 120deg, rgba(var(--talisman), 0.0), rgba(var(--talisman), 0.2), rgba(var(--cinnabar), 0.18), rgba(var(--jade), 0.18), rgba(var(--talisman), 0.0));
+  filter: blur(28px);
+  opacity: 0.86;
+  animation: tianpan-aurora-turn 24s linear infinite reverse;
+}
+
+.oracle-kicker {
+  box-shadow: 0 0 28px rgba(var(--talisman), 0.14);
+}
+
+.oracle-primary-action {
+  box-shadow: 0 0 0 1px rgba(var(--talisman), 0.16), 0 16px 44px rgba(var(--cinnabar), 0.28);
+}
+
+.oracle-metric,
+.oracle-status-strip,
+.oracle-section,
+.oracle-tool-card {
+  backdrop-filter: blur(18px);
+}
+
+.oracle-metric {
+  box-shadow: inset 0 0 34px rgba(var(--talisman), 0.04);
+}
+
+.oracle-compass-stage {
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, rgba(var(--talisman), 0.18) 0 8%, transparent 9%),
+    radial-gradient(circle, rgba(var(--cinnabar), 0.16), transparent 52%),
+    rgba(2, 6, 4, 0.38);
+  box-shadow:
+    inset 0 0 70px rgba(var(--talisman), 0.1),
+    0 0 80px rgba(var(--talisman), 0.16),
+    0 0 110px rgba(var(--jade), 0.08);
+}
+
+.oracle-compass-ring {
+  position: absolute;
+  inset: var(--inset);
+  border-radius: inherit;
+  border: 1px solid rgba(var(--talisman), var(--alpha));
+  background: repeating-conic-gradient(from var(--from), rgba(var(--talisman), 0.18) 0deg 1.2deg, transparent 1.2deg 15deg);
+  mask-image: radial-gradient(circle, transparent 0 58%, black 59% 68%, transparent 69%);
+  animation: tianpan-disc-rotate var(--speed) linear infinite;
+}
+
+.oracle-compass-ring-outer { --inset: 0%; --alpha: 0.34; --from: 0deg; --speed: 80s; }
+.oracle-compass-ring-middle { --inset: 15%; --alpha: 0.24; --from: 15deg; --speed: 54s; animation-direction: reverse; }
+.oracle-compass-ring-inner { --inset: 30%; --alpha: 0.3; --from: -8deg; --speed: 38s; }
+
+.oracle-compass-rays {
+  position: absolute;
+  inset: 9%;
+  border-radius: inherit;
+  background: conic-gradient(from 0deg, rgba(var(--cinnabar), 0.2), transparent 12%, rgba(var(--jade), 0.18), transparent 35%, rgba(var(--talisman), 0.22), transparent 62%, rgba(var(--cinnabar), 0.18), transparent 100%);
+  mask-image: radial-gradient(circle, transparent 0 34%, black 35% 50%, transparent 51%);
+  animation: tianpan-bagua-counter 30s linear infinite;
+}
+
+.oracle-compass-core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  width: 8.8rem;
+  height: 8.8rem;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  border: 1px solid rgba(var(--talisman), 0.42);
+  background: radial-gradient(circle, rgba(var(--cinnabar), 0.24), rgba(4, 8, 6, 0.86) 62%);
+  color: rgba(var(--talisman), 0.92);
+  box-shadow: inset 0 0 36px rgba(var(--cinnabar), 0.16), 0 0 58px rgba(var(--talisman), 0.2);
+}
+
+.oracle-compass-core span {
+  font-family: "Noto Serif CJK SC", "Songti SC", SimSun, serif;
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.oracle-compass-core small {
+  margin-top: -2.4rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.28em;
+  color: rgba(var(--jade), 0.88);
+}
+
+.oracle-compass-cardinal {
+  position: absolute;
+  font-family: "Noto Serif CJK SC", "Songti SC", SimSun, serif;
+  font-size: 1.5rem;
+  color: rgba(var(--talisman), 0.78);
+  text-shadow: 0 0 22px rgba(var(--talisman), 0.46);
+}
+
+.oracle-compass-north { left: 50%; top: 8%; transform: translateX(-50%); }
+.oracle-compass-east { right: 8%; top: 50%; transform: translateY(-50%); }
+.oracle-compass-south { left: 50%; bottom: 8%; transform: translateX(-50%); }
+.oracle-compass-west { left: 8%; top: 50%; transform: translateY(-50%); }
+
+.oracle-compass-strip {
+  position: absolute;
+  left: 50%;
+  bottom: 17%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--jade), 0.22);
+  background: rgba(2, 8, 5, 0.68);
+  padding: 0.45rem 0.9rem;
+  color: rgba(var(--jade), 0.82);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+}
+
+.oracle-section {
+  background:
+    linear-gradient(135deg, rgba(var(--talisman), 0.06), transparent 28%),
+    rgba(10, 18, 14, 0.76);
+}
+
+.oracle-tool-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.oracle-tool-card:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(var(--talisman), 0.08), transparent 35%, rgba(var(--jade), 0.06));
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.oracle-tool-card:hover:before {
+  opacity: 1;
+}
+
+.oracle-tool-icon {
+  box-shadow: inset 0 0 24px rgba(var(--talisman), 0.08), 0 0 24px rgba(var(--jade), 0.05);
+}
+
+@keyframes tianpan-aurora-turn {
+  from { transform: rotate(0deg) scale(1); }
+  to { transform: rotate(360deg) scale(1.04); }
+}
+
+@keyframes talisman-flash {
+  0%, 100% { opacity: 0.08; }
+  45% { opacity: 0.28; }
+  48% { opacity: 0.58; }
+  52% { opacity: 0.18; }
+}
+
+@keyframes rune-curtain-drop {
+  from { transform: translateY(-20%); opacity: 0; }
+  14%, 72% { opacity: 1; }
+  to { transform: translateY(56%); opacity: 0; }
+}
+
+@media (max-width: 768px) {
+  .oracle-hero {
+    min-height: auto;
+  }
+
+  .oracle-compass-stage {
+    max-width: 18rem;
+  }
+
+  .oracle-compass-core {
+    width: 6.4rem;
+    height: 6.4rem;
+  }
+
+  .oracle-compass-core span {
+    font-size: 2.5rem;
+  }
+
+  .oracle-compass-core small {
+    margin-top: -1.6rem;
+  }
+}
+
+
+/* 参考图导向的玄学工具台结构 */
+.app-sidebar,
+.app-topbar,
+.console-panel {
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgba(var(--metal), 0.05),
+    inset 0 0 40px rgba(var(--talisman), 0.025),
+    0 24px 70px rgba(0, 0, 0, 0.42);
+}
+
+.app-sidebar:before,
+.app-topbar:before,
+.console-panel:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, rgba(var(--talisman), 0.08), transparent 22%),
+    linear-gradient(315deg, rgba(var(--jade), 0.04), transparent 30%);
+  opacity: 0.86;
+}
+
+.app-sidebar > *,
+.app-topbar > *,
+.console-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.sidebar-brand:after {
+  content: "";
+  position: absolute;
+  right: -2.5rem;
+  top: -2.5rem;
+  width: 8rem;
+  height: 8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--talisman), 0.18);
+  background: repeating-conic-gradient(from 0deg, rgba(var(--talisman), 0.22) 0deg 1deg, transparent 1deg 14deg);
+  opacity: 0.34;
+}
+
+.brand-seal {
+  box-shadow:
+    inset 0 0 24px rgba(var(--talisman), 0.12),
+    0 0 28px rgba(var(--talisman), 0.08);
+}
+
+.sidebar-nav-item:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border-left: 2px solid transparent;
+  pointer-events: none;
+}
+
+.sidebar-nav-item:hover:after {
+  border-left-color: rgba(var(--talisman), 0.3);
+}
+
+.home-plate {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, rgba(var(--talisman), 0.18), transparent 16%),
+    radial-gradient(circle, rgba(var(--cinnabar), 0.12), transparent 54%),
+    rgba(2, 7, 5, 0.48);
+  box-shadow:
+    inset 0 0 78px rgba(var(--talisman), 0.08),
+    0 0 80px rgba(var(--talisman), 0.12);
+}
+
+.home-plate-ring {
+  position: absolute;
+  border-radius: inherit;
+  border: 1px solid rgba(var(--talisman), 0.22);
+  background: repeating-conic-gradient(from 0deg, rgba(var(--talisman), 0.16) 0deg 1deg, transparent 1deg 12deg);
+  mask-image: radial-gradient(circle, transparent 0 58%, black 59% 66%, transparent 67%);
+}
+
+.home-plate-ring-outer {
+  inset: 2%;
+  animation: tianpan-disc-rotate 96s linear infinite;
+}
+
+.home-plate-ring-inner {
+  inset: 18%;
+  animation: tianpan-bagua-counter 64s linear infinite;
+}
+
+.home-plate-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 54%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(var(--talisman), 0.22);
+  background: rgba(3, 8, 5, 0.72);
+}
+
+.home-pillar-cell {
+  display: grid;
+  min-height: 6.4rem;
+  place-items: center;
+  border: 1px solid rgba(var(--talisman), 0.08);
+  padding: 0.75rem;
+}
+
+.home-pillar-cell strong {
+  color: rgb(var(--talisman));
+  font-family: "Noto Serif CJK SC", "Songti SC", SimSun, serif;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  line-height: 1;
+}
+
+.home-pillar-cell small {
+  color: rgba(var(--metal), 0.86);
+  font-family: "Noto Serif CJK SC", "Songti SC", SimSun, serif;
+  font-size: 1.1rem;
+}
+
+.home-plate-orbit {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: rgba(3, 8, 5, 0.82);
+  font-weight: 700;
+  box-shadow: 0 0 28px color-mix(in srgb, currentColor 26%, transparent);
+}
+
+.home-plate-wood { left: 4%; top: 43%; color: rgb(var(--wood)); }
+.home-plate-fire { left: 50%; top: 3%; transform: translateX(-50%); color: rgb(var(--fire)); }
+.home-plate-earth { right: 4%; top: 43%; color: rgb(var(--earth)); }
+.home-plate-metal { left: 50%; bottom: 3%; transform: translateX(-50%); color: rgb(var(--metal)); }
+.home-plate-core {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  width: 4.2rem;
+  height: 4.2rem;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--talisman), 0.34);
+  background: rgba(4, 9, 6, 0.88);
+  color: rgb(var(--talisman));
+  font-family: "Noto Serif CJK SC", "Songti SC", SimSun, serif;
+  font-size: 1.65rem;
+}
+
+.tool-tile:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 85% 15%, rgba(var(--talisman), 0.12), transparent 32%);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.tool-tile:hover:before {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .home-pillar-cell {
+    min-height: 5rem;
+  }
+
+  .home-plate-orbit {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+
+/* Canvas 仪器面板主题 */
+.canvas-stage {
+  position: relative;
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--talisman), 0.05),
+    inset 0 0 48px rgba(var(--talisman), 0.04),
+    0 18px 60px rgba(0, 0, 0, 0.34);
+}
+
+.canvas-stage:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(var(--talisman), 0.08), transparent 36%),
+    linear-gradient(rgba(var(--talisman), 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--jade), 0.035) 1px, transparent 1px);
+  background-size: 100% 100%, 42px 42px, 42px 42px;
+  opacity: 0.82;
+}
+
+.theme-canvas {
+  position: relative;
+  z-index: 1;
+  background: #050806;
+  box-shadow:
+    0 0 0 1px rgba(var(--talisman), 0.16),
+    0 18px 52px rgba(0, 0, 0, 0.42);
 }

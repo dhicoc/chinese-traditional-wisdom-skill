@@ -19,6 +19,13 @@ const DEFAULT_PILLARS: BaziPillars = {
 };
 
 const DEFAULT_WUXING: WuxingStats = { 木: 2, 火: 3, 土: 1, 金: 0, 水: 2 };
+const WUXING_COLORS: Record<keyof WuxingStats, string> = {
+  木: '#28b36f',
+  火: '#d63a2c',
+  土: '#d6a33d',
+  金: '#d8d0ad',
+  水: '#2f80c8',
+};
 
 interface BaziResult {
   pillars?: unknown;
@@ -43,6 +50,10 @@ function calculateBazi(birth: BirthData, ready: boolean) {
   };
 }
 
+function birthSummary(birth: BirthData) {
+  return birth.year + '-' + String(birth.month).padStart(2, '0') + '-' + String(birth.day).padStart(2, '0') + ' ' + String(birth.hour).padStart(2, '0') + ':00';
+}
+
 export function BaziWorkspace() {
   const { birth } = useBirth();
   const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
@@ -59,6 +70,13 @@ export function BaziWorkspace() {
 
   const ready = legacyState.mode === 'ready';
   const { result, pillars, wuxing } = useMemo(() => calculateBazi(birth, ready), [birth, ready]);
+  const pillarRows = [
+    ['年柱', pillars.year],
+    ['月柱', pillars.month],
+    ['日柱', pillars.day],
+    ['时柱', pillars.hour],
+  ] as const;
+  const maxWuxing = Math.max(1, ...Object.values(wuxing));
   const contextPayload = useMemo(
     () => ({
       module: 'bazi',
@@ -73,57 +91,109 @@ export function BaziWorkspace() {
   );
 
   return (
-    <section className="space-y-4">
-      <div className="rounded-panel border border-ink-700 bg-ink-850/78 p-4 shadow-instrument">
+    <section className="space-y-5">
+      <div className="console-panel rounded-[22px] border border-talisman-500/20 bg-ink-950/90 p-4 shadow-instrument">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="font-serif text-2xl font-semibold text-zinc-100">八字命盘与五行平衡</h2>
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-talisman-500">Bazi Plate</p>
+            <h2 className="mt-1 text-2xl font-semibold text-zinc-50">八字排盘工作台</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-400">
-              React 工作区读取顶部全局生辰，优先调用 BaziEngine / lunar-javascript Adapter 生成四柱与五行，再复用旧 Canvas renderer。
+              读取顶部全局生辰，调用 BaziEngine / lunar-javascript Adapter 生成四柱与五行，再复用旧 Canvas renderer。
             </p>
           </div>
           <CopyContextButton commandScope="bazi" title="八字命盘 React 迁移上下文" payload={contextPayload} />
         </div>
         {legacyState.mode === 'error' && (
-          <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
+          <p className="mt-3 rounded-[16px] border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
             旧引擎加载失败：{legacyState.error}
           </p>
         )}
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
-        <aside className="space-y-4 rounded-panel border border-ink-700 bg-black/24 p-4">
+      <div className="bazi-console-grid grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)_320px]">
+        <aside className="space-y-4">
           <InterpretationCard
-            title="全局生辰推算"
+            title="排盘信息"
+            badge={ready ? '已接入' : '加载中'}
             items={[
-              { label: '引擎', value: result?.engineName ?? '等待旧引擎'},
-              { label: '模式', value: result?.mode ?? '降级展示'},
-              { label: '日主', value: (result?.dayMaster ?? pillars.dayMaster ?? '?') + ' · ' + (result?.dayMasterWuxing ?? '?')},
-              { label: '说明', value: result?.confidenceNote ?? '请在顶部“全局生辰”面板修改出生资料。'},
+              { label: '生辰', value: birthSummary(birth) },
+              { label: '历法', value: (birth.isLunar ? '农历' : '公历') + ' · ' + (birth.useExactCalendar ? '精确' : '近似') },
+              { label: '性别', value: birth.gender },
+              { label: '引擎', value: result?.engineName ?? '等待旧引擎' },
+              { label: '模式', value: result?.mode ?? '降级展示' },
+            ]}
+          />
+          <InterpretationCard
+            title="推算边界"
+            items={[
+              { label: '日主', value: (result?.dayMaster ?? pillars.dayMaster ?? '?') + ' · ' + (result?.dayMasterWuxing ?? '?') },
+              { label: '说明', value: result?.confidenceNote ?? '顶部“全局生辰”面板是所有工作区的唯一输入源。' },
             ]}
           />
         </aside>
 
         <div className="space-y-4">
           <CanvasPanel
-            title="八字四柱"
-            description="由统一 Adapter 计算，再调用同一个 bazi renderer。"
+            title="四柱主盘"
+            description="统一 Adapter 计算后调用同一个 bazi renderer，避免 React 页与旧页口径分叉。"
             data={pillars}
             width={600}
             height={480}
             ready={ready}
             render={renderLegacyBazi}
           />
+          <div className="console-panel rounded-[22px] border border-talisman-500/20 bg-ink-950/90 p-4">
+            <div className="mb-4 flex items-center justify-between border-b border-white/8 pb-3">
+              <h3 className="text-lg font-semibold text-zinc-50">八字明细</h3>
+              <span className="rounded-full border border-white/10 bg-black/30 px-2.5 py-1 text-[10px] text-zinc-500">四柱</span>
+            </div>
+            <div className="grid grid-cols-4 overflow-hidden rounded-[18px] border border-white/10 text-center text-sm">
+              {pillarRows.map(([label]) => (
+                <div key={label} className="border-b border-white/10 bg-white/[0.035] px-2 py-2 text-xs text-zinc-500">{label}</div>
+              ))}
+              {pillarRows.map(([label, pillar]) => (
+                <div key={label + 'stem'} className="border-b border-white/10 px-2 py-4 font-serif text-3xl text-talisman-500">{pillar.stem}</div>
+              ))}
+              {pillarRows.map(([label, pillar]) => (
+                <div key={label + 'branch'} className="px-2 py-4 font-serif text-3xl text-zinc-100">{pillar.branch}</div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <aside className="space-y-4">
+          <section className="console-panel rounded-[22px] border border-talisman-500/20 bg-ink-950/90 p-4 shadow-instrument">
+            <div className="mb-4 flex items-center justify-between border-b border-white/8 pb-3">
+              <h3 className="text-lg font-semibold text-zinc-50">五行能量</h3>
+              <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2.5 py-1 text-[10px] text-jade-500">统计</span>
+            </div>
+            <div className="space-y-3">
+              {(Object.keys(wuxing) as Array<keyof WuxingStats>).map((key) => {
+                const value = wuxing[key];
+                return (
+                  <div key={key}>
+                    <div className="mb-1 flex items-center justify-between text-xs">
+                      <span className="text-zinc-300">{key}</span>
+                      <span className="font-mono text-zinc-500">{value}</span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-white/8">
+                      <div className="h-full rounded-full" style={{ width: Math.max(8, (value / maxWuxing) * 100) + '%', backgroundColor: WUXING_COLORS[key] }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
           <CanvasPanel
             title="五行平衡"
-            description="五行统计来自同一次八字计算，避免 React 页与旧页口径分叉。"
+            description="五行统计来自同一次八字计算。"
             data={wuxing}
             width={520}
             height={460}
             ready={ready}
             render={renderLegacyWuxing}
           />
-        </div>
+        </aside>
       </div>
     </section>
   );

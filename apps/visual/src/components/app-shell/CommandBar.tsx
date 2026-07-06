@@ -124,7 +124,7 @@ function CommandPalette({
                 className={[
                   'flex w-full items-center gap-3 rounded-card border px-3 py-2.5 text-left transition',
                   index === selectedIndex
-                    ? 'border-jade-500/35 bg-jade-500/10'
+                    ? 'border-jade-500/30 bg-jade-500/10'
                     : 'border-transparent hover:bg-white/[0.04]',
                 ].join(' ')}
               >
@@ -132,7 +132,7 @@ function CommandPalette({
                   <p className="text-sm font-medium text-zinc-100">{item.label}</p>
                   <p className="mt-0.5 truncate text-xs text-zinc-500">{item.hint}</p>
                 </div>
-                <span className="shrink-0 rounded-full bg-black/24 px-2 py-0.5 text-[10px] text-zinc-500">
+                <span className="shrink-0 rounded-full bg-black/25 px-2 py-0.5 text-[10px] text-zinc-500">
                   {item.group}
                 </span>
               </button>
@@ -244,29 +244,30 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
 
   return (
     <>
-      <header className="sticky top-4 z-20 rounded-panel border border-ink-700 bg-ink-850/88 p-3 shadow-instrument backdrop-blur-xl">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <header className="app-topbar sticky top-4 z-20 rounded-[24px] border border-talisman-500/20 bg-ink-950/90 p-3 shadow-instrument backdrop-blur-xl">
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
           <button
             ref={inputRef}
             type="button"
             onClick={() => setPaletteOpen(true)}
-            className="flex min-h-12 flex-1 items-center gap-3 rounded-card border border-white/10 bg-black/20 px-4 text-left text-zinc-400 transition hover:border-jade-500/35 hover:text-zinc-100"
+            className="flex min-h-12 items-center gap-3 rounded-[18px] border border-white/10 bg-black/30 px-4 text-left text-zinc-400 transition hover:border-talisman-500/30 hover:text-zinc-100 active:scale-[0.99]"
             aria-label="打开命令面板 (⌘K)"
           >
-            <span className="font-mono text-jade-500">⌘K</span>
-            <span className="text-sm">搜索工具、切换标签、输入年份、复制 AI 上下文</span>
+            <span className="font-mono text-talisman-500">⌘K</span>
+            <span className="min-w-0 flex-1 truncate text-sm">搜索工具、切换标签、输入年份、复制 AI 上下文</span>
+            <span className="hidden rounded-full border border-white/10 px-2 py-1 text-[10px] text-zinc-500 md:inline-flex">COMMAND</span>
           </button>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 xl:justify-end">
             {MODULES.slice(0, 6).map((module) => (
               <button
                 key={module.id}
                 type="button"
                 onClick={() => onSelectModule(module.id)}
                 className={[
-                  'rounded-full border px-3 py-2 text-xs font-medium transition',
+                  'rounded-full border px-3.5 py-2 text-xs font-medium transition active:scale-[0.98]',
                   module.id === active.id
-                    ? 'border-cinnabar-500/45 bg-cinnabar-500 text-zinc-50'
-                    : 'border-white/10 bg-white/[0.035] text-zinc-400 hover:border-white/20 hover:text-zinc-100',
+                    ? 'border-cinnabar-500/50 bg-cinnabar-500 text-zinc-50'
+                    : 'border-white/10 bg-white/[0.035] text-zinc-400 hover:border-talisman-500/25 hover:text-zinc-100',
                 ].join(' ')}
               >
                 {module.shortTitle}
@@ -274,15 +275,10 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
             ))}
             <button
               type="button"
-              onClick={() => onSelectModule('testing')}
-              className={[
-                'rounded-full border px-3 py-2 text-xs font-medium transition',
-                activeModule === 'testing'
-                  ? 'border-cinnabar-500/45 bg-cinnabar-500 text-zinc-50'
-                  : 'border-white/10 bg-white/[0.035] text-zinc-400 hover:border-white/20 hover:text-zinc-100',
-              ].join(' ')}
+              onClick={() => dispatchCopyContextIntent(active.id)}
+              className="rounded-full border border-talisman-500/25 bg-talisman-500/10 px-3.5 py-2 text-xs font-medium text-talisman-500 transition hover:border-talisman-500/40 active:scale-[0.98]"
             >
-              测试
+              复制上下文
             </button>
           </div>
         </div>

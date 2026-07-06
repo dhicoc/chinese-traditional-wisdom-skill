@@ -11,7 +11,7 @@ export function WorkspaceTabs({ activeModule, onSelectModule }: WorkspaceTabsPro
 
   return (
     <div className="rounded-panel border border-ink-700 bg-ink-850/70 p-2">
-      <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="工作区标签">
+      <div className="scrollbar-none flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="工作区标签">
         {MODULES.map((module) => (
           <button
             key={module.id}
