@@ -9,6 +9,11 @@
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "test": "node scripts/smoke-react-shell.mjs",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
     "verify:gen": "node scripts/generate-verify-page.mjs"
   },
   "dependencies": {
@@ -26,8 +31,13 @@
     "vite": "latest"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^26.1.0",
     "@types/react": "latest",
-    "@types/react-dom": "latest"
+    "@types/react-dom": "latest",
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.10"
   }
 }
