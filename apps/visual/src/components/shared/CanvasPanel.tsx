@@ -21,6 +21,9 @@ export function CanvasPanel<TData>({ title, description, data, width, height, re
     try {
       setError(null);
       render(canvasId, data);
+      // 渲染器内部 setupHiDPI 会设 inline style.height = h px，导致 max-w-full 压缩宽度时
+      // 高度不变而宽高比变形。改为 auto 让高度随宽度等比缩放。
+      if (canvasRef.current) canvasRef.current.style.height = 'auto';
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -38,7 +41,7 @@ export function CanvasPanel<TData>({ title, description, data, width, height, re
         </span>
       </div>
       <div className="canvas-stage overflow-x-auto rounded-[20px] border border-talisman-500/18 bg-ink-950/92 p-3">
-        <canvas ref={canvasRef} id={canvasId} width={width} height={height} className="theme-canvas mx-auto block max-w-full rounded-[14px]" />
+        <canvas ref={canvasRef} id={canvasId} width={width} height={height} className="theme-canvas mx-auto block h-auto max-w-full rounded-[14px]" />
       </div>
       {!ready && <p className="mt-3 text-sm text-zinc-500">正在加载旧版渲染引擎。</p>}
       {error && <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">{error}</p>}
