@@ -145,6 +145,12 @@
         assert(I.resolveYongShen("感情发展", "女") === "官鬼", "女占婚恋应官鬼");
       }, state);
 
+      runTest("无问题文本时按性别默认用神", function () {
+        assert(I.resolveYongShen("", "男") === "妻财", "男命无问题文本时应默认妻财");
+        assert(I.resolveYongShen(null, "女") === "官鬼", "女命无问题文本时应默认官鬼");
+        assert(I.resolveYongShen(undefined, "") === "世爻", "无问题文本且无性别时应默认世爻");
+      }, state);
+
       // ─── 起卦方式 ───
       runTest("铜钱爻值解析: 6老阴变 7少阳 8少阴 9老阳变", function () {
         assert(eq(I.yaoValueToLine(6), { yin: true, changing: true }), "6 应为老阴(变)");

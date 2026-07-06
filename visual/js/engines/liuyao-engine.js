@@ -269,12 +269,13 @@
 
   // 用神：根据问题事项推六亲；命中关键词即返回对应用神，否则按性别默认(男妻财/女官鬼)，无性别取世爻
   function resolveYongShen(question, gender) {
-    if (!question) return "世爻";
-    var q = String(question);
-    for (var i = 0; i < YONGSHEN_BY_TOPIC.length; i++) {
-      var group = YONGSHEN_BY_TOPIC[i];
-      for (var j = 0; j < group.kw.length; j++) {
-        if (q.indexOf(group.kw[j]) >= 0) return group.yong;
+    if (question) {
+      var q = String(question);
+      for (var i = 0; i < YONGSHEN_BY_TOPIC.length; i++) {
+        var group = YONGSHEN_BY_TOPIC[i];
+        for (var j = 0; j < group.kw.length; j++) {
+          if (q.indexOf(group.kw[j]) >= 0) return group.yong;
+        }
       }
     }
     if (gender === "男") return "妻财";
