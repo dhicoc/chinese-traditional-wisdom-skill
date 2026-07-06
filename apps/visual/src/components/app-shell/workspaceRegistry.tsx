@@ -13,6 +13,11 @@ import { MermaidWorkspace } from '@/features/mermaid/MermaidWorkspace';
 import { TestRunnerConsole } from '@/features/testing/TestRunnerConsole';
 import { AncientTextSplitReader } from '@/features/knowledge/AncientTextSplitReader';
 import { HistoryWorkspace } from '@/features/history/HistoryPanel';
+// 日用工具扩展 (v0.4)
+import { AlmanacWorkspace } from '@/features/almanac/AlmanacWorkspace';
+import { NamewuxingWorkspace } from '@/features/namewuxing/NamewuxingWorkspace';
+import { DreamWorkspace } from '@/features/dream/DreamWorkspace';
+import { RhythmWorkspace } from '@/features/rhythm/RhythmWorkspace';
 import type { ModuleId } from '@/lib/modules';
 
 interface WorkspaceProps {
@@ -34,6 +39,11 @@ export const WORKSPACE_COMPONENTS: Partial<Record<ModuleId, ComponentType<Worksp
   testing: TestRunnerConsole,
   reader: AncientTextSplitReader,
   history: HistoryWorkspace,
+  // 日用工具扩展 (v0.4)
+  almanac: AlmanacWorkspace,
+  namewuxing: NamewuxingWorkspace,
+  dream: DreamWorkspace,
+  rhythm: RhythmWorkspace,
 };
 
 export function resolveWorkspace(moduleId: ModuleId): ComponentType<WorkspaceProps> {

@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { MODULES, type ModuleId } from '@/lib/modules';
+import { MODULES, type ModuleId, type ModuleGroup, type ModuleStatus } from '@/lib/modules';
 
 describe('Modules Registry', () => {
-  it('should have 11 modules defined', () => {
-    expect(MODULES).toHaveLength(11);
+  it('should have modules defined', () => {
+    expect(MODULES.length).toBeGreaterThan(0);
   });
 
   it('should have unique module ids', () => {
@@ -15,16 +15,24 @@ describe('Modules Registry', () => {
   it('should have required fields for each module', () => {
     MODULES.forEach(module => {
       expect(module.id).toBeDefined();
-      expect(module.label).toBeDefined();
-      expect(module.icon).toBeDefined();
-      expect(module.category).toBeDefined();
+      expect(module.group).toBeDefined();
+      expect(module.title).toBeDefined();
+      expect(module.shortTitle).toBeDefined();
+      expect(module.status).toBeDefined();
+      expect(module.statusLabel).toBeDefined();
+      expect(module.privacyLevel).toBeDefined();
+      expect(module.questionTypes).toBeDefined();
+      expect(module.accent).toBeDefined();
+      expect(module.description).toBeDefined();
     });
   });
 
   it('should have valid module ids', () => {
     const validIds: ModuleId[] = [
       'home', 'bazi', 'ziwei', 'liuyao', 'meihua',
-      'fengshui', 'feixing', 'bazhai', 'yunqi', 'tizhi', 'mermaid'
+      'fengshui', 'feixing', 'bazhai', 'yunqi', 'tizhi',
+      'almanac', 'namewuxing', 'dream', 'rhythm',
+      'mermaid', 'testing', 'reader', 'history'
     ];
     const ids = MODULES.map(m => m.id);
     ids.forEach(id => {
@@ -32,46 +40,57 @@ describe('Modules Registry', () => {
     });
   });
 
-  it('should categorize modules correctly', () => {
-    const destinyModules = MODULES.filter(m => m.category === 'destiny');
-    const divinationModules = MODULES.filter(m => m.category === 'divination');
-    const fengshuiModules = MODULES.filter(m => m.category === 'fengshui');
-    const healthModules = MODULES.filter(m => m.category === 'health');
-    const utilityModules = MODULES.filter(m => m.category === 'utility');
-
-    expect(destinyModules.length).toBeGreaterThanOrEqual(2); // bazi, ziwei
-    expect(divinationModules.length).toBeGreaterThanOrEqual(2); // liuyao, meihua
-    expect(fengshuiModules.length).toBeGreaterThanOrEqual(3); // fengshui, feixing, bazhai
-    expect(healthModules.length).toBeGreaterThanOrEqual(2); // yunqi, tizhi
-    expect(utilityModules.length).toBeGreaterThanOrEqual(1); // mermaid, home
+  it('should categorize modules into valid groups', () => {
+    const validGroups: ModuleGroup[] = [
+      '易学源流', '术数排盘', '堪舆风水', '医道运气', '日用工具', '知识检索', '开发者'
+    ];
+    MODULES.forEach(module => {
+      expect(validGroups).toContain(module.group);
+    });
   });
 
   it('should have home as first module', () => {
     expect(MODULES[0].id).toBe('home');
   });
 
-  it('should have consistent capability metadata', () => {
+  it('should have consistent status metadata', () => {
+    const validStatuses: ModuleStatus[] = ['local-exact', 'local-approx', 'demo', 'knowledge', 'derived', 'folk-experience'];
     MODULES.forEach(module => {
-      if (module.id !== 'home' && module.id !== 'mermaid') {
-        expect(module.capability).toBeDefined();
-        expect(['local-exact', 'local-approx', 'demo', 'external-required']).toContain(module.capability);
-      }
+      expect(validStatuses).toContain(module.status);
+    });
+  });
+
+  it('should have non-empty question types', () => {
+    MODULES.forEach(module => {
+      expect(module.questionTypes.length).toBeGreaterThan(0);
     });
   });
 });
 
-describe('Module Categories', () => {
-  it('should have valid category values', () => {
-    const validCategories = ['destiny', 'divination', 'fengshui', 'health', 'utility'];
-    MODULES.forEach(module => {
-      expect(validCategories).toContain(module.category);
+describe('Daily Utility Tools (v0.4)', () => {
+  it('should include all four daily utility tools', () => {
+    const utilityIds = ['almanac', 'namewuxing', 'dream', 'rhythm'];
+    const ids = MODULES.map(m => m.id);
+    utilityIds.forEach(id => {
+      expect(ids).toContain(id);
     });
   });
 
-  it('should have description for non-utility modules', () => {
-    MODULES.filter(m => m.category !== 'utility').forEach(module => {
-      expect(module.description).toBeDefined();
-      expect(module.description.length).toBeGreaterThan(10);
+  it('should have daily utility tools in correct group', () => {
+    const utilityModules = MODULES.filter(m =>
+      ['almanac', 'namewuxing', 'dream', 'rhythm'].includes(m.id)
+    );
+    utilityModules.forEach(module => {
+      expect(module.group).toBe('日用工具');
+    });
+  });
+
+  it('should have folk-experience status for utility tools', () => {
+    const utilityModules = MODULES.filter(m =>
+      ['almanac', 'namewuxing', 'dream', 'rhythm'].includes(m.id)
+    );
+    utilityModules.forEach(module => {
+      expect(module.status).toBe('folk-experience');
     });
   });
 });

@@ -1,6 +1,6 @@
-export type ModuleGroup = '易学源流' | '术数排盘' | '堪舆风水' | '医道运气' | '知识检索' | '开发者';
+export type ModuleGroup = '易学源流' | '术数排盘' | '堪舆风水' | '医道运气' | '日用工具' | '知识检索' | '开发者';
 
-export type ModuleStatus = 'local-exact' | 'local-approx' | 'demo' | 'knowledge' | 'derived';
+export type ModuleStatus = 'local-exact' | 'local-approx' | 'demo' | 'knowledge' | 'derived' | 'folk-experience';
 
 export type ModuleId =
   | 'home'
@@ -13,6 +13,10 @@ export type ModuleId =
   | 'bazhai'
   | 'yunqi'
   | 'tizhi'
+  | 'almanac'
+  | 'namewuxing'
+  | 'dream'
+  | 'rhythm'
   | 'mermaid'
   | 'testing'
   | 'reader'
@@ -151,6 +155,55 @@ export const MODULES: WisdomModule[] = [
     questionTypes: ['九种体质', '雷达图'],
     accent: '#dbb053',
     description: '用九种体质评分展示偏颇倾向和调养提示。',
+  },
+  // 日用工具扩展 (v0.4)
+  {
+    id: 'almanac',
+    group: '日用工具',
+    title: '每日黄历',
+    shortTitle: '黄历',
+    status: 'folk-experience',
+    statusLabel: '民俗体验',
+    privacyLevel: '不保存个人资料',
+    questionTypes: ['宜忌', '时辰', '节气'],
+    accent: '#c6301f',
+    description: '基于农历日期展示当日宜忌、吉时凶时、节气物候等民俗参考信息，不做吉凶预测。',
+  },
+  {
+    id: 'namewuxing',
+    group: '日用工具',
+    title: '姓名五行',
+    shortTitle: '姓名',
+    status: 'folk-experience',
+    statusLabel: '民俗体验',
+    privacyLevel: '仅本地计算',
+    questionTypes: ['笔画', '五行', '三才'],
+    accent: '#2a9d75',
+    description: '分析姓名汉字的笔画五行与三才配置，作为文化参考，不构成命名建议。',
+  },
+  {
+    id: 'dream',
+    group: '日用工具',
+    title: '梦境意象',
+    shortTitle: '解梦',
+    status: 'folk-experience',
+    statusLabel: '民俗体验',
+    privacyLevel: '不保存个人资料',
+    questionTypes: ['意象', '情绪', '联想'],
+    accent: '#6b5b95',
+    description: '基于传统解梦词库提供意象联想参考，用于自我观察，不做预言判断。',
+  },
+  {
+    id: 'rhythm',
+    group: '日用工具',
+    title: '每日节律',
+    shortTitle: '节律',
+    status: 'folk-experience',
+    statusLabel: '民俗体验',
+    privacyLevel: '不保存个人资料',
+    questionTypes: ['时辰', '经络', '养生'],
+    accent: '#dbb053',
+    description: '展示十二时辰与经络气血流注的对应关系，提供养生节律参考。',
   },
   {
     id: 'mermaid',
