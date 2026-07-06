@@ -384,6 +384,90 @@ const CORE = {
     });
   },
 
+  /** 创建或复用 Canvas 放大弹窗 */
+  ensureCanvasZoomModal() {
+    let overlay = document.getElementById("canvas-zoom-overlay");
+    let dialog = document.getElementById("canvas-zoom-dialog");
+    if (overlay && dialog) {
+      return { overlay, dialog };
+    }
+
+    overlay = document.createElement("div");
+    overlay.id = "canvas-zoom-overlay";
+    overlay.className = "canvas-zoom-overlay";
+    overlay.hidden = true;
+
+    dialog = document.createElement("div");
+    dialog.id = "canvas-zoom-dialog";
+    dialog.className = "canvas-zoom-dialog";
+    dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-modal", "true");
+    dialog.setAttribute("aria-labelledby", "canvas-zoom-title");
+    dialog.hidden = true;
+    dialog.innerHTML = `
+      <div class="canvas-zoom-header">
+        <div id="canvas-zoom-title" class="canvas-zoom-title">命盘放大查看</div>
+        <button type="button" class="canvas-zoom-close" aria-label="关闭放大命盘">×</button>
+      </div>
+      <div class="canvas-zoom-stage">
+        <img class="canvas-zoom-image" alt="放大后的命盘图像">
+      </div>
+      <div class="canvas-zoom-hint">双击命盘可放大查看，按 Esc 或点击空白处关闭。</div>
+    `;
+
+    overlay.addEventListener("click", () => this.closeCanvasZoomModal());
+    dialog.querySelector(".canvas-zoom-close").addEventListener("click", () => this.closeCanvasZoomModal());
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && dialog && !dialog.hidden) {
+        this.closeCanvasZoomModal();
+      }
+    });
+
+    document.body.appendChild(overlay);
+    document.body.appendChild(dialog);
+    return { overlay, dialog };
+  },
+
+  /** 打开 Canvas 放大弹窗 */
+  openCanvasZoomModal(canvas, title) {
+    if (!canvas || typeof canvas.toDataURL !== "function") return;
+    const modal = this.ensureCanvasZoomModal();
+    const image = modal.dialog.querySelector(".canvas-zoom-image");
+    const titleEl = modal.dialog.querySelector(".canvas-zoom-title");
+    if (!image || !titleEl) return;
+
+    titleEl.textContent = title || canvas.getAttribute("aria-label") || "命盘放大查看";
+    image.src = canvas.toDataURL("image/png");
+    image.alt = (titleEl.textContent || "命盘") + "放大图像";
+
+    modal.overlay.hidden = false;
+    modal.dialog.hidden = false;
+    document.body.classList.add("canvas-zoom-open");
+  },
+
+  /** 关闭 Canvas 放大弹窗 */
+  closeCanvasZoomModal() {
+    const overlay = document.getElementById("canvas-zoom-overlay");
+    const dialog = document.getElementById("canvas-zoom-dialog");
+    if (overlay) overlay.hidden = true;
+    if (dialog) dialog.hidden = true;
+    document.body.classList.remove("canvas-zoom-open");
+  },
+
+  /** 为指定 Canvas 绑定双击放大弹窗 */
+  bindCanvasZoomModal(canvasConfigs) {
+    (canvasConfigs || []).forEach((config) => {
+      const canvas = document.getElementById(config && config.id);
+      if (!canvas || canvas.dataset.zoomModalBound === "true") return;
+      canvas.dataset.zoomModalBound = "true";
+      canvas.classList.add("canvas-zoom-enabled");
+      canvas.title = canvas.title || "双击放大查看";
+      canvas.addEventListener("dblclick", () => {
+        this.openCanvasZoomModal(canvas, config.title);
+      });
+    });
+  },
+
   /** 在指定容器中插入术语图例面板 */
   createLegendPanel(containerId, groupNames) {
     const container = document.getElementById(containerId);

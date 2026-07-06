@@ -830,6 +830,12 @@ function updateConstitution() {
 // ─── Auto-init on first load ──────────────
 window.addEventListener('DOMContentLoaded', () => {
   normalizeFormLabels(document);
+  CORE.bindCanvasZoomModal([
+    { id: "bazi-canvas", title: "📜 八字命盘" },
+    { id: "ziwei-canvas", title: "🔮 紫微斗数命盘" },
+    { id: "liuyao-canvas", title: "📜 六爻卦象" },
+    { id: "meihua-canvas", title: "🌸 梅花易数" }
+  ]);
   // 创建图例面板
   setTimeout(() => {
     CORE.createLegendPanel('legend-bazi', ['stems', 'branches', 'shishen']);

@@ -25,6 +25,91 @@
     run: function() {
       var state = { passed: 0, failed: 0, details: [] };
 
+      runTest("CORE 提供 Canvas 双击放大弹窗 API", function() {
+        assert(typeof CORE !== "undefined", "缺少 CORE");
+        assert(typeof CORE.bindCanvasZoomModal === "function", "缺少 CORE.bindCanvasZoomModal");
+        assert(typeof CORE.openCanvasZoomModal === "function", "缺少 CORE.openCanvasZoomModal");
+        assert(typeof CORE.closeCanvasZoomModal === "function", "缺少 CORE.closeCanvasZoomModal");
+      }, state);
+
+      runTest("Canvas 放大弹窗样式类可被浏览器识别", function() {
+        var styleProbe = document.createElement("canvas");
+        styleProbe.className = "viz-canvas canvas-zoom-enabled";
+        document.body.appendChild(styleProbe);
+        var cursor = window.getComputedStyle(styleProbe).cursor;
+        document.body.removeChild(styleProbe);
+        assert(cursor === "zoom-in", "canvas-zoom-enabled 未显示 zoom-in 指针");
+      }, state);
+
+      runTest("Canvas 放大弹窗只绑定核心命盘", function() {
+        var host = document.createElement("div");
+        host.innerHTML = [
+          '<canvas id="zoom-test-bazi"></canvas>',
+          '<canvas id="zoom-test-ziwei"></canvas>',
+          '<canvas id="zoom-test-liuyao"></canvas>',
+          '<canvas id="zoom-test-meihua"></canvas>',
+          '<canvas id="zoom-test-wuxing"></canvas>'
+        ].join("");
+        document.body.appendChild(host);
+
+        CORE.bindCanvasZoomModal([
+          { id: "zoom-test-bazi", title: "八字命盘" },
+          { id: "zoom-test-ziwei", title: "紫微斗数命盘" },
+          { id: "zoom-test-liuyao", title: "六爻卦象" },
+          { id: "zoom-test-meihua", title: "梅花易数" }
+        ]);
+
+        assert(document.getElementById("zoom-test-bazi").dataset.zoomModalBound === "true", "八字未绑定");
+        assert(document.getElementById("zoom-test-ziwei").dataset.zoomModalBound === "true", "紫微未绑定");
+        assert(document.getElementById("zoom-test-liuyao").dataset.zoomModalBound === "true", "六爻未绑定");
+        assert(document.getElementById("zoom-test-meihua").dataset.zoomModalBound === "true", "梅花未绑定");
+        assert(document.getElementById("zoom-test-wuxing").dataset.zoomModalBound !== "true", "非核心五行被错误绑定");
+
+        host.remove();
+        CORE.closeCanvasZoomModal();
+      }, state);
+
+      runTest("Canvas 放大弹窗可打开并通过按钮、遮罩、Esc 关闭", function() {
+        var canvas = document.createElement("canvas");
+        canvas.id = "zoom-open-close-test";
+        canvas.width = 80;
+        canvas.height = 60;
+        var ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#d4a017";
+        ctx.fillRect(0, 0, 80, 60);
+        document.body.appendChild(canvas);
+
+        CORE.bindCanvasZoomModal([{ id: "zoom-open-close-test", title: "测试命盘" }]);
+        canvas.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+
+        var overlay = document.getElementById("canvas-zoom-overlay");
+        var dialog = document.getElementById("canvas-zoom-dialog");
+        var title = dialog.querySelector(".canvas-zoom-title");
+        var image = dialog.querySelector(".canvas-zoom-image");
+        var close = dialog.querySelector(".canvas-zoom-close");
+
+        assert(overlay && overlay.hidden === false, "遮罩未打开");
+        assert(dialog && dialog.hidden === false, "弹窗未打开");
+        assert(document.body.classList.contains("canvas-zoom-open"), "打开弹窗时未禁止背景滚动");
+        assert(title.textContent === "测试命盘", "弹窗标题不正确");
+        assert(image.src.indexOf("data:image/png") === 0, "弹窗图像未使用 Canvas PNG 数据");
+
+        close.click();
+        assert(dialog.hidden === true && overlay.hidden === true, "关闭按钮未关闭弹窗");
+        assert(!document.body.classList.contains("canvas-zoom-open"), "关闭后未恢复背景滚动");
+
+        CORE.openCanvasZoomModal(canvas, "测试命盘");
+        overlay.click();
+        assert(dialog.hidden === true && overlay.hidden === true, "遮罩点击未关闭弹窗");
+
+        CORE.openCanvasZoomModal(canvas, "测试命盘");
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+        assert(dialog.hidden === true && overlay.hidden === true, "Esc 未关闭弹窗");
+
+        canvas.remove();
+        CORE.closeCanvasZoomModal();
+      }, state);
+
       runTest("CapabilityRegistry 可用并声明核心模块", function() {
         assert(window.CapabilityRegistry, "缺少 CapabilityRegistry");
         var caps = CapabilityRegistry.getCapabilities();
