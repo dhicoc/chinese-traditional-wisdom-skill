@@ -130,6 +130,9 @@ if (exists(meihuaPath)) {
     meihuaWorkspace.includes('renderLegacyMeihua'),
     'MeihuaWorkspace 应调用 renderLegacyMeihua 复用旧 divination renderer',
   );
+  check(meihuaWorkspace.includes('MEIHUA_INTENT_EVENT'), 'MeihuaWorkspace 应监听梅花快捷命令 intent');
+  check(meihuaWorkspace.includes('setUpper'), 'MeihuaWorkspace 应可通过快捷命令更新上卦');
+  check(meihuaWorkspace.includes('setLower'), 'MeihuaWorkspace 应可通过快捷命令更新下卦');
 }
 
 // ── 3c. #liuyao 有 canvas 并接真实纳甲引擎 ────────────────
@@ -147,6 +150,9 @@ if (exists(liuyaoPath)) {
     liuyaoWorkspace.includes("calculateWithLegacyAdapter") && liuyaoWorkspace.includes("'liuyao'"),
     'LiuyaoWorkspace 应通过 calculateWithLegacyAdapter 接入 liuyao Adapter',
   );
+  check(liuyaoWorkspace.includes('LIUYAO_INTENT_EVENT'), 'LiuyaoWorkspace 应监听六爻快捷命令 intent');
+  check(liuyaoWorkspace.includes('setQuestion'), 'LiuyaoWorkspace 应可通过快捷命令更新占问事项');
+  check(liuyaoWorkspace.includes('setCastCount'), 'LiuyaoWorkspace 应可通过快捷命令触发重新起卦');
 }
 
 // ── 3d. #ziwei 有 1 个 canvas（紫微斗数迁移） ────────────
@@ -301,6 +307,8 @@ if (exists(readerPath)) {
     readerWorkspace.includes('highlightJson') || readerWorkspace.includes('renderMarkdownLite'),
     'AncientTextSplitReader 应实现 Markdown 渲染和 JSON 高亮',
   );
+  check(readerWorkspace.includes('READER_SEARCH_INTENT_EVENT'), 'AncientTextSplitReader 应监听古籍搜索 intent');
+  check(readerWorkspace.includes('setSearchTerm'), 'AncientTextSplitReader 应可通过快捷命令更新搜索词');
 }
 
 // ── 3i. CommandBar 命令面板（Phase 7） ──────────────────
@@ -338,6 +346,15 @@ check(
   commandBar.includes("dispatchYearIntent('feixing'") && commandBar.includes("dispatchYearIntent('yunqi'"),
   'CommandBar 应支持输入年份跳转飞星/五运六气',
 );
+check(commandBar.includes('parseBirthCommand'), 'CommandBar 应解析全局生辰修改命令');
+check(commandBar.includes('dispatchBirthIntent'), 'CommandBar 应派发全局生辰修改 intent');
+check(commandBar.includes('dispatchRefreshAllIntent'), 'CommandBar 应派发全局刷新 intent');
+check(commandBar.includes('dispatchLiuyaoIntent'), 'CommandBar 应派发六爻快捷命令 intent');
+check(commandBar.includes('dispatchMeihuaIntent'), 'CommandBar 应派发梅花快捷命令 intent');
+check(commandBar.includes('dispatchReaderSearchIntent'), 'CommandBar 应派发古籍搜索 intent');
+check(commandBar.includes("onSelectModule('liuyao')"), 'CommandBar 六爻快捷命令应跳转 liuyao 模块');
+check(commandBar.includes("onSelectModule('meihua')"), 'CommandBar 梅花快捷命令应跳转 meihua 模块');
+check(commandBar.includes("onSelectModule('reader')"), 'CommandBar 古籍搜索命令应跳转 reader 模块');
 
 // ── 3j. BirthPanel 全局出生资料同步 ──────────────────────
 const birthPanelPath = path.join(srcRoot, 'components/shared/BirthPanel.tsx');
@@ -357,6 +374,8 @@ if (exists(birthContextPath)) {
   check(birthContext.includes('BirthProvider'), 'birthContext 应导出 BirthProvider');
   check(birthContext.includes('useBirth'), 'birthContext 应导出 useBirth hook');
   check(birthContext.includes('readFortuneBirth'), 'birthContext 应从旧 FORTUNE 读取出生资料');
+  check(birthContext.includes('BIRTH_INTENT_EVENT'), 'birthContext 应监听 CommandBar 生辰更新 intent');
+  check(birthContext.includes('REFRESH_ALL_INTENT_EVENT'), 'birthContext 应监听 CommandBar 全局刷新 intent');
 }
 
 const birthBridgePath = path.join(srcRoot, 'legacy/birthBridge.ts');
@@ -492,6 +511,16 @@ if (exists(commandIntentsPath)) {
   const commandIntents = read(commandIntentsPath);
   check(commandIntents.includes('ctw:copy-context'), 'commandIntents 应定义 copy context 事件');
   check(commandIntents.includes('ctw:set-year'), 'commandIntents 应定义年份跳转事件');
+  check(commandIntents.includes('ctw:set-birth'), 'commandIntents 应定义全局生辰更新事件');
+  check(commandIntents.includes('ctw:refresh-all'), 'commandIntents 应定义全局刷新事件');
+  check(commandIntents.includes('ctw:liuyao-command'), 'commandIntents 应定义六爻快捷命令事件');
+  check(commandIntents.includes('ctw:meihua-command'), 'commandIntents 应定义梅花快捷命令事件');
+  check(commandIntents.includes('ctw:reader-search'), 'commandIntents 应定义古籍搜索命令事件');
+  check(commandIntents.includes('parseBirthCommand'), 'commandIntents 应导出生辰命令解析器');
+  check(commandIntents.includes('parseLiuyaoCommand'), 'commandIntents 应导出六爻命令解析器');
+  check(commandIntents.includes('parseMeihuaCommand'), 'commandIntents 应导出梅花命令解析器');
+  check(commandIntents.includes('parseReaderSearchCommand'), 'commandIntents 应导出古籍搜索命令解析器');
+  check(commandIntents.includes('isRefreshAllCommand'), 'commandIntents 应导出刷新命令识别器');
 }
 
 const copyButton = read(path.join(srcRoot, 'components/shared/CopyContextButton.tsx'));

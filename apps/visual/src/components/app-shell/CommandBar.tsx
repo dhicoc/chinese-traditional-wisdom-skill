@@ -1,7 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ModuleId } from '@/lib/modules';
 import { MODULES, getModuleById } from '@/lib/modules';
-import { dispatchCopyContextIntent, dispatchYearIntent, extractCommandYear } from '@/lib/commandIntents';
+import {
+  dispatchBirthIntent,
+  dispatchCopyContextIntent,
+  dispatchLiuyaoIntent,
+  dispatchMeihuaIntent,
+  dispatchReaderSearchIntent,
+  dispatchRefreshAllIntent,
+  dispatchYearIntent,
+  extractCommandYear,
+  isRefreshAllCommand,
+  parseBirthCommand,
+  parseLiuyaoCommand,
+  parseMeihuaCommand,
+  parseReaderSearchCommand,
+} from '@/lib/commandIntents';
 
 /* ── 类型 ─────────────────────────────────────────────── */
 
@@ -99,7 +113,7 @@ function CommandPalette({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="搜索工具、切换标签、输入 2026 跳转年份、复制上下文…"
+            placeholder="搜索工具、输入年份/生辰、快速起卦、古籍搜索…"
             className="flex-1 bg-transparent text-sm text-jade-100 placeholder:text-jade-100/25 focus:outline-none"
           />
           <kbd className="rounded border border-white/10 bg-black/30 px-1.5 py-0.5 font-mono text-[10px] text-jade-100/35">
@@ -212,32 +226,105 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
 
   const getDynamicItems = useCallback(
     (query: string): CommandItem[] => {
-      const year = extractCommandYear(query);
-      if (!year) return [];
-      return [
-        {
-          id: 'year-feixing-' + year,
-          label: '查看 ' + year + ' 流年飞星',
-          hint: '按年份跳转到流年飞星并更新九宫盘',
-          group: '年份',
-          keywords: [String(year), '流年', '飞星', '九宫', 'year', 'feixing'],
-          action: () => {
-            dispatchYearIntent('feixing', year);
-            onSelectModule('feixing');
+      const trimmed = query.trim();
+      const dynamicItems: CommandItem[] = [];
+      const year = extractCommandYear(trimmed);
+      if (year) {
+        dynamicItems.push(
+          {
+            id: 'year-feixing-' + year,
+            label: '查看 ' + year + ' 流年飞星',
+            hint: '按年份跳转到流年飞星并更新九宫盘',
+            group: '年份',
+            keywords: [String(year), '流年', '飞星', '九宫', 'year', 'feixing'],
+            action: () => {
+              dispatchYearIntent('feixing', year);
+              onSelectModule('feixing');
+            },
           },
-        },
-        {
-          id: 'year-yunqi-' + year,
-          label: '查看 ' + year + ' 五运六气',
-          hint: '按年份跳转到五运六气并更新岁运、司天、在泉',
-          group: '年份',
-          keywords: [String(year), '五运六气', '岁运', '司天', '在泉', 'year', 'yunqi'],
-          action: () => {
-            dispatchYearIntent('yunqi', year);
-            onSelectModule('yunqi');
+          {
+            id: 'year-yunqi-' + year,
+            label: '查看 ' + year + ' 五运六气',
+            hint: '按年份跳转到五运六气并更新岁运、司天、在泉',
+            group: '年份',
+            keywords: [String(year), '五运六气', '岁运', '司天', '在泉', 'year', 'yunqi'],
+            action: () => {
+              dispatchYearIntent('yunqi', year);
+              onSelectModule('yunqi');
+            },
           },
-        },
-      ];
+        );
+      }
+
+      const birthIntent = parseBirthCommand(trimmed);
+      if (birthIntent) {
+        dynamicItems.push({
+          id: 'birth-update-' + trimmed,
+          label: '更新全局生辰',
+          hint: '同步到全局生辰与旧 FORTUNE，各工作区按新资料重算',
+          group: '生辰',
+          keywords: [trimmed, 'birth', '生辰', '出生', '农历', '公历'],
+          action: () => dispatchBirthIntent(birthIntent),
+        });
+      }
+
+      if (isRefreshAllCommand(trimmed)) {
+        dynamicItems.push({
+          id: 'refresh-all-' + trimmed,
+          label: '刷新 / 重算所有工作区',
+          hint: '重新触发全局出生资料同步；支持监听的工具会刷新',
+          group: '操作',
+          keywords: [trimmed, 'refresh', '刷新', '重算', '重新计算'],
+          action: () => dispatchRefreshAllIntent(trimmed),
+        });
+      }
+
+      const liuyaoIntent = parseLiuyaoCommand(trimmed);
+      if (liuyaoIntent) {
+        dynamicItems.push({
+          id: 'quick-liuyao-' + trimmed,
+          label: '六爻快速起卦',
+          hint: liuyaoIntent.question ? '切换到六爻 · ' + liuyaoIntent.question : '切换到六爻并起卦',
+          group: '占卜',
+          keywords: [trimmed, liuyaoIntent.question ?? '', '六爻', 'liuyao', '起卦', '占卜'],
+          action: () => {
+            onSelectModule('liuyao');
+            window.setTimeout(() => dispatchLiuyaoIntent(liuyaoIntent), 0);
+          },
+        });
+      }
+
+      const meihuaIntent = parseMeihuaCommand(trimmed);
+      if (meihuaIntent) {
+        dynamicItems.push({
+          id: 'quick-meihua-' + trimmed,
+          label: '梅花易数快速排盘',
+          hint: '切换到梅花易数并应用上下卦 / 动爻 / 体用关系',
+          group: '占卜',
+          keywords: [trimmed, meihuaIntent.upper ?? '', meihuaIntent.lower ?? '', '梅花', 'meihua', '易数'],
+          action: () => {
+            onSelectModule('meihua');
+            window.setTimeout(() => dispatchMeihuaIntent(meihuaIntent), 0);
+          },
+        });
+      }
+
+      const readerIntent = parseReaderSearchCommand(trimmed);
+      if (readerIntent) {
+        dynamicItems.push({
+          id: 'reader-search-' + trimmed,
+          label: '古籍搜索：' + readerIntent.term,
+          hint: '切换到古籍 Split Reader 并高亮关键词',
+          group: '古籍',
+          keywords: [trimmed, readerIntent.term, '古籍', 'reader', 'split', '搜索'],
+          action: () => {
+            onSelectModule('reader');
+            window.setTimeout(() => dispatchReaderSearchIntent(readerIntent), 0);
+          },
+        });
+      }
+
+      return dynamicItems;
     },
     [onSelectModule],
   );
@@ -254,7 +341,7 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
             aria-label="打开命令面板 (⌘K)"
           >
             <span className="font-mono text-jade-400">⌘K</span>
-            <span className="min-w-0 flex-1 truncate text-sm">搜索工具、切换标签、输入年份、复制 AI 上下文</span>
+            <span className="min-w-0 flex-1 truncate text-sm">搜索工具、输入年份/生辰、快速起卦、古籍搜索</span>
             <span className="hidden rounded-full border border-white/10 px-2 py-1 text-[10px] text-jade-100/30 md:inline-flex">COMMAND</span>
           </button>
           <div className="flex flex-wrap gap-2 xl:justify-end">

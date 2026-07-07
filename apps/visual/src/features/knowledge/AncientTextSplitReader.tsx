@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { READER_SEARCH_INTENT_EVENT, type ReaderSearchIntentDetail } from '@/lib/commandIntents';
 
 // 构建时导入古籍原文和映射 JSON（Vite ?raw）
 import bazhaiText from '@kb/fengshui/03-yang-house/八宅明镜.md?raw';
@@ -82,6 +83,17 @@ function highlightJson(json: string): string {
 export function AncientTextSplitReader() {
   const [selectedId, setSelectedId] = useState(TEXT_PAIRS[0].id);
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    function handleReaderSearchIntent(event: Event) {
+      const detail = (event as CustomEvent<ReaderSearchIntentDetail>).detail;
+      if (!detail?.term) return;
+      setSearchTerm(detail.term);
+    }
+
+    window.addEventListener(READER_SEARCH_INTENT_EVENT, handleReaderSearchIntent);
+    return () => window.removeEventListener(READER_SEARCH_INTENT_EVENT, handleReaderSearchIntent);
+  }, []);
 
   const selected = TEXT_PAIRS.find((p) => p.id === selectedId) ?? TEXT_PAIRS[0];
 

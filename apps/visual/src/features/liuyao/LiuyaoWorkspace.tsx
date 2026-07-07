@@ -9,6 +9,7 @@ import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
+import { LIUYAO_INTENT_EVENT, type LiuyaoIntentDetail } from '@/lib/commandIntents';
 
 type CastMethod = 'coin' | 'time' | 'manual';
 
@@ -79,6 +80,26 @@ export function LiuyaoWorkspace() {
     return () => {
       mounted = false;
     };
+  }, []);
+
+  useEffect(() => {
+    function handleLiuyaoIntent(event: Event) {
+      const detail = (event as CustomEvent<LiuyaoIntentDetail>).detail;
+      if (!detail) return;
+
+      if (detail.method) setMethod(detail.method);
+      if (typeof detail.question === 'string') setQuestion(detail.question);
+      if (detail.yaoValues && isValidYaoValues(detail.yaoValues)) {
+        setYaoValues(detail.yaoValues.replace(/\s/g, ''));
+        setMethod('manual');
+      }
+      if (detail.recast || detail.method === 'coin') {
+        setCastCount((count) => count + 1);
+      }
+    }
+
+    window.addEventListener(LIUYAO_INTENT_EVENT, handleLiuyaoIntent);
+    return () => window.removeEventListener(LIUYAO_INTENT_EVENT, handleLiuyaoIntent);
   }, []);
 
   const ready = legacyState.mode === 'ready';

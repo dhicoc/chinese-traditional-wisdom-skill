@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CanvasPanel } from '@/components/shared/CanvasPanel';
 import { ControlField } from '@/components/shared/ControlField';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { MEIHUA_TRIGRAMS, renderLegacyMeihua, type MeihuaData } from '@/legacy/canvasRenderers';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import type { LegacyState } from '@/legacy/legacyGlobals';
-import { useEffect } from 'react';
+import { MEIHUA_INTENT_EVENT, type MeihuaIntentDetail } from '@/lib/commandIntents';
 
 const NAME_MAP: Record<string, string> = {
   乾: '天',
@@ -44,6 +44,29 @@ export function MeihuaWorkspace() {
     return () => {
       mounted = false;
     };
+  }, []);
+
+  useEffect(() => {
+    function handleMeihuaIntent(event: Event) {
+      const detail = (event as CustomEvent<MeihuaIntentDetail>).detail;
+      if (!detail) return;
+
+      if (detail.upper && MEIHUA_TRIGRAMS.some((item) => item.value === detail.upper)) {
+        setUpper(detail.upper);
+      }
+      if (detail.lower && MEIHUA_TRIGRAMS.some((item) => item.value === detail.lower)) {
+        setLower(detail.lower);
+      }
+      if (typeof detail.movingLine === 'number') {
+        setMovingLine(Math.min(6, Math.max(1, Math.trunc(detail.movingLine))));
+      }
+      if (detail.relation && (RELATION_OPTIONS as readonly string[]).includes(detail.relation)) {
+        setRelation(detail.relation);
+      }
+    }
+
+    window.addEventListener(MEIHUA_INTENT_EVENT, handleMeihuaIntent);
+    return () => window.removeEventListener(MEIHUA_INTENT_EVENT, handleMeihuaIntent);
   }, []);
 
   const data = useMemo<MeihuaData>(
