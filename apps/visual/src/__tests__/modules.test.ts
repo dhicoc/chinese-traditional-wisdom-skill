@@ -1,5 +1,15 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { MODULES, type ModuleId, type ModuleGroup, type ModuleStatus } from '@/lib/modules';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const srcRoot = path.resolve(__dirname, '..');
+
+function readSource(relativePath: string) {
+  return fs.readFileSync(path.join(srcRoot, relativePath), 'utf8');
+}
 
 describe('Modules Registry', () => {
   it('should have modules defined', () => {
@@ -92,5 +102,22 @@ describe('Daily Utility Tools (v0.4)', () => {
     utilityModules.forEach(module => {
       expect(module.status).toBe('folk-experience');
     });
+  });
+});
+
+describe('XuanOrbitLogo', () => {
+  it('should be a decorative celestial orbit icon with the approved structure', () => {
+    const source = readSource('components/app-shell/XuanOrbitLogo.tsx');
+
+    expect(source).toContain('export function XuanOrbitLogo');
+    expect(source).toContain('aria-hidden="true"');
+    expect(source).toContain('viewBox="0 0 100 100"');
+    expect(source).toContain('data-logo-part="outer-disc"');
+    expect(source).toContain('data-logo-part="horizontal-orbit"');
+    expect(source).toContain('data-logo-part="vertical-orbit"');
+    expect(source).toContain('data-logo-part="star-core"');
+    expect(source).toContain('data-logo-part="anchor-star-left"');
+    expect(source).toContain('data-logo-part="anchor-star-right"');
+    expect(source).not.toContain('>玄<');
   });
 });
