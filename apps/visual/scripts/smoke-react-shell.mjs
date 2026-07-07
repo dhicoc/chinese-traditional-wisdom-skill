@@ -57,6 +57,21 @@ function countOccurrences(haystack, needle) {
   return count;
 }
 
+// ── 0. Sidebar brand uses the custom 玄轨星核 logo ───────────
+const sidebarNav = read(path.join(srcRoot, 'components/app-shell/SidebarNav.tsx'));
+check(
+  sidebarNav.includes("import { XuanOrbitLogo } from './XuanOrbitLogo';"),
+  'SidebarNav 应导入 XuanOrbitLogo 作为侧边栏品牌图标',
+);
+check(
+  sidebarNav.includes('<XuanOrbitLogo className="h-9 w-9 drop-shadow-[0_0_10px_rgba(44,159,132,0.72)]" />'),
+  'SidebarNav 应在 brand-seal 中渲染 玄轨星核 图标',
+);
+check(
+  !sidebarNav.includes('>\n            玄\n          </div>'),
+  'brand-seal 不应继续直接渲染文字 玄',
+);
+
 check(exists(path.join(repoRoot, 'visual/react.html')), 'visual/react.html 应存在，作为 React 并行验证入口');
 
 // ── 1. #bazi 有 2 个 canvas ──────────────────────────────
