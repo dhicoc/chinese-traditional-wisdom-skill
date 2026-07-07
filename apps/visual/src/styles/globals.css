@@ -4,20 +4,21 @@
 
 :root {
   color-scheme: dark;
-  --background: 5 8 6;
-  --foreground: 244 238 218;
-  --surface: 15 24 20;
-  --surface-raised: 21 34 28;
-  --border: 52 67 55;
+  --background: 5 12 10;
+  --foreground: 233 228 216;
+  --surface: 15 30 26;
+  --surface-raised: 22 43 37;
+  --border: 42 63 56;
   --cinnabar: 198 48 31;
-  --jade: 21 155 110;
-  --talisman: 219 176 83;
-  --spirit: 78 122 104;
-  --wood: 42 157 117;
-  --fire: 221 88 54;
-  --earth: 219 176 83;
-  --metal: 238 232 204;
-  --water: 23 58 71;
+  --jade: 44 159 132;
+  --gold: 201 178 122;
+  --talisman: 201 178 122;
+  --spirit: 84 130 114;
+  --wood: 44 159 132;
+  --fire: 198 48 31;
+  --earth: 201 178 122;
+  --metal: 233 228 216;
+  --water: 47 79 85;
 }
 
 * {
@@ -26,17 +27,17 @@
 
 html {
   min-height: 100%;
-  background: #050806;
+  background: #050c0a;
 }
 
 body {
   min-height: 100dvh;
   margin: 0;
   background:
-    radial-gradient(circle at 16% 12%, rgba(var(--jade), 0.14), transparent 28rem),
-    radial-gradient(circle at 74% 0%, rgba(var(--cinnabar), 0.12), transparent 25rem),
-    radial-gradient(circle at 50% 78%, rgba(var(--talisman), 0.08), transparent 34rem),
-    linear-gradient(180deg, #030504 0%, #07100c 42%, #050706 100%);
+    radial-gradient(circle at 16% 12%, rgba(var(--jade), 0.16), transparent 28rem),
+    radial-gradient(circle at 74% 0%, rgba(var(--cinnabar), 0.10), transparent 25rem),
+    radial-gradient(circle at 50% 78%, rgba(var(--gold), 0.08), transparent 34rem),
+    linear-gradient(180deg, #030504 0%, #081813 42%, #050a09 100%);
   color: rgb(var(--foreground));
   font-family: Inter, "Noto Sans SC", "Microsoft YaHei", sans-serif;
 }
@@ -53,7 +54,8 @@ button {
 }
 
 ::selection {
-  background: rgba(var(--cinnabar), 0.35);
+  background: rgba(var(--jade), 0.32);
+  color: rgb(var(--foreground));
 }
 
 .scrollbar-none {
@@ -67,9 +69,9 @@ button {
 
 .instrument-grid {
   background-image:
-    linear-gradient(rgba(var(--talisman), 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(var(--jade), 0.038) 1px, transparent 1px),
-    radial-gradient(circle at 68% 16%, rgba(var(--talisman), 0.07), transparent 26rem);
+    linear-gradient(rgba(var(--gold), 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--jade), 0.03) 1px, transparent 1px),
+    radial-gradient(circle at 68% 16%, rgba(var(--jade), 0.08), transparent 26rem);
   background-size: 52px 52px, 52px 52px, 100% 100%;
 }
 
@@ -88,10 +90,10 @@ button {
   overflow: hidden;
   pointer-events: none;
   background:
-    radial-gradient(circle at 22% 18%, rgba(var(--jade), 0.2), transparent 26rem),
-    radial-gradient(circle at 82% 12%, rgba(var(--cinnabar), 0.2), transparent 24rem),
-    radial-gradient(circle at 68% 70%, rgba(var(--talisman), 0.14), transparent 34rem),
-    linear-gradient(145deg, #020302 0%, #06110d 42%, #140806 68%, #030504 100%);
+    radial-gradient(circle at 22% 18%, rgba(var(--jade), 0.22), transparent 26rem),
+    radial-gradient(circle at 82% 12%, rgba(var(--cinnabar), 0.12), transparent 24rem),
+    radial-gradient(circle at 68% 70%, rgba(var(--gold), 0.10), transparent 34rem),
+    linear-gradient(145deg, #020302 0%, #06110d 42%, #0a1512 68%, #030504 100%);
   isolation: isolate;
 }
 
@@ -111,7 +113,7 @@ button {
   overflow: hidden;
   box-shadow:
     inset 0 1px 0 rgba(var(--metal), 0.05),
-    inset 0 0 40px rgba(var(--talisman), 0.025),
+    inset 0 0 40px rgba(var(--jade), 0.025),
     0 24px 70px rgba(0, 0, 0, 0.42);
 }
 
@@ -123,8 +125,8 @@ button {
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(135deg, rgba(var(--talisman), 0.08), transparent 22%),
-    linear-gradient(315deg, rgba(var(--jade), 0.04), transparent 30%);
+    linear-gradient(135deg, rgba(var(--jade), 0.07), transparent 22%),
+    linear-gradient(315deg, rgba(var(--gold), 0.03), transparent 30%);
   opacity: 0.86;
 }
 
@@ -143,15 +145,15 @@ button {
   width: 8rem;
   height: 8rem;
   border-radius: 999px;
-  border: 1px solid rgba(var(--talisman), 0.18);
-  background: repeating-conic-gradient(from 0deg, rgba(var(--talisman), 0.22) 0deg 1deg, transparent 1deg 14deg);
+  border: 1px solid rgba(var(--jade), 0.18);
+  background: repeating-conic-gradient(from 0deg, rgba(var(--jade), 0.18) 0deg 1deg, transparent 1deg 14deg);
   opacity: 0.34;
 }
 
 .brand-seal {
   box-shadow:
-    inset 0 0 24px rgba(var(--talisman), 0.12),
-    0 0 28px rgba(var(--talisman), 0.08);
+    inset 0 0 24px rgba(var(--jade), 0.12),
+    0 0 28px rgba(var(--jade), 0.08);
 }
 
 .sidebar-nav-item:after {
@@ -164,7 +166,7 @@ button {
 }
 
 .sidebar-nav-item:hover:after {
-  border-left-color: rgba(var(--talisman), 0.3);
+  border-left-color: rgba(var(--jade), 0.35);
 }
 
 .home-plate {
@@ -173,19 +175,19 @@ button {
   place-items: center;
   border-radius: 999px;
   background:
-    radial-gradient(circle, rgba(var(--talisman), 0.18), transparent 16%),
-    radial-gradient(circle, rgba(var(--cinnabar), 0.12), transparent 54%),
-    rgba(2, 7, 5, 0.48);
+    radial-gradient(circle, rgba(var(--jade), 0.16), transparent 16%),
+    radial-gradient(circle, rgba(var(--cinnabar), 0.10), transparent 54%),
+    rgba(2, 8, 6, 0.48);
   box-shadow:
-    inset 0 0 78px rgba(var(--talisman), 0.08),
-    0 0 80px rgba(var(--talisman), 0.12);
+    inset 0 0 78px rgba(var(--jade), 0.08),
+    0 0 80px rgba(var(--jade), 0.12);
 }
 
 .home-plate-ring {
   position: absolute;
   border-radius: inherit;
-  border: 1px solid rgba(var(--talisman), 0.22);
-  background: repeating-conic-gradient(from 0deg, rgba(var(--talisman), 0.16) 0deg 1deg, transparent 1deg 12deg);
+  border: 1px solid rgba(var(--jade), 0.22);
+  background: repeating-conic-gradient(from 0deg, rgba(var(--jade), 0.16) 0deg 1deg, transparent 1deg 12deg);
   mask-image: radial-gradient(circle, transparent 0 58%, black 59% 66%, transparent 67%);
 }
 
@@ -207,7 +209,7 @@ button {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   overflow: hidden;
   border-radius: 18px;
-  border: 1px solid rgba(var(--talisman), 0.22);
+  border: 1px solid rgba(var(--jade), 0.22);
   background: rgba(3, 8, 5, 0.72);
 }
 
@@ -215,12 +217,12 @@ button {
   display: grid;
   min-height: 6.4rem;
   place-items: center;
-  border: 1px solid rgba(var(--talisman), 0.08);
+  border: 1px solid rgba(var(--jade), 0.08);
   padding: 0.75rem;
 }
 
 .home-pillar-cell strong {
-  color: rgb(var(--talisman));
+  color: rgb(var(--jade));
   font-family: "Noto Serif CJK SC", "Songti SC", SimSun, serif;
   font-size: clamp(1.8rem, 4vw, 3rem);
   line-height: 1;
@@ -258,9 +260,9 @@ button {
   height: 4.2rem;
   place-items: center;
   border-radius: 999px;
-  border: 1px solid rgba(var(--talisman), 0.34);
-  background: rgba(4, 9, 6, 0.88);
-  color: rgb(var(--talisman));
+  border: 1px solid rgba(var(--jade), 0.34);
+  background: rgba(4, 10, 7, 0.88);
+  color: rgb(var(--jade));
   font-family: "Noto Serif CJK SC", "Songti SC", SimSun, serif;
   font-size: 1.65rem;
 }
@@ -270,7 +272,7 @@ button {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(circle at 85% 15%, rgba(var(--talisman), 0.12), transparent 32%);
+  background: radial-gradient(circle at 85% 15%, rgba(var(--jade), 0.14), transparent 32%);
   opacity: 0;
   transition: opacity 180ms ease;
 }
@@ -294,8 +296,8 @@ button {
 .canvas-stage {
   position: relative;
   box-shadow:
-    inset 0 0 0 1px rgba(var(--talisman), 0.05),
-    inset 0 0 48px rgba(var(--talisman), 0.04),
+    inset 0 0 0 1px rgba(var(--jade), 0.05),
+    inset 0 0 48px rgba(var(--jade), 0.04),
     0 18px 60px rgba(0, 0, 0, 0.34);
 }
 
@@ -306,9 +308,9 @@ button {
   pointer-events: none;
   border-radius: inherit;
   background:
-    radial-gradient(circle at 50% 42%, rgba(var(--talisman), 0.08), transparent 36%),
-    linear-gradient(rgba(var(--talisman), 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(var(--jade), 0.035) 1px, transparent 1px);
+    radial-gradient(circle at 50% 42%, rgba(var(--jade), 0.08), transparent 36%),
+    linear-gradient(rgba(var(--jade), 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--gold), 0.025) 1px, transparent 1px);
   background-size: 100% 100%, 42px 42px, 42px 42px;
   opacity: 0.82;
 }
@@ -316,9 +318,9 @@ button {
 .theme-canvas {
   position: relative;
   z-index: 1;
-  background: #050806;
+  background: #050c0a;
   box-shadow:
-    0 0 0 1px rgba(var(--talisman), 0.16),
+    0 0 0 1px rgba(var(--jade), 0.16),
     0 18px 52px rgba(0, 0, 0, 0.42);
 }
 

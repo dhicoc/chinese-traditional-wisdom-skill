@@ -65,8 +65,8 @@ export function YunqiWorkspace() {
       <div className="rounded-panel border border-ink-700 bg-ink-850/78 p-4 shadow-instrument">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="font-serif text-2xl font-semibold text-zinc-100">五运六气</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-400">
+            <h2 className="font-serif text-2xl font-semibold text-jade-100">五运六气</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               复用旧 YunqiEngine 计算链路与 health renderer，验证 React Shell 对本地规则引擎和 Canvas 图表的双重兼容。
             </p>
           </div>
@@ -93,20 +93,20 @@ export function YunqiWorkspace() {
           />
 
           <div className="rounded-card border border-white/8 bg-white/[0.035] p-4">
-            <p className="text-sm font-semibold text-zinc-100">当前推算</p>
+            <p className="text-sm font-semibold text-jade-100">当前推算</p>
             {data ? (
-              <dl className="mt-3 space-y-2 text-sm text-zinc-400">
-                <div className="flex justify-between gap-3"><dt>干支</dt><dd className="text-zinc-100">{data.tiangan}{data.dizhi}</dd></div>
-                <div className="flex justify-between gap-3"><dt>岁运</dt><dd className="text-zinc-100">{data.wuyun.dayun}</dd></div>
-                <div className="flex justify-between gap-3"><dt>司天</dt><dd className="text-zinc-100">{data.liuqi.sitian}</dd></div>
-                <div className="flex justify-between gap-3"><dt>在泉</dt><dd className="text-zinc-100">{data.liuqi.zaiquan}</dd></div>
+              <dl className="mt-3 space-y-2 text-sm text-jade-100/55">
+                <div className="flex justify-between gap-3"><dt>干支</dt><dd className="text-jade-100">{data.tiangan}{data.dizhi}</dd></div>
+                <div className="flex justify-between gap-3"><dt>岁运</dt><dd className="text-jade-100">{data.wuyun.dayun}</dd></div>
+                <div className="flex justify-between gap-3"><dt>司天</dt><dd className="text-jade-100">{data.liuqi.sitian}</dd></div>
+                <div className="flex justify-between gap-3"><dt>在泉</dt><dd className="text-jade-100">{data.liuqi.zaiquan}</dd></div>
               </dl>
             ) : (
-              <p className="mt-2 text-sm text-zinc-500">等待旧引擎加载。</p>
+              <p className="mt-2 text-sm text-jade-100/45">等待旧引擎加载。</p>
             )}
           </div>
 
-          <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-zinc-400">
+          <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
             五运六气输出仅作传统文化和气候病机理论学习参考，不替代医学诊断。
           </p>
         </aside>

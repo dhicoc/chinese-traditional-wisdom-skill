@@ -71,11 +71,11 @@ export function CopyContextButton({ label = 'Copy context for AI', title, payloa
       type="button"
       onClick={copy}
       aria-live="polite"
-      className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-jade-500/30 hover:text-jade-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-500/40"
+      className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-jade-100/70 transition hover:border-jade-500/30 hover:text-jade-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-500/40"
       data-copy-status={status}
       style={
         status === 'copied'
-          ? { borderColor: 'rgba(42, 157, 143, 0.4)', color: '#2a9d8f' }
+          ? { borderColor: 'rgba(44, 159, 132, 0.4)', color: '#2c9f84' }
           : status === 'error'
             ? { borderColor: 'rgba(174, 32, 18, 0.4)', color: '#e76f51' }
             : undefined

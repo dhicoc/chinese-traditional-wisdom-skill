@@ -48,9 +48,9 @@ const TEXT_PAIRS: TextPair[] = [
 /* ── 简易 Markdown 渲染 ───────────────────────────────── */
 
 function renderMarkdownLite(text: string): string {
-  const h1Open = '<h1 class="text-zinc-50 font-serif text-xl font-bold mt-5 mb-3">';
-  const h2Open = '<h2 class="text-zinc-100 font-serif text-lg font-semibold mt-5 mb-2">';
-  const h3Open = '<h3 class="text-zinc-300 font-semibold mt-4 mb-2">';
+  const h1Open = '<h1 class="text-jade-50 font-serif text-xl font-bold mt-5 mb-3">';
+  const h2Open = '<h2 class="text-jade-100 font-serif text-lg font-semibold mt-5 mb-2">';
+  const h3Open = '<h3 class="text-jade-100/70 font-semibold mt-4 mb-2">';
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -58,11 +58,11 @@ function renderMarkdownLite(text: string): string {
     .replace(/^### (.+)$/gm, `${h3Open}$1</h3>`)
     .replace(/^## (.+)$/gm, `${h2Open}$1</h2>`)
     .replace(/^# (.+)$/gm, `${h1Open}$1</h1>`)
-    .replace(/^> (.+)$/gm, '<blockquote class="border-l-2 border-jade-500/30 pl-3 text-zinc-400 italic my-2">$1</blockquote>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong class="text-zinc-200">$1</strong>')
+    .replace(/^> (.+)$/gm, '<blockquote class="border-l-2 border-jade-500/30 pl-3 text-jade-100/55 italic my-2">$1</blockquote>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong class="text-jade-100/80">$1</strong>')
     .replace(/^---$/gm, '<hr class="border-white/8 my-3" />')
-    .replace(/\n\n/g, '</p><p class="text-zinc-300 leading-7 my-1">')
-    .replace(/^/, '<p class="text-zinc-300 leading-7 my-1">')
+    .replace(/\n\n/g, '</p><p class="text-jade-100/70 leading-7 my-1">')
+    .replace(/^/, '<p class="text-jade-100/70 leading-7 my-1">')
     .replace(/$/, '</p>');
 }
 
@@ -115,8 +115,8 @@ export function AncientTextSplitReader() {
       <div className="rounded-panel border border-ink-700 bg-ink-850/78 p-4 shadow-instrument">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="font-serif text-2xl font-semibold text-zinc-100">古籍 Split Reader</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-400">
+            <h2 className="font-serif text-2xl font-semibold text-jade-100">古籍 Split Reader</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               左侧显示古籍 Markdown 原文，右侧显示映射 JSON 结构，支持关键词搜索高亮。Phase 8 雏形——先内置八宅明镜与映射表对照。
             </p>
           </div>
@@ -134,8 +134,8 @@ export function AncientTextSplitReader() {
             className={[
               'shrink-0 rounded-full border px-3 py-2 text-xs font-medium transition',
               pair.id === selectedId
-                ? 'border-jade-500/40 bg-jade-500/12 text-zinc-50'
-                : 'border-transparent text-zinc-500 hover:border-white/10 hover:text-zinc-200',
+                ? 'border-jade-500/40 bg-jade-500/12 text-jade-50'
+                : 'border-transparent text-jade-100/45 hover:border-white/10 hover:text-jade-100/80',
             ].join(' ')}
           >
             {pair.title}
@@ -151,13 +151,13 @@ export function AncientTextSplitReader() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="搜索原文关键词…"
-          className="flex-1 bg-transparent text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
+          className="flex-1 bg-transparent text-sm text-jade-100 placeholder:text-jade-100/35 focus:outline-none"
         />
         {searchTerm && (
           <button
             type="button"
             onClick={() => setSearchTerm('')}
-            className="text-xs text-zinc-500 hover:text-zinc-300"
+            className="text-xs text-jade-100/45 hover:text-jade-100/70"
           >
             清除
           </button>
@@ -169,8 +169,8 @@ export function AncientTextSplitReader() {
         {/* 左侧：古籍原文 */}
         <div className="rounded-panel border border-ink-700 bg-ink-850/60 p-4">
           <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
-            <h3 className="font-serif text-sm font-semibold text-zinc-300">古籍原文</h3>
-            <span className="text-[10px] text-zinc-500">{selected.source.length} 字符</span>
+            <h3 className="font-serif text-sm font-semibold text-jade-100/70">古籍原文</h3>
+            <span className="text-[10px] text-jade-100/45">{selected.source.length} 字符</span>
           </div>
           <div
             className="max-h-[60vh] overflow-y-auto pr-2 text-sm leading-7"
@@ -181,8 +181,8 @@ export function AncientTextSplitReader() {
         {/* 右侧：映射 JSON */}
         <div className="rounded-panel border border-ink-700 bg-ink-850/60 p-4">
           <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
-            <h3 className="font-serif text-sm font-semibold text-zinc-300">{selected.mappingName}</h3>
-            <span className="text-[10px] text-zinc-500">{selected.mappingJson.length} 字符</span>
+            <h3 className="font-serif text-sm font-semibold text-jade-100/70">{selected.mappingName}</h3>
+            <span className="text-[10px] text-jade-100/45">{selected.mappingJson.length} 字符</span>
           </div>
           <pre className="max-h-[60vh] overflow-auto rounded-card border border-white/8 bg-black/30 p-3 text-xs leading-5">
             <code dangerouslySetInnerHTML={{ __html: highlightedJson }} />
@@ -192,7 +192,7 @@ export function AncientTextSplitReader() {
 
       {/* 说明 */}
       <div className="rounded-card border border-jade-500/20 bg-jade-500/8 p-3">
-        <p className="text-xs leading-5 text-zinc-400">
+        <p className="text-xs leading-5 text-jade-100/55">
           Split Reader 雏形通过 Vite <code className="text-jade-500">?raw</code> 在构建时导入古籍 Markdown 和映射 JSON，
           无需运行时文件读取。后续可扩展为 manifest 驱动的多文本选择器和 AST 级高亮关联。
         </p>

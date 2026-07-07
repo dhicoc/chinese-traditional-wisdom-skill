@@ -20,11 +20,11 @@ const DEFAULT_PILLARS: BaziPillars = {
 
 const DEFAULT_WUXING: WuxingStats = { 木: 2, 火: 3, 土: 1, 金: 0, 水: 2 };
 const WUXING_COLORS: Record<keyof WuxingStats, string> = {
-  木: '#28b36f',
-  火: '#d63a2c',
-  土: '#d6a33d',
-  金: '#d8d0ad',
-  水: '#2f80c8',
+  木: '#2c9f84',
+  火: '#c6301f',
+  土: '#c9b27a',
+  金: '#e9e4d8',
+  水: '#2f4f55',
 };
 
 interface BaziResult {
@@ -92,12 +92,12 @@ export function BaziWorkspace() {
 
   return (
     <section className="space-y-5">
-      <div className="console-panel rounded-[22px] border border-talisman-500/20 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-talisman-500">Bazi Plate</p>
-            <h2 className="mt-1 text-2xl font-semibold text-zinc-50">八字排盘工作台</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-400">
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-400">Bazi Plate</p>
+            <h2 className="mt-1 text-2xl font-semibold text-jade-50">八字排盘工作台</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               读取顶部全局生辰，调用 BaziEngine / lunar-javascript Adapter 生成四柱与五行，再复用旧 Canvas renderer。
             </p>
           </div>
@@ -142,30 +142,30 @@ export function BaziWorkspace() {
             ready={ready}
             render={renderLegacyBazi}
           />
-          <div className="console-panel rounded-[22px] border border-talisman-500/20 bg-ink-950/90 p-4">
+          <div className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4">
             <div className="mb-4 flex items-center justify-between border-b border-white/8 pb-3">
-              <h3 className="text-lg font-semibold text-zinc-50">八字明细</h3>
-              <span className="rounded-full border border-white/10 bg-black/30 px-2.5 py-1 text-[10px] text-zinc-500">四柱</span>
+              <h3 className="text-lg font-semibold text-jade-50">八字明细</h3>
+              <span className="rounded-full border border-white/10 bg-black/30 px-2.5 py-1 text-[10px] text-jade-100/45">四柱</span>
             </div>
             <div className="grid grid-cols-4 overflow-hidden rounded-[18px] border border-white/10 text-center text-sm">
               {pillarRows.map(([label]) => (
-                <div key={label} className="border-b border-white/10 bg-white/[0.035] px-2 py-2 text-xs text-zinc-500">{label}</div>
+                <div key={label} className="border-b border-white/10 bg-white/[0.035] px-2 py-2 text-xs text-jade-100/45">{label}</div>
               ))}
               {pillarRows.map(([label, pillar]) => (
-                <div key={label + 'stem'} className="border-b border-white/10 px-2 py-4 font-serif text-3xl text-talisman-500">{pillar.stem}</div>
+                <div key={label + 'stem'} className="border-b border-white/10 px-2 py-4 font-serif text-3xl text-jade-400">{pillar.stem}</div>
               ))}
               {pillarRows.map(([label, pillar]) => (
-                <div key={label + 'branch'} className="px-2 py-4 font-serif text-3xl text-zinc-100">{pillar.branch}</div>
+                <div key={label + 'branch'} className="px-2 py-4 font-serif text-3xl text-jade-100">{pillar.branch}</div>
               ))}
             </div>
           </div>
         </div>
 
         <aside className="space-y-4">
-          <section className="console-panel rounded-[22px] border border-talisman-500/20 bg-ink-950/90 p-4 shadow-instrument">
+          <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
             <div className="mb-4 flex items-center justify-between border-b border-white/8 pb-3">
-              <h3 className="text-lg font-semibold text-zinc-50">五行能量</h3>
-              <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2.5 py-1 text-[10px] text-jade-500">统计</span>
+              <h3 className="text-lg font-semibold text-jade-50">五行能量</h3>
+              <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2.5 py-1 text-[10px] text-jade-400">统计</span>
             </div>
             <div className="space-y-3">
               {(Object.keys(wuxing) as Array<keyof WuxingStats>).map((key) => {
@@ -173,8 +173,8 @@ export function BaziWorkspace() {
                 return (
                   <div key={key}>
                     <div className="mb-1 flex items-center justify-between text-xs">
-                      <span className="text-zinc-300">{key}</span>
-                      <span className="font-mono text-zinc-500">{value}</span>
+                      <span className="text-jade-100/70">{key}</span>
+                      <span className="font-mono text-jade-100/35">{value}</span>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-white/8">
                       <div className="h-full rounded-full" style={{ width: Math.max(8, (value / maxWuxing) * 100) + '%', backgroundColor: WUXING_COLORS[key] }} />

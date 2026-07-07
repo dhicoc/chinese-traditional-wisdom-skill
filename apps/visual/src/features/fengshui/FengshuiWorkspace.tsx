@@ -37,8 +37,8 @@ export function FengshuiWorkspace() {
       <div className="rounded-panel border border-ink-700 bg-ink-850/78 p-4 shadow-instrument">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="font-serif text-2xl font-semibold text-zinc-100">风水罗盘</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-400">
+            <h2 className="font-serif text-2xl font-semibold text-jade-100">风水罗盘</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               复用旧 fengshui.js 的二十四山罗盘 renderer。React 只负责工作区结构、上下文复制和后续扩展入口。
             </p>
           </div>
@@ -54,10 +54,10 @@ export function FengshuiWorkspace() {
       <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
         <aside className="space-y-4 rounded-panel border border-ink-700 bg-black/24 p-4">
           <div className="rounded-card border border-white/8 bg-white/[0.035] p-4">
-            <p className="text-sm font-semibold text-zinc-100">当前视图</p>
-            <p className="mt-2 text-sm text-zinc-400">二十四山、八卦与四正方位静态罗盘。</p>
+            <p className="text-sm font-semibold text-jade-100">当前视图</p>
+            <p className="mt-2 text-sm text-jade-100/55">二十四山、八卦与四正方位静态罗盘。</p>
           </div>
-          <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-zinc-400">
+          <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
             罗盘展示仅作传统文化学习与方位认知参考，不构成实地勘测或布局建议。
           </p>
 

@@ -82,42 +82,42 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
   return (
     <section className="space-y-5">
       <div className="home-console-grid grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)_300px]">
-        <section className="console-panel rounded-[22px] border border-talisman-500/20 bg-ink-950/90 p-4 shadow-instrument">
+        <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
           <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-3">
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-talisman-500">Birth Input</p>
-              <h2 className="mt-1 text-lg font-semibold text-zinc-50">排盘信息</h2>
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-400">Birth Input</p>
+              <h2 className="mt-1 text-lg font-semibold text-jade-50">排盘信息</h2>
             </div>
-            <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2.5 py-1 text-[10px] text-jade-500">已同步</span>
+            <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2.5 py-1 text-[10px] text-jade-400">已同步</span>
           </div>
           <dl className="mt-4 space-y-3 text-sm">
             <div>
-              <dt className="text-xs text-zinc-500">出生时间</dt>
-              <dd className="mt-1 font-mono text-zinc-100">{birthSummary(birth.year, birth.month, birth.day, birth.hour)}</dd>
+              <dt className="text-xs text-jade-100/45">出生时间</dt>
+              <dd className="mt-1 font-mono text-jade-100">{birthSummary(birth.year, birth.month, birth.day, birth.hour)}</dd>
             </div>
             <div>
-              <dt className="text-xs text-zinc-500">历法 / 性别</dt>
-              <dd className="mt-1 text-zinc-100">{birth.isLunar ? '农历' : '公历'} · {birth.gender} · {birth.useExactCalendar ? '精确历法' : '近似历法'}</dd>
+              <dt className="text-xs text-jade-100/45">历法 / 性别</dt>
+              <dd className="mt-1 text-jade-100">{birth.isLunar ? '农历' : '公历'} · {birth.gender} · {birth.useExactCalendar ? '精确历法' : '近似历法'}</dd>
             </div>
             <div>
-              <dt className="text-xs text-zinc-500">隐私边界</dt>
-              <dd className="mt-1 text-zinc-300">仅在浏览器本地计算，不保存完整姓名、完整出生地。</dd>
+              <dt className="text-xs text-jade-100/45">隐私边界</dt>
+              <dd className="mt-1 text-jade-100/80">仅在浏览器本地计算，不保存完整姓名、完整出生地。</dd>
             </div>
           </dl>
           <button
             type="button"
             onClick={() => onSelectModule('bazi')}
-            className="mt-5 w-full rounded-[16px] border border-cinnabar-500/50 bg-cinnabar-500 px-4 py-3 text-sm font-semibold text-zinc-50 transition hover:bg-cinnabar-600 active:scale-[0.99]"
+            className="mt-5 w-full rounded-[16px] border border-cinnabar-500/50 bg-cinnabar-500 px-4 py-3 text-sm font-semibold text-jade-50 transition hover:bg-cinnabar-600 active:scale-[0.99]"
           >
             立即排盘
           </button>
         </section>
 
-        <section className="console-panel center-oracle rounded-[22px] border border-talisman-500/20 bg-ink-950/90 p-4 shadow-instrument">
+        <section className="console-panel center-oracle rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-talisman-500">Core Plate</p>
-              <h2 className="mt-1 text-xl font-semibold text-zinc-50">四柱 / 九宫工作台</h2>
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-400">Core Plate</p>
+              <h2 className="mt-1 text-xl font-semibold text-jade-50">四柱 / 九宫工作台</h2>
             </div>
             <CopyContextButton
               commandScope="home"
@@ -131,7 +131,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
             <div className="home-plate-grid">
               {['年', '月', '日', '时'].map((label, index) => (
                 <div key={label} className="home-pillar-cell">
-                  <span className="text-xs text-zinc-500">{label}柱</span>
+                  <span className="text-xs text-jade-100/40">{label}柱</span>
                   <strong>{['庚', '辛', '甲', '戊'][index]}</strong>
                   <small>{['午', '巳', '寅', '辰'][index]}</small>
                 </div>
@@ -145,44 +145,44 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
           </div>
         </section>
 
-        <section className="console-panel rounded-[22px] border border-talisman-500/20 bg-ink-950/90 p-4 shadow-instrument">
+        <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
           <div className="flex items-center justify-between border-b border-white/8 pb-3">
-            <h2 className="text-lg font-semibold text-zinc-50">基本信息</h2>
-            <span className="rounded-full border border-talisman-500/25 bg-talisman-500/10 px-2.5 py-1 text-[10px] text-talisman-500">详析</span>
+            <h2 className="text-lg font-semibold text-jade-50">基本信息</h2>
+            <span className="rounded-full border border-gold-500/25 bg-gold-500/10 px-2.5 py-1 text-[10px] text-gold-400">详析</span>
           </div>
           <dl className="mt-4 space-y-3 text-sm">
-            <div className="flex justify-between gap-4"><dt className="text-zinc-500">工具入口</dt><dd className="font-mono text-talisman-500">{tools.length}</dd></div>
-            <div className="flex justify-between gap-4"><dt className="text-zinc-500">本地能力</dt><dd className="font-mono text-jade-500">{counts.local}</dd></div>
-            <div className="flex justify-between gap-4"><dt className="text-zinc-500">演示边界</dt><dd className="font-mono text-cinnabar-500">{counts.demo}</dd></div>
-            <div className="flex justify-between gap-4"><dt className="text-zinc-500">当前模块</dt><dd className="text-zinc-100">{selected.title}</dd></div>
-            <div className="flex justify-between gap-4"><dt className="text-zinc-500">Manifest</dt><dd className="text-zinc-100">{legacyReady ? '已读取' : 'Fallback'}</dd></div>
+            <div className="flex justify-between gap-4"><dt className="text-jade-100/45">工具入口</dt><dd className="font-mono text-gold-400">{tools.length}</dd></div>
+            <div className="flex justify-between gap-4"><dt className="text-jade-100/45">本地能力</dt><dd className="font-mono text-jade-400">{counts.local}</dd></div>
+            <div className="flex justify-between gap-4"><dt className="text-jade-100/45">演示边界</dt><dd className="font-mono text-cinnabar-500">{counts.demo}</dd></div>
+            <div className="flex justify-between gap-4"><dt className="text-jade-100/45">当前模块</dt><dd className="text-jade-100">{selected.title}</dd></div>
+            <div className="flex justify-between gap-4"><dt className="text-jade-100/45">Manifest</dt><dd className="text-jade-100">{legacyReady ? '已读取' : 'Fallback'}</dd></div>
           </dl>
           <div className="mt-5 rounded-[18px] border border-cinnabar-500/20 bg-cinnabar-500/8 p-3">
             <p className="text-xs font-semibold text-cinnabar-500">边界说明</p>
-            <p className="mt-1 text-xs leading-5 text-zinc-400">六爻已接入本地京房八宫纳甲引擎；不同流派在纳甲地支顺逆与六神起例上可能存在口径差异。</p>
+            <p className="mt-1 text-xs leading-5 text-jade-100/55">六爻已接入本地京房八宫纳甲引擎；不同流派在纳甲地支顺逆与六神起例上可能存在口径差异。</p>
           </div>
         </section>
       </div>
 
-      <section className="console-panel rounded-[22px] border border-talisman-500/20 bg-ink-950/90 p-4 shadow-instrument">
+      <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
         <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/8 pb-3">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-zinc-500">Primary Tools</p>
-            <h2 className="mt-1 text-lg font-semibold text-zinc-50">常用排盘入口</h2>
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-100/45">Primary Tools</p>
+            <h2 className="mt-1 text-lg font-semibold text-jade-50">常用排盘入口</h2>
           </div>
-          <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-zinc-500">{primaryTools.length} 个核心入口</span>
+          <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-jade-100/45">{primaryTools.length} 个核心入口</span>
         </div>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           {primaryTools.map((tool, index) => {
             const modeLabel = getToolModeLabel(tool);
             const capability = getCapabilityForTool(tool);
             return (
-              <article key={tool.id} className="tool-tile group relative overflow-hidden rounded-[20px] border border-white/8 bg-white/[0.035] p-4 transition hover:-translate-y-1 hover:border-talisman-500/30">
+              <article key={tool.id} className="tool-tile group relative overflow-hidden rounded-[20px] border border-white/8 bg-white/[0.035] p-4 transition hover:-translate-y-1 hover:border-jade-500/30">
                 <button type="button" onClick={() => isModuleId(tool.entryTab) && onSelectModule(tool.entryTab)} className="flex min-h-40 w-full flex-col text-left">
-                  <span className="font-mono text-[11px] text-zinc-600">{String(index + 1).padStart(2, '0')}</span>
-                  <span className="mt-3 text-lg font-semibold text-zinc-50">{tool.title}</span>
-                  <span className="mt-2 line-clamp-2 text-sm leading-6 text-zinc-400">{tool.description}</span>
-                  <span className="mt-auto w-fit rounded-full border border-white/10 bg-black/30 px-2.5 py-1 text-[10px] text-zinc-400">{modeLabel}</span>
+                  <span className="font-mono text-[11px] text-jade-100/30">{String(index + 1).padStart(2, '0')}</span>
+                  <span className="mt-3 text-lg font-semibold text-jade-50">{tool.title}</span>
+                  <span className="mt-2 line-clamp-2 text-sm leading-6 text-jade-100/55">{tool.description}</span>
+                  <span className="mt-auto w-fit rounded-full border border-white/10 bg-black/30 px-2.5 py-1 text-[10px] text-jade-100/45">{modeLabel}</span>
                 </button>
                 <div className="mt-3 border-t border-white/8 pt-3">
                   <CopyContextButton label="Copy context" title={tool.title + ' 工具上下文'} payload={{ tool, capability, modeLabel, source: 'legacy ToolManifest + CapabilityRegistry' }} />
@@ -197,19 +197,19 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
         {Object.entries(grouped).map(([group, groupTools]) => (
           <section key={group} className="console-panel rounded-[22px] border border-ink-700 bg-ink-950/82 p-4">
             <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/8 pb-3">
-              <h3 className="text-base font-semibold text-zinc-100">{group}</h3>
-              <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-zinc-500">{groupTools.length} 个入口</span>
+              <h3 className="text-base font-semibold text-jade-100">{group}</h3>
+              <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-jade-100/45">{groupTools.length} 个入口</span>
             </div>
             <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
               {groupTools.map((tool) => {
                 const modeLabel = getToolModeLabel(tool);
                 return (
-                  <button key={tool.id} type="button" onClick={() => isModuleId(tool.entryTab) && onSelectModule(tool.entryTab)} className="flex items-center justify-between gap-3 rounded-[16px] border border-white/8 bg-black/25 px-3 py-3 text-left transition hover:border-talisman-500/25 hover:bg-white/[0.04]">
+                  <button key={tool.id} type="button" onClick={() => isModuleId(tool.entryTab) && onSelectModule(tool.entryTab)} className="flex items-center justify-between gap-3 rounded-[16px] border border-white/8 bg-black/25 px-3 py-3 text-left transition hover:border-jade-500/25 hover:bg-white/[0.04]">
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium text-zinc-100">{tool.title}</span>
-                      <span className="mt-0.5 block truncate text-xs text-zinc-500">{tool.questionTypes.slice(0, 2).join(' / ')}</span>
+                      <span className="block truncate text-sm font-medium text-jade-100">{tool.title}</span>
+                      <span className="mt-0.5 block truncate text-xs text-jade-100/35">{tool.questionTypes.slice(0, 2).join(' / ')}</span>
                     </span>
-                    <span className="shrink-0 rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-zinc-500">{modeLabel}</span>
+                    <span className="shrink-0 rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-jade-100/40">{modeLabel}</span>
                   </button>
                 );
               })}

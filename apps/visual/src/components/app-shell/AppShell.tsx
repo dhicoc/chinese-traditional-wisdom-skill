@@ -16,7 +16,7 @@ export function AppShell({ activeModule, onSelectModule }: AppShellProps) {
   const Workspace = resolveWorkspace(activeModule);
 
   return (
-    <div className="instrument-grid relative min-h-[100dvh] overflow-hidden p-3 text-zinc-100 md:p-5">
+    <div className="instrument-grid relative min-h-[100dvh] overflow-hidden p-3 text-jade-100 md:p-5">
       <DynamicTianPanBackground />
       <div className="relative z-10 mx-auto grid max-w-[1680px] gap-4 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
         <div className="hidden lg:block lg:h-[calc(100dvh-2.5rem)] lg:sticky lg:top-5">

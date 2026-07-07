@@ -19,15 +19,15 @@ import { useEffect, useRef } from 'react';
 
 // ─── 配色（与 design-tokens 一致）─────────────────
 const COLORS = {
-  bg: '#050806',
+  bg: '#050c0a',
   cinnabar: '#c6301f',
-  jade: '#159b6e',
-  talisman: '#dbb053',
-  wood: '#2a9d75',
-  fire: '#dd5836',
-  earth: '#dbb053',
-  metal: '#eee8cc',
-  water: '#2f80c8', // 水色提亮一点以便粒子可见
+  jade: '#2c9f84',
+  gold: '#c9b27a',
+  wood: '#2c9f84',
+  fire: '#c6301f',
+  earth: '#c9b27a',
+  metal: '#e9e4d8',
+  water: '#2f4f55',
 } as const;
 
 // ─── 二十八宿（简化选取，凑成星图）─────────────────
@@ -185,7 +185,7 @@ function drawTaiji(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: num
   ctx.globalAlpha = alpha;
 
   // 外圈描边
-  ctx.strokeStyle = COLORS.talisman;
+  ctx.strokeStyle = COLORS.jade;
   ctx.lineWidth = 1;
   ctx.globalAlpha = alpha * 0.5;
   ctx.beginPath();
@@ -242,7 +242,7 @@ function drawBaguaRing(ctx: CanvasRenderingContext2D, cx: number, cy: number, r:
       ctx.save();
       ctx.translate(lx, ly);
       ctx.rotate(angle + Math.PI / 2);
-      ctx.strokeStyle = yang ? COLORS.talisman : COLORS.jade;
+      ctx.strokeStyle = yang ? COLORS.jade : COLORS.gold;
       ctx.lineWidth = yang ? 2 : 2;
       ctx.globalAlpha = alpha * 0.4;
       if (yang) {
@@ -275,7 +275,8 @@ export function DynamicTianPanBackground() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const motionOverride = new URLSearchParams(window.location.search).get('motion') || localStorage.getItem('tianpan-motion');
+    const reduced = motionOverride === 'off' || motionOverride === 'reduce';
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
     let w = 0;
     let h = 0;
@@ -330,7 +331,7 @@ export function DynamicTianPanBackground() {
     }
 
     function spawnInk() {
-      const colors = [COLORS.cinnabar, COLORS.talisman, COLORS.jade];
+      const colors = [COLORS.cinnabar, COLORS.gold, COLORS.jade];
       inks.push({
         x: rand(w * 0.1, w * 0.9),
         y: rand(h * 0.1, h * 0.9),
@@ -348,13 +349,13 @@ export function DynamicTianPanBackground() {
         const twinkle = reduced ? 0.5 : 0.5 + 0.5 * Math.sin(t * s.speed + s.phase);
         const a = (s.bright ? 0.55 : 0.3) * twinkle;
         ctx.globalAlpha = a;
-        ctx.fillStyle = s.bright ? COLORS.talisman : COLORS.metal;
+        ctx.fillStyle = s.bright ? COLORS.jade : COLORS.metal;
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
         ctx.fill();
         if (s.label) {
           ctx.globalAlpha = a * 0.5;
-          ctx.fillStyle = COLORS.talisman;
+          ctx.fillStyle = COLORS.jade;
           ctx.font = '10px "Noto Serif CJK SC", serif';
           ctx.fillText(s.label, s.x + 4, s.y + 3);
         }

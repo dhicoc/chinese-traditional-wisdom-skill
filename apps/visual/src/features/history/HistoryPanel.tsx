@@ -90,13 +90,13 @@ function EntryCard({
             >
               {entry.favorite ? '★' : '☆'}
             </button>
-            <h3 className="truncate text-sm font-semibold text-zinc-100">{entry.title}</h3>
+            <h3 className="truncate text-sm font-semibold text-jade-100">{entry.title}</h3>
           </div>
-          <p className="mt-1.5 text-xs leading-5 text-zinc-400">{entry.summary}</p>
+          <p className="mt-1.5 text-xs leading-5 text-jade-100/55">{entry.summary}</p>
           {entry.tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1.5">
               {entry.tags.slice(0, 6).map((tag, i) => (
-                <span key={i} className="rounded-full bg-black/24 px-2 py-0.5 text-[10px] text-zinc-500">
+                <span key={i} className="rounded-full bg-black/24 px-2 py-0.5 text-[10px] text-jade-100/45">
                   {tag}
                 </span>
               ))}
@@ -110,11 +110,11 @@ function EntryCard({
           >
             {moduleLabel}
           </span>
-          <span className="text-[10px] text-zinc-600">{formatTime(entry.createdAt)}</span>
+          <span className="text-[10px] text-jade-100/35">{formatTime(entry.createdAt)}</span>
           <button
             type="button"
             onClick={() => onRemove(entry.id)}
-            className="text-[10px] text-zinc-600 transition hover:text-cinnabar-500"
+            className="text-[10px] text-jade-100/35 transition hover:text-cinnabar-500"
           >
             删除
           </button>
@@ -190,8 +190,8 @@ export function HistoryWorkspace() {
       <div className="rounded-panel border border-ink-700 bg-ink-850/78 p-4 shadow-instrument">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="font-serif text-2xl font-semibold text-zinc-100">本地历史与收藏</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-400">
+            <h2 className="font-serif text-2xl font-semibold text-jade-100">本地历史与收藏</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               自动保存最近 30 条脱敏阅读摘要。仅保留模块、标题、摘要和标签，不保存完整姓名、完整出生日期或具体地点。
             </p>
           </div>
@@ -208,15 +208,15 @@ export function HistoryWorkspace() {
       <div className="grid gap-3 md:grid-cols-3">
         <div className="rounded-card border border-white/8 bg-white/[0.04] p-4">
           <p className="font-mono text-3xl font-semibold text-jade-500">{entries.length}</p>
-          <p className="mt-1 text-sm text-zinc-400">历史记录</p>
+          <p className="mt-1 text-sm text-jade-100/55">历史记录</p>
         </div>
         <div className="rounded-card border border-white/8 bg-white/[0.04] p-4">
           <p className="font-mono text-3xl font-semibold text-amber-400">{favorites.length}</p>
-          <p className="mt-1 text-sm text-zinc-400">收藏</p>
+          <p className="mt-1 text-sm text-jade-100/55">收藏</p>
         </div>
         <div className="rounded-card border border-white/8 bg-white/[0.04] p-4">
-          <p className="font-mono text-3xl font-semibold text-zinc-100">30</p>
-          <p className="mt-1 text-sm text-zinc-400">最大保留数</p>
+          <p className="font-mono text-3xl font-semibold text-jade-100">30</p>
+          <p className="mt-1 text-sm text-jade-100/55">最大保留数</p>
         </div>
       </div>
 
@@ -228,8 +228,8 @@ export function HistoryWorkspace() {
           className={[
             'rounded-full border px-4 py-2 text-xs font-medium transition',
             tab === 'history'
-              ? 'border-jade-500/40 bg-jade-500/12 text-zinc-50'
-              : 'border-white/10 bg-white/[0.035] text-zinc-400 hover:text-zinc-100',
+              ? 'border-jade-500/40 bg-jade-500/12 text-jade-50'
+              : 'border-white/10 bg-white/[0.035] text-jade-100/55 hover:text-jade-100',
           ].join(' ')}
         >
           历史 ({entries.length})
@@ -240,8 +240,8 @@ export function HistoryWorkspace() {
           className={[
             'rounded-full border px-4 py-2 text-xs font-medium transition',
             tab === 'favorites'
-              ? 'border-amber-500/40 bg-amber-500/12 text-zinc-50'
-              : 'border-white/10 bg-white/[0.035] text-zinc-400 hover:text-zinc-100',
+              ? 'border-amber-500/40 bg-amber-500/12 text-jade-50'
+              : 'border-white/10 bg-white/[0.035] text-jade-100/55 hover:text-jade-100',
           ].join(' ')}
         >
           收藏 ({favorites.length})
@@ -251,7 +251,7 @@ export function HistoryWorkspace() {
           <button
             type="button"
             onClick={handleClearHistory}
-            className="rounded-full border border-white/10 px-3 py-2 text-xs text-zinc-500 transition hover:border-cinnabar-500/30 hover:text-cinnabar-500"
+            className="rounded-full border border-white/10 px-3 py-2 text-xs text-jade-100/45 transition hover:border-cinnabar-500/30 hover:text-cinnabar-500"
           >
             清空历史
           </button>
@@ -260,7 +260,7 @@ export function HistoryWorkspace() {
           <button
             type="button"
             onClick={handleClearFavorites}
-            className="rounded-full border border-white/10 px-3 py-2 text-xs text-zinc-500 transition hover:border-cinnabar-500/30 hover:text-cinnabar-500"
+            className="rounded-full border border-white/10 px-3 py-2 text-xs text-jade-100/45 transition hover:border-cinnabar-500/30 hover:text-cinnabar-500"
           >
             清空收藏
           </button>
@@ -271,7 +271,7 @@ export function HistoryWorkspace() {
       <div className="grid gap-3 md:grid-cols-2">
         {displayList.length === 0 ? (
           <div className="col-span-full rounded-card border border-white/8 bg-white/[0.025] p-8 text-center">
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-jade-100/45">
               {tab === 'history'
                 ? '暂无历史记录。在旧 Dashboard 或 React Shell 中生成命盘后将自动保存脱敏摘要。'
                 : '暂无收藏。点击历史记录中的 ☆ 标记可添加收藏。'}
@@ -291,7 +291,7 @@ export function HistoryWorkspace() {
 
       {/* 隐私说明 */}
       <div className="rounded-card border border-jade-500/20 bg-jade-500/8 p-3">
-        <p className="text-xs leading-5 text-zinc-400">
+        <p className="text-xs leading-5 text-jade-100/55">
           隐私保护：HistoryStore 使用 <code className="text-jade-500">localStorage</code> 存储脱敏摘要，
           不保存完整姓名、完整出生日期（<code className="text-jade-500">YYYY-MM-DD</code> 格式会被自动替换为 ****）或具体地点。
           数据完全本地化，不上传任何服务器。

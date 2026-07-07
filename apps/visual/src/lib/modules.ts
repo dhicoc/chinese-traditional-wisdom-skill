@@ -93,7 +93,7 @@ export const MODULES: WisdomModule[] = [
     statusLabel: '本地规则',
     privacyLevel: '仅本地计算',
     questionTypes: ['时间起卦', '数字起卦', '体用'],
-    accent: '#dbb053',
+    accent: '#c9b27a',
     description: '内置时间起卦与数字起卦 Adapter，输出体用生克、互卦与变卦结构。',
   },
   {
@@ -153,7 +153,7 @@ export const MODULES: WisdomModule[] = [
     statusLabel: '评分派生',
     privacyLevel: '仅本地评分',
     questionTypes: ['九种体质', '雷达图'],
-    accent: '#dbb053',
+    accent: '#c9b27a',
     description: '用九种体质评分展示偏颇倾向和调养提示。',
   },
   // 日用工具扩展 (v0.4)
@@ -202,7 +202,7 @@ export const MODULES: WisdomModule[] = [
     statusLabel: '民俗体验',
     privacyLevel: '不保存个人资料',
     questionTypes: ['时辰', '经络', '养生'],
-    accent: '#dbb053',
+    accent: '#c9b27a',
     description: '展示十二时辰与经络气血流注的对应关系，提供养生节律参考。',
   },
   {
@@ -226,7 +226,7 @@ export const MODULES: WisdomModule[] = [
     statusLabel: '测试入口',
     privacyLevel: '不含个人资料',
     questionTypes: ['CLI', '浏览器', '验证页'],
-    accent: '#dbb053',
+    accent: '#c9b27a',
     description: '汇总 Node CLI 测试、浏览器端测试和自动验证页入口，提供环境诊断与结果摘要。',
   },
   {
@@ -238,7 +238,7 @@ export const MODULES: WisdomModule[] = [
     statusLabel: '知识映射',
     privacyLevel: '不含个人资料',
     questionTypes: ['古籍原文', '映射 JSON', '对照'],
-    accent: '#dbb053',
+    accent: '#c9b27a',
     description: '左侧古籍 Markdown 原文与右侧映射 JSON 结构对照阅读，支持关键词搜索高亮。',
   },
   {
@@ -250,7 +250,7 @@ export const MODULES: WisdomModule[] = [
     statusLabel: '本地存储',
     privacyLevel: '脱敏摘要',
     questionTypes: ['历史', '收藏', '隐私'],
-    accent: '#dbb053',
+    accent: '#c9b27a',
     description: '自动保存最近 30 条脱敏阅读摘要，不保存完整姓名、完整出生日期或具体地点。',
   },
 ];

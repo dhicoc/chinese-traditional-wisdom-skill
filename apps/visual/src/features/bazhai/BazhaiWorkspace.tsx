@@ -50,8 +50,8 @@ export function BazhaiWorkspace() {
       <div className="rounded-panel border border-ink-700 bg-ink-850/78 p-4 shadow-instrument">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="font-serif text-2xl font-semibold text-zinc-100">八宅大游年</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-400">
+            <h2 className="font-serif text-2xl font-semibold text-jade-100">八宅大游年</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               复用旧 fengshui.js 的八宅命盘 renderer，React 负责出生年与性别输入，与旧 visual/index.html 的 updateEightMansions() 规则一致。
             </p>
           </div>
@@ -81,7 +81,7 @@ export function BazhaiWorkspace() {
             <select
               value={gender}
               onChange={(event) => setGender(event.target.value as '男' | '女')}
-              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-zinc-100 outline-none transition focus:border-jade-500/45"
+              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
             >
               <option value="男">男</option>
               <option value="女">女</option>
@@ -89,18 +89,18 @@ export function BazhaiWorkspace() {
           </ControlField>
 
           <div className="rounded-card border border-white/8 bg-white/[0.035] p-4">
-            <p className="text-sm font-semibold text-zinc-100">命卦</p>
+            <p className="text-sm font-semibold text-jade-100">命卦</p>
             {summary ? (
-              <dl className="mt-3 space-y-2 text-sm text-zinc-400">
-                <div className="flex justify-between gap-3"><dt>卦象</dt><dd className="text-zinc-100">{summary.trigram}卦</dd></div>
-                <div className="flex justify-between gap-3"><dt>分组</dt><dd className="text-zinc-100">{summary.group}</dd></div>
+              <dl className="mt-3 space-y-2 text-sm text-jade-100/55">
+                <div className="flex justify-between gap-3"><dt>卦象</dt><dd className="text-jade-100">{summary.trigram}卦</dd></div>
+                <div className="flex justify-between gap-3"><dt>分组</dt><dd className="text-jade-100">{summary.group}</dd></div>
               </dl>
             ) : (
-              <p className="mt-2 text-sm text-zinc-500">等待旧引擎加载。</p>
+              <p className="mt-2 text-sm text-jade-100/45">等待旧引擎加载。</p>
             )}
           </div>
 
-          <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-zinc-400">
+          <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
             八宅游年仅作传统文化学习与方位参考，不构成风水操作或决策建议。
           </p>
 

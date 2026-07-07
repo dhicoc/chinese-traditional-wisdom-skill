@@ -138,8 +138,8 @@ export function LiuyaoWorkspace() {
       <div className="rounded-panel border border-ink-700 bg-ink-850/78 p-4 shadow-instrument">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="font-serif text-2xl font-semibold text-zinc-100">六爻占卜</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-400">
+            <h2 className="font-serif text-2xl font-semibold text-jade-100">六爻占卜</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               本地京房八宫纳甲引擎：起卦后输出纳甲(天干地支)、六亲、六神、世应、用神与变卦。
               支持铜钱法、时间起卦、手动爻值三种方式；用神依问题事项自动选取。
             </p>
@@ -151,7 +151,7 @@ export function LiuyaoWorkspace() {
             旧引擎加载失败：{legacyState.error}
           </p>
         )}
-        <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-zinc-400">
+        <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
           {result.confidenceNote ?? '六爻为传统文化占问参考，非绝对预测；同一事不宜反复起卦。'}
         </p>
       </div>
@@ -162,7 +162,7 @@ export function LiuyaoWorkspace() {
             <select
               value={method}
               onChange={(e) => setMethod(e.target.value as CastMethod)}
-              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-zinc-100 outline-none transition focus:border-jade-500/45"
+              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
             >
               {METHOD_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -177,7 +177,7 @@ export function LiuyaoWorkspace() {
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               placeholder="如：今日财运、能否升职、考试、病情"
-              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-zinc-100 outline-none transition focus:border-jade-500/45"
+              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
             />
           </ControlField>
 
@@ -188,7 +188,7 @@ export function LiuyaoWorkspace() {
                 onChange={(e) => setYaoValues(e.target.value)}
                 inputMode="numeric"
                 placeholder="789789"
-                className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 font-mono text-sm text-zinc-100 outline-none transition focus:border-jade-500/45"
+                className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 font-mono text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
               />
             </ControlField>
           )}
@@ -197,7 +197,7 @@ export function LiuyaoWorkspace() {
             <button
               type="button"
               onClick={() => setCastCount((c) => c + 1)}
-              className="w-full rounded-card border border-cinnabar-500/50 bg-cinnabar-500/20 px-4 py-2.5 text-sm font-semibold text-zinc-50 transition hover:bg-cinnabar-500/30 active:scale-[0.99]"
+              className="w-full rounded-card border border-cinnabar-500/50 bg-cinnabar-500/20 px-4 py-2.5 text-sm font-semibold text-jade-50 transition hover:bg-cinnabar-500/30 active:scale-[0.99]"
             >
               再起一卦
             </button>
@@ -218,7 +218,7 @@ export function LiuyaoWorkspace() {
             ]}
           />
 
-          <p className="rounded-card border border-white/8 bg-black/24 p-3 text-xs leading-5 text-zinc-500">
+          <p className="rounded-card border border-white/8 bg-black/24 p-3 text-xs leading-5 text-jade-100/40">
             生辰由顶部「全局生辰」统一管理。日干取自 lunar-javascript 精确历法，未加载时回退近似。用神规则：求财→妻财、求官/升职/官非/病→官鬼、考试/房屋→父母、子女/医药→子孙、合伙/朋友→兄弟。
           </p>
         </aside>
@@ -245,7 +245,7 @@ export function LiuyaoWorkspace() {
                 render={renderLegacyLiuyao}
               />
             ) : (
-              <div className="flex min-h-[520px] items-center justify-center rounded-panel border border-dashed border-white/10 bg-black/16 p-6 text-center text-sm text-zinc-500">
+              <div className="flex min-h-[520px] items-center justify-center rounded-panel border border-dashed border-white/10 bg-black/16 p-6 text-center text-sm text-jade-100/45">
                 无动爻，本卦即所占之卦。
               </div>
             )}
@@ -253,13 +253,13 @@ export function LiuyaoWorkspace() {
 
           <div className="rounded-panel border border-ink-700 bg-ink-850/78 p-4">
             <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-3">
-              <h3 className="text-base font-semibold text-zinc-100">纳甲六爻明细</h3>
-              <span className="rounded-full border border-white/10 bg-black/30 px-2.5 py-1 text-[10px] text-zinc-500">
+              <h3 className="text-base font-semibold text-jade-100">纳甲六爻明细</h3>
+              <span className="rounded-full border border-white/10 bg-black/30 px-2.5 py-1 text-[10px] text-jade-100/45">
                 从初爻到上爻
               </span>
             </div>
             <div className="overflow-hidden rounded-card border border-white/10">
-              <div className="grid grid-cols-6 bg-white/[0.035] text-center text-[11px] text-zinc-500">
+              <div className="grid grid-cols-6 bg-white/[0.035] text-center text-[11px] text-jade-100/45">
                 {['爻位', '阴阳', '纳甲(干支)', '五行', '六亲', '六神'].map((h) => (
                   <div key={h} className="border-b border-white/10 px-2 py-2">
                     {h}
@@ -277,22 +277,22 @@ export function LiuyaoWorkspace() {
                       line.changing ? 'bg-cinnabar-500/8' : 'bg-black/8'
                     }`}
                   >
-                    <div className="px-2 py-2.5 text-zinc-400">
+                    <div className="px-2 py-2.5 text-jade-100/55">
                       {yaoNum}
-                      {isShi && <span className="ml-1 text-talisman-500">世</span>}
-                      {isYing && <span className="ml-1 text-jade-500">应</span>}
+                      {isShi && <span className="ml-1 text-jade-400">世</span>}
+                      {isYing && <span className="ml-1 text-jade-400">应</span>}
                     </div>
-                    <div className={`px-2 py-2.5 ${line.yin ? 'text-zinc-300' : 'text-talisman-500'}`}>
+                    <div className={`px-2 py-2.5 ${line.yin ? 'text-jade-100/70' : 'text-jade-400'}`}>
                       {line.yin ? '阴' : '阳'}
                       {line.changing && <span className="ml-1 text-cinnabar-500">动</span>}
                     </div>
-                    <div className="px-2 py-2.5 font-mono text-zinc-100">
+                    <div className="px-2 py-2.5 font-mono text-jade-100">
                       {line.stem ?? '?'}
                       {line.branch}
                     </div>
-                    <div className="px-2 py-2.5 text-zinc-400">{line.branchElement ?? '?'}</div>
-                    <div className="px-2 py-2.5 text-zinc-300">{line.relation}</div>
-                    <div className="px-2 py-2.5 text-zinc-400">{line.god}</div>
+                    <div className="px-2 py-2.5 text-jade-100/55">{line.branchElement ?? '?'}</div>
+                    <div className="px-2 py-2.5 text-jade-100/70">{line.relation}</div>
+                    <div className="px-2 py-2.5 text-jade-100/55">{line.god}</div>
                   </div>
                 );
               })}

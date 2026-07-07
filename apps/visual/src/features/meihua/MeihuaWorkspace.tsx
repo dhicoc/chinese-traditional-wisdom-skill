@@ -79,8 +79,8 @@ export function MeihuaWorkspace() {
       <div className="rounded-panel border border-ink-700 bg-ink-850/78 p-4 shadow-instrument">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="font-serif text-2xl font-semibold text-zinc-100">梅花易数</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-400">
+            <h2 className="font-serif text-2xl font-semibold text-jade-100">梅花易数</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               先复用旧 divination renderer，React 负责上下卦、动爻和体用关系输入，作为后续接入本地时间起卦与数字起卦规则的外壳。
             </p>
           </div>
@@ -99,7 +99,7 @@ export function MeihuaWorkspace() {
             <select
               value={upper}
               onChange={(event) => setUpper(event.target.value)}
-              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-zinc-100 outline-none transition focus:border-jade-500/45"
+              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
             >
               {MEIHUA_TRIGRAMS.map((item) => (
                 <option key={item.value} value={item.value}>{item.label}</option>
@@ -111,7 +111,7 @@ export function MeihuaWorkspace() {
             <select
               value={lower}
               onChange={(event) => setLower(event.target.value)}
-              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-zinc-100 outline-none transition focus:border-jade-500/45"
+              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
             >
               {MEIHUA_TRIGRAMS.map((item) => (
                 <option key={item.value} value={item.value}>{item.label}</option>
@@ -123,7 +123,7 @@ export function MeihuaWorkspace() {
             <select
               value={movingLine}
               onChange={(event) => setMovingLine(Number.parseInt(event.target.value, 10) || 3)}
-              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-zinc-100 outline-none transition focus:border-jade-500/45"
+              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
             >
               {[1, 2, 3, 4, 5, 6].map((value) => (
                 <option key={value} value={value}>{value}</option>
@@ -135,7 +135,7 @@ export function MeihuaWorkspace() {
             <select
               value={relation}
               onChange={(event) => setRelation(event.target.value as (typeof RELATION_OPTIONS)[number])}
-              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-zinc-100 outline-none transition focus:border-jade-500/45"
+              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
             >
               {RELATION_OPTIONS.map((value) => (
                 <option key={value} value={value}>{value}</option>

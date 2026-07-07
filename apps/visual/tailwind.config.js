@@ -6,11 +6,12 @@ export default {
     extend: {
       colors: {
         ink: {
-          950: '#050806',
-          900: '#07100c',
-          850: '#0f1814',
-          800: '#15221c',
-          700: '#344337',
+          950: '#050c0a',
+          900: '#081813',
+          850: '#0f1e1a',
+          800: '#162b25',
+          700: '#2a3f38',
+          600: '#3b544c',
         },
         cinnabar: {
           500: '#c6301f',
@@ -18,19 +19,26 @@ export default {
           700: '#71180f',
         },
         jade: {
-          500: '#159b6e',
-          600: '#0d7655',
+          400: '#4fc9a8',
+          500: '#2c9f84',
+          600: '#1f7a65',
+        },
+        gold: {
+          400: '#d8c79a',
+          500: '#c9b27a',
+          600: '#a69058',
         },
         talisman: {
-          500: '#dbb053',
-          600: '#b88b2e',
+          400: '#d8c79a',
+          500: '#c9b27a',
+          600: '#a69058',
         },
         wuxing: {
-          wood: '#2a9d8f',
-          fire: '#e76f51',
-          earth: '#dbb053',
-          metal: '#e5e5e5',
-          water: '#173a47',
+          wood: '#2c9f84',
+          fire: '#c6301f',
+          earth: '#c9b27a',
+          metal: '#e9e4d8',
+          water: '#2f4f55',
         },
       },
       fontFamily: {
@@ -43,8 +51,8 @@ export default {
         card: '1rem',
       },
       boxShadow: {
-        instrument: '0 24px 90px rgba(0, 0, 0, 0.46), 0 0 0 1px rgba(219, 176, 83, 0.04)',
-        glowJade: '0 0 0 1px rgba(21, 155, 110, 0.24), 0 18px 55px rgba(21, 155, 110, 0.12), 0 0 38px rgba(219, 176, 83, 0.06)',
+        instrument: '0 24px 90px rgba(0, 0, 0, 0.48), 0 0 0 1px rgba(44, 159, 132, 0.05)',
+        glowJade: '0 0 0 1px rgba(44, 159, 132, 0.22), 0 18px 55px rgba(44, 159, 132, 0.14), 0 0 38px rgba(44, 159, 132, 0.08)',
       },
     },
   },

@@ -18,12 +18,12 @@ export function BirthPanel() {
         <button
           type="button"
           onClick={() => setExpanded((prev) => !prev)}
-          className="flex items-center gap-2 text-left text-sm text-zinc-300 transition hover:text-zinc-100"
+          className="flex items-center gap-2 text-left text-sm text-jade-100/70 transition hover:text-jade-100"
         >
-          <span className="font-mono text-xs text-jade-500">{expanded ? '▾' : '▸'}</span>
+          <span className="font-mono text-xs text-jade-400">{expanded ? '▾' : '▸'}</span>
           <span className="font-semibold">全局生辰</span>
-          <span className="text-zinc-500">{summary}</span>
-          <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${legacyReady ? 'bg-jade-500/15 text-jade-500' : 'bg-zinc-700/30 text-zinc-500'}`}>
+          <span className="text-jade-100/45">{summary}</span>
+          <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${legacyReady ? 'bg-jade-500/15 text-jade-400' : 'bg-ink-700/50 text-jade-100/30'}`}>
             {legacyReady ? '已同步' : '等待引擎'}
           </span>
         </button>
@@ -31,7 +31,7 @@ export function BirthPanel() {
           <button
             type="button"
             onClick={resetBirth}
-            className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-zinc-400 transition hover:text-zinc-100"
+            className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-jade-100/55 transition hover:text-jade-100"
           >
             重置
           </button>
@@ -76,19 +76,19 @@ export function BirthPanel() {
             value={birth.hour}
             onChange={(e) => updateBirth({ hour: Number.parseInt(e.target.value, 10) || 0 })}
           />
-          <label className="grid gap-1 text-xs text-zinc-500">
+          <label className="grid gap-1 text-xs text-jade-100/45">
             <span>性别</span>
             <select
               value={birth.gender}
               onChange={(e) => updateBirth({ gender: e.target.value as '男' | '女' })}
-              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-zinc-100 outline-none transition focus:border-jade-500/45"
+              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
             >
               <option value="男">男</option>
               <option value="女">女</option>
             </select>
           </label>
           <div className="flex flex-col gap-2">
-            <label className="flex items-center gap-2 text-xs text-zinc-400">
+            <label className="flex items-center gap-2 text-xs text-jade-100/55">
               <input
                 type="checkbox"
                 checked={birth.isLunar}
@@ -97,7 +97,7 @@ export function BirthPanel() {
               />
               农历
             </label>
-            <label className="flex items-center gap-2 text-xs text-zinc-400">
+            <label className="flex items-center gap-2 text-xs text-jade-100/55">
               <input
                 type="checkbox"
                 checked={birth.useExactCalendar}

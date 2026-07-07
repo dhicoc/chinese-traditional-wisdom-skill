@@ -151,8 +151,8 @@ export function ZiweiWorkspace() {
       <div className="rounded-panel border border-ink-700 bg-ink-850/78 p-4 shadow-instrument">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="font-serif text-2xl font-semibold text-zinc-100">紫微斗数</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-400">
+            <h2 className="font-serif text-2xl font-semibold text-jade-100">紫微斗数</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               React 侧不再自造紫微结论：页面读取顶部全局生辰，优先通过旧 EngineAdapterRegistry 调用
               SylarLong/iztro v2.5.8 排盘，再复用稳定的十二宫 Canvas renderer。
             </p>
@@ -187,7 +187,7 @@ export function ZiweiWorkspace() {
             }))}
           />
 
-          <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-zinc-400">
+          <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
             生辰资料统一由顶部“全局生辰”面板管理；修改后本页会重新调用 adapter。若 iztro 或旧引擎加载失败，页面会显式标记为降级演示。
           </p>
         </aside>

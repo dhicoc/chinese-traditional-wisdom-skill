@@ -22,8 +22,8 @@ export function WorkspaceTabs({ activeModule, onSelectModule }: WorkspaceTabsPro
             className={[
               'shrink-0 rounded-full border px-3 py-2 text-xs font-semibold transition',
               module.id === activeModule
-                ? 'border-jade-500/40 bg-jade-500/12 text-zinc-50'
-                : 'border-transparent text-zinc-500 hover:border-white/10 hover:text-zinc-200',
+                ? 'border-jade-500/40 bg-jade-500/12 text-jade-50'
+                : 'border-transparent text-jade-100/45 hover:border-jade-500/20 hover:text-jade-100',
             ].join(' ')}
           >
             {module.title}
@@ -32,12 +32,12 @@ export function WorkspaceTabs({ activeModule, onSelectModule }: WorkspaceTabsPro
       </div>
       <div className="mt-3 flex flex-col gap-2 rounded-card border border-white/8 bg-black/20 p-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="font-serif text-2xl font-semibold text-zinc-100">{active.title}</p>
-          <p className="mt-1 text-sm leading-6 text-zinc-400">{active.description}</p>
+          <p className="font-serif text-2xl font-semibold text-jade-100">{active.title}</p>
+          <p className="mt-1 text-sm leading-6 text-jade-100/55">{active.description}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-500">{active.statusLabel}</span>
-          <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-zinc-400">{active.privacyLevel}</span>
+          <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">{active.statusLabel}</span>
+          <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-jade-100/55">{active.privacyLevel}</span>
         </div>
       </div>
     </div>

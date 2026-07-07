@@ -18,10 +18,10 @@ export function LegendPanel({ title, description, items }: LegendPanelProps) {
     <section className="rounded-card border border-white/8 bg-white/[0.035] p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-zinc-100">{title}</p>
-          {description && <p className="mt-1 text-xs leading-5 text-zinc-500">{description}</p>}
+          <p className="text-sm font-semibold text-jade-100">{title}</p>
+          {description && <p className="mt-1 text-xs leading-5 text-jade-100/45">{description}</p>}
         </div>
-        <span className="rounded-full bg-black/24 px-2 py-0.5 text-[10px] text-zinc-500">Legend</span>
+        <span className="rounded-full bg-black/24 px-2 py-0.5 text-[10px] text-jade-100/40">Legend</span>
       </div>
 
       <div className="mt-3 grid gap-2">
@@ -34,10 +34,10 @@ export function LegendPanel({ title, description, items }: LegendPanelProps) {
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-xs font-semibold text-zinc-200">{item.label}</span>
-                {item.value && <span className="text-[10px] text-zinc-500">{item.value}</span>}
+                <span className="text-xs font-semibold text-jade-100">{item.label}</span>
+                {item.value && <span className="text-[10px] text-jade-100/40">{item.value}</span>}
               </div>
-              {item.description && <p className="mt-1 text-xs leading-5 text-zinc-500">{item.description}</p>}
+              {item.description && <p className="mt-1 text-xs leading-5 text-jade-100/40">{item.description}</p>}
             </div>
           </div>
         ))}

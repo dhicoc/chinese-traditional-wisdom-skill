@@ -217,14 +217,14 @@ export function MermaidWorkspace() {
       <div className="rounded-panel border border-ink-700 bg-ink-850/78 p-4 shadow-instrument">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="font-serif text-2xl font-semibold text-zinc-100">知识图谱</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-400">
+            <h2 className="font-serif text-2xl font-semibold text-jade-100">知识图谱</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               使用 Mermaid.js 动态渲染传统文化知识体系结构图。图源码内置，CDN 未加载时离线显示源码，与旧 visual/index.html 的 tab-mermaid 对齐。
             </p>
           </div>
           <CopyContextButton commandScope="mermaid" title="知识图谱 React 迁移上下文" payload={contextPayload} />
         </div>
-        <p className="mt-3 text-xs text-zinc-500">
+        <p className="mt-3 text-xs text-jade-100/45">
           状态：
           {loadStatus === 'loading' && '正在加载 Mermaid CDN…'}
           {loadStatus === 'ready' && 'Mermaid 已就绪，图表已渲染。'}
@@ -241,8 +241,8 @@ export function MermaidWorkspace() {
       <div className="grid gap-4 md:grid-cols-2">
         {MERMAID_DIAGRAMS.map((diagram) => (
           <article key={diagram.id} className="rounded-panel border border-ink-700 bg-ink-850/78 p-4 shadow-instrument">
-            <h3 className="font-serif text-lg font-semibold text-zinc-100">{diagram.title}</h3>
-            {diagram.note && <p className="mt-1 text-xs leading-5 text-zinc-500">{diagram.note}</p>}
+            <h3 className="font-serif text-lg font-semibold text-jade-100">{diagram.title}</h3>
+            {diagram.note && <p className="mt-1 text-xs leading-5 text-jade-100/45">{diagram.note}</p>}
             <div className="mt-3 overflow-x-auto rounded-card border border-white/8 bg-white p-4">
               {loadStatus === 'ready' ? (
                 <div
@@ -251,7 +251,7 @@ export function MermaidWorkspace() {
                   }}
                 />
               ) : (
-                <pre className="whitespace-pre-wrap break-words text-xs text-zinc-700">{escapeHtml(diagram.source)}</pre>
+                <pre className="whitespace-pre-wrap break-words text-xs text-jade-100/30">{escapeHtml(diagram.source)}</pre>
               )}
             </div>
           </article>

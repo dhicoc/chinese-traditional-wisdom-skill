@@ -49,7 +49,7 @@ function calculateSanCai(surname: number, givenName: number) {
   const tian = surname + 1; // 天格 = 姓氏笔画 + 1
   const ren = surname + givenName; // 人格 = 姓氏 + 名字笔画
   const di = givenName + 1; // 地格 = 名字笔画 + 1（单名）
-  
+
   return {
     tian: getWuxing(tian),
     ren: getWuxing(ren),
@@ -60,12 +60,12 @@ function calculateSanCai(surname: number, givenName: number) {
 function analyzeName(surname: string, givenName: string): NameAnalysis {
   const surnameStrokes = surname.split('').reduce((sum, c) => sum + calculateStrokes(c), 0);
   const givenNameStrokes = givenName.split('').reduce((sum, c) => sum + calculateStrokes(c), 0);
-  
+
   const surnameWuxing = getWuxing(surnameStrokes);
   const givenNameWuxing = getWuxing(givenNameStrokes);
-  
+
   const sanCai = calculateSanCai(surnameStrokes, givenNameStrokes);
-  
+
   // 五行平衡统计
   const wuxingBalance: Record<string, number> = { '金': 0, '木': 0, '水': 0, '火': 0, '土': 0 };
   wuxingBalance[surnameWuxing]++;
@@ -73,7 +73,7 @@ function analyzeName(surname: string, givenName: string): NameAnalysis {
   wuxingBalance[sanCai.tian]++;
   wuxingBalance[sanCai.ren]++;
   wuxingBalance[sanCai.di]++;
-  
+
   return {
     surname,
     surnameStrokes,
@@ -102,11 +102,11 @@ export function NamewuxingWorkspace() {
   return (
     <div className="space-y-6" data-testid="workspace-namewuxing">
       {/* 头部说明 */}
-      <div className="console-panel rounded-[22px] border border-talisman-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-zinc-50">姓名五行</h2>
-            <p className="text-sm text-zinc-400">文化参考 · 非命名建议</p>
+            <h2 className="text-lg font-semibold text-jade-50">姓名五行</h2>
+            <p className="text-sm text-jade-100/55">文化参考 · 非命名建议</p>
           </div>
           <span className="rounded-full border border-jade-500/30 bg-jade-500/10 px-3 py-1 text-xs text-jade-500">
             民俗体验
@@ -115,7 +115,7 @@ export function NamewuxingWorkspace() {
       </div>
 
       {/* 输入区 */}
-      <div className="console-panel rounded-[22px] border border-talisman-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <div className="grid gap-4 md:grid-cols-2">
           <ControlField label="姓氏">
             <input
@@ -124,7 +124,7 @@ export function NamewuxingWorkspace() {
               onChange={(e) => setSurname(e.target.value)}
               placeholder="输入姓氏"
               maxLength={2}
-              className="w-full rounded-lg border border-talisman-500/20 bg-ink-900/80 px-3 py-2 text-sm text-zinc-200 outline-none focus:border-talisman-500/50"
+              className="w-full rounded-lg border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
             />
           </ControlField>
           <ControlField label="名字">
@@ -134,7 +134,7 @@ export function NamewuxingWorkspace() {
               onChange={(e) => setGivenName(e.target.value)}
               placeholder="输入名字"
               maxLength={4}
-              className="w-full rounded-lg border border-talisman-500/20 bg-ink-900/80 px-3 py-2 text-sm text-zinc-200 outline-none focus:border-talisman-500/50"
+              className="w-full rounded-lg border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
             />
           </ControlField>
         </div>
@@ -151,48 +151,48 @@ export function NamewuxingWorkspace() {
       {analysis && (
         <div className="grid gap-4 md:grid-cols-2">
           {/* 笔画分析 */}
-          <div className="console-panel rounded-[22px] border border-talisman-500/16 bg-ink-950/90 p-4 shadow-instrument">
-            <h3 className="mb-3 text-base font-semibold text-zinc-50">笔画分析</h3>
+          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+            <h3 className="mb-3 text-base font-semibold text-jade-50">笔画分析</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b border-white/5 py-2">
                 <div>
-                  <span className="text-zinc-400">姓氏</span>
-                  <span className="ml-2 text-lg text-zinc-200">{analysis.surname}</span>
+                  <span className="text-jade-100/55">姓氏</span>
+                  <span className="ml-2 text-lg text-jade-100/80">{analysis.surname}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-2xl font-semibold text-talisman-500">{analysis.surnameStrokes}</span>
-                  <span className="ml-2 text-sm text-zinc-400">画</span>
+                  <span className="text-2xl font-semibold text-jade-500">{analysis.surnameStrokes}</span>
+                  <span className="ml-2 text-sm text-jade-100/55">画</span>
                 </div>
               </div>
               <div className="flex items-center justify-between border-b border-white/5 py-2">
                 <div>
-                  <span className="text-zinc-400">名字</span>
-                  <span className="ml-2 text-lg text-zinc-200">{analysis.givenName}</span>
+                  <span className="text-jade-100/55">名字</span>
+                  <span className="ml-2 text-lg text-jade-100/80">{analysis.givenName}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-2xl font-semibold text-talisman-500">{analysis.givenNameStrokes}</span>
-                  <span className="ml-2 text-sm text-zinc-400">画</span>
+                  <span className="text-2xl font-semibold text-jade-500">{analysis.givenNameStrokes}</span>
+                  <span className="ml-2 text-sm text-jade-100/55">画</span>
                 </div>
               </div>
               <div className="flex items-center justify-between py-2">
-                <span className="text-zinc-400">总笔画</span>
-                <span className="text-xl font-semibold text-zinc-200">{analysis.totalStrokes} 画</span>
+                <span className="text-jade-100/55">总笔画</span>
+                <span className="text-xl font-semibold text-jade-100/80">{analysis.totalStrokes} 画</span>
               </div>
             </div>
           </div>
 
           {/* 五行分析 */}
-          <div className="console-panel rounded-[22px] border border-talisman-500/16 bg-ink-950/90 p-4 shadow-instrument">
-            <h3 className="mb-3 text-base font-semibold text-zinc-50">五行配置</h3>
+          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+            <h3 className="mb-3 text-base font-semibold text-jade-50">五行配置</h3>
             <div className="space-y-2">
               <div className="flex items-center justify-between py-2">
-                <span className="text-zinc-400">姓氏五行</span>
+                <span className="text-jade-100/55">姓氏五行</span>
                 <span className="rounded-full bg-metal-500/20 px-3 py-1 text-sm text-metal-500">
                   {analysis.surnameWuxing}
                 </span>
               </div>
               <div className="flex items-center justify-between py-2">
-                <span className="text-zinc-400">名字五行</span>
+                <span className="text-jade-100/55">名字五行</span>
                 <span className="rounded-full bg-wood-500/20 px-3 py-1 text-sm text-wood-500">
                   {analysis.givenNameWuxing}
                 </span>
@@ -201,37 +201,37 @@ export function NamewuxingWorkspace() {
           </div>
 
           {/* 三才配置 */}
-          <div className="console-panel rounded-[22px] border border-talisman-500/16 bg-ink-950/90 p-4 shadow-instrument md:col-span-2">
-            <h3 className="mb-3 text-base font-semibold text-zinc-50">三才配置</h3>
+          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument md:col-span-2">
+            <h3 className="mb-3 text-base font-semibold text-jade-50">三才配置</h3>
             <div className="grid grid-cols-3 gap-4">
-              <div className="rounded-xl border border-talisman-500/20 bg-ink-900/50 p-4 text-center">
-                <div className="mb-1 text-xs text-zinc-500">天格</div>
-                <div className="text-3xl font-bold text-talisman-500">{analysis.sanCai.tian}</div>
-                <div className="mt-1 text-xs text-zinc-400">祖上根基</div>
+              <div className="rounded-xl border border-gold-500/20 bg-ink-900/50 p-4 text-center">
+                <div className="mb-1 text-xs text-jade-100/45">天格</div>
+                <div className="text-3xl font-bold text-gold-500">{analysis.sanCai.tian}</div>
+                <div className="mt-1 text-xs text-jade-100/55">祖上根基</div>
               </div>
               <div className="rounded-xl border border-jade-500/20 bg-ink-900/50 p-4 text-center">
-                <div className="mb-1 text-xs text-zinc-500">人格</div>
+                <div className="mb-1 text-xs text-jade-100/45">人格</div>
                 <div className="text-3xl font-bold text-jade-500">{analysis.sanCai.ren}</div>
-                <div className="mt-1 text-xs text-zinc-400">自身运势</div>
+                <div className="mt-1 text-xs text-jade-100/55">自身运势</div>
               </div>
               <div className="rounded-xl border border-cinnabar-500/20 bg-ink-900/50 p-4 text-center">
-                <div className="mb-1 text-xs text-zinc-500">地格</div>
+                <div className="mb-1 text-xs text-jade-100/45">地格</div>
                 <div className="text-3xl font-bold text-cinnabar-500">{analysis.sanCai.di}</div>
-                <div className="mt-1 text-xs text-zinc-400">后天环境</div>
+                <div className="mt-1 text-xs text-jade-100/55">后天环境</div>
               </div>
             </div>
           </div>
 
           {/* 五行平衡 */}
-          <div className="console-panel rounded-[22px] border border-talisman-500/16 bg-ink-950/90 p-4 shadow-instrument md:col-span-2">
-            <h3 className="mb-3 text-base font-semibold text-zinc-50">五行分布</h3>
+          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument md:col-span-2">
+            <h3 className="mb-3 text-base font-semibold text-jade-50">五行分布</h3>
             <div className="flex items-center justify-around">
               {Object.entries(analysis.wuxingBalance).map(([wuxing, count]) => (
                 <div key={wuxing} className="text-center">
-                  <div className={`text-2xl font-bold ${count > 0 ? 'text-zinc-200' : 'text-zinc-600'}`}>
+                  <div className={`text-2xl font-bold ${count > 0 ? 'text-jade-100/80' : 'text-jade-100/35'}`}>
                     {wuxing}
                   </div>
-                  <div className="mt-1 text-sm text-zinc-500">{count}次</div>
+                  <div className="mt-1 text-sm text-jade-100/45">{count}次</div>
                 </div>
               ))}
             </div>

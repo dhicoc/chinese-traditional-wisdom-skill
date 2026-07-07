@@ -74,8 +74,8 @@ export function FeixingWorkspace() {
       <div className="rounded-panel border border-ink-700 bg-ink-850/78 p-4 shadow-instrument">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="font-serif text-2xl font-semibold text-zinc-100">流年飞星</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-400">
+            <h2 className="font-serif text-2xl font-semibold text-jade-100">流年飞星</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               复用旧 fengshui.js 的九宫飞星 renderer，React 负责年份输入与中宫星摘要，与旧 visual/index.html 的 updateFlyingStars() 规则一致。
             </p>
           </div>
@@ -112,7 +112,7 @@ export function FeixingWorkspace() {
               { label: '吉凶', value: summary.luck },
             ] : []}
           >
-            {!summary && <span className="text-zinc-500">等待旧引擎加载。</span>}
+            {!summary && <span className="text-jade-100/45">等待旧引擎加载。</span>}
           </InterpretationCard>
 
           <LegendPanel
@@ -121,7 +121,7 @@ export function FeixingWorkspace() {
             items={starLegend}
           />
 
-          <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-zinc-400">
+          <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
             飞星布局仅作传统文化学习与方位参考，不构成风水操作或决策建议。
           </p>
 

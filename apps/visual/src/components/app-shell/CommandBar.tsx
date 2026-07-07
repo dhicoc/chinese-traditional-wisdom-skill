@@ -87,12 +87,12 @@ function CommandPalette({
       onClick={onDismiss}
     >
       <div
-        className="w-full max-w-2xl overflow-hidden rounded-panel border border-ink-600 bg-ink-850/95 shadow-2xl"
+        className="w-full max-w-2xl overflow-hidden rounded-panel border border-ink-700 bg-ink-850/95 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 搜索输入 */}
         <div className="flex items-center gap-3 border-b border-white/8 px-4 py-3">
-          <span className="font-mono text-sm text-jade-500">›</span>
+          <span className="font-mono text-sm text-jade-400">›</span>
           <input
             type="text"
             autoFocus
@@ -100,9 +100,9 @@ function CommandPalette({
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="搜索工具、切换标签、输入 2026 跳转年份、复制上下文…"
-            className="flex-1 bg-transparent text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
+            className="flex-1 bg-transparent text-sm text-jade-100 placeholder:text-jade-100/25 focus:outline-none"
           />
-          <kbd className="rounded border border-white/10 bg-black/30 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500">
+          <kbd className="rounded border border-white/10 bg-black/30 px-1.5 py-0.5 font-mono text-[10px] text-jade-100/35">
             ESC
           </kbd>
         </div>
@@ -110,7 +110,7 @@ function CommandPalette({
         {/* 搜索结果 */}
         <div className="max-h-[50vh] overflow-y-auto p-2">
           {filtered.length === 0 ? (
-            <p className="px-3 py-8 text-center text-sm text-zinc-500">无匹配结果</p>
+            <p className="px-3 py-8 text-center text-sm text-jade-100/40">无匹配结果</p>
           ) : (
             filtered.map((item, index) => (
               <button
@@ -129,10 +129,10 @@ function CommandPalette({
                 ].join(' ')}
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-zinc-100">{item.label}</p>
-                  <p className="mt-0.5 truncate text-xs text-zinc-500">{item.hint}</p>
+                  <p className="text-sm font-medium text-jade-100">{item.label}</p>
+                  <p className="mt-0.5 truncate text-xs text-jade-100/35">{item.hint}</p>
                 </div>
-                <span className="shrink-0 rounded-full bg-black/25 px-2 py-0.5 text-[10px] text-zinc-500">
+                <span className="shrink-0 rounded-full bg-black/25 px-2 py-0.5 text-[10px] text-jade-100/30">
                   {item.group}
                 </span>
               </button>
@@ -141,7 +141,7 @@ function CommandPalette({
         </div>
 
         {/* 底部提示 */}
-        <div className="flex items-center justify-between border-t border-white/8 px-4 py-2 text-[10px] text-zinc-600">
+        <div className="flex items-center justify-between border-t border-white/8 px-4 py-2 text-[10px] text-jade-100/25">
           <span>↑↓ 导航 · Enter 选择 · ESC 关闭</span>
           <span>{filtered.length} 项</span>
         </div>
@@ -244,18 +244,18 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
 
   return (
     <>
-      <header className="app-topbar sticky top-4 z-20 rounded-[24px] border border-talisman-500/20 bg-ink-950/90 p-3 shadow-instrument backdrop-blur-xl">
+      <header className="app-topbar sticky top-4 z-20 rounded-[24px] border border-jade-500/18 bg-ink-950/90 p-3 shadow-instrument backdrop-blur-xl">
         <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
           <button
             ref={inputRef}
             type="button"
             onClick={() => setPaletteOpen(true)}
-            className="flex min-h-12 items-center gap-3 rounded-[18px] border border-white/10 bg-black/30 px-4 text-left text-zinc-400 transition hover:border-talisman-500/30 hover:text-zinc-100 active:scale-[0.99]"
+            className="flex min-h-12 items-center gap-3 rounded-[18px] border border-white/10 bg-black/30 px-4 text-left text-jade-100/55 transition hover:border-jade-500/30 hover:text-jade-100 active:scale-[0.99]"
             aria-label="打开命令面板 (⌘K)"
           >
-            <span className="font-mono text-talisman-500">⌘K</span>
+            <span className="font-mono text-jade-400">⌘K</span>
             <span className="min-w-0 flex-1 truncate text-sm">搜索工具、切换标签、输入年份、复制 AI 上下文</span>
-            <span className="hidden rounded-full border border-white/10 px-2 py-1 text-[10px] text-zinc-500 md:inline-flex">COMMAND</span>
+            <span className="hidden rounded-full border border-white/10 px-2 py-1 text-[10px] text-jade-100/30 md:inline-flex">COMMAND</span>
           </button>
           <div className="flex flex-wrap gap-2 xl:justify-end">
             {MODULES.slice(0, 6).map((module) => (
@@ -266,8 +266,8 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
                 className={[
                   'rounded-full border px-3.5 py-2 text-xs font-medium transition active:scale-[0.98]',
                   module.id === active.id
-                    ? 'border-cinnabar-500/50 bg-cinnabar-500 text-zinc-50'
-                    : 'border-white/10 bg-white/[0.035] text-zinc-400 hover:border-talisman-500/25 hover:text-zinc-100',
+                    ? 'border-cinnabar-500/50 bg-cinnabar-500 text-jade-50'
+                    : 'border-white/10 bg-white/[0.035] text-jade-100/60 hover:border-gold-500/25 hover:text-jade-100',
                 ].join(' ')}
               >
                 {module.shortTitle}
@@ -276,7 +276,7 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
             <button
               type="button"
               onClick={() => dispatchCopyContextIntent(active.id)}
-              className="rounded-full border border-talisman-500/25 bg-talisman-500/10 px-3.5 py-2 text-xs font-medium text-talisman-500 transition hover:border-talisman-500/40 active:scale-[0.98]"
+              className="rounded-full border border-jade-500/25 bg-jade-500/10 px-3.5 py-2 text-xs font-medium text-jade-400 transition hover:border-jade-500/40 active:scale-[0.98]"
             >
               复制上下文
             </button>

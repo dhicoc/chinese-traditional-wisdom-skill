@@ -52,28 +52,28 @@ export function CanvasPanel<TData>({ title, description, data, width, height, re
 
   return (
     <>
-      <section className="console-panel rounded-[22px] border border-talisman-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-zinc-50">{title}</h3>
-            <p className="mt-1 text-sm leading-6 text-zinc-400">{description}</p>
+            <h3 className="text-lg font-semibold text-jade-50">{title}</h3>
+            <p className="mt-1 text-sm leading-6 text-jade-100/55">{description}</p>
           </div>
-          <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-500">
+          <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
             Legacy Canvas
           </span>
         </div>
-        <div className="canvas-stage overflow-x-auto rounded-[20px] border border-talisman-500/18 bg-ink-950/92 p-3">
+        <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
           <canvas
             ref={canvasRef}
             id={canvasId}
             width={width}
             height={height}
-            className="theme-canvas mx-auto block h-auto max-w-full cursor-zoom-in rounded-[14px] transition duration-200 hover:shadow-[0_0_36px_rgba(219,176,83,0.18)]"
+            className="theme-canvas mx-auto block h-auto max-w-full cursor-zoom-in rounded-[14px] transition duration-200 hover:shadow-[0_0_36px_rgba(44,159,132,0.18)]"
             title="双击放大查看"
             onDoubleClick={openZoom}
           />
         </div>
-        {!ready && <p className="mt-3 text-sm text-zinc-500">正在加载旧版渲染引擎。</p>}
+        {!ready && <p className="mt-3 text-sm text-jade-100/45">正在加载旧版渲染引擎。</p>}
         {error && <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">{error}</p>}
       </section>
       {zoomSrc && createPortal(
@@ -88,30 +88,30 @@ export function CanvasPanel<TData>({ title, description, data, width, height, re
             role="dialog"
             aria-modal="true"
             aria-labelledby={`${canvasId}-zoom-title`}
-            className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-[min(1040px,calc(100vw-2rem))] flex-col overflow-hidden rounded-[26px] border border-talisman-500/25 bg-ink-950/95 shadow-[0_32px_100px_rgba(0,0,0,0.58)]"
+            className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-[min(1040px,calc(100vw-2rem))] flex-col overflow-hidden rounded-[26px] border border-jade-500/25 bg-ink-950/95 shadow-[0_32px_100px_rgba(0,0,0,0.58)]"
           >
             <div className="flex items-center justify-between gap-4 border-b border-white/10 bg-ink-900/92 px-5 py-4">
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-talisman-500">Canvas Zoom</p>
-                <h2 id={`${canvasId}-zoom-title`} className="mt-1 text-lg font-semibold text-zinc-50">{title}</h2>
+                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-400">Canvas Zoom</p>
+                <h2 id={`${canvasId}-zoom-title`} className="mt-1 text-lg font-semibold text-jade-50">{title}</h2>
               </div>
               <button
                 type="button"
                 aria-label="关闭放大命盘"
-                className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/6 text-2xl leading-none text-zinc-300 transition hover:border-cinnabar-500/35 hover:bg-cinnabar-500/14 hover:text-red-100"
+                className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/6 text-2xl leading-none text-jade-100/70 transition hover:border-cinnabar-500/35 hover:bg-cinnabar-500/14 hover:text-red-100"
                 onClick={closeZoom}
               >
                 ×
               </button>
             </div>
-            <div className="min-h-0 flex-1 overflow-auto bg-[radial-gradient(circle_at_top_left,rgba(219,176,83,0.12),transparent_22rem),rgba(3,8,5,0.78)] p-4 text-center">
+            <div className="min-h-0 flex-1 overflow-auto bg-[radial-gradient(circle_at_top_left,rgba(44,159,132,0.12),transparent_22rem),rgba(3,8,5,0.78)] p-4 text-center">
               <img
                 src={zoomSrc}
                 alt={`${title} 放大图像`}
                 className="mx-auto block h-auto max-w-full rounded-[18px] bg-ink-950 shadow-[0_22px_56px_rgba(0,0,0,0.38)]"
               />
             </div>
-            <p className="border-t border-white/10 bg-ink-900/92 px-4 py-3 text-center text-xs text-zinc-500">
+            <p className="border-t border-white/10 bg-ink-900/92 px-4 py-3 text-center text-xs text-jade-100/45">
               双击 Canvas 放大查看；按 Esc、点击背景或右上角 × 关闭。
             </p>
           </div>

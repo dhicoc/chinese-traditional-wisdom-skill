@@ -60,8 +60,8 @@ export function ConstitutionWorkspace() {
       <div className="rounded-panel border border-ink-700 bg-ink-850/78 p-4 shadow-instrument">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="font-serif text-2xl font-semibold text-zinc-100">体质辨识</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-400">
+            <h2 className="font-serif text-2xl font-semibold text-jade-100">体质辨识</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               复用旧 health renderer 的九种体质雷达图，用 React 状态驱动评分输入与主要体质派生。
             </p>
           </div>
@@ -77,7 +77,7 @@ export function ConstitutionWorkspace() {
       <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
         <aside className="space-y-4 rounded-panel border border-ink-700 bg-black/24 p-4">
           <div className="rounded-card border border-jade-500/20 bg-jade-500/10 p-4">
-            <p className="text-sm font-semibold text-zinc-100">主要体质</p>
+            <p className="text-sm font-semibold text-jade-100">主要体质</p>
             <p className="mt-2 font-serif text-2xl text-jade-500">{dominant || '未识别'}</p>
           </div>
 
@@ -93,7 +93,7 @@ export function ConstitutionWorkspace() {
             ))}
           </div>
 
-          <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-zinc-400">
+          <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
             雷达图评分仅用于展示体质倾向，不构成医学判断或治疗建议。
           </p>
         </aside>
