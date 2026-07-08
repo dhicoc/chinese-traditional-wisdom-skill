@@ -124,6 +124,7 @@ flowchart TD
 | `babyname/fate` | MIT | 康熙笔画 + 字义五行数据 | `apps/visual/src/legacy/kangxiStrokes.json`（从 `resources/character.json` 提取 22107 字，简体→繁体本字康熙笔画映射） |
 | `babyname/fate` | MIT | 81 数理详注表 | `apps/visual/src/legacy/dayanList.json`（从 `internal/wuge/dayan.go` 提取 81 条，含九星名/详注/女性不宜/最大好运标记） |
 | `babyname/fate` | MIT | 三才配置详描 | `apps/visual/src/legacy/sancaiDetails.json`（从 `internal/analysis/sancai_data.go` 提取 118 组天-人-地五行配置完整详描） |
+| `babyname/fate` | MIT | 喜用神算法 | `apps/visual/src/legacy/xiyong.ts`（参考 `internal/bazi/xiyong.go` 简化版：五行计数算同类/异类/强弱/喜用神，不搬令分数表） |
 
 ### 仅参考思路、未复用文案/词表
 

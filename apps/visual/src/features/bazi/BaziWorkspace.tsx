@@ -7,6 +7,7 @@ import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { renderDataWithLegacyAdapter, calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { type BaziPillars, type WuxingStats } from '@/legacy/canvasRenderers';
+import { calcXiYong } from '@/legacy/xiyong';
 import type { BirthData } from '@/legacy/birthBridge';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
@@ -79,6 +80,11 @@ export function BaziWorkspace() {
     ['时柱', pillars.hour],
   ] as const;
   const maxWuxing = Math.max(1, ...Object.values(wuxing));
+  const xiyong = useMemo(() => {
+    const dmWx = result?.dayMasterWuxing;
+    if (!dmWx) return null;
+    return calcXiYong(dmWx, wuxing);
+  }, [result?.dayMasterWuxing, wuxing]);
   const contextPayload = useMemo(
     () => ({
       module: 'bazi',
@@ -129,7 +135,13 @@ export function BaziWorkspace() {
             title="推算边界"
             items={[
               { label: '日主', value: (result?.dayMaster ?? pillars.dayMaster ?? '?') + ' · ' + (result?.dayMasterWuxing ?? '?') },
-              { label: '说明', value: result?.confidenceNote ?? '顶部“全局生辰”面板是所有工作区的唯一输入源。' },
+              ...(xiyong ? [
+                { label: '日主强弱', value: `${xiyong.qiangRuo}（同类${xiyong.similarPoint} / 异类${xiyong.heterogeneousPoint}）` },
+                { label: '喜用神', value: xiyong.shen + '（' + (xiyong.qiangRuo === '身弱' ? '补同类最弱' : xiyong.qiangRuo === '身强' ? '补异类最弱' : '补全局最弱') + '）' },
+                { label: '同类', value: xiyong.similar.join('、') },
+                { label: '异类', value: xiyong.heterogeneous.join('、') },
+              ] : []),
+              { label: '说明', value: xiyong?.confidenceNote ?? result?.confidenceNote ?? '顶部“全局生辰”面板是所有工作区的唯一输入源。' },
             ]}
           />
         </aside>
