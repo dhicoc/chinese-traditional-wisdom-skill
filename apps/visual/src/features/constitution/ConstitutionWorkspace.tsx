@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CanvasPanel } from '@/components/shared/CanvasPanel';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ControlField } from '@/components/shared/ControlField';
+import { RadarChart, type RadarAxis } from '@/components/shared/RadarChart';
 import {
   deriveDominantConstitution,
-  renderLegacyConstitution,
   type ConstitutionScores,
 } from '@/legacy/canvasRenderers';
 import { CONSTITUTION_TYPES } from '@/legacy/baseTypes';
@@ -40,6 +39,15 @@ export function ConstitutionWorkspace() {
   const dominant = useMemo(() => deriveDominantConstitution(scores), [scores]);
   const data = useMemo(() => ({ scores, dominant }), [scores, dominant]);
   const ready = legacyState.mode === 'ready';
+
+  const radarAxes = useMemo<RadarAxis[]>(() => {
+    return CONSTITUTION_TYPES.map((type) => ({ label: type, value: scores[type], max: 100 }));
+  }, [scores]);
+  const highlightIndex = useMemo(() => {
+    if (!dominant) return undefined;
+    const idx = CONSTITUTION_TYPES.indexOf(dominant);
+    return idx >= 0 ? idx : undefined;
+  }, [dominant]);
   const contextPayload = useMemo(
     () => ({
       module: 'tizhi',
@@ -98,15 +106,20 @@ export function ConstitutionWorkspace() {
           </p>
         </aside>
 
-        <CanvasPanel
-          title="九种体质雷达图"
-          description="与旧 visual/index.html 的体质辨识默认评分规则对齐。"
-          data={data}
-          width={400}
-          height={420}
-          ready={ready}
-          render={renderLegacyConstitution}
-        />
+        <div className="rounded-panel border border-ink-700 bg-ink-850/60 p-4">
+          <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
+            <h3 className="font-serif text-sm font-semibold text-jade-100/70">九种体质雷达图</h3>
+            <span className="text-[10px] text-jade-100/45">Phase 10 · SVG</span>
+          </div>
+          <RadarChart
+            axes={radarAxes}
+            highlightIndex={highlightIndex}
+            title="九种体质雷达图"
+          />
+          <p className="mt-3 text-center text-[10px] text-jade-100/40">
+            与旧 visual/index.html 体质辨识默认评分规则对齐；金色顶点为主要体质。
+          </p>
+        </div>
       </div>
     </section>
   );

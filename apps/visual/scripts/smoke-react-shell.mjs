@@ -106,17 +106,15 @@ check(
   'features/tizhi 空目录应已清理',
 );
 
-// ── 3. #tizhi 有 1 个 canvas（体质辨识迁移） ─────────────
+// ── 3. #tizhi 使用 SVG RadarChart（Phase 10 升级） ────────
 const tizhiPath = path.join(srcRoot, 'features/constitution/ConstitutionWorkspace.tsx');
 check(exists(tizhiPath), 'ConstitutionWorkspace.tsx 应位于 features/constitution/ 目录');
 if (exists(tizhiPath)) {
   const tizhiWorkspace = read(tizhiPath);
   const tizhiCanvasCount = countOccurrences(tizhiWorkspace, '<CanvasPanel');
-  check(tizhiCanvasCount === 1, `#tizhi 应渲染 1 个 canvas，实际 <CanvasPanel 出现 ${tizhiCanvasCount} 次`);
-  check(
-    tizhiWorkspace.includes('renderLegacyConstitution'),
-    'TizhiWorkspace 应调用 renderLegacyConstitution 复用旧 health renderer',
-  );
+  check(tizhiCanvasCount === 0, `#tizhi Phase 10 后不应再用 CanvasPanel，实际出现 ${tizhiCanvasCount} 次`);
+  check(tizhiWorkspace.includes('RadarChart'), 'ConstitutionWorkspace 应使用 RadarChart SVG 组件');
+  check(tizhiWorkspace.includes('radarAxes'), 'ConstitutionWorkspace 应构建 radarAxes 数据');
 }
 
 // ── 3b. #meihua 有 1 个 canvas（梅花易数迁移） ────────────
