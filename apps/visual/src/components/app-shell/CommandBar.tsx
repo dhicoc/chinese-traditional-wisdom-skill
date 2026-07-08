@@ -430,22 +430,6 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
             <span className="hidden rounded-full border border-white/10 px-2 py-1 text-[10px] text-jade-100/30 md:inline-flex">COMMAND</span>
           </button>
           <div className="flex flex-wrap gap-2 xl:justify-end">
-            {MODULES.slice(0, 6).map((module) => (
-              <button
-                key={module.id}
-                type="button"
-                onClick={() => onSelectModule(module.id)}
-                data-testid="command-shortcut"
-                className={[
-                  'rounded-full border px-3.5 py-2 text-xs font-medium transition active:scale-[0.98]',
-                  module.id === active.id
-                    ? 'border-cinnabar-500/50 bg-cinnabar-500 text-jade-50'
-                    : 'border-white/10 bg-white/[0.035] text-jade-100/60 hover:border-gold-500/25 hover:text-jade-100',
-                ].join(' ')}
-              >
-                {module.shortTitle}
-              </button>
-            ))}
             <button
               type="button"
               onClick={() => {
