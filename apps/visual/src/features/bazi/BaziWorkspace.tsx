@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CanvasPanel } from '@/components/shared/CanvasPanel';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { FiveElementsChart } from '@/components/shared/FiveElementsChart';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { renderDataWithLegacyAdapter, calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
-import { renderLegacyBazi, renderLegacyWuxing, type BaziPillars, type WuxingStats } from '@/legacy/canvasRenderers';
+import { renderLegacyBazi, type BaziPillars, type WuxingStats } from '@/legacy/canvasRenderers';
 import type { BirthData } from '@/legacy/birthBridge';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
@@ -184,15 +185,26 @@ export function BaziWorkspace() {
               })}
             </div>
           </section>
-          <CanvasPanel
-            title="五行平衡"
-            description="五行统计来自同一次八字计算。"
-            data={wuxing}
-            width={520}
-            height={460}
-            ready={ready}
-            render={renderLegacyWuxing}
-          />
+          <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+            <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-jade-50">五行平衡</h3>
+                <p className="mt-1 text-sm leading-6 text-jade-100/55">
+                  五行相生相克图，统计来自同一次八字计算（Phase 10 SVG 替换）。
+                </p>
+              </div>
+              <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
+                SVG · Phase 10
+              </span>
+            </div>
+            <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
+              {ready ? (
+                <FiveElementsChart stats={wuxing} />
+              ) : (
+                <p className="py-12 text-center text-sm text-jade-100/45">正在加载八字引擎。</p>
+              )}
+            </div>
+          </section>
         </aside>
       </div>
     </section>

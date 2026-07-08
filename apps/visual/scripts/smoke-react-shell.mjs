@@ -3,7 +3,7 @@
  *
  * 零依赖、纯 Node 脚本，沿用 visual/js/tests/check-doc-contracts.mjs 的风格。
  * 验证 React app 关键运行时契约（不启动浏览器）：
- *   - #bazi 工作区渲染 2 个 canvas（八字四柱 + 五行平衡）
+ *   - #bazi 工作区渲染 1 个 canvas（四柱主盘）+ 五行平衡 SVG（Phase 10 已替换为 FiveElementsChart）
  *   - #yunqi 工作区渲染 1 个 canvas（岁运 · 司天 · 在泉）
  *   - #meihua 工作区渲染 1 个 canvas（梅花易数）
  *   - #liuyao 工作区渲染 1 个 canvas（六爻占卜）
@@ -74,10 +74,15 @@ check(
 
 check(exists(path.join(repoRoot, 'visual/react.html')), 'visual/react.html 应存在，作为 React 并行验证入口');
 
-// ── 1. #bazi 有 2 个 canvas ──────────────────────────────
+// ── 1. #bazi: 四柱主盘保留 Canvas，五行平衡已迁移至 SVG（Phase 10） ──
 const baziWorkspace = read(path.join(srcRoot, 'features/bazi/BaziWorkspace.tsx'));
 const baziCanvasCount = countOccurrences(baziWorkspace, '<CanvasPanel');
-check(baziCanvasCount === 2, `#bazi 应渲染 2 个 canvas，实际 <CanvasPanel 出现 ${baziCanvasCount} 次`);
+check(baziCanvasCount === 1, `#bazi 四柱主盘应保留 1 个 canvas，实际 <CanvasPanel 出现 ${baziCanvasCount} 次`);
+check(baziWorkspace.includes('FiveElementsChart'), '#bazi 五行平衡应使用 FiveElementsChart SVG 组件');
+check(
+  !baziWorkspace.includes('renderLegacyWuxing'),
+  '#bazi 不应再调用 renderLegacyWuxing（已由 FiveElementsChart 替换）',
+);
 check(baziWorkspace.includes('calculateWithLegacyAdapter'), '#bazi 应通过 EngineAdapterRegistry 计算四柱');
 check(baziWorkspace.includes('useBirth'), '#bazi 应读取全局生辰上下文');
 

@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-07-08 八字五行平衡 SVG（Phase 10 图表替换续）
+
+### 变更
+
+- **新增 `FiveElementsChart`**：React + SVG 组件，替换 BaziWorkspace「五行平衡」的 `CanvasPanel` + `renderLegacyWuxing`。
+- **布局**：复刻 legacy `bazi.renderWuxing` 的五行相生相克五边形——5 顶点按相生循环（木→火→土→金→水）正上方起始顺时针排列；相邻边为相生（虚线带箭头 + 「生」标签），隔点连线为相克（红色实线带箭头 + 「克」标签）；顶点圆圈用 `wuxingColorLight` 填充 + `wuxingColor` 描边 + `wuxingColorDark` 计数，圆外五行标签；中心「五行平衡」；底部相生/相克图例。
+- **配色**：完全对齐 legacy `CORE.wuxingColor / wuxingColorLight / wuxingColorDark`，确保与旧 Canvas 视觉一致。
+- **契约同步**：`smoke-react-shell.mjs` bazi 断言从「2 个 canvas」改为「1 个 canvas（四柱主盘）+ FiveElementsChart + 不再调用 renderLegacyWuxing」。
+
+### 理由
+
+- 延续紫微 SVG 迁移的思路：把 Canvas 文字/箭头测量脆弱的图表替换为 SVG。五行相生相克图的箭头、标签在 Canvas 里靠手算坐标，SVG 用 `marker` + 文本锚定更稳健且可访问。
+- 四柱主盘（`renderLegacyBazi`）暂保留 Canvas：它的四柱格子布局简单、无文字溢出风险，遵循「逐步替换交互收益高的模块」原则，优先替换收益明确的五行图。
+
+### 取舍
+
+- 不在本轮替换四柱主盘 Canvas；legacy `bazi.js` / `renderLegacyWuxing` / `renderLegacyBazi` 全部保留，旧 `visual/index.html` 主入口不受影响。
+
+---
+
 ## 2026-07-08 紫微斗数 SVG 命盘（Phase 10 图表替换）
 
 ### 变更
