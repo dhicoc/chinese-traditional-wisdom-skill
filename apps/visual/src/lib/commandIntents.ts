@@ -271,3 +271,68 @@ export function readPendingCommandYear(target: YearIntentTarget, fallback = 2026
     return fallback;
   }
 }
+
+/* ── 命令历史/收藏（复用 legacy HistoryStore） ─────────── */
+
+export interface CommandHistoryEntry {
+  id: string;
+  module: string;
+  title: string;
+  summary: string;
+  tags: string[];
+  mode: string;
+  createdAt: string;
+  favorite: boolean;
+}
+
+interface HistoryStoreLike {
+  add: (entry: Partial<CommandHistoryEntry>) => CommandHistoryEntry | null;
+  list: () => CommandHistoryEntry[];
+  listFavorites: () => CommandHistoryEntry[];
+  toggleFavorite: (id: string) => boolean;
+  remove: (id: string) => void;
+  clear: () => void;
+  clearFavorites: () => void;
+  getCount: () => number;
+}
+
+function getHistoryStore(): HistoryStoreLike | null {
+  if (typeof window === 'undefined') return null;
+  const w = window as unknown as { HistoryStore?: HistoryStoreLike };
+  return w.HistoryStore ?? null;
+}
+
+/**
+ * 记录一条命令执行历史（脱敏，复用 legacy HistoryStore）。
+ * 返回写入的条目，或 null 表示 store 未就绪。
+ */
+export function recordCommandHistory(entry: {
+  module: string;
+  title: string;
+  summary?: string;
+  tags?: string[];
+  mode?: string;
+}): CommandHistoryEntry | null {
+  const store = getHistoryStore();
+  if (!store) return null;
+  return store.add({
+    module: entry.module,
+    title: entry.title,
+    summary: entry.summary ?? '',
+    tags: entry.tags ?? [],
+    mode: entry.mode ?? 'command',
+  });
+}
+
+export function listCommandHistory(): CommandHistoryEntry[] {
+  return getHistoryStore()?.list() ?? [];
+}
+
+export function listCommandFavorites(): CommandHistoryEntry[] {
+  return getHistoryStore()?.listFavorites() ?? [];
+}
+
+export function isHistoryStoreReady(): boolean {
+  return getHistoryStore() !== null;
+}
+

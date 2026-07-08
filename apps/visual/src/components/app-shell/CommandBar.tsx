@@ -18,6 +18,8 @@ import {
   parseLiuyaoCommand,
   parseMeihuaCommand,
   parseReaderSearchCommand,
+  recordCommandHistory,
+  listCommandHistory,
 } from '@/lib/commandIntents';
 import { routeQuery, type AgentRoute } from '@/lib/agentRouter';
 import { AgentConfirmPanel } from './AgentConfirmPanel';
@@ -31,6 +33,7 @@ interface CommandItem {
   group: string;
   keywords: string[];
   action: () => void;
+  module?: string;
 }
 
 interface CommandBarProps {
@@ -75,6 +78,15 @@ function CommandPalette({
   const executeItem = useCallback(
     (item: CommandItem) => {
       item.action();
+      if (item.module) {
+        recordCommandHistory({
+          module: item.module,
+          title: item.label,
+          summary: item.hint,
+          tags: item.keywords.slice(0, 6),
+          mode: item.group === '导航' ? 'navigation' : 'command',
+        });
+      }
       dispatchCommandFeedback(buildCommandFeedback(item));
       onDismiss();
     },
@@ -223,6 +235,7 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
       group: '导航',
       keywords: [m.id, m.shortTitle, m.title, ...m.questionTypes],
       action: () => onSelectModule(m.id),
+      module: m.id,
     }));
 
     const actionItems: CommandItem[] = [
@@ -373,8 +386,26 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
             group: '智能',
             keywords: [trimmed, route.module, targetModule.title, targetModule.shortTitle, 'agent', '智能', '路由'],
             action: () => setPendingRoute(route),
+            module: route.module,
           });
         }
+      }
+
+      // 历史重放：输入"历史"/"history"/"收藏"时列出最近命令
+      if (/历史|history|收藏|favorite/.test(trimmed.toLowerCase())) {
+        const isFavQuery = /收藏|favorite/.test(trimmed.toLowerCase());
+        const historyList = listCommandHistory().filter((h) => isFavQuery ? h.favorite : true).slice(0, 5);
+        historyList.forEach((entry) => {
+          dynamicItems.push({
+            id: 'history-' + entry.id,
+            label: (entry.favorite ? '★ ' : '') + entry.title,
+            hint: entry.summary || entry.module,
+            group: isFavQuery ? '收藏' : '历史',
+            keywords: [entry.module, entry.title, '历史', 'history', '收藏'],
+            action: () => onSelectModule(entry.module as ModuleId),
+            module: entry.module,
+          });
+        });
       }
 
       return dynamicItems;
@@ -470,6 +501,13 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
             if (route.liuyao) window.setTimeout(() => dispatchLiuyaoIntent(route.liuyao!), 0);
             if (route.meihua) window.setTimeout(() => dispatchMeihuaIntent(route.meihua!), 0);
             if (route.reader) window.setTimeout(() => dispatchReaderSearchIntent(route.reader!), 0);
+            recordCommandHistory({
+              module: route.module,
+              title: '智能路由：' + getModuleById(route.module).title,
+              summary: route.reason + (route.question ? ' · ' + route.question : ''),
+              tags: [route.module, 'agent', '智能路由'],
+              mode: 'agent',
+            });
             dispatchCommandFeedback({
               title: '已执行：智能路由 → ' + getModuleById(route.module).title,
               description: route.reason + (route.question ? ' · ' + route.question : ''),

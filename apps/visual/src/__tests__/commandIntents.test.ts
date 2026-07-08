@@ -2,10 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   buildCommandFeedback,
   isRefreshAllCommand,
+  isHistoryStoreReady,
+  listCommandHistory,
   parseBirthCommand,
   parseLiuyaoCommand,
   parseMeihuaCommand,
   parseReaderSearchCommand,
+  recordCommandHistory,
 } from '@/lib/commandIntents';
 
 describe('command intent parsers', () => {
@@ -63,6 +66,42 @@ describe('command feedback helpers', () => {
       description: '操作',
       tone: 'success',
     });
+  });
+});
+
+describe('command history helpers', () => {
+  it('recordCommandHistory returns null when HistoryStore is absent', () => {
+    // jsdom 环境默认无 HistoryStore
+    const result = recordCommandHistory({ module: 'bazi', title: '测试' });
+    expect(result).toBeNull();
+  });
+
+  it('listCommandHistory returns empty array when store absent', () => {
+    expect(listCommandHistory()).toEqual([]);
+  });
+
+  it('isHistoryStoreReady reflects store presence', () => {
+    expect(isHistoryStoreReady()).toBe(false);
+  });
+
+  it('records and lists history when a mock store is present', () => {
+    const store: { [k: string]: unknown } = {};
+    let history: unknown[] = [];
+    store.add = (entry: { module: string; title: string }) => {
+      const rec = { id: 'h1', module: entry.module, title: entry.title, summary: '', tags: [], mode: 'command', createdAt: 'now', favorite: false };
+      history = [rec, ...history];
+      return rec;
+    };
+    store.list = () => history;
+    (window as unknown as { HistoryStore: unknown }).HistoryStore = store;
+    try {
+      expect(isHistoryStoreReady()).toBe(true);
+      const rec = recordCommandHistory({ module: 'bazi', title: '八字命盘' });
+      expect(rec?.module).toBe('bazi');
+      expect(listCommandHistory()).toHaveLength(1);
+    } finally {
+      delete (window as unknown as { HistoryStore: unknown }).HistoryStore;
+    }
   });
 });
 

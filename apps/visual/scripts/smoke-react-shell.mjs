@@ -528,7 +528,15 @@ if (exists(commandIntentsPath)) {
   check(commandIntents.includes('parseReaderSearchCommand'), 'commandIntents 应导出古籍搜索命令解析器');
   check(commandIntents.includes('isRefreshAllCommand'), 'commandIntents 应导出刷新命令识别器');
   check(commandIntents.includes('buildCommandFeedback'), 'commandIntents 应导出命令反馈消息构建器');
+  check(commandIntents.includes('recordCommandHistory'), 'commandIntents 应导出命令历史记录器');
+  check(commandIntents.includes('listCommandHistory'), 'commandIntents 应导出命令历史列表');
+  check(commandIntents.includes('CommandHistoryEntry'), 'commandIntents 应定义命令历史条目类型');
 }
+
+check(commandBar.includes('recordCommandHistory'), 'CommandBar 应记录命令执行历史');
+check(commandBar.includes('listCommandHistory'), 'CommandBar 应支持历史重放动态项');
+check(commandBar.includes('history-'), 'CommandBar 历史重放项应有稳定 id 前缀');
+
 
 // ── 8b. agentRouter 路由层（Phase 8） ─────────────────
 const agentRouterPath = path.join(srcRoot, 'lib/agentRouter.ts');
