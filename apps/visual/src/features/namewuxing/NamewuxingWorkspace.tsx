@@ -121,7 +121,7 @@ export function NamewuxingWorkspace() {
                 <p className="mb-2 text-xs text-jade-100/45">姓氏（{analysis.surnameChars.length} 字）</p>
                 <div className="flex flex-wrap gap-2">
                   {analysis.surnameChars.map((c, i) => (
-                    <div key={i} className="rounded-card border border-white/8 bg-white/[0.03] px-3 py-2 text-center">
+                    <div key={i} className="w-28 rounded-card border border-white/8 bg-white/[0.03] px-3 py-2 text-center" title={c.meaning || undefined}>
                       <div className="font-serif text-lg text-jade-100/80">{c.char}</div>
                       <div className="mt-0.5 text-xs text-jade-100/55">
                         {c.strokes} 画 · 笔{c.wuxing}
@@ -130,6 +130,11 @@ export function NamewuxingWorkspace() {
                         <div className="text-[10px] text-jade-300/70">字义{c.meaningWuxing}</div>
                       )}
                       {c.estimated && <div className="text-[10px] text-gold-400">估算</div>}
+                      {c.meaning && (
+                        <div className="mt-1 border-t border-white/5 pt-1 text-[10px] leading-4 text-jade-100/35 line-clamp-2">
+                          {c.meaning}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -138,7 +143,7 @@ export function NamewuxingWorkspace() {
                 <p className="mb-2 text-xs text-jade-100/45">名字（{analysis.givenChars.length} 字）</p>
                 <div className="flex flex-wrap gap-2">
                   {analysis.givenChars.map((c, i) => (
-                    <div key={i} className="rounded-card border border-white/8 bg-white/[0.03] px-3 py-2 text-center">
+                    <div key={i} className="w-28 rounded-card border border-white/8 bg-white/[0.03] px-3 py-2 text-center" title={c.meaning || undefined}>
                       <div className="font-serif text-lg text-jade-100/80">{c.char}</div>
                       <div className="mt-0.5 text-xs text-jade-100/55">
                         {c.strokes} 画 · 笔{c.wuxing}
@@ -147,6 +152,11 @@ export function NamewuxingWorkspace() {
                         <div className="text-[10px] text-jade-300/70">字义{c.meaningWuxing}</div>
                       )}
                       {c.estimated && <div className="text-[10px] text-gold-400">估算</div>}
+                      {c.meaning && (
+                        <div className="mt-1 border-t border-white/5 pt-1 text-[10px] leading-4 text-jade-100/35 line-clamp-2">
+                          {c.meaning}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

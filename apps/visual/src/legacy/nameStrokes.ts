@@ -10,6 +10,7 @@
  */
 
 import kangxiData from './kangxiStrokes.json';
+import charMeaningsData from './charMeanings.json';
 
 interface CharEntry {
   /** 康熙笔画 */
@@ -19,6 +20,7 @@ interface CharEntry {
 }
 
 const KANGXI: Record<string, CharEntry> = kangxiData as Record<string, CharEntry>;
+const CHAR_MEANINGS: Record<string, string> = charMeaningsData as Record<string, string>;
 
 /**
  * 取汉字康熙笔画数。未收录时返回 null（由调用方标注「未收录」并回退估算）。
@@ -30,6 +32,11 @@ export function getKangxiStrokes(char: string): number | null {
 /** 取汉字字义五行（fate 数据的 wu_xing 字段）。未收录返回空串。 */
 export function getCharWuxing(char: string): string {
   return KANGXI[char]?.w ?? '';
+}
+
+/** 取汉字字义出处（fate character.json 的 meaning 字段，19931 字）。未收录返回空串。 */
+export function getCharMeaning(char: string): string {
+  return CHAR_MEANINGS[char] ?? '';
 }
 
 /** 未收录字回退估算：用 Unicode 编码取模，仅作占位，UI 会标注「未收录」。 */

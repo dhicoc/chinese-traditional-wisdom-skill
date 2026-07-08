@@ -5,6 +5,29 @@
 
 ---
 
+## 2026-07-08 fate 暂缓项补齐：字义出处 + 生肖喜忌用字
+
+> 项目定位从 Skill 演进为全套工作流，不再以体积为由跳过功能项。
+
+### 字义出处（P3 补齐）
+
+- 新增 `charMeanings.json`（19931 字字义，1.6MB），从 fate `character.json` meaning 字段全量提取（与 kangxiStrokes 取交集）。
+- `nameStrokes.ts` 新增 `getCharMeaning()`；`NameChar` 新增 `meaning` 字段。
+- 字元卡片显示字义出处（line-clamp-2 截断 + hover title 全文），如「张：形声。从弓，长声。本义把弦安在弓上」。
+
+### 生肖喜忌用字（P2 补齐）
+
+- 新增 `zodiacNameChars.json`（12 生肖 Xi/Ji 用字表，39KB），从 fate `zodiac.go` 提取。
+- `nameRating.ts` 生肖契合度改用真实喜忌表：名字字在忌用字表扣 40 分、喜用字表加 40 分，无命中回退五行相生近似。
+- 鼠有喜用字表（1378 字），其余生肖主要用忌用字表（fate 数据本身如此）。
+
+### 验证
+
+- `tsc -b` 通过；单元 71/71、冒烟 249/249。
+- 张/伟/涵/梓/睿/子/明/宝/彦 等常用字字义全部覆盖。
+
+---
+
 ## 2026-07-08 fate P3 落地：五维评分体系（简化自建版）
 
 ### 变更

@@ -14,6 +14,7 @@
  */
 
 import type { NameAnalysis } from './nameWuxing';
+import zodiacNameChars from './zodiacNameChars.json';
 
 export interface NameRatingResult {
   totalScore: number;
@@ -69,23 +70,38 @@ const ZODIAC_WUXING: Record<string, string> = {
   马: '火', 羊: '土', 猴: '金', 鸡: '金', 狗: '土', 猪: '水',
 };
 
-/** 生肖五行与名字字义五行相生关系 → 0-100 */
-function zodiacScore(birthYear: number, chars: { meaningWuxing: string }[]): number {
-  // 生肖：年份 % 12 对应（鼠牛虎兔龙蛇马羊猴鸡狗猪）
+const ZODIAC_NAME_CHARS = zodiacNameChars as Record<string, { xi: string; ji: string }>;
+
+/**
+ * 生肖契合度（fate 真实喜忌表）：名字字在生肖忌用字表中扣分，
+ * 在喜用字表中加分；无喜用表时回退五行相生近似。
+ */
+function zodiacScore(birthYear: number, chars: { char: string; meaningWuxing: string }[]): number {
   const zodiacs = ['猴', '鸡', '狗', '猪', '鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊'];
   const zodiac = zodiacs[((birthYear - 4) % 12 + 12) % 12];
   const zwx = ZODIAC_WUXING[zodiac] ?? '';
   if (!zwx) return 50;
-  const meaningWxs = chars.map((c) => c.meaningWuxing).filter(Boolean);
-  if (meaningWxs.length === 0) return 50;
+
+  const zodiacData = ZODIAC_NAME_CHARS[zodiac];
+  const xiSet = zodiacData?.xi ? new Set(zodiacData.xi.split(/[\s,，]+/).filter(Boolean)) : new Set<string>();
+  const jiSet = zodiacData?.ji ? new Set(zodiacData.ji.split(/[\s,，]+/).filter(Boolean)) : new Set<string>();
+
   let total = 0;
-  for (const mwx of meaningWxs) {
-    if (mwx === zwx) total += 80; // 比和
-    else if (SHENG_MAP[zwx] === mwx || SHENG_MAP[mwx] === zwx) total += 100; // 相生
-    else if (KE_MAP[zwx] === mwx || KE_MAP[mwx] === zwx) total += 40; // 相克
-    else total += 60;
+  let counted = 0;
+  for (const c of chars) {
+    let s = 60; // 基础分
+    if (xiSet.has(c.char)) s += 40; // 喜用字
+    if (jiSet.has(c.char)) s -= 40; // 忌用字
+    // 无喜忌命中时，用五行相生近似补充
+    if (!xiSet.has(c.char) && !jiSet.has(c.char) && c.meaningWuxing) {
+      if (c.meaningWuxing === zwx) s = 80;
+      else if (SHENG_MAP[zwx] === c.meaningWuxing || SHENG_MAP[c.meaningWuxing] === zwx) s = 90;
+      else if (KE_MAP[zwx] === c.meaningWuxing || KE_MAP[c.meaningWuxing] === zwx) s = 40;
+    }
+    total += Math.max(0, Math.min(100, s));
+    counted++;
   }
-  return Math.round(total / meaningWxs.length);
+  return counted > 0 ? Math.round(total / counted) : 50;
 }
 
 function scoreToGrade(score: number): string {

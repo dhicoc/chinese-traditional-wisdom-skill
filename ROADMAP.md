@@ -303,8 +303,8 @@
 | P1 | 81 数理详注表 | `internal/wuge/dayan.go` | ✅ 已落地：`dayanList.json`（81 条，含九星名/详注/女性不宜/最大好运标记），五格数理显示九星名+详注+女性不宜/最大好运徽章 | 小 | 五格数理显示「第N数·九星名·详注」，专业度大增 |
 | P1 | 三才配置详描 | `internal/analysis/sancai_data.go` | ✅ 已落地：`sancaiDetails.json`（118 组完整详描），三才解读显示 fate 完整长句 | 小 | 三才 118 组完整长句解读 |
 | P2 | 喜用神算法 | `internal/bazi/xiyong.go` | ✅ 已落地（简化版）：`xiyong.ts` 用五行计数算同类（日主+印）/异类/强弱/喜用神，BaziWorkspace「推算边界」展示日主强弱+喜用神+同类异类。不搬 fate 令分数表，标注「五行计数近似口径」。 | 中 | 八字输出「日主强弱·喜用神」实质结论 |
-| P2 | 生肖喜忌用字 | `internal/bazi/zodiac.go` | ⏳ 暂缓：数据体积大（每生肖 Xi/Ji 各几千字）且更适合起名推荐场景，本项目姓名模块是测算现有姓名，契合度低。记为后续起名功能增强项。 | 中 | 姓名模块加生肖评分维度 |
-| P3 | 字义出处 | `character.json` 的 `meaning` 字段 | ⏳ 暂缓：全量 19931 字 1.6MB 过大，regular 2511 字 298KB 覆盖不全（梓/睿/子/明等常用名用字缺失），性价比低。记为后续按需查询或精简手工表增强项。 | 中 | 姓名模块展示字义文化出处 |
+| P2 | 生肖喜忌用字 | `internal/bazi/zodiac.go` | ✅ 已落地：`zodiacNameChars.json`（12 生肖 Xi/Ji 用字表，39KB），`nameRating.ts` 生肖契合度改用真实喜忌表（名字字在忌用字表扣分/喜用字表加分，无命中回退五行相生近似）。 | 中 | 姓名模块加生肖评分维度 |
+| P3 | 字义出处 | `character.json` 的 `meaning` 字段 | ✅ 已落地：`charMeanings.json`（19931 字字义，1.6MB），`nameStrokes.ts` 新增 `getCharMeaning()`，字元卡片显示字义出处（line-clamp-2 截断 + title 全文）。 | 中 | 姓名模块展示字义文化出处 |
 | P3 | 五维评分体系 | `internal/rating/` | ✅ 已落地（简化自建版）：`nameRating.ts` 用已有数据算五格30%+三才15%+五行平衡25%+字义五行20%+生肖契合10%，等级对齐 fate scoreToGrade。NamewuxingWorkspace 加出生年输入与五维评分卡片。非 fate 令分数口径，标注简化自建。 | 中 | 姓名综合打分 |
 
 ### 不复用部分
