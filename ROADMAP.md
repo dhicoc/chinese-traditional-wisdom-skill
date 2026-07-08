@@ -391,3 +391,77 @@
 - 所有操作按钮点击后有统一 toast 反馈；报告可从工作区直接导出。
 - 移动端导航不占过多屏空间；图表小屏可用。
 - 正文文字对比度达 WCAG AA；键盘焦点可见；不可逆操作有确认。
+
+## 三层架构演进：Skill + MCP Server + Dashboard
+
+> 规划日期：2026-07-08。项目已从单一 Skill 演进为全套工作流，定位为「既是 Skill 那样轻量、又有 Workflow 那样全面」。核心矛盾：Skill 层要轻量（AI 快速加载），但计算数据量大（kangxiStrokes 536KB + charMeanings 1.6MB + vendor 893KB + 引擎 45KB + JSON 数据 2.2MB+）。解决方案：三层架构，把计算层包装成 MCP server，Skill 层只做路由。**待整个项目全部做完后再启动此阶段。**
+
+### 架构
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Layer 1: SKILL.md（AI 入口，轻量 < 50KB）                │
+│  - 自然语言理解 → 路由到对应工具                           │
+│  - 调用 MCP 工具获取结构化结果                             │
+│  - 套用 templates/ 生成报告                               │
+├─────────────────────────────────────────────────────────┤
+│  Layer 2: MCP Server（计算引擎，本地运行）                  │
+│  - 暴露工具：bazi_calculate / ziwei_chart / liuyao_cast  │
+│    / qimen_arrange / name_analyze / yunqi_calc / ...     │
+│  - 内部复用 visual/js/engines + vendor + JSON 数据        │
+│  - AI 通过 MCP 协议直接调用，无需用户打开浏览器              │
+│  - AI 不读数据，MCP 按需返回结构化结果                      │
+├─────────────────────────────────────────────────────────┤
+│  Layer 3: Visual Dashboard（可视化，可选）                 │
+│  - 全套 React 工作区 + SVG 图表                           │
+│  - 用户想看可视化时打开                                    │
+│  - MCP 返回数据带 visualUrl 字段，用户可点击查看            │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 为什么这个方案最好
+
+| 对比 | 纯 Skill | 纯 Workflow | 三层架构 |
+|------|---------|------------|---------|
+| AI 加载速度 | 快（50KB） | 慢（3MB+） | 快（只读 SKILL.md） |
+| 计算能力 | 弱（无数据） | 强 | 强（MCP 调用引擎） |
+| 用户交互 | 纯文本 | 需打开浏览器 | 两者都有 |
+| 依赖管理 | 手动装 Python | 手动起 dev server | MCP 即装即用 |
+| 数据加载 | AI 需读全部 | 不需 AI 读 | AI 不读数据，MCP 按需返回 |
+
+### 落地步骤
+
+1. **建 MCP server**（`mcp-server/index.ts`）：把 `visual/js/engines/*` + vendor 包装成 MCP 工具，暴露以下工具：
+   - `bazi_calculate`：八字排盘（四柱、五行、喜用神、十神）
+   - `ziwei_chart`：紫微斗数排盘（十二宫、星曜、四化）
+   - `cast_liuyao`：六爻起卦（纳甲、六亲、六神、世应、用神）
+   - `arrange_qimen`：奇门遁甲排盘（八门、九星、八神、九宫）
+   - `analyze_name`：姓名五行（康熙笔画、五格、三才、五维评分、字义、生肖喜忌）
+   - `calc_yunqi`：五运六气（岁运、司天在泉、客气六步、病势倾向）
+   - `calc_almanac`：每日黄历（宜忌、彭祖百忌、吉神凶煞、神位方位、时辰吉凶）
+   - `get_constitution`：体质辨识（九种体质评分）
+   - `get_fengshui`：风水方位（飞星、八宅、二十四山）
+2. **瘦身 SKILL.md**：从 19KB 精简到 ~8KB，去掉 Python 安装/脚本调用，改为「调用 MCP 工具」指令；保留自然语言路由规则与 templates 套用逻辑。
+3. **保留 Dashboard**：作为可选可视化入口；MCP 返回数据带 `visualUrl` 字段（如 `visual/react.html#bazi`），用户想看图就点。
+4. **配置 Claude Code 集成**：`.claude/commands/` 下建命理 slash command（`/bazi` `/ziwei` `/liuyao` `/qimen` `/name` 等），用户可显式调用；CLAUDE.md 加自然语言路由规则，用户说「排八字」「起卦」等自动路由。
+
+### 用户体验目标
+
+```
+用户: 帮我排个八字，1990年6月15日12时男
+  → SKILL.md 路由 → MCP bazi_calculate → AI 套模板生成报告
+
+用户: 这个名字打多少分？张伟，1990年出生
+  → SKILL.md 路由 → MCP analyze_name → AI 解读评分
+
+用户: 我想看可视化命盘
+  → AI 回复 visualUrl，用户点击打开 Dashboard
+```
+
+### 验收标准
+
+- SKILL.md 总量 < 10KB，AI 加载后能正确路由所有工具。
+- MCP server 本地 `npx` 一键运行，无需手动装 Python/起 dev server。
+- AI 通过 MCP 工具获取结构化结果，不直接加载 JSON 数据。
+- Dashboard 仍可独立使用（file:// 双击或 dev server）。
+- slash command 与自然语言路由均可触发。
