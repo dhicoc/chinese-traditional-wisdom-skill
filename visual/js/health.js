@@ -173,6 +173,46 @@
     var liuqi = data.liuqi;
     var diseaseTendency = data.disease_tendency || "";
 
+    // 按「，」断点对病势倾向文字做换行，使每行宽度不超过 maxW。
+    // 优先以「，」切分；单段仍超宽时按字符硬折行兜底。
+    function wrapTendencyLines(ctx, text, maxW) {
+      var segs = text.split("，");
+      var lines = [];
+      var cur = "";
+      for (var si = 0; si < segs.length; si++) {
+        var seg = segs[si];
+        var candidate = cur ? cur + "，" + seg : seg;
+        if (ctx.measureText(candidate).width <= maxW || !cur) {
+          cur = candidate;
+        } else {
+          lines.push(cur);
+          cur = seg;
+        }
+      }
+      if (cur) lines.push(cur);
+      // 单段超宽的兜底硬折行
+      var finalLines = [];
+      for (var fi = 0; fi < lines.length; fi++) {
+        var line = lines[fi];
+        if (ctx.measureText(line).width <= maxW) {
+          finalLines.push(line);
+          continue;
+        }
+        var buf = "";
+        for (var ci = 0; ci < line.length; ci++) {
+          var test = buf + line[ci];
+          if (ctx.measureText(test).width <= maxW) {
+            buf = test;
+          } else {
+            if (buf) finalLines.push(buf);
+            buf = line[ci];
+          }
+        }
+        if (buf) finalLines.push(buf);
+      }
+      return finalLines;
+    }
+
     // ── 背景 ──
     ctx.save();
     var bgGrad = ctx.createLinearGradient(0, 0, 0, H);
@@ -219,17 +259,9 @@
       size: 15, color: "#FFF", bold: true
     });
 
-    // ── 病势倾向标签（右上角胶囊） ──
-    if (diseaseTendency) {
-      var tagW = ctx.measureText(diseaseTendency).width + 18;
-      var tagX = W - tagW - 12;
-      ctx.save();
-      CORE.drawRoundRect(ctx, tagX, 8, tagW, 22, 11, "rgba(255,255,255,0.2)", "rgba(255,255,255,0.3)", 1);
-      ctx.restore();
-      CORE.drawCenterText(ctx, diseaseTendency, tagX + tagW / 2, 19, {
-        size: 9, color: "#FFF"
-      });
-    }
+    // 病势倾向标签不再放在标题栏右上角——disease_tendency 由岁运与司天
+    // 两条倾向拼接，文字较长时会向左延伸并覆盖居中的「五运六气 · 年」标题。
+    // 改为在客气六步时间线下方独立一行展示（见下方病势倾向总结行）。
 
     // ── 天干+地支 大字 ──
     var yearChars = tiangan + dizhi;
@@ -373,7 +405,43 @@
     }
 
     // ══════════════════════════════════════════════════════
-    //  4. 图例 (底部)
+    //  4. 病势倾向总结行 (客气六步与图例之间)
+    // ══════════════════════════════════════════════════════
+    if (diseaseTendency) {
+      var tendH = 22;
+      var tendY = 388;            // 客气六步底边 ~373 之下、图例 420 之上的空隙
+      // 框宽须按实际绘制字体（size 10 bold）量取完整文字（含「病势倾向  」前缀），
+      // 否则前缀未计入、字体不匹配，会导致文字溢出框外。
+      var tendText = "病势倾向  " + diseaseTendency;
+      ctx.save();
+      ctx.font = "bold 10px \"Noto Sans SC\",\"Microsoft YaHei\",sans-serif";
+      var tendW = ctx.measureText(tendText).width + 24;
+      ctx.restore();
+      var tendMaxW = W - 40;
+      if (tendW > tendMaxW) {
+        // 超宽时换行：按「，」切分，逐行绘制，框高随行数自适应。
+        var lines = wrapTendencyLines(ctx, tendText, tendMaxW - 24);
+        var lineH = 14;
+        tendH = lines.length * lineH + 10;
+        tendW = tendMaxW;
+        var tendX = (W - tendW) / 2;
+        CORE.drawRoundRect(ctx, tendX, tendY, tendW, tendH, 11, "#FFF3E0", "#E65100", 1);
+        for (var li = 0; li < lines.length; li++) {
+          CORE.drawCenterText(ctx, lines[li], W / 2, tendY + 10 + li * lineH, {
+            size: 10, color: "#BF360C", bold: true, baseline: "top"
+          });
+        }
+      } else {
+        var tendX2 = (W - tendW) / 2;
+        CORE.drawRoundRect(ctx, tendX2, tendY, tendW, tendH, 11, "#FFF3E0", "#E65100", 1);
+        CORE.drawCenterText(ctx, tendText, W / 2, tendY + tendH / 2, {
+          size: 10, color: "#BF360C", bold: true
+        });
+      }
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  5. 图例 (底部)
     // ══════════════════════════════════════════════════════
 
     var legendY = 420;

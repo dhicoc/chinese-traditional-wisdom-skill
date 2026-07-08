@@ -12,14 +12,15 @@
  * 调用:
  *   ziweiRender("canvasId", data)
  *
- * 网格布局 (4 列 x 3 行):
- *    Top row:    申    未    午    巳    ("from right" → 巳 最右)
- *    Middle row: 辰    [CENTER]         酉
- *    Bottom row: 卯    寅    丑    子
+ * 网格布局 (4 列 x 4 行，经典紫微环形十二宫):
+ *    row 0:    巳    午    未    申
+ *    row 1:    辰   [CENTER 2x2]  酉
+ *    row 2:    卯   [CENTER 2x2]  戌
+ *    row 3:    寅    丑    子    亥
  *
- * 十二地支顺时针 (从 寅 左下角起):
- *   寅 → 卯 → 辰 → 巳 → 午 → 未 → 申 → 酉 → 戌 → 亥 → 子 → 丑
- *   (戌、亥 位于中心区,与 命卦/四化 同区显示)
+ * 十二地支顺时针外环 (从 巳 起绕一圈):
+ *   巳→午→未→申→酉→戌→亥→子→丑→寅→卯→辰→巳
+ *   中心 2x2 为命卦/四化信息区，十二宫各占一地支、均有独立格。
  */
 
 (function () {
@@ -30,31 +31,34 @@
   // ════════════════════════════════════════════════════════════
 
   var CANVAS_W = 650;
-  var CANVAS_H = 550;
+  var CANVAS_H = 650;
   var COLS = 4;
-  var ROWS = 3;
+  var ROWS = 4;
   var CELL_W = CANVAS_W / COLS; // 162.5
-  var CELL_H = CANVAS_H / ROWS; // ~183.33
+  var CELL_H = CANVAS_H / ROWS; // 162.5
 
-  // 地支 -> grid {col, row}  (仅外围 10 宫; 戌亥在中心)
+  // 地支 -> grid {col, row}  (外环 12 宫; 中心 2x2 为信息区)
   var BRANCH_TO_GRID = {
-    "\u5df3": { col: 3, row: 0 }, // 巳
-    "\u5348": { col: 2, row: 0 }, // 午
-    "\u672a": { col: 1, row: 0 }, // 未
-    "\u7533": { col: 0, row: 0 }, // 申
-    "\u8fb0": { col: 0, row: 1 }, // 辰
-    "\u9149": { col: 3, row: 1 }, // 酉
-    "\u536f": { col: 0, row: 2 }, // 卯
-    "\u5bc5": { col: 1, row: 2 }, // 寅
-    "\u4e11": { col: 2, row: 2 }, // 丑
-    "\u5b50": { col: 3, row: 2 }, // 子
+    "巳": { col: 0, row: 0 }, // 巳
+    "午": { col: 1, row: 0 }, // 午
+    "未": { col: 2, row: 0 }, // 未
+    "申": { col: 3, row: 0 }, // 申
+    "辰": { col: 0, row: 1 }, // 辰
+    "酉": { col: 3, row: 1 }, // 酉
+    "卯": { col: 0, row: 2 }, // 卯
+    "戌": { col: 3, row: 2 }, // 戌
+    "寅": { col: 0, row: 3 }, // 寅
+    "丑": { col: 1, row: 3 }, // 丑
+    "子": { col: 2, row: 3 }, // 子
+    "亥": { col: 3, row: 3 }, // 亥
   };
 
-  // 每行对应地支 (用于渲染循环)
+  // 每行对应地支 (用于渲染循环; null 为中心 2x2 信息区)
   var ROW_BRANCHES = [
-    ["\u7533", "\u672a", "\u5348", "\u5df3"], // 申 未 午 巳
-    ["\u8fb0", null, null, "\u9149"],          // 辰  -  -  酉
-    ["\u536f", "\u5bc5", "\u4e11", "\u5b50"], // 卯 寅 丑 子
+    ["巳", "午", "未", "申"], // 巳 午 未 申
+    ["辰", null, null, "酉"],          // 辰  -  -  酉
+    ["卯", null, null, "戌"],          // 卯  -  -  戌
+    ["寅", "丑", "子", "亥"], // 寅 丑 子 亥
   ];
 
   // ── 视觉配色 ──
@@ -253,147 +257,109 @@
   /**
    * 绘制中心区域 (命卦 + 四化 + 戌亥缩略)
    */
+  /**
+   * 绘制中心 2x2 信息区域：命卦 / 四化 / 生辰 / 主星概览。
+   * 戌、亥已并入外环 12 宫，中心区不再承载宫位缩略。
+   */
   function drawCenterArea(ctx, data) {
     var x = CELL_W;
     var y = CELL_H;
     var w = CELL_W * 2;
-    var h = CELL_H;
+    var h = CELL_H * 2;
 
     // ── 背景 ──
     fillCellBg(ctx, x, y, w, h, COLORS.bgCenter, COLORS.border);
 
-    // ── 装饰性边框内阴影 ──
+    // ── 装饰性内边框 ──
     ctx.save();
     ctx.strokeStyle = "#E0D5C1";
     ctx.lineWidth = 1;
     ctx.strokeRect(x + 2, y + 2, w - 4, h - 4);
     ctx.restore();
 
-    var leftCX = x + w * 0.25;
-    var rightCX = x + w * 0.75;
-    var midY = y + h * 0.5;
+    // 四象限中心点
+    var tlCX = x + w * 0.25;   // 左上
+    var trCX = x + w * 0.75;   // 右上
+    var blCX = x + w * 0.25;   // 左下
+    var brCX = x + w * 0.75;   // 右下
+    var tlCY = y + h * 0.25;
+    var trCY = y + h * 0.25;
+    var blCY = y + h * 0.75;
+    var brCY = y + h * 0.75;
 
-    // ======== 左半: 命卦 ========
-
-    // "命卦" 小标题
-    CORE.drawCenterText(ctx, "\u547d \u5366", leftCX, y + 18, {
-      size: 12,
-      color: "#795548",
-      bold: true,
+    // ======== 左上: 命卦 ========
+    CORE.drawCenterText(ctx, "命 卦", tlCX, tlCY - 30, {
+      size: 12, color: "#795548", bold: true,
     });
-
-    // 卦象 (大字)
     var mingGua = data.mingGua || {};
-    CORE.drawCenterText(ctx, (mingGua.trigram || "?") + "\u5366", leftCX, y + 52, {
-      size: 26,
-      color: "#BF360C",
-      bold: true,
+    CORE.drawCenterText(ctx, (mingGua.trigram || "?") + "卦", tlCX, tlCY - 2, {
+      size: 26, color: "#BF360C", bold: true,
     });
-
-    // 东/西四命
     if (mingGua.group) {
-      CORE.drawCenterText(ctx, mingGua.group, leftCX, y + 78, {
-        size: 13,
-        color: "#6D4C41",
+      CORE.drawCenterText(ctx, mingGua.group, tlCX, tlCY + 24, {
+        size: 13, color: "#6D4C41",
       });
     }
 
-    // 出生信息
-    var bi = data.birthInfo || {};
-    var birthStr = bi.year + "\u5e74" + bi.month + "\u6708" + bi.day + "\u65e5";
-    CORE.drawCenterText(ctx, birthStr, leftCX, y + 100, {
-      size: 11,
-      color: "#8D6E63",
+    // ======== 右上: 四化 ========
+    CORE.drawCenterText(ctx, "四 化", trCX, trCY - 36, {
+      size: 12, color: "#795548", bold: true,
     });
-    if (bi.hour) {
-      CORE.drawCenterText(ctx, bi.hour + "\u65f6  " + (bi.gender === "\u7537" ? "\u7537\u6027" : "\u5973\u6027"), leftCX, y + 116, {
-        size: 11,
-        color: "#8D6E63",
-      });
-    }
-
-    // ======== 中线分隔 ========
-    ctx.save();
-    ctx.strokeStyle = COLORS.centerDivider;
-    ctx.lineWidth = 0.5;
-    ctx.setLineDash([4, 4]);
-    ctx.beginPath();
-    ctx.moveTo(x + w / 2, y + 8);
-    ctx.lineTo(x + w / 2, y + h - 50);
-    ctx.stroke();
-    ctx.restore();
-
-    // ======== 右半: 四化 ========
-
-    CORE.drawCenterText(ctx, "\u56db \u5316", rightCX, y + 18, {
-      size: 12,
-      color: "#795548",
-      bold: true,
-    });
-
     var sihua = data.sihua || {};
     var sihuaKeys = Object.keys(sihua);
     for (var j = 0; j < sihuaKeys.length; j++) {
       var star = sihuaKeys[j];
       var type = sihua[star];
-      var sy = y + 48 + j * 24;
-
+      var sy = trCY - 16 + j * 22;
       // 色点
       ctx.beginPath();
-      ctx.arc(rightCX - 38, sy, 4, 0, Math.PI * 2);
+      ctx.arc(trCX - 34, sy, 4, 0, Math.PI * 2);
       ctx.fillStyle = starColor(star);
       ctx.fill();
-
       // "星名 化X"
-      CORE.drawCenterText(ctx, star + " \u5316" + type, rightCX - 28, sy, {
-        size: 12,
-        color: COLORS.starFg,
-        align: "left",
-        baseline: "middle",
+      CORE.drawCenterText(ctx, star + " 化" + type, trCX - 24, sy, {
+        size: 12, color: COLORS.starFg, align: "left", baseline: "middle",
       });
-
       // 色块标签
       var tagColor = COLORS.sihua[type] || "#888";
       ctx.save();
-      CORE.drawRoundRect(ctx, rightCX + 28, sy - 7, 18, 16, 3, tagColor);
+      CORE.drawRoundRect(ctx, trCX + 24, sy - 7, 18, 16, 3, tagColor);
       ctx.restore();
-      CORE.drawCenterText(ctx, type, rightCX + 37, sy, {
-        size: 10,
-        color: "#FFF",
-        bold: true,
+      CORE.drawCenterText(ctx, type, trCX + 33, sy, {
+        size: 10, color: "#FFF", bold: true,
       });
     }
 
-    // ======== 底部: 戌(官禄) + 亥(田宅) ========
+    // ======== 左下: 生辰 ========
+    var bi = data.birthInfo || {};
+    CORE.drawCenterText(ctx, "生 辰", blCX, blCY - 30, {
+      size: 12, color: "#795548", bold: true,
+    });
+    if (bi.year) {
+      CORE.drawCenterText(ctx, bi.year + "年" + bi.month + "月" + bi.day + "日", blCX, blCY - 4, {
+        size: 12, color: "#8D6E63",
+      });
+    }
+    if (bi.hour) {
+      CORE.drawCenterText(ctx, bi.hour + "时  " + (bi.gender === "男" ? "男命" : "女命"), blCX, blCY + 18, {
+        size: 11, color: "#8D6E63",
+      });
+    }
 
-    var palaceData = data.palaces || {};
-    var chengPalace = palaceData["\u5b98\u7984"] || {}; // 官禄
-    var haiPalace = palaceData["\u7530\u5b85"] || {}; // 田宅
-
-    var bottomY = y + h - 26;
-
-    // 分割线
-    ctx.save();
-    ctx.strokeStyle = COLORS.centerDivider;
-    ctx.lineWidth = 0.5;
-    ctx.setLineDash([3, 3]);
-    ctx.beginPath();
-    ctx.moveTo(x + 12, y + h - 52);
-    ctx.lineTo(x + w - 12, y + h - 52);
-    ctx.stroke();
-    ctx.restore();
-
-    ctx.save();
-    ctx.font = "10px 'Noto Sans SC','Microsoft YaHei',sans-serif";
-    ctx.fillStyle = "#6D4C41";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-
-    var chengStars = (chengPalace.stars || []).join(",") || "\u7a7a";
-    var haiStars = (haiPalace.stars || []).join(",") || "\u7a7a";
-    ctx.fillText("\u620c(\u5b98\u7984):" + chengStars, x + 14, bottomY);
-    ctx.fillText("\u4ea5(\u7530\u5b85):" + haiStars, x + w / 2 + 10, bottomY);
-    ctx.restore();
+    // ======== 右下: 主星概览 ========
+    CORE.drawCenterText(ctx, "主 星", brCX, brCY - 30, {
+      size: 12, color: "#795548", bold: true,
+    });
+    var mainStars = data.mainStars || [];
+    var shown = mainStars.slice(0, 6);
+    for (var ms = 0; ms < shown.length; ms++) {
+      CORE.drawCenterText(ctx, shown[ms], brCX, brCY - 12 + ms * 16, {
+        size: 11, color: COLORS.starFg,
+      });
+    }
+    if (shown.length === 0) {
+      CORE.drawCenterText(ctx, "—", brCX, brCY, { size: 11, color: "#8D6E63" });
+    }
   }
 
   // ════════════════════════════════════════════════════════════
@@ -447,12 +413,12 @@
 
     var sihua = data.sihua || {};
 
-    // ── 绘制外围 12 宫 (10 宫 + 中心区占 2 格) ──
+    // ── 绘制外环 12 宫 (中心 2x2 为信息区，单独由 drawCenterArea 绘制) ──
     var alt = false;
     for (var r = 0; r < ROWS; r++) {
       for (var c = 0; c < COLS; c++) {
-        // 跳过中心区 (row=1, col=1 or 2)
-        if (r === 1 && (c === 1 || c === 2)) continue;
+        // 跳过中心 2x2 信息区 (row∈{1,2}, col∈{1,2})
+        if ((r === 1 || r === 2) && (c === 1 || c === 2)) continue;
 
         var branch = ROW_BRANCHES[r][c];
         if (!branch) continue;
@@ -501,11 +467,16 @@
       ctx.stroke();
     }
 
-    // 中心区额外竖线 (在 col=2 位置将中心区分为两半)
+    // 中心 2x2 信息区内部十字分隔线，将 2x2 分为四块
     var centerColX = CELL_W * 2;
+    var centerRowY = CELL_H * 2;
     ctx.beginPath();
     ctx.moveTo(centerColX, CELL_H);
-    ctx.lineTo(centerColX, CELL_H * 2);
+    ctx.lineTo(centerColX, CELL_H * 3);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(CELL_W, centerRowY);
+    ctx.lineTo(CELL_W * 3, centerRowY);
     ctx.stroke();
 
     ctx.restore();
@@ -518,9 +489,9 @@
   function ziweiHitTest(mx, my, data) {
     var col = Math.floor(mx / CELL_W);
     var row = Math.floor(my / CELL_H);
-    // 跳过中心区
-    if (row === 1 && (col === 1 || col === 2)) return null;
-    if (col < 0 || col >= 4 || row < 0 || row >= 3) return null;
+    // 跳过中心 2x2 信息区
+    if ((row === 1 || row === 2) && (col === 1 || col === 2)) return null;
+    if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return null;
     var branch = ROW_BRANCHES[row][col];
     if (!branch) return null;
     // 查找宫位

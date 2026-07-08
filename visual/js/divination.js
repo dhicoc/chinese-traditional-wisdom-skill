@@ -481,13 +481,41 @@
       var mu = data.mutualUpper || {};
       var ml = data.mutualLower || {};
 
+      // 内部布局：标题 + 上互(符号30 + 名11) + 下互(符号30 + 名11)，
+      // 逐项下排并预留间距，框高按内容自适应，避免文字溢出或互相重叠。
+      var muCx = mutualX + 54;
+      var curY = mutualY + 2;        // 标题 y（top baseline）
+      var symSize = 30, nameSize = 11, rowGap = 4;
+
+      // 标题「互卦」
+      curY += 14;                   // 标题占位 ~12px + 2 间距
+
+      // 上互符号
+      var upperSymY = curY;
+      curY += symSize + rowGap;
+
+      // 上互名
+      var upperNameY = curY;
+      curY += nameSize + rowGap + 2;
+
+      // 下互符号
+      var lowerSymY = curY;
+      curY += symSize + rowGap;
+
+      // 下互名
+      var lowerNameY = curY;
+      curY += nameSize + 4;
+
+      var mutualBoxH = curY - mutualY + 4;   // 框高随内容自适应
+      var mutualBoxW = 120;
+
       // 外框
       CORE.drawRoundRect(
         ctx,
         mutualX - 6,
         mutualY - 4,
-        120,
-        100,
+        mutualBoxW,
+        mutualBoxH,
         6,
         "#EFEBE9",
         "#BCAAA4",
@@ -500,46 +528,46 @@
       ctx.fillStyle = COLORS.mutedText;
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
-      ctx.fillText("互卦", mutualX + 54, mutualY + 2);
+      ctx.fillText("互卦", muCx, mutualY + 2);
       ctx.restore();
 
       // 上互符号
       if (mu.symbol) {
         ctx.save();
-        ctx.font = "30px " + FONT.sans;
+        ctx.font = symSize + "px " + FONT.sans;
         ctx.fillStyle = COLORS.meihuaText;
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
-        ctx.fillText(mu.symbol, mutualX + 54, mutualY + 20);
+        ctx.fillText(mu.symbol, muCx, upperSymY);
         ctx.restore();
       }
       if (mu.name) {
         ctx.save();
-        ctx.font = "11px " + FONT.sans;
+        ctx.font = nameSize + "px " + FONT.sans;
         ctx.fillStyle = COLORS.mutedText;
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
-        ctx.fillText(mu.name, mutualX + 54, mutualY + 52);
+        ctx.fillText(mu.name, muCx, upperNameY);
         ctx.restore();
       }
 
       // 下互符号
       if (ml.symbol) {
         ctx.save();
-        ctx.font = "30px " + FONT.sans;
+        ctx.font = symSize + "px " + FONT.sans;
         ctx.fillStyle = COLORS.meihuaText;
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
-        ctx.fillText(ml.symbol, mutualX + 54, mutualY + 60);
+        ctx.fillText(ml.symbol, muCx, lowerSymY);
         ctx.restore();
       }
       if (ml.name) {
         ctx.save();
-        ctx.font = "11px " + FONT.sans;
+        ctx.font = nameSize + "px " + FONT.sans;
         ctx.fillStyle = COLORS.mutedText;
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
-        ctx.fillText(ml.name, mutualX + 54, mutualY + 92);
+        ctx.fillText(ml.name, muCx, lowerNameY);
         ctx.restore();
       }
     }

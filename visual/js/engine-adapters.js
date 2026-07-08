@@ -461,21 +461,23 @@
   // ═══════ iztro 辅助函数 ═══════
 
   /**
-   * iztro palace 名称映射 (英文 -> 中文)
+   * iztro palace 名称映射 (iztro 实际输出的中文宫名 → 本项目渲染器用的宫名)。
+   * iztro v2.5.8 默认中文输出：命宫/兄弟/夫妻/子女/财帛/疾厄/迁移/仆役/官禄/
+   * 田宅/福德/父母，其中「仆役」「父母」需归一为项目口径「交友」「父母」。
    */
   var IZTRO_PALACE_MAP = {
-    "soulPalace": "命宫",
-    "parentsPalace": "父母",
-    "spiritPalace": "福德",
-    "propertyPalace": "田宅",
-    "careerPalace": "官禄",
-    "friendsPalace": "交友",
-    "surfacePalace": "迁移",
-    "healthPalace": "疾厄",
-    "wealthPalace": "财帛",
-    "childrenPalace": "子女",
-    "spousePalace": "夫妻",
-    "siblingsPalace": "兄弟"
+    "命宫": "命宫",
+    "兄弟": "兄弟",
+    "夫妻": "夫妻",
+    "子女": "子女",
+    "财帛": "财帛",
+    "疾厄": "疾厄",
+    "迁移": "迁移",
+    "仆役": "交友",
+    "官禄": "官禄",
+    "田宅": "田宅",
+    "福德": "福德",
+    "父母": "父母"
   };
 
   /**

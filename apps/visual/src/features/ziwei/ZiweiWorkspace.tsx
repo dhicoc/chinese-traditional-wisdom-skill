@@ -197,7 +197,7 @@ export function ZiweiWorkspace() {
           description="真实数据来自 ZiweiIztroAdapter；绘制仍与旧 visual/index.html 的 ziwei renderer 对齐。"
           data={data}
           width={650}
-          height={570}
+          height={650}
           ready={ready}
           render={renderLegacyZiwei}
         />
