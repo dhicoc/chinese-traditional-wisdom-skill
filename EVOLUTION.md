@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-07-08 奇门遁甲模块落地（suanle-me P3 补齐）
+
+### 变更
+
+- 新增 `visual/js/engines/qimen-engine.js`：自研简化时家奇门遁甲排盘——按年月日时取数定局、阴阳遁按月份近似、九宫（洛书）排布八门/九星/八神、值符值使、吉凶方位。
+- `engine-adapters.js` 注册 `QimenAdapter`（local-approx，标注非专业奇门排盘）。
+- `loadLegacyScripts.ts` 加载 qimen-engine.js。
+- `modules.ts` 新增 `qimen` 模块（术数排盘组），ModuleId 类型扩展。
+- `workspaceRegistry.tsx` 注册 QimenWorkspace。
+- 新增 `QimenWorkspace.tsx`：读全局生辰→调 adapter→展示排盘概要 + 九宫排盘卡片（每宫门/星/神+吉凶色）。
+
+### 取舍
+
+- 自研简化规则（非 suanle-me seed 随机，也非专业超神接气置闰），标注 local-approx + confidenceNote 明确边界。
+
+### 验证
+
+- `tsc -b` 通过；单元 71/71、冒烟 249/249、e2e smoke 10/10（nav-item 数更新为 19）。
+
+---
+
 ## 2026-07-08 fate 暂缓项补齐：字义出处 + 生肖喜忌用字
 
 > 项目定位从 Skill 演进为全套工作流，不再以体积为由跳过功能项。

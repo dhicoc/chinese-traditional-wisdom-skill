@@ -899,6 +899,25 @@
     }
   });
 
+  // ════════════════════════════════════════════════════════════
+  //  奇门遁甲 Adapter（简化时家奇门）
+  // ════════════════════════════════════════════════════════════
+  register("qimen", {
+    engineName: "LocalQimenSimplifiedAdapter",
+    mode: "local-approx",
+    version: ADAPTER_VERSION,
+    inputSchema: { birth: "year/month/day/hour", question: "optional" },
+    sourceProject: "local:visual/js/engines/qimen-engine.js",
+    license: "project-local",
+    confidenceNote: "简化时家奇门遁甲排盘：按年月日时取数定局，八门/九星/八神按种子轮转布九宫。非专业奇门排盘，仅作文化学习参考。",
+    calculate: function (input) {
+      var engine = window.QimenEngine;
+      if (!engine || typeof engine.calculate !== "function") return null;
+      return engine.calculate(input);
+    },
+    toRenderData: function (result) { return result; },
+  });
+
   window.EngineAdapterRegistry = {
     version: ADAPTER_VERSION,
     requiredFields: REQUIRED_FIELDS.slice(),

@@ -12,6 +12,7 @@ import capabilitiesSource from '../../../../visual/js/capabilities.js?raw';
 import baziEngineSource from '../../../../visual/js/engines/bazi-engine.js?raw';
 import yunqiEngineSource from '../../../../visual/js/engines/yunqi-engine.js?raw';
 import liuyaoEngineSource from '../../../../visual/js/engines/liuyao-engine.js?raw';
+import qimenEngineSource from '../../../../visual/js/engines/qimen-engine.js?raw';
 import lunarJavascriptSource from '../../../../visual/vendor/lunar-javascript-1.7.7.js?raw';
 import iztroSource from '../../../../visual/vendor/iztro-2.5.8.min.js?raw';
 import engineAdaptersSource from '../../../../visual/js/engine-adapters.js?raw';
@@ -30,6 +31,7 @@ const LEGACY_SCRIPT_NAMES = [
   'capabilities.js',
   'engines/bazi-engine.js',
   'engines/yunqi-engine.js',
+  'engines/qimen-engine.js',
   'vendor/lunar-javascript-1.7.7.js',
   'vendor/iztro-2.5.8.min.js',
   'engines/liuyao-engine.js',
@@ -62,6 +64,7 @@ export async function loadLegacyScripts(): Promise<LegacyState> {
         capabilitiesSource,
         baziEngineSource,
         yunqiEngineSource,
+        qimenEngineSource,
         lunarJavascriptSource,
         iztroSource,
         liuyaoEngineSource,

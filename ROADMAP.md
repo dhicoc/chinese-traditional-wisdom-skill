@@ -85,7 +85,7 @@
 | 本地收藏与历史 | Zustand persist 保存 `favorites/history`，历史限制 30 条 | 用原生 `localStorage` 实现 `FORTUNE_HISTORY` 和 `FORTUNE_FAVORITES`，默认只保存脱敏摘要、模块、生成时间、能力模式，不保存完整生日、姓名、地点 | P1 | 必须提供清空入口；隐私测试覆盖不得泄露完整生辰 |
 | PWA 与离线体验 | `manifest.webmanifest` + `sw.js`，强调本地计算和隐私 | 增加可选 `visual/manifest.webmanifest` 与轻量 `visual/sw.js`，缓存 `index.html`、核心 JS、vendor、CSS；诊断页显示 service worker 状态 | P2 | 双击 file 模式仍必须可用；PWA 只在 http/https 本地服务下启用 |
 | 日用工具扩展 | 每日运势、黄历、姓名分析、周公解梦、五行分析、规则化 AI 解读 | 新增“日用工具”二级入口：黄历、姓名五行、梦境意象、每日节律；先作为本地规则模块接入，不影响核心命盘 | P2 | 解梦/运势为民俗体验和自我观察，不进严肃命盘结论 |
-| 奇门遁甲入口 | 简化输出门、星、宫位和行动建议 | 作为第 12 个候选标签或咨询向导入口加入 roadmap；先定义 `QimenAdapter` 契约和演示确认，后续再接真实排盘/排局规则 | P3 | suanle-me 的奇门是 seed 化简化结果，不能直接标注为真实排局 |
+| 奇门遁甲入口 | ✅ 已落地：自研简化时家奇门引擎(`qimen-engine.js`)，按年月日时定局+阴阳遁+九宫排布八门/九星/八神+值符值使+吉凶方位，`QimenAdapter` 注册到 EngineAdapterRegistry，React `QimenWorkspace` 九宫排盘卡片。标注 `local-approx` 非专业奇门排盘。 | 作为第 12 个候选标签或咨询向导入口加入 roadmap | P3 | suanle-me 的奇门是 seed 化简化结果，不能直接标注为真实排局 |
 | 三牌塔罗 | 本地三牌阵和提示语 | 不纳入传统文化核心 Dashboard；可作为“跨文化占卜体验”独立可选模块 | P3 | 避免稀释中国传统文化定位 |
 
 ### 不建议直接复用的部分

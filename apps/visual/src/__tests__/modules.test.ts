@@ -39,7 +39,7 @@ describe('Modules Registry', () => {
 
   it('should have valid module ids', () => {
     const validIds: ModuleId[] = [
-      'home', 'bazi', 'ziwei', 'liuyao', 'meihua',
+      'home', 'bazi', 'ziwei', 'liuyao', 'meihua', 'qimen',
       'fengshui', 'feixing', 'bazhai', 'yunqi', 'tizhi',
       'almanac', 'namewuxing', 'dream', 'rhythm',
       'mermaid', 'testing', 'reader', 'history'

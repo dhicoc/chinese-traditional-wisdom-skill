@@ -8,6 +8,7 @@ export type ModuleId =
   | 'ziwei'
   | 'liuyao'
   | 'meihua'
+  | 'qimen'
   | 'fengshui'
   | 'feixing'
   | 'bazhai'
@@ -95,6 +96,18 @@ export const MODULES: WisdomModule[] = [
     questionTypes: ['时间起卦', '数字起卦', '体用'],
     accent: '#c9b27a',
     description: '内置时间起卦与数字起卦 Adapter，输出体用生克、互卦与变卦结构。',
+  },
+  {
+    id: 'qimen',
+    group: '术数排盘',
+    title: '奇门遁甲',
+    shortTitle: '奇门',
+    status: 'local-approx',
+    statusLabel: '本地规则',
+    privacyLevel: '仅本地计算',
+    questionTypes: ['时家奇门', '九宫', '门星神'],
+    accent: '#9a8a7a',
+    description: '简化时家奇门遁甲排盘：按年月日时定局，九宫排布八门、九星、八神，输出值符值使与吉凶方位。',
   },
   {
     id: 'fengshui',

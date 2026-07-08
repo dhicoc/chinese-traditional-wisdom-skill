@@ -5,6 +5,7 @@ import { YunqiWorkspace } from '@/features/yunqi/YunqiWorkspace';
 import { ConstitutionWorkspace } from '@/features/constitution/ConstitutionWorkspace';
 import { LiuyaoWorkspace } from '@/features/liuyao/LiuyaoWorkspace';
 import { MeihuaWorkspace } from '@/features/meihua/MeihuaWorkspace';
+import { QimenWorkspace } from '@/features/qimen/QimenWorkspace';
 import { ZiweiWorkspace } from '@/features/ziwei/ZiweiWorkspace';
 import { FeixingWorkspace } from '@/features/feixing/FeixingWorkspace';
 import { BazhaiWorkspace } from '@/features/bazhai/BazhaiWorkspace';
@@ -29,6 +30,7 @@ export const WORKSPACE_COMPONENTS: Partial<Record<ModuleId, ComponentType<Worksp
   bazi: BaziWorkspace,
   yunqi: YunqiWorkspace,
   meihua: MeihuaWorkspace,
+  qimen: QimenWorkspace,
   liuyao: LiuyaoWorkspace,
   ziwei: ZiweiWorkspace,
   tizhi: ConstitutionWorkspace,
