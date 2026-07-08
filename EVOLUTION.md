@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-07-08 流年九宫飞星 SVG（Phase 10 图表替换续）
+
+### 变更
+
+- **新增 `NinePalaceGrid`**：React + SVG 组件，替换 FeixingWorkspace 的 `CanvasPanel` + `renderLegacyFlyingStars`。
+- **新增 `getFeixingGrid(year)`**：在 `canvasRenderers.ts` 暴露 3×3 洛书九宫完整网格数据（每格宫位名/星号/星名/五行/吉凶），供 SVG 组件渲染，复用同一份 `CORE.getFlyingStars` 计算，确保与旧 Canvas 数据同源无漂移。
+- **布局**：3×3 九宫格（巽离坤 / 震中兑 / 艮坎乾），每格宫位名(上) + 飞星编号星名(下，如「一白」)，吉凶背景色对齐 legacy `STAR_LUCK_COLORS`，中心格橙色高亮外框 + 浅色叠加，底部标注五黄煞/二黑煞入宫方位警告。
+- **类型**：`baseTypes.ts` 新增 `FlyingStarCell` / `FlyingStarGrid` 类型并从 `canvasRenderers` 导出。
+- **契约同步**：`smoke-react-shell.mjs` feixing 断言从「1 canvas + renderLegacyFlyingStars」改为「0 canvas + NinePalaceGrid + getFeixingGrid + 不再调用 renderLegacyFlyingStars」。
+
+### 理由
+
+- 九宫格是规则网格，SVG rect/text 天然适配，且文字可选中、可访问，比 Canvas `drawCenterText` 坐标计算更稳健。
+- 通过新增 `getFeixingGrid` 把「计算」与「渲染」彻底分离：Canvas 与 SVG 共用同一数据源，满足 ROADMAP「同输入对照、无数据漂移」要求。
+
+### 取舍
+
+- legacy `fengshui.js` / `renderFlyingStars` 全部保留，旧 `visual/index.html` 主入口不受影响。
+
+---
+
 ## 2026-07-08 梅花易数卦画 SVG（Phase 10 图表替换续）
 
 ### 变更

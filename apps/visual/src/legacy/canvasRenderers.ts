@@ -5,6 +5,8 @@ import type {
   ConstitutionType,
   EightMansionsData,
   EightMansionsSummary,
+  FlyingStarCell,
+  FlyingStarGrid,
   FlyingStarsData,
   FlyingStarsSummary,
   WuxingStats,
@@ -19,6 +21,8 @@ export type {
   ConstitutionType,
   EightMansionsData,
   EightMansionsSummary,
+  FlyingStarCell,
+  FlyingStarGrid,
   FlyingStarsData,
   FlyingStarsSummary,
   WuxingStats,
@@ -144,6 +148,28 @@ export function getFeixingSummary(year: number): FlyingStarsSummary | null {
   const info = core.nineStars[centerStar - 1];
   if (!info) return null;
   return { centerStar, starName: info.name, wuxing: info.wuxing, luck: info.luck };
+}
+
+/** 洛书方位 → 3×3 网格（与 legacy fengshui.js FLYING_STAR_GRID 对齐） */
+const FLYING_STAR_GRID: string[][] = [
+  ['巽', '离', '坤'],
+  ['震', '中', '兑'],
+  ['艮', '坎', '乾'],
+];
+
+/** 返回 3×3 九宫飞星完整网格，供 SVG 组件渲染；CORE 未加载时返回 null。 */
+export function getFeixingGrid(year: number): FlyingStarGrid | null {
+  const core = getLegacyCORE();
+  if (!core) return null;
+  const stars = core.getFlyingStars(year);
+  if (!stars) return null;
+  return FLYING_STAR_GRID.map((row) =>
+    row.map((palace) => {
+      const starNum = stars[palace] ?? 0;
+      const info = core.nineStars[starNum - 1] ?? { name: '', wuxing: '', luck: '' };
+      return { palace, starNum, starName: info.name, wuxing: info.wuxing, luck: info.luck };
+    }),
+  );
 }
 
 export function getBazhaiSummary(year: number, gender: '男' | '女'): EightMansionsSummary | null {

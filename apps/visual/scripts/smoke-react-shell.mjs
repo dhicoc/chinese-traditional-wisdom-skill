@@ -8,7 +8,7 @@
  *   - #meihua 工作区渲染 SVG 卦画（梅花易数，Phase 10 已从 Canvas 迁移至 MeihuaChart）
  *   - #liuyao 工作区渲染 SVG 卦画（六爻占卜，Phase 10 已从 Canvas 迁移至 HexagramChart）
  *   - #ziwei 工作区渲染 SVG 命盘（紫微斗数，Phase 10 已从 Canvas 迁移至 ZiweiPalaceGrid）
- *   - #feixing 工作区渲染 1 个 canvas（流年飞星）
+ *   - #feixing 工作区渲染 SVG 九宫飞星图（Phase 10 已从 Canvas 迁移至 NinePalaceGrid）
  *   - #bazhai 工作区渲染 1 个 canvas（八宅大游年）
  *   - #fengshui 工作区渲染 1 个 canvas（二十四山罗盘）
  *   - AppShell 通过统一 workspace registry 路由各工作区
@@ -201,10 +201,18 @@ check(exists(feixingPath), 'FeixingWorkspace.tsx 应位于 features/feixing/ 目
 if (exists(feixingPath)) {
   const feixingWorkspace = read(feixingPath);
   const feixingCanvasCount = countOccurrences(feixingWorkspace, '<CanvasPanel');
-  check(feixingCanvasCount === 1, `#feixing 应渲染 1 个 canvas，实际 <CanvasPanel 出现 ${feixingCanvasCount} 次`);
+  check(feixingCanvasCount === 0, `#feixing 已迁移至 SVG，不应再出现 <CanvasPanel，实际 ${feixingCanvasCount} 次`);
   check(
-    feixingWorkspace.includes('renderLegacyFlyingStars'),
-    'FeixingWorkspace 应调用 renderLegacyFlyingStars 复用旧 fengshui renderer',
+    feixingWorkspace.includes('NinePalaceGrid'),
+    'FeixingWorkspace 应使用 NinePalaceGrid 渲染 SVG 九宫飞星图',
+  );
+  check(
+    feixingWorkspace.includes('getFeixingGrid'),
+    'FeixingWorkspace 应通过 getFeixingGrid 获取九宫网格数据',
+  );
+  check(
+    !feixingWorkspace.includes('renderLegacyFlyingStars'),
+    'FeixingWorkspace 不应再调用 renderLegacyFlyingStars（已由 NinePalaceGrid 替换）',
   );
 }
 

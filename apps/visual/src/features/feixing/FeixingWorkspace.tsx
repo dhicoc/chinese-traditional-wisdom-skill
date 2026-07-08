@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CanvasPanel } from '@/components/shared/CanvasPanel';
 import { ControlField } from '@/components/shared/ControlField';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { LegendPanel, type LegendItem } from '@/components/shared/LegendPanel';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
+import { NinePalaceGrid } from '@/components/shared/NinePalaceGrid';
 import {
+  getFeixingGrid,
   getFeixingSummary,
-  renderLegacyFlyingStars,
-  type FlyingStarsData,
 } from '@/legacy/canvasRenderers';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import type { LegacyState } from '@/legacy/legacyGlobals';
@@ -45,8 +44,8 @@ export function FeixingWorkspace() {
   }, []);
 
   const ready = legacyState.mode === 'ready';
-  const data = useMemo<FlyingStarsData>(() => ({ year }), [year]);
   const summary = useMemo(() => (ready ? getFeixingSummary(year) : null), [ready, year]);
+  const grid = useMemo(() => (ready ? getFeixingGrid(year) : null), [ready, year]);
   const starLegend = useMemo<LegendItem[]>(
     () => [
       { label: '一白 / 水', color: '#264653', description: '偏向流动、信息与文昌语义。' },
@@ -132,15 +131,26 @@ export function FeixingWorkspace() {
           />
         </aside>
 
-        <CanvasPanel
-          title="九宫飞星图"
-          description="与旧 visual/index.html 的 renderFlyingStars 对齐，调用同一个 fengshui renderer。"
-          data={data}
-          width={350}
-          height={350}
-          ready={ready}
-          render={renderLegacyFlyingStars}
-        />
+        <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-jade-50">九宫飞星图</h3>
+              <p className="mt-1 text-sm leading-6 text-jade-100/55">
+                SVG 九宫格对齐 renderFlyingStars 布局（Phase 10 图表替换）；数据来自同一份 getFlyingStars 计算。
+              </p>
+            </div>
+            <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
+              SVG · Phase 10
+            </span>
+          </div>
+          <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
+            {grid ? (
+              <NinePalaceGrid grid={grid} year={year} />
+            ) : (
+              <p className="py-12 text-center text-sm text-jade-100/45">正在加载飞星引擎。</p>
+            )}
+          </div>
+        </section>
       </div>
     </section>
   );

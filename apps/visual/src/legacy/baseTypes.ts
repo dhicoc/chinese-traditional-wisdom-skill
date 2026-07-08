@@ -67,6 +67,18 @@ export interface FlyingStarsSummary {
   luck: string;
 }
 
+/** 单个九宫格单元（宫位 + 飞星信息） */
+export interface FlyingStarCell {
+  palace: string;
+  starNum: number;
+  starName: string;
+  wuxing: string;
+  luck: string;
+}
+
+/** 3×3 九宫飞星网格（行优先：row0=巽离坤，row1=震中兑，row2=艮坎乾） */
+export type FlyingStarGrid = FlyingStarCell[][];
+
 export interface EightMansionsSummary {
   trigram: string;
   group: string;
