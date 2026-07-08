@@ -3,6 +3,7 @@ import { ControlField } from '@/components/shared/ControlField';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { HexagramChart } from '@/components/shared/HexagramChart';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
+import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import type { LiuyaoData } from '@/legacy/canvasRenderers';
 import type { LiuyaoLine } from '@/legacy/divinationTypes';
 import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
@@ -258,7 +259,9 @@ export function LiuyaoWorkspace() {
               </div>
               <div className="canvas-stage overflow-x-auto rounded-[18px] border border-jade-500/18 bg-ink-950/92 p-3">
                 {ready ? (
-                  <HexagramChart data={result as LiuyaoData} />
+                  <ZoomableSvg title="本卦">
+                    <HexagramChart data={result as LiuyaoData} />
+                  </ZoomableSvg>
                 ) : (
                   <p className="py-12 text-center text-sm text-jade-100/45">正在加载六爻引擎。</p>
                 )}
@@ -274,7 +277,9 @@ export function LiuyaoWorkspace() {
                   <span className="rounded-full border border-cinnabar-500/30 bg-cinnabar-500/10 px-2.5 py-1 text-[10px] text-cinnabar-400">变卦</span>
                 </div>
                 <div className="canvas-stage overflow-x-auto rounded-[18px] border border-jade-500/18 bg-ink-950/92 p-3">
-                  <HexagramChart data={changedLines} />
+                  <ZoomableSvg title="变卦">
+                    <HexagramChart data={changedLines} />
+                  </ZoomableSvg>
                 </div>
               </section>
             ) : (

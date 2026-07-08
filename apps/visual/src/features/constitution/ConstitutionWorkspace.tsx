@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ControlField } from '@/components/shared/ControlField';
 import { RadarChart, type RadarAxis } from '@/components/shared/RadarChart';
+import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import {
   deriveDominantConstitution,
   type ConstitutionScores,
@@ -111,11 +112,13 @@ export function ConstitutionWorkspace() {
             <h3 className="font-serif text-sm font-semibold text-jade-100/70">九种体质雷达图</h3>
             <span className="text-[10px] text-jade-100/45">Phase 10 · SVG</span>
           </div>
-          <RadarChart
-            axes={radarAxes}
-            highlightIndex={highlightIndex}
-            title="九种体质雷达图"
-          />
+          <ZoomableSvg title="九种体质雷达图">
+            <RadarChart
+              axes={radarAxes}
+              highlightIndex={highlightIndex}
+              title="九种体质雷达图"
+            />
+          </ZoomableSvg>
           <p className="mt-3 text-center text-[10px] text-jade-100/40">
             与旧 visual/index.html 体质辨识默认评分规则对齐；金色顶点为主要体质。
           </p>

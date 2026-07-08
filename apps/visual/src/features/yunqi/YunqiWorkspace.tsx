@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ControlField } from '@/components/shared/ControlField';
 import { YunqiChart } from '@/components/shared/YunqiChart';
+import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { calculateLegacyYunqi, type YunqiData } from '@/legacy/canvasRenderers';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import type { LegacyState } from '@/legacy/legacyGlobals';
@@ -125,7 +126,9 @@ export function YunqiWorkspace() {
           </div>
           <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
             {ready && data ? (
-              <YunqiChart data={data} />
+              <ZoomableSvg title="岁运 · 司天 · 在泉">
+                <YunqiChart data={data} />
+              </ZoomableSvg>
             ) : (
               <p className="py-12 text-center text-sm text-jade-100/45">正在加载五运六气引擎。</p>
             )}

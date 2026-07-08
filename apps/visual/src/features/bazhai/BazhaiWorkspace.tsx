@@ -3,6 +3,7 @@ import { ControlField } from '@/components/shared/ControlField';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { EightMansionsChart } from '@/components/shared/EightMansionsChart';
 import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
+import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import {
   getBazhaiGrid,
   getBazhaiSummary,
@@ -127,7 +128,9 @@ export function BazhaiWorkspace() {
           </div>
           <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
             {grid ? (
-              <EightMansionsChart grid={grid} year={year} gender={gender} />
+              <ZoomableSvg title="八宅命盘">
+                <EightMansionsChart grid={grid} year={year} gender={gender} />
+              </ZoomableSvg>
             ) : (
               <p className="py-12 text-center text-sm text-jade-100/45">正在加载八宅引擎。</p>
             )}

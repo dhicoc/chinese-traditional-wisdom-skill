@@ -3,6 +3,7 @@ import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { LegendPanel } from '@/components/shared/LegendPanel';
 import { ZiweiPalaceGrid } from '@/components/shared/ZiweiPalaceGrid';
+import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import type { BirthData } from '@/legacy/birthBridge';
@@ -207,7 +208,9 @@ export function ZiweiWorkspace() {
             {!ready ? (
               <p className="py-12 text-center text-sm text-jade-100/45">正在加载 iztro 排盘引擎。</p>
             ) : (
-              <ZiweiPalaceGrid data={data} />
+              <ZoomableSvg title="紫微斗数十二宫命盘">
+                <ZiweiPalaceGrid data={data} />
+              </ZoomableSvg>
             )}
           </div>
         </section>

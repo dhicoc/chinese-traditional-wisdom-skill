@@ -3,6 +3,7 @@ import { BaziPillarsChart } from '@/components/shared/BaziPillarsChart';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { FiveElementsChart } from '@/components/shared/FiveElementsChart';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
+import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { renderDataWithLegacyAdapter, calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { type BaziPillars, type WuxingStats } from '@/legacy/canvasRenderers';
@@ -148,7 +149,9 @@ export function BaziWorkspace() {
             </div>
             <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
               {ready ? (
-                <BaziPillarsChart pillars={pillars} />
+                <ZoomableSvg title="四柱主盘">
+                  <BaziPillarsChart pillars={pillars} />
+                </ZoomableSvg>
               ) : (
                 <p className="py-12 text-center text-sm text-jade-100/45">正在加载八字引擎。</p>
               )}
@@ -210,7 +213,9 @@ export function BaziWorkspace() {
             </div>
             <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
               {ready ? (
-                <FiveElementsChart stats={wuxing} />
+                <ZoomableSvg title="五行平衡">
+                  <FiveElementsChart stats={wuxing} />
+                </ZoomableSvg>
               ) : (
                 <p className="py-12 text-center text-sm text-jade-100/45">正在加载八字引擎。</p>
               )}

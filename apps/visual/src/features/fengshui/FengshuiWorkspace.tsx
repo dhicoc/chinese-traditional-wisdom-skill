@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { FengshuiCompass } from '@/components/shared/FengshuiCompass';
 import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
+import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 
@@ -81,7 +82,9 @@ export function FengshuiWorkspace() {
           </div>
           <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
             {ready ? (
-              <FengshuiCompass />
+              <ZoomableSvg title="二十四山罗盘">
+                <FengshuiCompass />
+              </ZoomableSvg>
             ) : (
               <p className="py-12 text-center text-sm text-jade-100/45">正在加载风水引擎。</p>
             )}

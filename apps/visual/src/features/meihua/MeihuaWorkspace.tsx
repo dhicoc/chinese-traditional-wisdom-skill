@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ControlField } from '@/components/shared/ControlField';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { MeihuaChart } from '@/components/shared/MeihuaChart';
+import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { MEIHUA_TRIGRAMS, type MeihuaData } from '@/legacy/canvasRenderers';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import type { LegacyState } from '@/legacy/legacyGlobals';
@@ -181,7 +182,9 @@ export function MeihuaWorkspace() {
           </div>
           <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
             {ready ? (
-              <MeihuaChart data={data} />
+              <ZoomableSvg title="梅花易数 本卦·互卦·变卦">
+                <MeihuaChart data={data} />
+              </ZoomableSvg>
             ) : (
               <p className="py-12 text-center text-sm text-jade-100/45">正在加载梅花引擎。</p>
             )}
