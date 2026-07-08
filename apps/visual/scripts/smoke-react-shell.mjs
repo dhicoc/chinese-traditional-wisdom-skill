@@ -4,7 +4,7 @@
  * 零依赖、纯 Node 脚本，沿用 visual/js/tests/check-doc-contracts.mjs 的风格。
  * 验证 React app 关键运行时契约（不启动浏览器）：
  *   - #bazi 工作区渲染 SVG 四柱主盘 + 五行平衡（Phase 10 已从 Canvas 迁移至 BaziPillarsChart + FiveElementsChart）
- *   - #yunqi 工作区渲染 1 个 canvas（岁运 · 司天 · 在泉）
+ *   - #yunqi 工作区渲染 SVG 综合图（岁运·司天·在泉，Phase 10 已从 Canvas 迁移至 YunqiChart）
  *   - #meihua 工作区渲染 SVG 卦画（梅花易数，Phase 10 已从 Canvas 迁移至 MeihuaChart）
  *   - #liuyao 工作区渲染 SVG 卦画（六爻占卜，Phase 10 已从 Canvas 迁移至 HexagramChart）
  *   - #ziwei 工作区渲染 SVG 命盘（紫微斗数，Phase 10 已从 Canvas 迁移至 ZiweiPalaceGrid）
@@ -87,13 +87,18 @@ check(
 check(baziWorkspace.includes('calculateWithLegacyAdapter'), '#bazi 应通过 EngineAdapterRegistry 计算四柱');
 check(baziWorkspace.includes('useBirth'), '#bazi 应读取全局生辰上下文');
 
-// ── 2. #yunqi 有 1 个 canvas ─────────────────────────────
+// ── 2. #yunqi: 已迁移至 SVG（Phase 10） ─────────────────
 const yunqiPath = path.join(srcRoot, 'features/yunqi/YunqiWorkspace.tsx');
 check(exists(yunqiPath), 'YunqiWorkspace.tsx 应位于 features/yunqi/ 目录');
 if (exists(yunqiPath)) {
   const yunqiWorkspace = read(yunqiPath);
   const yunqiCanvasCount = countOccurrences(yunqiWorkspace, '<CanvasPanel');
-  check(yunqiCanvasCount === 1, `#yunqi 应渲染 1 个 canvas，实际 <CanvasPanel 出现 ${yunqiCanvasCount} 次`);
+  check(yunqiCanvasCount === 0, `#yunqi 已迁移至 SVG，不应再出现 <CanvasPanel，实际 ${yunqiCanvasCount} 次`);
+  check(yunqiWorkspace.includes('YunqiChart'), '#yunqi 应使用 YunqiChart SVG 组件');
+  check(
+    !yunqiWorkspace.includes('renderLegacyYunqi'),
+    '#yunqi 不应再调用 renderLegacyYunqi（已由 YunqiChart 替换）',
+  );
 }
 
 // 旧路径不应再存在（已迁移）

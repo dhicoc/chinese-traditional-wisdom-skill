@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CanvasPanel } from '@/components/shared/CanvasPanel';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ControlField } from '@/components/shared/ControlField';
-import { calculateLegacyYunqi, renderLegacyYunqi, type YunqiData } from '@/legacy/canvasRenderers';
+import { YunqiChart } from '@/components/shared/YunqiChart';
+import { calculateLegacyYunqi, type YunqiData } from '@/legacy/canvasRenderers';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 import {
@@ -111,18 +111,26 @@ export function YunqiWorkspace() {
           </p>
         </aside>
 
-        <CanvasPanel
-          title="岁运 · 司天 · 在泉"
-          description="与旧 visual/index.html 的五运六气 Canvas renderer 对齐。"
-          data={data}
-          width={550}
-          height={460}
-          ready={ready}
-          render={(canvasId, value) => {
-            if (!value) return;
-            renderLegacyYunqi(canvasId, value);
-          }}
-        />
+        <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-jade-50">岁运 · 司天 · 在泉</h3>
+              <p className="mt-1 text-sm leading-6 text-jade-100/55">
+                SVG 综合图对齐五运六气 renderer 布局（Phase 10 图表替换）；病势倾向按「，」换行自适应。
+              </p>
+            </div>
+            <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
+              SVG · Phase 10
+            </span>
+          </div>
+          <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
+            {ready && data ? (
+              <YunqiChart data={data} />
+            ) : (
+              <p className="py-12 text-center text-sm text-jade-100/45">正在加载五运六气引擎。</p>
+            )}
+          </div>
+        </section>
       </div>
     </section>
   );

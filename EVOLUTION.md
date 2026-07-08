@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-07-08 五运六气 SVG（Phase 10 图表替换续）
+
+### 变更
+
+- **新增 `YunqiChart`**：React + SVG 组件，替换 YunqiWorkspace 的 `CanvasPanel` + `renderLegacyYunqi`。
+- **布局**：标题栏「五运六气·年」、干支大字、岁运胶囊（五行配色）、司天/在泉（红/橙框 + 箭头）、客气六步时间线（6 段横排，每段顶部彩条 + 六气名 + 五行标 + 步名 + 节气范围 + 圆点）、病势倾向（按「，」断点换行，框高随行数自适应）、五行图例。配色对齐 legacy `QI_COLORS/QI_COLORS_LIGHT/QI_WUXING_COLORS`。
+- **根治溢出**：病势倾向用 SVG `<text>` 按字符数换行，彻底消除前几轮 legacy Canvas 病势胶囊文字溢出/与标题重叠的隐患。
+- **契约同步**：`smoke-react-shell.mjs` yunqi 断言从「1 canvas」改为「0 canvas + YunqiChart + 不再调用 renderLegacyYunqi」。
+
+### 理由
+
+- 五运六气图含病势倾向长文本，是前几轮 Canvas 文字溢出 bug 的源头；SVG 用 `<text>` + 字符换行从结构上根治。
+- 中医类（体质、五运六气）至此全部 SVG 化。
+
+### 取舍
+
+- legacy `health.js` / `renderLegacyYunqi` 全部保留，旧 `visual/index.html` 主入口不受影响。
+
+---
+
 ## 2026-07-08 八字四柱主盘 SVG（Phase 10 图表替换续）
 
 ### 变更
