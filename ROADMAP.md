@@ -287,3 +287,60 @@
 - v0.3 结构化阅读与历史已落地：`EngineAdapterRegistry.toReading()` 契约已实现于八字/五运六气/梅花三个 Adapter；`HistoryStore` 本地历史与收藏已集成到旧 Dashboard 首页和 React Shell `history` 工作区；梅花数字起卦模式已内置。
 - v0.3 咨询向导已落地：旧 Dashboard 首页新增"打开咨询向导"按钮，提供六类问题入口，调用 `toReading()` 生成结构化摘要并保存到历史；报告导出 `exportReportData()` 已集成 `readings` 字段并在 HTML 报告中展示。
 - v0.3 PWA 试点已落地：新增 `manifest.webmanifest` 和 `sw.js`，仅在 http/https 下注册 Service Worker，`file://` 双击不加载 SW。
+
+## fate 项目复用计划（babyname/fate，MIT，2.4k stars）
+
+> 调研日期：2026-07-08。来源：`https://github.com/babyname/fate`，v4.2.0，Go + React。已克隆分析完整模块结构，按复用价值分级落地。仅复用纯数据表与算法逻辑，不引入 Go 运行时/chronos/SQLite 依赖。
+
+### 已复用 ✅
+
+- ✅ **康熙笔画 + 字义五行**：从 `resources/character.json`（12.6MB）提取 `char → {k: kangxi_stroke, w: wu_xing}` 精简为 `apps/visual/src/legacy/kangxiStrokes.json`（536KB，22107 可起名汉字）。简体字映射到繁体本字康熙笔画（如「伟」→「偉」11 画），符合传统姓名学口径。已用于姓名五行模块，替代旧 seed 伪造数据。
+
+### 待落地（按优先级）
+
+| 优先级 | 功能 | fate 源 | 复用方式 | 工作量 | 收益 |
+|--------|------|---------|---------|--------|------|
+| P1 | 81 数理详注表 | `internal/wuge/dayan.go` | 纯数据表移植到 TS | 小 | 五格数理显示「第N数·九星名·详注」，专业度大增 |
+| P1 | 三才配置详描 | `internal/analysis/sancai_data.go` | 纯数据表替换现有简短 desc | 小 | 三才 125 组完整长句解读 |
+| P2 | 喜用神算法 | `internal/bazi/xiyong.go` | 纯逻辑（五行强弱分数+同类/异类）参考移植到 TS | 中 | 八字输出「日主强弱·喜用神」实质结论 |
+| P2 | 生肖喜忌用字 | `internal/bazi/zodiac.go` | 数据提取 + 姓名生肖契合度评分 | 中 | 姓名模块加生肖评分维度 |
+| P3 | 字义出处 | `character.json` 的 `meaning` 字段 | 精简提取常用字字义 | 中 | 姓名模块展示字义文化出处 |
+| P3 | 五维评分体系 | `internal/rating/` | 参考权重（文化20/八字25/生肖10/五格25/音韵20） | 中 | 姓名综合打分 |
+
+### 不复用部分
+
+- **chronos 引擎**：fate 用 `godcong/chronos` 做八字排盘，本项目已用 `lunar-javascript`，口径不同会冲突。
+- **纳音**：fate 依赖 chronos 算纳音；本项目 `lunar-javascript` 已支持 `getDayNaYin()`（黄历模块已用），无需 fate。
+- **周易卦象**：fate 依赖 `godcong/yi`；本项目已有六爻/梅花模块，复用现有周易能力。
+- **Ent ORM / SQLite / Go 后端 / ExcellentTable / 流式生成**：架构栈不同，无法复用。
+
+### 验收标准
+
+- 81 数理与三才详描数据移植后，五格/三才显示完整详注，与 fate 输出口径一致。
+- 喜用神算法对固定样例（如某日主偏弱）输出与 fate 一致的喜用神五行。
+- 所有 fate 数据移植须在 `tool-index.md` 记录 MIT 来源、文件路径、采纳字段。
+- 不破坏现有姓名五行测试与冒烟契约。
+
+## React 迁移剩余优化（Phase 7-11 后续）
+
+> Phase 10 已收官（全部 13 工作区 SVG 化）。以下为 Phase 7/8/9/11 标注「后续/第二版」的真实未完成项。
+
+### Phase 9 第二版：TestRunnerConsole 浏览器端动态测试（✅ 完成）
+
+- ✅ 新增 `browserTestRunner.ts`：用 `?raw` import 浏览器测试脚本源码（与 loadLegacyScripts 同策略），legacy 引擎就绪后 eval 注入并调用 `window.TestXxx.run()`，返回 `{passed, failed, details[], durationMs}`。
+- ✅ TestRunnerConsole 新增「页内运行」面板：运行按钮 + rolling results（逐套件实时追加）+ 通过/失败计数 + 失败详情列表 + 运行错误提示。
+- ✅ 当前支持 `test-liuyao-engine`（17 项六爻纳甲 oracle），架构可扩展，新增浏览器测试只需在 `BROWSER_TEST_SPECS` 注册。
+- 约束：区分 Node 测试与浏览器测试，Node 套件仍仅展示命令与预期数；浏览器套件在页内执行。
+- 验收：页内可运行浏览器端测试套件，展示通过/失败计数与失败详情，无需跳转旧页。
+
+### Phase 11 后续：测试套件扩展
+
+- 扩展 `apps/visual/src/__tests__/`：补 `copy-context.test.ts`、`command-bar.test.ts`、`legacy-adapter.test.ts`。
+- 扩展 `apps/visual/e2e/`：`canvas-render.spec.ts`、`navigation.spec.ts`、`smoke.spec.ts` 已存在，补 `privacy.spec.ts` 之外的覆盖（如 CommandBar 交互、SVG 双击放大/右键复制）。
+- 验收：单元测试数提升，e2e 覆盖关键交互路径。
+
+### Phase 11 主入口切换前回归
+
+- 主入口切换前，必须确认 11 tab 全部可打开、默认数据可渲染、CommandBar 可切换、Copy context 有效、375px 移动端不横向溢出、暗黑模式 contrast 合格、Mermaid fallback 可用。
+- 当前维持旧 `visual/index.html` 稳定主入口，`visual/react.html` 并行验证。
+

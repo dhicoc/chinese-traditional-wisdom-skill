@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-07-08 Phase 9 v2 + fate 复用计划落地
+
+### Phase 9 第二版：TestRunnerConsole 页内动态测试
+
+- **新增 `browserTestRunner.ts`**：用 `?raw` import 浏览器测试脚本源码（与 loadLegacyScripts 同策略），legacy 引擎就绪后 eval 注入并调用 `window.TestXxx.run()`，返回 `{passed, failed, details[], durationMs}`。
+- **TestRunnerConsole 新增「页内运行」面板**：运行按钮 + rolling results（逐套件实时追加）+ 通过/失败计数 + 失败详情列表 + 运行错误提示。当前支持 `test-liuyao-engine`（17 项六爻纳甲 oracle），架构可扩展（`BROWSER_TEST_SPECS` 注册新套件即可）。
+- **意义**：测试控制台从「静态跳转入口」升级为「页内可执行 + 实时结果」，无需跳转旧 `test-runner.html`。
+
+### fate 项目复用计划写入 ROADMAP
+
+- 调研 babyname/fate（MIT，2.4k stars）完整模块结构，按复用价值分级。
+- 已复用：康熙笔画 + 字义五行（`kangxiStrokes.json`，22107 字）。
+- 待落地（写入 ROADMAP 新节）：81 数理详注表（P1）、三才配置详描（P1）、喜用神算法（P2）、生肖喜忌用字（P2）、字义出处（P3）、五维评分体系（P3）。
+- 不复用：chronos 引擎、纳音（已用 lunar）、周易（已有六爻/梅花）、Go 后端栈。
+
+### 同步
+
+- ROADMAP 新增「fate 项目复用计划」节与「React 迁移剩余优化（Phase 7-11 后续）」节，Phase 9 第二版标记完成。
+
+---
+
 ## 2026-07-08 Phase 10 收官：风水罗盘 SVG + 全工作区脱离 Canvas
 
 ### 变更

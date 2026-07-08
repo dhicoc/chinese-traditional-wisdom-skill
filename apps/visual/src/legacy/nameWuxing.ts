@@ -7,7 +7,7 @@
  * 这是传统姓名学的参考框架，非科学结论；UI 必须标注「文化参考」。
  */
 
-import { getKangxiStrokes, estimateStrokes } from './nameStrokes';
+import { getKangxiStrokes, getCharWuxing, estimateStrokes } from './nameStrokes';
 
 /** 笔画尾数 → 五行 */
 function strokesToWuxing(strokes: number): string {
@@ -155,7 +155,10 @@ const SANCAI_LUCK: Record<string, { luck: string; desc: string }> = {
 export interface NameChar {
   char: string;
   strokes: number;
+  /** 笔画尾数五行（五格体系用） */
   wuxing: string;
+  /** 字义五行（fate 数据，用于补八字参考），未收录为空 */
+  meaningWuxing: string;
   /** 是否为未收录字（回退估算） */
   estimated: boolean;
 }
@@ -196,12 +199,13 @@ function parseChars(text: string): { chars: NameChar[]; hasUnrecorded: boolean }
   let hasUnrecorded = false;
   for (const ch of text) {
     const s = getKangxiStrokes(ch);
+    const meaningWx = getCharWuxing(ch);
     if (s === null) {
       hasUnrecorded = true;
       const est = estimateStrokes(ch);
-      chars.push({ char: ch, strokes: est, wuxing: strokesToWuxing(est), estimated: true });
+      chars.push({ char: ch, strokes: est, wuxing: strokesToWuxing(est), meaningWuxing: meaningWx, estimated: true });
     } else {
-      chars.push({ char: ch, strokes: s, wuxing: strokesToWuxing(s), estimated: false });
+      chars.push({ char: ch, strokes: s, wuxing: strokesToWuxing(s), meaningWuxing: meaningWx, estimated: false });
     }
   }
   return { chars, hasUnrecorded };

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
+import { BROWSER_TEST_SPECS, runAllBrowserTests, type BrowserTestResult } from '@/legacy/browserTestRunner';
 import { getLegacyCapabilities, getLegacyTools } from '@/legacy/toolRegistry';
 import {
   TEST_SUITES,
@@ -132,6 +133,9 @@ function SuiteCard({ suite }: { suite: TestSuite }) {
 export function TestRunnerConsole() {
   const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
   const [legacyReady, setLegacyReady] = useState(false);
+  // Phase 9 第二版：页内浏览器测试运行状态
+  const [inlineRunning, setInlineRunning] = useState(false);
+  const [inlineResults, setInlineResults] = useState<BrowserTestResult[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -144,6 +148,22 @@ export function TestRunnerConsole() {
       mounted = false;
     };
   }, []);
+
+  const handleRunInlineTests = () => {
+    if (inlineRunning || !legacyReady) return;
+    setInlineRunning(true);
+    setInlineResults([]);
+    runAllBrowserTests((r) => {
+      setInlineResults((prev) => [...prev, r]);
+    }).then((all) => {
+      setInlineResults(all);
+      setInlineRunning(false);
+    });
+  };
+
+  const inlineTotalPassed = inlineResults.reduce((s, r) => s + r.passed, 0);
+  const inlineTotalFailed = inlineResults.reduce((s, r) => s + r.failed, 0);
+  const inlineHasErrors = inlineResults.some((r) => r.error);
 
   const env = useMemo(() => collectEnvInfo(legacyState, legacyReady), [legacyState, legacyReady]);
 
@@ -172,7 +192,7 @@ export function TestRunnerConsole() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">测试控制台</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              汇总所有测试入口：Node CLI 结构测试、浏览器端引擎测试、自动验证页。Phase 9 第一版——提供测试入口、结果摘要和跳转链接。
+              汇总所有测试入口：Node CLI 结构测试、浏览器端引擎测试、自动验证页。Phase 9 第二版——支持在页内运行浏览器端测试并展示 rolling logs 与失败详情。
             </p>
           </div>
           <CopyContextButton commandScope="testing" title="测试控制台上下文" payload={contextPayload} />
@@ -270,6 +290,67 @@ export function TestRunnerConsole() {
             浏览器测试入口为旧 <code className="text-jade-500">visual/test-runner.html</code>，在独立页面加载旧引擎后依次运行八字、五运六气、数据桥接、质量基线、全局同步和可视化渲染测试。
             点击任意套件的"打开 test-runner"将在新标签页中运行全部浏览器测试。
           </p>
+        </div>
+
+        {/* Phase 9 第二版：页内运行浏览器测试 */}
+        <div className="mt-4 rounded-card border border-jade-500/25 bg-ink-950/60 p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <h4 className="text-sm font-semibold text-jade-100">页内运行（Phase 9 v2）</h4>
+              <p className="mt-0.5 text-xs text-jade-100/45">
+                在本页直接加载测试脚本运行，无需跳转。当前支持 {BROWSER_TEST_SPECS.length} 个套件。
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleRunInlineTests}
+              disabled={inlineRunning || !legacyReady}
+              className="rounded-lg border border-jade-500/40 bg-jade-500/15 px-4 py-2 text-sm font-medium text-jade-300 transition hover:bg-jade-500/25 disabled:opacity-40"
+            >
+              {inlineRunning ? '运行中…' : '运行页内测试'}
+            </button>
+          </div>
+
+          {!legacyReady && (
+            <p className="text-xs text-jade-100/45">等待 legacy 引擎加载完成后可运行。</p>
+          )}
+
+          {inlineResults.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-4 text-sm">
+                <span className="text-jade-400">✓ 通过 {inlineTotalPassed}</span>
+                <span className={inlineTotalFailed > 0 ? 'text-cinnabar-400' : 'text-jade-100/55'}>
+                  ✗ 失败 {inlineTotalFailed}
+                </span>
+                {inlineHasErrors && <span className="text-gold-400">⚠ 有运行错误</span>}
+              </div>
+              {inlineResults.map((r) => (
+                <div key={r.id} className="rounded-card border border-white/8 bg-white/[0.02] p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-jade-100/80">{r.name}</span>
+                    <span className="font-mono text-xs text-jade-100/55">
+                      {r.error ? '错误' : `${r.passed} 通过 / ${r.failed} 失败`} · {r.durationMs}ms
+                    </span>
+                  </div>
+                  {r.error && (
+                    <p className="mt-2 text-xs text-gold-400">运行错误：{r.error}</p>
+                  )}
+                  {!r.error && r.details.length > 0 && (
+                    <ul className="mt-2 max-h-40 space-y-0.5 overflow-auto text-[11px] leading-5">
+                      {r.details.map((d, i) => (
+                        <li
+                          key={i}
+                          className={d.startsWith('❌') ? 'text-cinnabar-400' : 'text-jade-100/55'}
+                        >
+                          {d}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
