@@ -1,67 +1,43 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ControlField } from '@/components/shared/ControlField';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
+import { getAlmanacData, type AlmanacData } from '@/legacy/almanacData';
+import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
+import type { LegacyState } from '@/legacy/legacyGlobals';
 
 /**
  * 每日黄历工作区
- * 基于农历日期展示当日宜忌、吉时凶时、节气物候等民俗参考信息
- * 注意：此为民俗体验，不做吉凶预测
+ * 基于内置 lunar-javascript 真实历法推算：干支、宜忌、彭祖百忌、吉神凶煞、
+ * 神位方位、冲煞、时辰吉凶、纳音星宿。民俗参考，不做吉凶预测。
  */
-
-interface AlmanacData {
-  lunarDate: string;
-  ganZhi: string;
-  zodiac: string;
-  jieQi?: string;
-  yi: string[];
-  ji: string[];
-  jiShi: string[];
-  xiongShi: string[];
-  wuXing: string;
-  pengZu: string;
-  shenWei: string;
-  notes: string;
-}
-
-// 简易黄历数据生成（实际应用可接入 lunar-javascript 或自建数据表）
-function generateAlmanac(date: Date): AlmanacData {
-  const yiList = ['祭祀', '祈福', '求嗣', '开光', '出行', '解除', '伐木', '拆卸', '修造', '动土', '起基', '安床', '纳畜', '入殓', '破土', '安葬'];
-  const jiList = ['嫁娶', '移徙', '入宅', '出火', '作灶', '开市', '立券', '纳财'];
-
-  // 基于日期种子随机选择（实际应为真实历法计算）
-  const seed = date.getDate() + date.getMonth() * 31;
-  const yi = yiList.slice(seed % 4, seed % 4 + 5);
-  const ji = jiList.slice((seed + 2) % 3, (seed + 2) % 3 + 3);
-
-  const ganZhiList = ['甲子', '乙丑', '丙寅', '丁卯', '戊辰', '己巳', '庚午', '辛未', '壬申', '癸酉', '甲戌', '乙亥'];
-  const zodiacList = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
-
-  return {
-    lunarDate: `农历${date.getMonth() + 1}月${date.getDate()}日`,
-    ganZhi: ganZhiList[seed % 12],
-    zodiac: zodiacList[seed % 12],
-    yi,
-    ji,
-    jiShi: ['卯时(5-7)', '午时(11-13)', '申时(15-17)', '酉时(17-19)'],
-    xiongShi: ['子时(23-1)', '寅时(3-5)', '巳时(9-11)', '亥时(21-23)'],
-    wuXing: ['金', '木', '水', '火', '土'][seed % 5],
-    pengZu: '甲不开仓财物耗散',
-    shenWei: '喜神东北 福神正北 财神东南',
-    notes: '本黄历为民俗参考，宜忌时辰基于传统历法推算，不作为决策依据。',
-  };
-}
-
 export function AlmanacWorkspace() {
+  const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
   const [almanac, setAlmanac] = useState<AlmanacData | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
-    const date = new Date(selectedDate);
-    setAlmanac(generateAlmanac(date));
-  }, [selectedDate]);
+    let mounted = true;
+    loadLegacyScripts().then((state) => {
+      if (!mounted) return;
+      setLegacyState(state);
+      if (state.mode === 'error') setLoadError(true);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (legacyState.mode !== 'ready') return;
+    setAlmanac(getAlmanacData(selectedDate));
+  }, [legacyState.mode, selectedDate]);
+
+  const jiHours = useMemo(() => almanac?.hours.filter((h) => h.luck === '吉') ?? [], [almanac]);
+  const xiongHours = useMemo(() => almanac?.hours.filter((h) => h.luck === '凶') ?? [], [almanac]);
 
   return (
     <div className="space-y-6" data-testid="workspace-almanac">
@@ -70,10 +46,10 @@ export function AlmanacWorkspace() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold text-jade-50">每日黄历</h2>
-            <p className="text-sm text-jade-100/55">民俗体验 · 非预测结论</p>
+            <p className="text-sm text-jade-100/55">真实历法推算 · 民俗参考 · 非预测结论</p>
           </div>
-          <span className="rounded-full border border-cinnabar-500/30 bg-cinnabar-500/10 px-3 py-1 text-xs text-cinnabar-500">
-            民俗参考
+          <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
+            lunar-javascript
           </span>
         </div>
       </div>
@@ -90,6 +66,18 @@ export function AlmanacWorkspace() {
         </ControlField>
       </div>
 
+      {/* 加载中 / 错误 */}
+      {legacyState.mode === 'loading' && (
+        <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-4 text-sm text-jade-100/55">
+          正在加载 lunar-javascript 历法引擎。
+        </p>
+      )}
+      {loadError && (
+        <p className="rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-4 text-sm text-red-200">
+          历法引擎加载失败，无法生成真实黄历数据。
+        </p>
+      )}
+
       {/* 黄历内容 */}
       {almanac && (
         <div className="grid gap-4 md:grid-cols-2">
@@ -98,24 +86,48 @@ export function AlmanacWorkspace() {
             <h3 className="mb-3 text-base font-semibold text-jade-50">基本信息</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between border-b border-white/5 py-2">
-                <span className="text-jade-100/45">农历日期</span>
+                <span className="text-jade-100/45">公历</span>
+                <span className="text-jade-100/80">{almanac.solarDate}</span>
+              </div>
+              <div className="flex justify-between border-b border-white/5 py-2">
+                <span className="text-jade-100/45">农历</span>
                 <span className="text-jade-100/80">{almanac.lunarDate}</span>
               </div>
               <div className="flex justify-between border-b border-white/5 py-2">
-                <span className="text-jade-100/45">干支</span>
-                <span className="text-jade-100/80">{almanac.ganZhi}</span>
+                <span className="text-jade-100/45">年柱</span>
+                <span className="text-jade-100/80">{almanac.yearGanZhi} · {almanac.zodiac}年</span>
               </div>
               <div className="flex justify-between border-b border-white/5 py-2">
-                <span className="text-jade-100/45">生肖</span>
-                <span className="text-jade-100/80">{almanac.zodiac}</span>
+                <span className="text-jade-100/45">月柱</span>
+                <span className="text-jade-100/80">{almanac.monthGanZhi}</span>
               </div>
               <div className="flex justify-between border-b border-white/5 py-2">
-                <span className="text-jade-100/45">五行</span>
-                <span className="text-jade-100/80">{almanac.wuXing}</span>
+                <span className="text-jade-100/45">日柱</span>
+                <span className="text-jade-100/80">{almanac.dayGanZhi} · {almanac.dayNaYin}</span>
               </div>
-              <div className="py-2">
-                <span className="text-jade-100/45">彭祖百忌</span>
-                <p className="mt-1 text-jade-100/70">{almanac.pengZu}</p>
+              <div className="flex justify-between border-b border-white/5 py-2">
+                <span className="text-jade-100/45">日天神</span>
+                <span className="text-jade-100/80">{almanac.dayTianShen} · {almanac.dayTianShenType}</span>
+              </div>
+              <div className="flex justify-between border-b border-white/5 py-2">
+                <span className="text-jade-100/45">二十八宿</span>
+                <span className="text-jade-100/80">{almanac.dayXiu}</span>
+              </div>
+              {almanac.jieQi && (
+                <div className="flex justify-between border-b border-white/5 py-2">
+                  <span className="text-jade-100/45">节气</span>
+                  <span className="text-jade-400">{almanac.jieQi}</span>
+                </div>
+              )}
+              {almanac.festivals.length > 0 && (
+                <div className="flex justify-between border-b border-white/5 py-2">
+                  <span className="text-jade-100/45">节日</span>
+                  <span className="text-jade-100/80">{almanac.festivals.join('、')}</span>
+                </div>
+              )}
+              <div className="flex justify-between border-b border-white/5 py-2">
+                <span className="text-jade-100/45">冲煞</span>
+                <span className="text-jade-100/80">冲{almanac.chong} · 煞{almanac.sha}</span>
               </div>
             </div>
           </div>
@@ -127,14 +139,11 @@ export function AlmanacWorkspace() {
               <span className="text-xs text-jade-100/45">适宜之事</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {almanac.yi.map((item) => (
-                <span
-                  key={item}
-                  className="rounded-full border border-jade-500/30 bg-jade-500/10 px-3 py-1 text-sm text-jade-500"
-                >
+              {almanac.yi.length > 0 ? almanac.yi.map((item) => (
+                <span key={item} className="rounded-full border border-jade-500/30 bg-jade-500/10 px-3 py-1 text-sm text-jade-400">
                   {item}
                 </span>
-              ))}
+              )) : <span className="text-sm text-jade-100/45">无</span>}
             </div>
             <div className="my-4 border-t border-white/5" />
             <div className="mb-3 flex items-center gap-3">
@@ -142,51 +151,106 @@ export function AlmanacWorkspace() {
               <span className="text-xs text-jade-100/45">回避之事</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {almanac.ji.map((item) => (
-                <span
-                  key={item}
-                  className="rounded-full border border-cinnabar-500/30 bg-cinnabar-500/10 px-3 py-1 text-sm text-cinnabar-500"
-                >
+              {almanac.ji.length > 0 ? almanac.ji.map((item) => (
+                <span key={item} className="rounded-full border border-cinnabar-500/30 bg-cinnabar-500/10 px-3 py-1 text-sm text-cinnabar-400">
                   {item}
                 </span>
-              ))}
+              )) : <span className="text-sm text-jade-100/45">无</span>}
             </div>
+            <div className="my-4 border-t border-white/5" />
+            <div className="mb-2 flex items-center gap-3">
+              <h4 className="text-sm font-semibold text-jade-100/70">彭祖百忌</h4>
+            </div>
+            <p className="text-sm leading-6 text-jade-100/55">{almanac.pengZu}</p>
           </div>
 
-          {/* 时辰 */}
+          {/* 吉神凶煞 */}
           <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-            <h3 className="mb-3 text-base font-semibold text-jade-50">时辰吉凶</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h4 className="mb-2 text-sm text-jade-500">吉时</h4>
-                <div className="space-y-1">
-                  {almanac.jiShi.map((shi) => (
-                    <div key={shi} className="text-sm text-jade-100/70">{shi}</div>
-                  ))}
-                </div>
+            <h3 className="mb-3 text-base font-semibold text-jade-50">吉神凶煞</h3>
+            <div className="mb-3">
+              <p className="mb-2 text-xs text-jade-100/45">吉神宜趋</p>
+              <div className="flex flex-wrap gap-2">
+                {almanac.jiShen.length > 0 ? almanac.jiShen.map((item) => (
+                  <span key={item} className="rounded-full border border-jade-500/25 bg-jade-500/8 px-2.5 py-1 text-xs text-jade-300">
+                    {item}
+                  </span>
+                )) : <span className="text-xs text-jade-100/45">无</span>}
               </div>
-              <div>
-                <h4 className="mb-2 text-sm text-cinnabar-500">凶时</h4>
-                <div className="space-y-1">
-                  {almanac.xiongShi.map((shi) => (
-                    <div key={shi} className="text-sm text-jade-100/70">{shi}</div>
-                  ))}
-                </div>
+            </div>
+            <div>
+              <p className="mb-2 text-xs text-cinnabar-400/70">凶煞宜忌</p>
+              <div className="flex flex-wrap gap-2">
+                {almanac.xiongSha.length > 0 ? almanac.xiongSha.map((item) => (
+                  <span key={item} className="rounded-full border border-cinnabar-500/25 bg-cinnabar-500/8 px-2.5 py-1 text-xs text-cinnabar-300">
+                    {item}
+                  </span>
+                )) : <span className="text-xs text-jade-100/45">无</span>}
               </div>
             </div>
           </div>
 
-          {/* 神位 */}
+          {/* 神位方位 */}
           <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <h3 className="mb-3 text-base font-semibold text-jade-50">神位方位</h3>
-            <p className="text-sm text-jade-100/70">{almanac.shenWei}</p>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="flex justify-between rounded-card border border-white/5 bg-white/[0.03] px-3 py-2">
+                <span className="text-jade-100/45">喜神</span>
+                <span className="text-jade-100/80">{almanac.xiPosition}</span>
+              </div>
+              <div className="flex justify-between rounded-card border border-white/5 bg-white/[0.03] px-3 py-2">
+                <span className="text-jade-100/45">福神</span>
+                <span className="text-jade-100/80">{almanac.fuPosition}</span>
+              </div>
+              <div className="flex justify-between rounded-card border border-white/5 bg-white/[0.03] px-3 py-2">
+                <span className="text-jade-100/45">财神</span>
+                <span className="text-jade-100/80">{almanac.caiPosition}</span>
+              </div>
+              <div className="flex justify-between rounded-card border border-white/5 bg-white/[0.03] px-3 py-2">
+                <span className="text-jade-100/45">阳贵</span>
+                <span className="text-jade-100/80">{almanac.yangGuiPosition}</span>
+              </div>
+              <div className="flex justify-between rounded-card border border-white/5 bg-white/[0.03] px-3 py-2">
+                <span className="text-jade-100/45">阴贵</span>
+                <span className="text-jade-100/80">{almanac.yinGuiPosition}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 时辰吉凶 */}
+          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument md:col-span-2">
+            <h3 className="mb-3 text-base font-semibold text-jade-50">十二时辰吉凶</h3>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {almanac.hours.map((h) => (
+                <div
+                  key={h.ganZhi}
+                  className={`rounded-card border px-3 py-2 text-sm ${
+                    h.luck === '吉'
+                      ? 'border-jade-500/25 bg-jade-500/8'
+                      : 'border-cinnabar-500/25 bg-cinnabar-500/8'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-jade-100/80">{h.ganZhi}</span>
+                    <span className={`text-xs ${h.luck === '吉' ? 'text-jade-400' : 'text-cinnabar-400'}`}>
+                      {h.label} · {h.luck}
+                    </span>
+                  </div>
+                  <div className="mt-1 text-[11px] text-jade-100/45">
+                    {h.tianShen} · {h.tianShenType}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-[11px] text-jade-100/35">
+              吉时 {jiHours.length} 辰 · 凶时 {xiongHours.length} 辰；时辰宜忌详见 lunar-javascript 推算。
+            </p>
           </div>
         </div>
       )}
 
       {/* 边界说明 */}
       <InterpretationCard title="使用说明" subtitle="民俗参考">
-        {almanac?.notes || '本黄历为民俗参考，宜忌时辰基于传统历法推算，不作为决策依据。'}
+        {almanac?.confidenceNote || '数据由内置 lunar-javascript 真实历法推算；宜忌为民俗参考，不作为决策依据。'}
       </InterpretationCard>
     </div>
   );

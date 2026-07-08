@@ -85,7 +85,6 @@ function wrapTendency(text: string, maxChars: number): string[] {
 
 export function YunqiChart({ data, size = 550 }: YunqiChartProps) {
   const W = size;
-  const H = 460;
 
   const year = data.year;
   const tiangan = data.tiangan;
@@ -108,16 +107,19 @@ export function YunqiChart({ data, size = 550 }: YunqiChartProps) {
   const segY = 258;
   const segH = 115;
 
-  const legendY = 420;
+  // 病势倾向换行（先算，供 legendY/H 动态布局）
+  const tendencyLines = useMemo(() => (diseaseTendency ? wrapTendency(diseaseTendency, 14) : []), [diseaseTendency]);
+  const tendY = 388;
+  const tendLineH = 14;
+  const tendH = tendencyLines.length > 0 ? tendencyLines.length * tendLineH + 10 : 0;
+
+  // 图例置于病势倾向之下，避免与病势框/客气六步重叠
+  const legendY = tendY + (tendencyLines.length > 0 ? tendH + 22 : 22);
+  const H = legendY + 22;
   const legendSpacing = 62;
   const legendCount = QI_WUXING_ORDER.length;
   const legendTotalW = legendCount * legendSpacing;
   const legendStartX = (W - legendTotalW) / 2 + legendSpacing / 2;
-
-  // 病势倾向换行
-  const tendencyLines = useMemo(() => (diseaseTendency ? wrapTendency(diseaseTendency, 14) : []), [diseaseTendency]);
-  const tendY = 388;
-  const tendLineH = 14;
 
   return (
     <svg

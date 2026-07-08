@@ -74,7 +74,8 @@ export function EightMansionsChart({ grid, year, gender, size = 500 }: EightMans
   const cx = W / 2;
   const cy = H / 2;
   const ringIn = 75;
-  const ringOut = Math.min(W, H) / 2 - 20;
+  // 顶部留出标题带，避免扇区顶部与标题文字重叠
+  const ringOut = Math.min(W, H) / 2 - 40;
 
   const masterColor = MANSION_COLORS['大吉'] || '#388E3C';
 

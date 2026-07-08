@@ -27,7 +27,7 @@ interface RadarChartProps {
 
 const DEFAULT_SIZE = 380;
 const DEFAULT_RINGS = 5;
-const LABEL_RADIUS_FACTOR = 1.18;
+const LABEL_RADIUS_FACTOR = 1.14;
 
 export function RadarChart({
   axes,
@@ -38,7 +38,8 @@ export function RadarChart({
 }: RadarChartProps) {
   const cx = size / 2;
   const cy = size / 2;
-  const radius = size / 2 - 48;
+  // 边距 64：给 3 字标签（如「阳虚质」「气郁质」）在左右两端留足空间
+  const radius = size / 2 - 64;
 
   const n = axes.length;
   const angleStep = (Math.PI * 2) / n;
@@ -78,6 +79,9 @@ export function RadarChart({
       role="img"
       aria-label={title ?? '雷达图'}
     >
+      {/* 暗色底，保证文字与数据区对比一致 */}
+      <rect x={0} y={0} width={size} height={size} rx={12} fill="#0b1410" stroke="rgba(44,159,132,0.16)" strokeWidth={1} />
+
       {/* 同心环 */}
       {ringRadii.map((r, i) => (
         <circle
@@ -128,7 +132,7 @@ export function RadarChart({
         />
       ))}
 
-      {/* 轴标签 */}
+      {/* 轴标签：亮色 + 暗描边，确保叠在数据多边形上也清晰 */}
       {points.map((p, i) => (
         <text
           key={`label-${i}`}
@@ -136,8 +140,11 @@ export function RadarChart({
           y={p.labelY}
           textAnchor={Math.abs(p.labelX - cx) < 8 ? 'middle' : p.labelX > cx ? 'start' : 'end'}
           dominantBaseline="middle"
-          className="fill-jade-100/70"
-          style={{ fontSize: 11, fontWeight: highlightIndex === i ? 600 : 400 }}
+          fill={highlightIndex === i ? 'rgb(214,183,96)' : '#e6f2ec'}
+          stroke="#0b1410"
+          strokeWidth={3}
+          paintOrder="stroke"
+          style={{ fontSize: 11, fontWeight: highlightIndex === i ? 700 : 500 }}
         >
           {axes[i].label}
         </text>
