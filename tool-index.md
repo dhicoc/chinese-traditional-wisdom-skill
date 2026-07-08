@@ -108,3 +108,31 @@ flowchart TD
 | JSON mapping 文件读不到 | 路径不对或文件缺失 | 检查 knowledge-base/fengshui/mappings/ 下文件，并运行 `node visual/js/tests/check-mapping-schema.mjs` |
 | Mermaid 图不显示 | CDN 加载失败 / display:none 渲染 | 查看离线提示；Canvas 核心模块可继续使用 |
 | 可视化页面打不开 | 未双击 index.html | 直接在浏览器打开 visual/index.html |
+
+---
+
+## 外部参考来源归档
+
+> 按 ROADMAP「外部引擎候选」「suanle-me 复用评估」要求记录采纳的外部来源、许可证与改写范围。
+
+### 已接入运行依赖
+
+| 来源 | 许可证 | 采纳范围 | 本地落地 |
+|------|--------|---------|---------|
+| `6tail/lunar-javascript` | MIT | 节气、干支、八字、纳音、彭祖百忌、神位方位、时辰吉凶 | `visual/vendor/lunar-javascript-1.7.7.js`，经 `BaziLunarAdapter`/`YunqiLunarBoundaryAdapter`/黄历模块调用 |
+| `SylarLong/iztro` v2.5.8 | MIT | 紫微斗数十二宫排盘 | `visual/vendor/iztro-2.5.8.min.js`，经 `ZiweiIztroAdapter` 调用 |
+| `babyname/fate` | MIT | 康熙笔画 + 字义五行数据 | `apps/visual/src/legacy/kangxiStrokes.json`（从 `resources/character.json` 提取 22107 字，简体→繁体本字康熙笔画映射） |
+
+### 仅参考思路、未复用文案/词表
+
+| 来源 | 许可证 | 参考方式 | 边界 |
+|------|--------|---------|------|
+| `lyyxqg-lyy/suanle-me` | MIT | 参考「日用工具二级入口」分类思路（黄历/姓名/梦境/节律） | **未复制或改写其常量词表、工具描述或策略文案**。本项目梦境意象表 `DREAM_SYMBOLS` 为自建五字段结构（symbol/category/meanings/emotion/context），与 suanle-me 的 `dreamKeywords`（key/meaning 单句）结构完全不同；「水/火/山」等意象 key 属周公解梦公知分类，非该项目独创。 |
+| `dhicoc/wuyun-liuqi-skills` | MIT | 借鉴字段契约与测试样例思路 | 五运六气保留轻量 JS 实现，未搬入其 Agent/RAG 工作流 |
+| `bopo/najia` | MIT | 规则校验参考 | 六爻纳甲自研 `liuyao-engine.js`，未引入 Python 依赖 |
+| `muyen/meihua-yishu` | CC BY-NC-SA 4.0 | **未接入** | 许可证含非商业限制，不进入运行代码；梅花自研时间/数字起卦 |
+
+### 不复用原因
+
+- 八字/紫微/六爻：suanle-me 为 seed 化轻量近似或简化结构，本项目已用 lunar-javascript + iztro + 自研纳甲，口径更严，不退回。
+- 远期 UI 栈（Next.js/React/Tailwind/Zustand）：本项目保持「纯前端双击可用」架构，React Shell 仅作并行验证，不迁移 Next.js。

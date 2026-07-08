@@ -67,7 +67,7 @@
 ### Adapter 验收标准
 
 - 每个外部引擎 adapter 必须输出统一字段：`engineName`、`mode`、`version`、`inputSchema`、`sourceProject`、`license`、`calculate()`、`toRenderData()`、`confidenceNote`。
-- 每个 adapter 至少提供 3 组固定样例测试：普通日期、节气边界日期、性别/时辰差异样例。
+- 每个 adapter 至少提供 3 组固定样例测试：普通日期、节气边界日期、性别/时辰差异样例。✅ 已落地：`visual/js/tests/test-adapter-samples.js` 覆盖八字/紫微/梅花/五运六气各 3 组样例 + 确定性，共 25 项，已纳入 `BROWSER_TEST_SPECS` 可在 TestRunnerConsole 页内运行。
 - Dashboard 能力标识必须区分 `local-exact`、`local-approx`、`demo`、`external-required`、`fallback-demo`。
 - 外部引擎加载失败时不得阻塞 Dashboard；必须回退到当前演示或近似模式，并在标签页显示降级原因。
 - 不得把完整姓名、完整出生日期、具体出生地写入长期日志或导出文件名。
@@ -104,7 +104,7 @@
 4. 日用工具路线：新增黄历、姓名五行、梦境意象、每日节律四个轻量本地模块，复用 `suanle-me` 的工具分类思路和小型词表结构，但输出必须带“民俗体验/非预测结论”说明。
 5. 数字起卦补强：在梅花 Adapter 中增加 `method: time|number`，使用 `numberA/numberB/question` 生成数字起卦，作为当前时间起卦的用户可选模式。
 6. PWA 试点：在不破坏双击打开的前提下，为本地 HTTP 访问增加 manifest 和 service worker；测试覆盖首次加载、断网刷新、vendor 缓存命中、注销缓存。
-7. 来源归档：若复制或改写 `suanle-me` 的常量词表、工具描述或策略文案，必须在 `tool-index.md` 记录 MIT 来源、文件路径、采纳字段和改写范围。
+7. 来源归档：✅ 已在 `tool-index.md` 新增「外部参考来源归档」节，记录已接入运行依赖（lunar-javascript/iztro/fate）、仅参考思路未复用文案（suanle-me/wuyun-liuqi-skills/najia/meihua-yishu）的许可证与边界，以及不复用原因。本项目梦境意象表为自建五字段结构，未复制 suanle-me 词表文案。
 
 ### 验收标准
 

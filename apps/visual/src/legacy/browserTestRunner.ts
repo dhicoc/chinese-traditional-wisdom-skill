@@ -10,6 +10,7 @@
  */
 
 import liuyaoTestSource from '../../../../visual/js/tests/test-liuyao-engine.js?raw';
+import adapterSamplesTestSource from '../../../../visual/js/tests/test-adapter-samples.js?raw';
 
 export interface BrowserTestResult {
   id: string;
@@ -41,6 +42,13 @@ export const BROWSER_TEST_SPECS: BrowserTestSpec[] = [
     source: liuyaoTestSource,
     globalName: 'TestLiuyaoEngine',
     requires: ['LiuyaoEngine'],
+  },
+  {
+    id: 'test-adapter-samples',
+    name: 'Adapter 固定样例测试（八字/紫微/梅花/五运六气）',
+    source: adapterSamplesTestSource,
+    globalName: 'TestAdapterSamples',
+    requires: ['EngineAdapterRegistry'],
   },
 ];
 

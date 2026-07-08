@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-07-08 Adapter 样例测试 + 外部来源归档（补齐 ROADMAP 缺口）
+
+### Adapter 固定样例测试（验收标准补齐）
+
+- 新增 `visual/js/tests/test-adapter-samples.js`：覆盖八字/紫微/梅花/五运六气各 3 组固定样例（普通日期、节气/年份边界、性别/时辰差异）+ 确定性校验，共 25 项。
+- 注册到 `BROWSER_TEST_SPECS` 与 `testRegistry`，可在 TestRunnerConsole 页内运行。
+- 实跑验证 25/25 全过。
+
+### 外部参考来源归档（suanle-me 第 7 项补齐）
+
+- `tool-index.md` 新增「外部参考来源归档」节：已接入运行依赖（lunar-javascript MIT、iztro MIT、fate MIT）、仅参考思路未复用文案（suanle-me/wuyun-liuqi-skills/najia/meihua-yishu）、不复用原因。
+- 核实结论：本项目梦境意象表 `DREAM_SYMBOLS` 为自建五字段结构（symbol/category/meanings/emotion/context），与 suanle-me `dreamKeywords`（key/meaning 单句）结构完全不同；「水/火/山」意象 key 属周公解梦公知分类，未复制其文案。
+
+---
+
 ## 2026-07-08 Phase 11 主入口切换回归 + privacy 真实 bug 修复
 
 ### Phase 11 Gate（主入口切换前回归）

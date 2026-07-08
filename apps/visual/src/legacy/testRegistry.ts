@@ -130,6 +130,15 @@ export const TEST_SUITES: TestSuite[] = [
     covers: ['LiuyaoEngine', '八宫', '纳甲', '六亲', '六神', '世应', '用神', '变卦'],
   },
   {
+    id: 'test-adapter-samples',
+    name: 'Adapter 固定样例测试',
+    type: 'browser',
+    description: '验证八字/紫微/梅花/五运六气 Adapter 的固定样例（普通日期、节气/年份边界、性别/时辰差异）与确定性，满足 ROADMAP Adapter 验收标准。',
+    expectedCount: 25,
+    url: '../../../visual/test-runner.html',
+    covers: ['BaziLunarAdapter', 'ZiweiIztroAdapter', 'LocalMeihuaTimeAdapter', 'YunqiLunarBoundaryAdapter', '确定性'],
+  },
+  {
     id: 'test-global-sync',
     name: '全局同步回归测试',
     type: 'browser',
