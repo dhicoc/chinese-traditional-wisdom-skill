@@ -86,4 +86,48 @@ describe('agentRouter routeQuery', () => {
     const route = routeQuery('农历 1992-3-4 23 男');
     expect(route?.birthPatch).toMatchObject({ isLunar: true, year: 1992, gender: '男' });
   });
+
+  it('routes personality questions to bazi', () => {
+    const route = routeQuery('我脾气怎么样');
+    expect(route?.module).toBe('bazi');
+    expect(route?.reason).toContain('性格');
+  });
+
+  it('routes exam/study questions to bazi', () => {
+    const route = routeQuery('我的学业运势怎么样');
+    expect(route?.module).toBe('bazi');
+    expect(route?.reason).toContain('学业');
+  });
+
+  it('routes ziwei star questions to ziwei', () => {
+    const route = routeQuery('我的紫微命宫是什么星曜');
+    expect(route?.module).toBe('ziwei');
+  });
+
+  it('routes bazhai bedroom questions to bazhai', () => {
+    const route = routeQuery('八宅卧室方位');
+    expect(route?.module).toBe('bazhai');
+  });
+
+  it('routes rhythm meridian questions to rhythm', () => {
+    const route = routeQuery('子午流注是什么');
+    expect(route?.module).toBe('rhythm');
+  });
+
+  it('returns alternatives when multiple modules score close', () => {
+    // 风水 + 八宅都命中"方位/八宅"类
+    const route = routeQuery('办公室八宅方位布局');
+    expect(route).not.toBeNull();
+    expect(route?.alternatives).toBeDefined();
+    expect(route?.alternatives?.length).toBeGreaterThan(0);
+  });
+
+  it('alternatives excludes the chosen module', () => {
+    const route = routeQuery('办公室八宅方位布局');
+    if (route?.alternatives) {
+      route.alternatives.forEach((alt) => {
+        expect(alt.module).not.toBe(route.module);
+      });
+    }
+  });
 });

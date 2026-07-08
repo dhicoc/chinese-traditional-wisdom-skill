@@ -545,6 +545,10 @@ if (exists(agentRouterPath)) {
   check(agentRouter.includes('AgentRoute'), 'agentRouter 应定义 AgentRoute 类型');
   check(agentRouter.includes('QUESTION_INTENT'), 'agentRouter 应定义问句意图路由表');
   check(agentRouter.includes('TOPIC_KEYWORDS'), 'agentRouter 应定义主题关键词锚点');
+  check(agentRouter.includes('alternatives'), 'agentRouter 应支持次要建议模块');
+  check(agentRouter.includes('性格'), 'agentRouter 应覆盖性格分析锚点');
+  check(agentRouter.includes('学业'), 'agentRouter 应覆盖学业考试锚点');
+  check(agentRouter.includes('紫微'), 'agentRouter 应覆盖紫微斗数锚点');
 }
 
 check(commandBar.includes('routeQuery'), 'CommandBar 应接入 agent 路由层');
@@ -562,6 +566,7 @@ if (exists(agentConfirmPath)) {
   check(agentConfirm.includes('agent-confirm-execute'), 'AgentConfirmPanel 应有确认执行按钮');
   check(agentConfirm.includes('agent-confirm-cancel'), 'AgentConfirmPanel 应有取消按钮');
   check(agentConfirm.includes('agent-confirm-birth'), 'AgentConfirmPanel 应展示生辰预填信息');
+  check(agentConfirm.includes('agent-confirm-alternatives'), 'AgentConfirmPanel 应展示次要建议');
 }
 
 

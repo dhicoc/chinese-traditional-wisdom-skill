@@ -86,6 +86,17 @@ export function AgentConfirmPanel({ route, onConfirm, onCancel }: AgentConfirmPa
             </div>
           )}
 
+          {route.alternatives && route.alternatives.length > 0 && (
+            <div data-testid="agent-confirm-alternatives" className="rounded-card border border-white/8 bg-black/24 p-3">
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-100/45">其他可能适用</p>
+              <ul className="mt-1 space-y-1 text-xs text-jade-100/70">
+                {route.alternatives.map((alt) => (
+                  <li key={alt.module}>· {getModuleById(alt.module).title}（{alt.reason}）</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <p className="text-xs leading-5 text-jade-100/40">
             确认后将跳转到「{target.title}」并预填以上上下文。这是本地确定性路由，不调用外部 AI。
           </p>
