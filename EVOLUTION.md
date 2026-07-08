@@ -5,6 +5,31 @@
 
 ---
 
+## 2026-07-08 Phase 11 后续：测试套件扩展
+
+### 单元测试扩展（+21 项，50 → 71）
+
+- `copy-context.test.tsx`：`toMarkdown` 生成 + CopyContextButton 点击复制 + commandScope 匹配 COPY_CONTEXT_INTENT 事件。
+- `command-bar.test.tsx`：`fuzzyMatch`（label/hint/keywords）+ CommandBar 渲染。
+- `legacy-adapter.test.ts`：calculate/renderData/reading 桥接在无 registry/无 adapter/有 adapter 时的行为。
+- 为可测性导出 `CopyContextButton.toMarkdown`、`CommandBar.fuzzyMatch` 与 `CommandItem` 接口。
+
+### E2E 扩展
+
+- 新增 `interactions.spec.ts`：CommandBar 命令面板（点击/Ctrl+K/搜索/Esc）+ SVG 双击放大 + 右键复制。
+- 重写 `canvas-render.spec.ts` 适配 Phase 10 SVG 化：各 SVG `data-testid` 替代 canvas 选择器，新增 `waitForLegacy`，覆盖 9 工具渲染 + 跨工具无致命错误 + 响应式。
+- chromium 项目 54/56 通过。
+
+### 顺手修真实 bug
+
+- 飞星 KnowledgeReferencePanel 的 terms 在中宫星为「一白」时与列表里「一白」重复，触发 React key 重复警告。用 `Array.from(new Set(...))` 去重。
+
+### 已知预先失败（非本轮引入）
+
+- `privacy.spec.ts` 2 项：旧 Dashboard 报告导出文件名含完整生日、历史 30 条限制。属旧 `visual/index.html` 隐私口径问题，记为后续待修。
+
+---
+
 ## 2026-07-08 Phase 9 v2 + fate 复用计划落地
 
 ### Phase 9 第二版：TestRunnerConsole 页内动态测试

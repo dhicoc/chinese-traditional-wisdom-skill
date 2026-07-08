@@ -127,7 +127,7 @@ export function FeixingWorkspace() {
 
           <KnowledgeReferencePanel
             initialTerm={summary?.starName ?? "五黄"}
-            terms={[summary?.starName ?? "廉贞", "一白", "二黑", "五黄", "九紫", "病符", "文昌"]}
+            terms={Array.from(new Set([summary?.starName ?? "廉贞", "一白", "二黑", "五黄", "九紫", "病符", "文昌"]))}
             description="点击中宫星、九星名或飞星术语，查看流年飞星映射与古籍索引线索。"
           />
         </aside>

@@ -26,7 +26,7 @@ import { AgentConfirmPanel } from './AgentConfirmPanel';
 
 /* ── 类型 ─────────────────────────────────────────────── */
 
-interface CommandItem {
+export interface CommandItem {
   id: string;
   label: string;
   hint: string;
@@ -49,7 +49,7 @@ interface CommandFeedbackState {
 
 /* ── 命令面板 ─────────────────────────────────────────── */
 
-function fuzzyMatch(query: string, item: CommandItem): boolean {
+export function fuzzyMatch(query: string, item: CommandItem): boolean {
   if (!query) return true;
   const q = query.toLowerCase();
   if (item.label.toLowerCase().includes(q)) return true;

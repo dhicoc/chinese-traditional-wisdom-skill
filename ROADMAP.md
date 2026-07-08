@@ -333,11 +333,17 @@
 - 约束：区分 Node 测试与浏览器测试，Node 套件仍仅展示命令与预期数；浏览器套件在页内执行。
 - 验收：页内可运行浏览器端测试套件，展示通过/失败计数与失败详情，无需跳转旧页。
 
-### Phase 11 后续：测试套件扩展
+### Phase 11 后续：测试套件扩展（✅ 完成）
 
-- 扩展 `apps/visual/src/__tests__/`：补 `copy-context.test.ts`、`command-bar.test.ts`、`legacy-adapter.test.ts`。
-- 扩展 `apps/visual/e2e/`：`canvas-render.spec.ts`、`navigation.spec.ts`、`smoke.spec.ts` 已存在，补 `privacy.spec.ts` 之外的覆盖（如 CommandBar 交互、SVG 双击放大/右键复制）。
-- 验收：单元测试数提升，e2e 覆盖关键交互路径。
+- ✅ 新增 `__tests__/copy-context.test.tsx`：测 `toMarkdown` Markdown 生成 + CopyContextButton 点击复制 + commandScope 匹配 COPY_CONTEXT_INTENT 事件。
+- ✅ 新增 `__tests__/command-bar.test.tsx`：测 `fuzzyMatch`（label/hint/keywords 大小写不敏感）+ CommandBar 渲染触发按钮。
+- ✅ 新增 `__tests__/legacy-adapter.test.ts`：测 `calculateWithLegacyAdapter`/`renderDataWithLegacyAdapter`/`readingWithLegacyAdapter` 在无 registry/无 adapter/有 adapter 时的桥接行为。
+- ✅ 单元测试从 50 增至 71 项（+21）。
+- ✅ 新增 `e2e/interactions.spec.ts`：覆盖 CommandBar 命令面板交互（点击/Ctrl+K/搜索过滤/Esc 关闭）+ SVG 双击放大弹窗 + Esc 关闭 + 右键复制。
+- ✅ 重写 `e2e/canvas-render.spec.ts` 适配 Phase 10 SVG 化：用各 SVG `data-testid`（bazi-pillars-chart/ziwei-palace-grid/hexagram-chart 等）替代旧 canvas 选择器；新增 `waitForLegacy` 等待 EngineAdapterRegistry；覆盖 9 工具 SVG 渲染、跨工具无致命错误、响应式。
+- ✅ 顺手修复飞星 KnowledgeReferencePanel terms 在中宫星为「一白」时与列表重复 key 的 React 警告（`Array.from(new Set(...))` 去重）。
+- 已知预先失败：`e2e/privacy.spec.ts` 2 项（旧 Dashboard 报告导出文件名含完整生日、历史 30 条限制），属旧 `visual/index.html` 隐私口径问题，记为后续待修。
+- 验收：单元测试数提升，e2e 覆盖关键交互路径。chromium 项目 54/56 通过（仅 2 项预先 privacy 失败）。
 
 ### Phase 11 主入口切换前回归
 

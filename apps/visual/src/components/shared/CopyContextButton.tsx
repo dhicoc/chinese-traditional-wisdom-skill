@@ -11,7 +11,8 @@ interface CopyContextButtonProps {
 
 type CopyStatus = 'idle' | 'copied' | 'error';
 
-function toMarkdown(title: string, payload: unknown) {
+/** 把标题 + payload 转成 LLM 友好的 Markdown 代码块（导出供测试）。 */
+export function toMarkdown(title: string, payload: unknown) {
   return [`# ${title}`, '', '```json', JSON.stringify(payload, null, 2), '```', ''].join('\n');
 }
 
