@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-07-08 六爻卦画 SVG（Phase 10 图表替换续）
+
+### 变更
+
+- **新增 `HexagramChart`**：React + SVG 组件，替换 LiuyaoWorkspace 本卦/变卦两处 `CanvasPanel` + `renderLegacyLiuyao`。
+- **布局**：逐爻绘制六神(左，对齐 `CORE.sixGodsColor`)、爻线(阳=整段实线 / 阴=左右两段中间留 18% 隙)、动爻红圈「动」、世应标签(世红/应蓝圆角底)、地支+六亲(右)、底部卦名与用神。本卦金标题、变卦紫标题。
+- **爻序修正**：遵循六爻传统——上爻在顶、初爻在底（lines 数组为初爻→上爻，渲染时反向排列）。legacy Canvas 把初爻画在顶部，与传统相反，SVG 版修正为传统正确画法。
+- **契约同步**：`smoke-react-shell.mjs` liuyao 断言从「≥1 canvas + renderLegacyLiuyao」改为「0 canvas + HexagramChart + 不再调用 renderLegacyLiuyao」。
+
+### 理由
+
+- 延续 Phase 10 思路：Canvas 爻线/动爻圆圈/世应标签靠手算坐标，SVG 用 rect/text/锚定更稳健、可访问、可选中文字。
+- 顺带修正 legacy 的爻序方向 bug（初爻应在下），SVG 版符合六爻传统读图习惯。
+
+### 取舍
+
+- 梅花易数 `renderMeihua` 仍是 Canvas，本轮不动；legacy `divination.js` / `renderLegacyLiuyao` 全部保留，旧 `visual/index.html` 主入口不受影响。
+
+---
+
 ## 2026-07-08 八字五行平衡 SVG（Phase 10 图表替换续）
 
 ### 变更

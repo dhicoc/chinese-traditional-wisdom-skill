@@ -6,7 +6,7 @@
  *   - #bazi 工作区渲染 1 个 canvas（四柱主盘）+ 五行平衡 SVG（Phase 10 已替换为 FiveElementsChart）
  *   - #yunqi 工作区渲染 1 个 canvas（岁运 · 司天 · 在泉）
  *   - #meihua 工作区渲染 1 个 canvas（梅花易数）
- *   - #liuyao 工作区渲染 1 个 canvas（六爻占卜）
+ *   - #liuyao 工作区渲染 SVG 卦画（六爻占卜，Phase 10 已从 Canvas 迁移至 HexagramChart）
  *   - #ziwei 工作区渲染 SVG 命盘（紫微斗数，Phase 10 已从 Canvas 迁移至 ZiweiPalaceGrid）
  *   - #feixing 工作区渲染 1 个 canvas（流年飞星）
  *   - #bazhai 工作区渲染 1 个 canvas（八宅大游年）
@@ -144,10 +144,14 @@ check(exists(liuyaoPath), 'LiuyaoWorkspace.tsx 应位于 features/liuyao/ 目录
 if (exists(liuyaoPath)) {
   const liuyaoWorkspace = read(liuyaoPath);
   const liuyaoCanvasCount = countOccurrences(liuyaoWorkspace, '<CanvasPanel');
-  check(liuyaoCanvasCount >= 1, `#liuyao 应至少渲染 1 个 canvas，实际 <CanvasPanel 出现 ${liuyaoCanvasCount} 次`);
+  check(liuyaoCanvasCount === 0, `#liuyao 已迁移至 SVG，不应再出现 <CanvasPanel，实际 ${liuyaoCanvasCount} 次`);
   check(
-    liuyaoWorkspace.includes('renderLegacyLiuyao'),
-    'LiuyaoWorkspace 应调用 renderLegacyLiuyao 复用旧 divination renderer',
+    liuyaoWorkspace.includes('HexagramChart'),
+    'LiuyaoWorkspace 应使用 HexagramChart 渲染本卦/变卦 SVG 卦画',
+  );
+  check(
+    !liuyaoWorkspace.includes('renderLegacyLiuyao'),
+    'LiuyaoWorkspace 不应再调用 renderLegacyLiuyao（已由 HexagramChart 替换）',
   );
   check(
     liuyaoWorkspace.includes("calculateWithLegacyAdapter") && liuyaoWorkspace.includes("'liuyao'"),

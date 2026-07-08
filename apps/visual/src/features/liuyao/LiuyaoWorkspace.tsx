@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CanvasPanel } from '@/components/shared/CanvasPanel';
 import { ControlField } from '@/components/shared/ControlField';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { HexagramChart } from '@/components/shared/HexagramChart';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
-import { renderLegacyLiuyao, type LiuyaoData } from '@/legacy/canvasRenderers';
+import type { LiuyaoData } from '@/legacy/canvasRenderers';
 import type { LiuyaoLine } from '@/legacy/divinationTypes';
 import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
@@ -246,25 +246,37 @@ export function LiuyaoWorkspace() {
 
         <div className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <CanvasPanel
-              title="本卦"
-              description="京房纳甲：六神(左)、爻象、地支六亲(右)、世应标记。"
-              data={result as LiuyaoData}
-              width={450}
-              height={520}
-              ready={ready}
-              render={renderLegacyLiuyao}
-            />
+            <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+              <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
+                <div>
+                  <h3 className="text-base font-semibold text-jade-50">本卦</h3>
+                  <p className="mt-0.5 text-xs leading-5 text-jade-100/45">
+                    京房纳甲：六神(左)、爻象、地支六亲(右)、世应标记。
+                  </p>
+                </div>
+                <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2.5 py-1 text-[10px] text-jade-400">SVG · Phase 10</span>
+              </div>
+              <div className="canvas-stage overflow-x-auto rounded-[18px] border border-jade-500/18 bg-ink-950/92 p-3">
+                {ready ? (
+                  <HexagramChart data={result as LiuyaoData} />
+                ) : (
+                  <p className="py-12 text-center text-sm text-jade-100/45">正在加载六爻引擎。</p>
+                )}
+              </div>
+            </section>
             {changedLines ? (
-              <CanvasPanel
-                title="变卦"
-                description="动爻阴阳互变后的卦象。"
-                data={changedLines}
-                width={450}
-                height={520}
-                ready={ready}
-                render={renderLegacyLiuyao}
-              />
+              <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+                <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
+                  <div>
+                    <h3 className="text-base font-semibold text-jade-50">变卦</h3>
+                    <p className="mt-0.5 text-xs leading-5 text-jade-100/45">动爻阴阳互变后的卦象。</p>
+                  </div>
+                  <span className="rounded-full border border-cinnabar-500/30 bg-cinnabar-500/10 px-2.5 py-1 text-[10px] text-cinnabar-400">变卦</span>
+                </div>
+                <div className="canvas-stage overflow-x-auto rounded-[18px] border border-jade-500/18 bg-ink-950/92 p-3">
+                  <HexagramChart data={changedLines} />
+                </div>
+              </section>
             ) : (
               <div className="flex min-h-[520px] items-center justify-center rounded-panel border border-dashed border-white/10 bg-black/16 p-6 text-center text-sm text-jade-100/45">
                 无动爻，本卦即所占之卦。
