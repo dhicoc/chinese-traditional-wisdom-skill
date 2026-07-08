@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CanvasPanel } from '@/components/shared/CanvasPanel';
 import { ControlField } from '@/components/shared/ControlField';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
-import { MEIHUA_TRIGRAMS, renderLegacyMeihua, type MeihuaData } from '@/legacy/canvasRenderers';
+import { MeihuaChart } from '@/components/shared/MeihuaChart';
+import { MEIHUA_TRIGRAMS, type MeihuaData } from '@/legacy/canvasRenderers';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 import { MEIHUA_INTENT_EVENT, type MeihuaIntentDetail } from '@/lib/commandIntents';
@@ -167,15 +167,26 @@ export function MeihuaWorkspace() {
           </ControlField>
         </aside>
 
-        <CanvasPanel
-          title="本卦 · 互卦 · 变卦"
-          description="与旧 visual/index.html 的 renderMeihua 对齐，调用同一个 divination renderer。"
-          data={data}
-          width={500}
-          height={450}
-          ready={ready}
-          render={renderLegacyMeihua}
-        />
+        <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-jade-50">本卦 · 互卦 · 变卦</h3>
+              <p className="mt-1 text-sm leading-6 text-jade-100/55">
+                SVG 卦画对齐 renderMeihua 结构（Phase 10 图表替换）；互卦 inset 框高按内容自适应。
+              </p>
+            </div>
+            <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
+              SVG · Phase 10
+            </span>
+          </div>
+          <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
+            {ready ? (
+              <MeihuaChart data={data} />
+            ) : (
+              <p className="py-12 text-center text-sm text-jade-100/45">正在加载梅花引擎。</p>
+            )}
+          </div>
+        </section>
       </div>
     </section>
   );

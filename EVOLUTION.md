@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-07-08 梅花易数卦画 SVG（Phase 10 图表替换续）
+
+### 变更
+
+- **新增 `MeihuaChart`**：React + SVG 组件，替换 MeihuaWorkspace 的 `CanvasPanel` + `renderLegacyMeihua`。
+- **布局**：本卦卦画(左，上卦3爻+下卦3爻+动爻红圈「变」)、卦名/上下卦符号名/变卦/动爻(右)、互卦 inset(右上，框高按内容自适应)、体用生克(底部，体卦蓝框+箭头+用卦红框+关系标签+释义)。
+- **根治溢出**：互卦 inset 框高按内容动态计算，彻底消除之前 legacy Canvas 互卦框文字溢出/重叠的隐患（前几轮修过但仍脆弱）。
+- **契约同步**：`smoke-react-shell.mjs` meihua 断言从「1 canvas + renderLegacyMeihua」改为「0 canvas + MeihuaChart + 不再调用 renderLegacyMeihua」。
+
+### 理由
+
+- 梅花 Canvas 含互卦 inset 与体用生克两处易溢出区域，SVG 用 rect/text 固定锚定 + 框高按内容计算，从结构上消除文字测量脆弱性。
+- 至此占卜类（六爻、梅花）卦画全部完成 SVG 化。
+
+### 取舍
+
+- legacy `divination.js` / `renderLegacyMeihua` 全部保留，旧 `visual/index.html` 主入口不受影响。
+
+---
+
 ## 2026-07-08 六爻卦画 SVG（Phase 10 图表替换续）
 
 ### 变更

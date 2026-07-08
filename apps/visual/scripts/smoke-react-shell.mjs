@@ -5,7 +5,7 @@
  * 验证 React app 关键运行时契约（不启动浏览器）：
  *   - #bazi 工作区渲染 1 个 canvas（四柱主盘）+ 五行平衡 SVG（Phase 10 已替换为 FiveElementsChart）
  *   - #yunqi 工作区渲染 1 个 canvas（岁运 · 司天 · 在泉）
- *   - #meihua 工作区渲染 1 个 canvas（梅花易数）
+ *   - #meihua 工作区渲染 SVG 卦画（梅花易数，Phase 10 已从 Canvas 迁移至 MeihuaChart）
  *   - #liuyao 工作区渲染 SVG 卦画（六爻占卜，Phase 10 已从 Canvas 迁移至 HexagramChart）
  *   - #ziwei 工作区渲染 SVG 命盘（紫微斗数，Phase 10 已从 Canvas 迁移至 ZiweiPalaceGrid）
  *   - #feixing 工作区渲染 1 个 canvas（流年飞星）
@@ -128,10 +128,14 @@ check(exists(meihuaPath), 'MeihuaWorkspace.tsx 应位于 features/meihua/ 目录
 if (exists(meihuaPath)) {
   const meihuaWorkspace = read(meihuaPath);
   const meihuaCanvasCount = countOccurrences(meihuaWorkspace, '<CanvasPanel');
-  check(meihuaCanvasCount === 1, `#meihua 应渲染 1 个 canvas，实际 <CanvasPanel 出现 ${meihuaCanvasCount} 次`);
+  check(meihuaCanvasCount === 0, `#meihua 已迁移至 SVG，不应再出现 <CanvasPanel，实际 ${meihuaCanvasCount} 次`);
   check(
-    meihuaWorkspace.includes('renderLegacyMeihua'),
-    'MeihuaWorkspace 应调用 renderLegacyMeihua 复用旧 divination renderer',
+    meihuaWorkspace.includes('MeihuaChart'),
+    'MeihuaWorkspace 应使用 MeihuaChart 渲染 SVG 卦画',
+  );
+  check(
+    !meihuaWorkspace.includes('renderLegacyMeihua'),
+    'MeihuaWorkspace 不应再调用 renderLegacyMeihua（已由 MeihuaChart 替换）',
   );
   check(meihuaWorkspace.includes('MEIHUA_INTENT_EVENT'), 'MeihuaWorkspace 应监听梅花快捷命令 intent');
   check(meihuaWorkspace.includes('setUpper'), 'MeihuaWorkspace 应可通过快捷命令更新上卦');
