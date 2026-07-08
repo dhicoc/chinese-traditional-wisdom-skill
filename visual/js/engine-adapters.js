@@ -900,16 +900,16 @@
   });
 
   // ════════════════════════════════════════════════════════════
-  //  奇门遁甲 Adapter（简化时家奇门）
+  //  奇门遁甲 Adapter（3meta 真实排盘 + 简化版 fallback）
   // ════════════════════════════════════════════════════════════
   register("qimen", {
-    engineName: "LocalQimenSimplifiedAdapter",
-    mode: "local-approx",
-    version: ADAPTER_VERSION,
-    inputSchema: { birth: "year/month/day/hour", question: "optional" },
-    sourceProject: "local:visual/js/engines/qimen-engine.js",
-    license: "project-local",
-    confidenceNote: "简化时家奇门遁甲排盘：按年月日时取数定局，八门/九星/八神按种子轮转布九宫。非专业奇门排盘，仅作文化学习参考。",
+    engineName: "Qimen3metaAdapter",
+    mode: "local-exact",
+    version: "3meta@2.6.0",
+    inputSchema: { birth: "year/month/day/hour/minute", question: "optional" },
+    sourceProject: "3metaJun/3meta (MIT)",
+    license: "MIT",
+    confidenceNote: "基于 3meta v2.6.0 时家奇门排盘（拆补法）：含三奇六仪、九星、八门、八神、值符值使、空亡、马星、旺相休囚、十二长生、六仪击刑、十干生克、吉凶格局自动检测。3meta 未加载时回退简化排盘。",
     calculate: function (input) {
       var engine = window.QimenEngine;
       if (!engine || typeof engine.calculate !== "function") return null;

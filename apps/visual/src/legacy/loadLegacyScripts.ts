@@ -15,6 +15,7 @@ import liuyaoEngineSource from '../../../../visual/js/engines/liuyao-engine.js?r
 import qimenEngineSource from '../../../../visual/js/engines/qimen-engine.js?raw';
 import lunarJavascriptSource from '../../../../visual/vendor/lunar-javascript-1.7.7.js?raw';
 import iztroSource from '../../../../visual/vendor/iztro-2.5.8.min.js?raw';
+import threeMetaSource from '../../../../visual/vendor/3meta-2.6.0.min.js?raw';
 import engineAdaptersSource from '../../../../visual/js/engine-adapters.js?raw';
 import dataBridgeSource from '../../../../visual/js/data-bridge.js?raw';
 
@@ -34,6 +35,7 @@ const LEGACY_SCRIPT_NAMES = [
   'engines/qimen-engine.js',
   'vendor/lunar-javascript-1.7.7.js',
   'vendor/iztro-2.5.8.min.js',
+  'vendor/3meta-2.6.0.min.js',
   'engines/liuyao-engine.js',
   'engine-adapters.js',
   'data-bridge.js',
@@ -67,6 +69,7 @@ export async function loadLegacyScripts(): Promise<LegacyState> {
         qimenEngineSource,
         lunarJavascriptSource,
         iztroSource,
+        threeMetaSource,
         liuyaoEngineSource,
         engineAdaptersSource,
         dataBridgeSource,

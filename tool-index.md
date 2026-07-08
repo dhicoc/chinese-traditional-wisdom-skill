@@ -121,6 +121,7 @@ flowchart TD
 |------|--------|---------|---------|
 | `6tail/lunar-javascript` | MIT | 节气、干支、八字、纳音、彭祖百忌、神位方位、时辰吉凶 | `visual/vendor/lunar-javascript-1.7.7.js`，经 `BaziLunarAdapter`/`YunqiLunarBoundaryAdapter`/黄历模块调用 |
 | `SylarLong/iztro` v2.5.8 | MIT | 紫微斗数十二宫排盘 | `visual/vendor/iztro-2.5.8.min.js`，经 `ZiweiIztroAdapter` 调用 |
+| `3metaJun/3meta` v2.6.0 | MIT | 奇门遁甲时家奇门排盘 | `visual/vendor/3meta-2.6.0.min.js`，经 `Qimen3metaAdapter` 调用；含三奇六仪、九星、八门、八神、值符值使、空亡马星、旺相休囚、十二长生、六仪击刑、十干生克、吉凶格局自动检测 |
 | `babyname/fate` | MIT | 康熙笔画 + 字义五行数据 | `apps/visual/src/legacy/kangxiStrokes.json`（从 `resources/character.json` 提取 22107 字，简体→繁体本字康熙笔画映射） |
 | `babyname/fate` | MIT | 81 数理详注表 | `apps/visual/src/legacy/dayanList.json`（从 `internal/wuge/dayan.go` 提取 81 条，含九星名/详注/女性不宜/最大好运标记） |
 | `babyname/fate` | MIT | 三才配置详描 | `apps/visual/src/legacy/sancaiDetails.json`（从 `internal/analysis/sancai_data.go` 提取 118 组天-人-地五行配置完整详描） |
