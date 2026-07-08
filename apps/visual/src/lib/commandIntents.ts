@@ -8,6 +8,7 @@ export const REFRESH_ALL_INTENT_EVENT = 'ctw:refresh-all';
 export const LIUYAO_INTENT_EVENT = 'ctw:liuyao-command';
 export const MEIHUA_INTENT_EVENT = 'ctw:meihua-command';
 export const READER_SEARCH_INTENT_EVENT = 'ctw:reader-search';
+export const COMMAND_FEEDBACK_EVENT = 'ctw:command-feedback';
 
 export type YearIntentTarget = 'feixing' | 'yunqi';
 export type LiuyaoCommandMethod = 'coin' | 'time' | 'manual';
@@ -53,6 +54,12 @@ export interface MeihuaIntentDetail {
 export interface ReaderSearchIntentDetail {
   term: string;
   raw: string;
+}
+
+export interface CommandFeedbackDetail {
+  title: string;
+  description?: string;
+  tone: 'success' | 'info';
 }
 
 const TRIGRAM_ALIASES: Record<string, string> = {
@@ -240,6 +247,18 @@ export function dispatchMeihuaIntent(detail: MeihuaIntentDetail): void {
 
 export function dispatchReaderSearchIntent(detail: ReaderSearchIntentDetail): void {
   window.dispatchEvent(new CustomEvent<ReaderSearchIntentDetail>(READER_SEARCH_INTENT_EVENT, { detail }));
+}
+
+export function dispatchCommandFeedback(detail: CommandFeedbackDetail): void {
+  window.dispatchEvent(new CustomEvent<CommandFeedbackDetail>(COMMAND_FEEDBACK_EVENT, { detail }));
+}
+
+export function buildCommandFeedback(item: { label: string; group: string; hint?: string }): CommandFeedbackDetail {
+  return {
+    title: '已执行：' + item.label,
+    description: item.group + (item.hint ? ' · ' + item.hint : ''),
+    tone: item.group === '导航' ? 'info' : 'success',
+  };
 }
 
 export function readPendingCommandYear(target: YearIntentTarget, fallback = 2026): number {

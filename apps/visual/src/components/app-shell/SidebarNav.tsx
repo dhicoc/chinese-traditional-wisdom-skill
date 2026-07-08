@@ -20,7 +20,7 @@ function moduleCode(index: number) {
 
 export function SidebarNav({ activeModule, onSelectModule }: SidebarNavProps) {
   return (
-    <aside className="app-sidebar flex h-full min-h-0 flex-col rounded-[26px] border border-jade-500/18 bg-ink-950/94 p-4 shadow-instrument">
+    <aside data-testid="sidebar-nav" className="app-sidebar flex h-full min-h-0 flex-col rounded-[26px] border border-jade-500/18 bg-ink-950/94 p-4 shadow-instrument">
       <div className="sidebar-brand relative overflow-hidden rounded-[22px] border border-jade-500/18 bg-black/30 p-4">
         <div className="flex items-center gap-3">
           <div className="brand-seal grid h-12 w-12 shrink-0 place-items-center rounded-full border border-jade-500/30 bg-jade-500/10 text-jade-400">
@@ -52,6 +52,7 @@ export function SidebarNav({ activeModule, onSelectModule }: SidebarNavProps) {
                       key={module.id}
                       type="button"
                       onClick={() => onSelectModule(module.id)}
+                      data-testid="nav-item"
                       className={[
                         'sidebar-nav-item group relative flex w-full items-center gap-3 rounded-[16px] border px-3 py-3 text-left transition active:scale-[0.99]',
                         active

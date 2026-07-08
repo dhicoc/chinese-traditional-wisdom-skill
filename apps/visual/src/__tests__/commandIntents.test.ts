@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildCommandFeedback,
   isRefreshAllCommand,
   parseBirthCommand,
   parseLiuyaoCommand,
@@ -43,6 +44,24 @@ describe('command intent parsers', () => {
       day: 31,
       hour: 23,
       gender: '女',
+    });
+  });
+});
+
+describe('command feedback helpers', () => {
+  it('builds informational feedback for navigation commands', () => {
+    expect(buildCommandFeedback({ label: '八字命盘', group: '导航', hint: '命理 · 可用' })).toMatchObject({
+      title: '已执行：八字命盘',
+      description: '导航 · 命理 · 可用',
+      tone: 'info',
+    });
+  });
+
+  it('builds success feedback for action commands', () => {
+    expect(buildCommandFeedback({ label: '刷新 / 重算所有工作区', group: '操作' })).toMatchObject({
+      title: '已执行：刷新 / 重算所有工作区',
+      description: '操作',
+      tone: 'success',
     });
   });
 });

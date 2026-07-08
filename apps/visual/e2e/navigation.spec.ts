@@ -16,25 +16,25 @@ test.describe('Tab Navigation', () => {
   test('should navigate to bazi tab', async ({ page }) => {
     await page.click('[data-testid="nav-item"]:has-text("八字")');
     await expect(page.locator('[data-testid="workspace-bazi"]')).toBeVisible();
-    await expect(page.locator('text=八字命盘')).toBeVisible();
+    await expect(page.locator('[data-testid="workspace-bazi"]')).toContainText('八字排盘工作台');
   });
 
   test('should navigate to ziwei tab', async ({ page }) => {
     await page.click('[data-testid="nav-item"]:has-text("紫微")');
     await expect(page.locator('[data-testid="workspace-ziwei"]')).toBeVisible();
-    await expect(page.locator('text=紫微斗数')).toBeVisible();
+    await expect(page.locator('[data-testid="workspace-ziwei"]')).toContainText('紫微斗数');
   });
 
   test('should navigate to liuyao tab', async ({ page }) => {
     await page.click('[data-testid="nav-item"]:has-text("六爻")');
     await expect(page.locator('[data-testid="workspace-liuyao"]')).toBeVisible();
-    await expect(page.locator('text=六爻占卜')).toBeVisible();
+    await expect(page.locator('[data-testid="workspace-liuyao"]')).toContainText('六爻占卜');
   });
 
   test('should navigate to meihua tab', async ({ page }) => {
     await page.click('[data-testid="nav-item"]:has-text("梅花")');
     await expect(page.locator('[data-testid="workspace-meihua"]')).toBeVisible();
-    await expect(page.locator('text=梅花易数')).toBeVisible();
+    await expect(page.locator('[data-testid="workspace-meihua"]')).toContainText('梅花易数');
   });
 
   test('should navigate to fengshui tab', async ({ page }) => {
@@ -98,10 +98,10 @@ test.describe('CommandBar Navigation', () => {
 
     // Type search query
     await page.fill('[data-testid="command-input"]', '八字');
-    await expect(page.locator('text=八字命盘')).toBeVisible();
+    await expect(page.locator('[data-testid="command-result"]:has-text("八字命盘")')).toBeVisible();
 
     // Select result
-    await page.click('text=八字命盘');
+    await page.click('[data-testid="command-result"]:has-text("八字命盘")');
     await expect(page.locator('[data-testid="workspace-bazi"]')).toBeVisible();
   });
 
@@ -110,8 +110,26 @@ test.describe('CommandBar Navigation', () => {
     await page.fill('[data-testid="command-input"]', '2026');
 
     // Should show year navigation options
-    await expect(page.locator('text=流年飞星')).toBeVisible();
-    await expect(page.locator('text=五运六气')).toBeVisible();
+    await expect(page.locator('[data-testid="command-result"]:has-text("流年飞星")')).toBeVisible();
+    await expect(page.locator('[data-testid="command-result"]:has-text("五运六气")')).toBeVisible();
+  });
+
+  test('should show feedback after selecting a command', async ({ page }) => {
+    await page.click('[data-testid="command-bar"]');
+    await page.fill('[data-testid="command-input"]', '八字');
+    await page.click('[data-testid="command-result"]:has-text("八字命盘")');
+
+    await expect(page.locator('[data-testid="command-feedback"]')).toBeVisible();
+    await expect(page.locator('[data-testid="command-feedback"]')).toContainText('已执行：八字命盘');
+  });
+
+  test('should show feedback after a dynamic birth command', async ({ page }) => {
+    await page.click('[data-testid="command-bar"]');
+    await page.fill('[data-testid="command-input"]', '生辰 1992-03-04 9 女');
+    await page.click('[data-testid="command-result"]:has-text("更新全局生辰")');
+
+    await expect(page.locator('[data-testid="command-feedback"]')).toBeVisible();
+    await expect(page.locator('[data-testid="command-feedback"]')).toContainText('已执行：更新全局生辰');
   });
 });
 
@@ -129,6 +147,6 @@ test.describe('Home Dashboard Navigation', () => {
 
   test('should show all tools in directory', async ({ page }) => {
     const toolCards = page.locator('[data-testid="tool-card"]');
-    await expect(toolCards).toHaveCount(10);
+    await expect(toolCards).toHaveCount(9);
   });
 });

@@ -15,14 +15,14 @@ test.describe('Application Smoke Tests', () => {
   });
 
   test('should display app shell with title', async ({ page }) => {
-    await expect(page.locator('text=中国传统文化智慧工具台')).toBeVisible();
+    await expect(page.locator('h1').getByText('玄学排盘')).toBeVisible();
   });
 
   test('should render sidebar navigation', async ({ page }) => {
     await expect(page.locator('[data-testid="sidebar-nav"]')).toBeVisible();
-    // Verify at least 5 nav items exist
+    // Verify all module nav items exist (home + 17 tools)
     const navItems = page.locator('[data-testid="nav-item"]');
-    await expect(navItems).toHaveCount(11);
+    await expect(navItems).toHaveCount(18);
   });
 
   test('should render command bar', async ({ page }) => {
@@ -32,15 +32,15 @@ test.describe('Application Smoke Tests', () => {
 
   test('should display home dashboard by default', async ({ page }) => {
     await expect(page.locator('[data-testid="home-dashboard"]')).toBeVisible();
-    await expect(page.locator('text=本地计算')).toBeVisible();
-    await expect(page.locator('text=能力透明')).toBeVisible();
+    await expect(page.getByTestId('home-dashboard').getByText('排盘信息')).toBeVisible();
+    await expect(page.getByTestId('home-dashboard').getByText('四柱 / 九宫工作台')).toBeVisible();
   });
 
   test('should show capability indicators', async ({ page }) => {
     // Home dashboard should show capability metrics
-    await expect(page.locator('text=工具入口')).toBeVisible();
-    await expect(page.locator('text=本地能力')).toBeVisible();
-    await expect(page.locator('text=演示边界')).toBeVisible();
+    await expect(page.getByTestId('home-dashboard').getByText('工具入口').first()).toBeVisible();
+    await expect(page.getByTestId('home-dashboard').getByText('本地能力')).toBeVisible();
+    await expect(page.getByTestId('home-dashboard').getByText('演示边界')).toBeVisible();
   });
 
   test('should not have console errors on load', async ({ page }) => {
@@ -95,7 +95,7 @@ test.describe('Responsive Layout', () => {
     await page.goto(BASE_URL);
 
     // Mobile should show workspace tabs instead of sidebar
-    await expect(page.locator('[data-testid="workspace-tabs"]')).toBeVisible();
+    await expect(page.locator('[data-testid="workspace-tabs"]').first()).toBeVisible();
   });
 
   test('should adapt to desktop viewport', async ({ page }) => {

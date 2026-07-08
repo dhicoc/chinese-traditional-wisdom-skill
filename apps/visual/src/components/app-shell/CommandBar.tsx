@@ -2,7 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ModuleId } from '@/lib/modules';
 import { MODULES, getModuleById } from '@/lib/modules';
 import {
+  COMMAND_FEEDBACK_EVENT,
+  buildCommandFeedback,
   dispatchBirthIntent,
+  dispatchCommandFeedback,
   dispatchCopyContextIntent,
   dispatchLiuyaoIntent,
   dispatchMeihuaIntent,
@@ -33,6 +36,12 @@ interface CommandBarProps {
   onSelectModule: (id: ModuleId) => void;
 }
 
+interface CommandFeedbackState {
+  title: string;
+  description?: string;
+  tone: 'success' | 'info';
+}
+
 /* ── 命令面板 ─────────────────────────────────────────── */
 
 function fuzzyMatch(query: string, item: CommandItem): boolean {
@@ -61,6 +70,15 @@ function CommandPalette({
   );
   const filtered = useMemo(() => allItems.filter((item) => fuzzyMatch(query, item)), [allItems, query]);
 
+  const executeItem = useCallback(
+    (item: CommandItem) => {
+      item.action();
+      dispatchCommandFeedback(buildCommandFeedback(item));
+      onDismiss();
+    },
+    [onDismiss],
+  );
+
   useEffect(() => {
     setSelectedIndex(0);
   }, [query]);
@@ -87,16 +105,16 @@ function CommandPalette({
         e.preventDefault();
         const item = filtered[selectedIndex];
         if (item) {
-          item.action();
-          onDismiss();
+          executeItem(item);
         }
       }
     },
-    [filtered, selectedIndex, onDismiss],
+    [executeItem, filtered, selectedIndex],
   );
 
   return (
     <div
+      data-testid="command-palette"
       className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-[12vh] backdrop-blur-sm"
       onClick={onDismiss}
     >
@@ -109,6 +127,7 @@ function CommandPalette({
           <span className="font-mono text-sm text-jade-400">›</span>
           <input
             type="text"
+            data-testid="command-input"
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -130,10 +149,8 @@ function CommandPalette({
               <button
                 key={item.id}
                 type="button"
-                onClick={() => {
-                  item.action();
-                  onDismiss();
-                }}
+                data-testid="command-result"
+                onClick={() => executeItem(item)}
                 onMouseEnter={() => setSelectedIndex(index)}
                 className={[
                   'flex w-full items-center gap-3 rounded-card border px-3 py-2.5 text-left transition',
@@ -168,6 +185,7 @@ function CommandPalette({
 
 export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [feedback, setFeedback] = useState<CommandFeedbackState | null>(null);
   const active = getModuleById(activeModule);
   const inputRef = useRef<HTMLButtonElement>(null);
 
@@ -181,6 +199,16 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    function handleFeedback(event: Event) {
+      const detail = (event as CustomEvent<CommandFeedbackState>).detail;
+      setFeedback(detail);
+      window.setTimeout(() => setFeedback(null), 2600);
+    }
+    window.addEventListener(COMMAND_FEEDBACK_EVENT, handleFeedback);
+    return () => window.removeEventListener(COMMAND_FEEDBACK_EVENT, handleFeedback);
   }, []);
 
   // 构建命令列表
@@ -337,6 +365,7 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
             ref={inputRef}
             type="button"
             onClick={() => setPaletteOpen(true)}
+            data-testid="command-bar"
             className="flex min-h-12 items-center gap-3 rounded-[18px] border border-white/10 bg-black/30 px-4 text-left text-jade-100/55 transition hover:border-jade-500/30 hover:text-jade-100 active:scale-[0.99]"
             aria-label="打开命令面板 (⌘K)"
           >
@@ -350,6 +379,7 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
                 key={module.id}
                 type="button"
                 onClick={() => onSelectModule(module.id)}
+                data-testid="command-shortcut"
                 className={[
                   'rounded-full border px-3.5 py-2 text-xs font-medium transition active:scale-[0.98]',
                   module.id === active.id
@@ -362,7 +392,15 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
             ))}
             <button
               type="button"
-              onClick={() => dispatchCopyContextIntent(active.id)}
+              onClick={() => {
+                dispatchCopyContextIntent(active.id);
+                dispatchCommandFeedback({
+                  title: '已执行：复制当前模块 AI 上下文',
+                  description: active.title + ' · ' + active.statusLabel,
+                  tone: 'success',
+                });
+              }}
+              data-testid="copy-context-button"
               className="rounded-full border border-jade-500/25 bg-jade-500/10 px-3.5 py-2 text-xs font-medium text-jade-400 transition hover:border-jade-500/40 active:scale-[0.98]"
             >
               复制上下文
@@ -370,6 +408,23 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
           </div>
         </div>
       </header>
+
+      {feedback && (
+        <div
+          data-testid="command-feedback"
+          role="status"
+          aria-live="polite"
+          className={[
+            'fixed right-6 top-6 z-50 max-w-sm rounded-card border px-4 py-3 shadow-instrument backdrop-blur-xl',
+            feedback.tone === 'success'
+              ? 'border-jade-500/35 bg-jade-950/92 text-jade-50'
+              : 'border-gold-500/30 bg-ink-900/92 text-jade-50',
+          ].join(' ')}
+        >
+          <p className="text-sm font-semibold">{feedback.title}</p>
+          {feedback.description && <p className="mt-1 text-xs text-jade-100/55">{feedback.description}</p>}
+        </div>
+      )}
 
       {paletteOpen && (
         <CommandPalette

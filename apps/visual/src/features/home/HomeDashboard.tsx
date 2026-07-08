@@ -80,7 +80,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
   const primaryTools = tools.filter((tool) => ['bazi', 'ziwei', 'liuyao', 'meihua', 'fengshui'].includes(tool.entryTab));
 
   return (
-    <section className="space-y-5">
+    <section className="space-y-5" data-testid="home-dashboard">
       <div className="home-console-grid grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)_300px]">
         <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
           <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-3">
@@ -177,8 +177,17 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
             const modeLabel = getToolModeLabel(tool);
             const capability = getCapabilityForTool(tool);
             return (
-              <article key={tool.id} className="tool-tile group relative overflow-hidden rounded-[20px] border border-white/8 bg-white/[0.035] p-4 transition hover:-translate-y-1 hover:border-jade-500/30">
-                <button type="button" onClick={() => isModuleId(tool.entryTab) && onSelectModule(tool.entryTab)} className="flex min-h-40 w-full flex-col text-left">
+              <article
+                key={tool.id}
+                data-testid="tool-card"
+                className="tool-tile group relative overflow-hidden rounded-[20px] border border-white/8 bg-white/[0.035] p-4 transition hover:-translate-y-1 hover:border-jade-500/30"
+              >
+                <button
+                  type="button"
+                  data-testid={tool.entryTab === 'bazi' ? 'tool-card-bazi' : 'tool-card'}
+                  onClick={() => isModuleId(tool.entryTab) && onSelectModule(tool.entryTab)}
+                  className="flex min-h-40 w-full flex-col text-left"
+                >
                   <span className="font-mono text-[11px] text-jade-100/30">{String(index + 1).padStart(2, '0')}</span>
                   <span className="mt-3 text-lg font-semibold text-jade-50">{tool.title}</span>
                   <span className="mt-2 line-clamp-2 text-sm leading-6 text-jade-100/55">{tool.description}</span>
