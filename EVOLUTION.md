@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-07-08 fate P1 落地：81 数理详注 + 三才配置详描
+
+### 变更
+
+- **81 数理详注表**：从 `babyname/fate` 的 `internal/wuge/dayan.go` 提取 81 条到 `apps/visual/src/legacy/dayanList.json`（13.2KB），含 Number/Lucky/SkyNine/Comment/FemaleUnsuitable/MaxLuck。
+- **三才配置详描**：从 `internal/analysis/sancai_data.go` 提取 118 组到 `sancaiDetails.json`（12.4KB），天-人-地五行配置完整长句。
+- **`nameWuxing.ts`**：`WuGeEntry` 新增 skyNine/comment/femaleUnsuitable/maxLuck 字段；五格构建改用 `dayanFind()` 取真实数理记录（替代旧硬编码吉凶 Set）；三才 desc 优先用 fate 完整详描，缺失回退简短 desc。
+- **`NamewuxingWorkspace.tsx`**：五格数理卡片显示九星名 + 详注 + 「女性不宜」「最大好运」徽章；三才解读显示 fate 完整长句。
+
+### 验证
+
+- 张伟五格显示「掘井无泉/秋草逢霜/太极之数」等九星名 + 完整详注；三才「木木木」显示 fate 完整详描。
+- `tsc -b` 通过；单元 71/71。
+
+### 归档
+
+- `tool-index.md` 外部来源归档表新增 81 数理表与三才详描两条 fate MIT 记录。
+
+---
+
 ## 2026-07-08 Adapter 样例测试 + 外部来源归档（补齐 ROADMAP 缺口）
 
 ### Adapter 固定样例测试（验收标准补齐）

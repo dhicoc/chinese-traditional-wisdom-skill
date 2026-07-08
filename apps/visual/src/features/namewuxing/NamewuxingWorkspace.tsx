@@ -16,6 +16,7 @@ const LUCK_COLOR: Record<string, string> = {
   大吉: 'border-jade-500/40 bg-jade-500/15 text-jade-300',
   凶: 'border-cinnabar-500/30 bg-cinnabar-500/10 text-cinnabar-400',
   半吉半凶: 'border-gold-500/30 bg-gold-500/10 text-gold-400',
+  半吉: 'border-gold-500/30 bg-gold-500/10 text-gold-400',
 };
 
 export function NamewuxingWorkspace() {
@@ -143,20 +144,40 @@ export function NamewuxingWorkspace() {
               <h3 className="mb-3 text-base font-semibold text-jade-50">五格数理</h3>
               <div className="space-y-2">
                 {analysis.wuGeEntries.map((e) => (
-                  <div key={e.name} className="flex items-center justify-between rounded-card border border-white/5 bg-white/[0.02] px-3 py-2">
-                    <div className="flex items-center gap-3">
-                      <span className="w-10 text-sm font-semibold text-jade-100/70">{e.name}</span>
-                      <span className="font-mono text-lg text-jade-100/80">{e.value}</span>
-                      <span className="text-xs text-jade-100/45">{e.wuxing}</span>
+                  <div key={e.name} className="rounded-card border border-white/5 bg-white/[0.02] px-3 py-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="w-10 text-sm font-semibold text-jade-100/70">{e.name}</span>
+                        <span className="font-mono text-lg text-jade-100/80">{e.value}</span>
+                        <span className="text-xs text-jade-100/45">{e.wuxing}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {e.femaleUnsuitable && (
+                          <span className="rounded-full border border-cinnabar-500/25 bg-cinnabar-500/8 px-1.5 py-0.5 text-[10px] text-cinnabar-400" title="女性不宜此数">
+                            女性不宜
+                          </span>
+                        )}
+                        {e.maxLuck && (
+                          <span className="rounded-full border border-gold-500/30 bg-gold-500/10 px-1.5 py-0.5 text-[10px] text-gold-400" title="最大好运数">
+                            最大好运
+                          </span>
+                        )}
+                        <span className={`rounded-full border px-2 py-0.5 text-xs ${LUCK_COLOR[e.luck] ?? ''}`}>
+                          {e.luck}
+                        </span>
+                      </div>
                     </div>
-                    <span className={`rounded-full border px-2 py-0.5 text-xs ${LUCK_COLOR[e.luck] ?? ''}`}>
-                      {e.luck}
-                    </span>
+                    {e.skyNine && (
+                      <div className="mt-1.5 flex items-baseline gap-2">
+                        <span className="shrink-0 text-xs text-jade-300/70">{e.skyNine}</span>
+                        <span className="text-[11px] leading-5 text-jade-100/45">{e.comment}</span>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
               <p className="mt-3 text-[11px] leading-5 text-jade-100/35">
-                天格=姓笔画+1；人格=姓末字+名首字；地格=名笔画和（单名+1）；外格=总格-人格+1；总格=全名笔画和。
+                天格=姓笔画+1；人格=姓末字+名首字；地格=名笔画和（单名+1）；外格=总格-人格+1；总格=全名笔画和。九星名与数理详注来自 fate 大衍数表。
               </p>
             </div>
 

@@ -8,6 +8,8 @@
  */
 
 import { getKangxiStrokes, getCharWuxing, estimateStrokes } from './nameStrokes';
+import dayanList from './dayanList.json';
+import sancaiDetails from './sancaiDetails.json';
 
 /** 笔画尾数 → 五行 */
 function strokesToWuxing(strokes: number): string {
@@ -19,15 +21,26 @@ function strokesToWuxing(strokes: number): string {
   return '水'; // 9 / 0
 }
 
-/** 81 数理吉凶（简化版：按数理吉凶表） */
-function numLuck(n: number): '吉' | '凶' | '半吉半凶' {
-  const m = ((n - 1) % 80) + 1; // 1..81 循环
-  const ji = new Set([1, 3, 5, 6, 7, 8, 11, 13, 15, 16, 17, 18, 21, 23, 24, 25, 29, 31, 32, 33, 35, 37, 39, 41, 45, 47, 48, 52, 57, 61, 63, 65, 67, 68, 81]);
-  const xiong = new Set([2, 4, 9, 10, 12, 14, 19, 20, 22, 26, 27, 28, 30, 34, 36, 38, 40, 42, 43, 44, 46, 49, 50, 51, 53, 54, 56, 58, 59, 60, 62, 64, 66, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80]);
-  if (ji.has(m)) return '吉';
-  if (xiong.has(m)) return '凶';
-  return '半吉半凶';
+/** 81 数理记录（来自 fate dayan.go，含九星名/详注/女性不宜/最大好运标记） */
+interface DaYan {
+  number: number;
+  lucky: string;
+  skyNine: string;
+  comment: string;
+  femaleUnsuitable: boolean;
+  maxLuck: boolean;
 }
+
+const DAYAN: DaYan[] = dayanList as DaYan[];
+
+/** 取数理记录；超过 81 按 fate 规则循环取模。 */
+function dayanFind(n: number): DaYan {
+  const idx = ((n - 1) % 81 + 81) % 81;
+  return DAYAN[idx] ?? { number: n, lucky: '—', skyNine: '', comment: '', femaleUnsuitable: false, maxLuck: false };
+}
+
+/** 三才详描表（来自 fate sancai_data.go，118 组） */
+const SANCAI_DETAILS = sancaiDetails as Record<string, string>;
 
 /** 三才配置吉凶表（天-人-地 → 吉凶），仅收录常见配置 */
 const SANCAI_LUCK: Record<string, { luck: string; desc: string }> = {
@@ -171,8 +184,16 @@ export interface WuGeEntry {
   name: string;
   value: number;
   wuxing: string;
-  luck: '吉' | '凶' | '半吉半凶';
+  luck: string;
+  /** 九星名（如「太极之数」「春日牡丹」） */
+  skyNine: string;
+  /** 数理详注 */
+  comment: string;
   desc: string;
+  /** 是否女性不宜此数 */
+  femaleUnsuitable: boolean;
+  /** 是否最大好运数（41 数） */
+  maxLuck: boolean;
 }
 
 export interface SanCaiConfig {
@@ -249,12 +270,27 @@ export function analyzeName(surname: string, givenName: string): NameAnalysis {
 
   const wg = calcWuGe(surnameChars, givenChars);
 
+  const makeWuGeEntry = (name: string, value: number): WuGeEntry => {
+    const dy = dayanFind(value);
+    return {
+      name,
+      value,
+      wuxing: strokesToWuxing(value),
+      luck: dy.lucky,
+      skyNine: dy.skyNine,
+      comment: dy.comment,
+      desc: WU_GE_DESC[name] ?? '',
+      femaleUnsuitable: dy.femaleUnsuitable,
+      maxLuck: dy.maxLuck,
+    };
+  };
+
   const wuGeEntries: WuGeEntry[] = [
-    { name: '天格', value: wg.tian, wuxing: strokesToWuxing(wg.tian), luck: numLuck(wg.tian), desc: WU_GE_DESC['天格'] },
-    { name: '人格', value: wg.ren, wuxing: strokesToWuxing(wg.ren), luck: numLuck(wg.ren), desc: WU_GE_DESC['人格'] },
-    { name: '地格', value: wg.di, wuxing: strokesToWuxing(wg.di), luck: numLuck(wg.di), desc: WU_GE_DESC['地格'] },
-    { name: '外格', value: Math.max(wg.wai, 1), wuxing: strokesToWuxing(Math.max(wg.wai, 1)), luck: numLuck(Math.max(wg.wai, 1)), desc: WU_GE_DESC['外格'] },
-    { name: '总格', value: wg.zong, wuxing: strokesToWuxing(wg.zong), luck: numLuck(wg.zong), desc: WU_GE_DESC['总格'] },
+    makeWuGeEntry('天格', wg.tian),
+    makeWuGeEntry('人格', wg.ren),
+    makeWuGeEntry('地格', wg.di),
+    makeWuGeEntry('外格', Math.max(wg.wai, 1)),
+    makeWuGeEntry('总格', wg.zong),
   ];
 
   // 三才取天/人/地格五行
@@ -262,7 +298,10 @@ export function analyzeName(surname: string, givenName: string): NameAnalysis {
   const renWx = strokesToWuxing(wg.ren);
   const diWx = strokesToWuxing(wg.di);
   const sanCaiKey = tianWx + renWx + diWx;
-  const sanCaiInfo = SANCAI_LUCK[sanCaiKey] ?? { luck: '—', desc: '配置较少见，需结合整体判断' };
+  const sanCaiLuck = SANCAI_LUCK[sanCaiKey]?.luck ?? '—';
+  // 详描优先用 fate 完整 118 组表；缺失则回退 SANCAI_LUCK 简短 desc
+  const sanCaiDesc = SANCAI_DETAILS[sanCaiKey] ?? SANCAI_LUCK[sanCaiKey]?.desc ?? '配置较少见，需结合整体判断';
+  const sanCaiInfo = { luck: sanCaiLuck, desc: sanCaiDesc };
 
   // 五行平衡：统计姓 + 名各字五行
   const wuxingBalance: Record<string, number> = { 金: 0, 木: 0, 水: 0, 火: 0, 土: 0 };
