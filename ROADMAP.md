@@ -223,9 +223,10 @@
 - 第二版：浏览器端动态加载测试脚本，展示 rolling logs、verified badge、失败 diff 和环境信息。
 - 必须区分 Node 测试与浏览器测试，避免在 Node 中直接运行依赖 `window` 的测试。
 
-### Phase 10：逐步替换图表组件（✅ 第一阶段完成）
+### Phase 10：逐步替换图表组件（✅ 第二阶段进行中）
 
 - ✅ 第一阶段不为 React 化而重写稳定 Canvas；已新增 `InterpretationCard` / `LegendPanel` 作为 React 外围解释与图例组件，并新增 `DynamicTianPanBackground` 作为低亮度动态天盘气场背景；后续再替换交互收益高的模块：`FiveElementsRadar`、`QiWheel`、`NinePalaceGrid`、`HexagramLines`、`ZiweiPalaceGrid`。
+- ✅ 第二阶段已落地 `RadarChart`（体质辨识）与 `ZiweiPalaceGrid`（紫微斗数十二宫）两个 SVG 组件，分别替换对应 Canvas：`ZiweiPalaceGrid` 复刻 4x4 环形十二宫布局，外环 12 地支各居一格、中心 2x2 命卦/四化/生辰/主星信息区，星曜彩色圆点 + 四化标签 + 庙旺，数据直接来自 `ZiweiIztroAdapter`；ZiweiWorkspace 不再依赖 `CanvasPanel` / `renderLegacyZiwei`。
 - 密集仪表优先 SVG 自绘；关系图谱继续保留 Mermaid；复杂布局必要时继续使用 Canvas。
 - 替换前后必须做同输入对照，确保确定性输出无视觉漂移和数据漂移。
 

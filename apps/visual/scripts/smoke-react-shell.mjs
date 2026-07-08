@@ -7,7 +7,7 @@
  *   - #yunqi 工作区渲染 1 个 canvas（岁运 · 司天 · 在泉）
  *   - #meihua 工作区渲染 1 个 canvas（梅花易数）
  *   - #liuyao 工作区渲染 1 个 canvas（六爻占卜）
- *   - #ziwei 工作区渲染 1 个 canvas（紫微斗数）
+ *   - #ziwei 工作区渲染 SVG 命盘（紫微斗数，Phase 10 已从 Canvas 迁移至 ZiweiPalaceGrid）
  *   - #feixing 工作区渲染 1 个 canvas（流年飞星）
  *   - #bazhai 工作区渲染 1 个 canvas（八宅大游年）
  *   - #fengshui 工作区渲染 1 个 canvas（二十四山罗盘）
@@ -153,16 +153,18 @@ if (exists(liuyaoPath)) {
   check(liuyaoWorkspace.includes('setCastCount'), 'LiuyaoWorkspace 应可通过快捷命令触发重新起卦');
 }
 
-// ── 3d. #ziwei 有 1 个 canvas（紫微斗数迁移） ────────────
+// ── 3d. #ziwei 使用 SVG 命盘（Phase 10 图表替换：CanvasPanel → ZiweiPalaceGrid） ────
 const ziweiPath = path.join(srcRoot, 'features/ziwei/ZiweiWorkspace.tsx');
 check(exists(ziweiPath), 'ZiweiWorkspace.tsx 应位于 features/ziwei/ 目录');
+const ziweiGridPath = path.join(srcRoot, 'components/shared/ZiweiPalaceGrid.tsx');
+check(exists(ziweiGridPath), 'ZiweiPalaceGrid.tsx 应位于 components/shared/ 目录');
 if (exists(ziweiPath)) {
   const ziweiWorkspace = read(ziweiPath);
   const ziweiCanvasCount = countOccurrences(ziweiWorkspace, '<CanvasPanel');
-  check(ziweiCanvasCount === 1, `#ziwei 应渲染 1 个 canvas，实际 <CanvasPanel 出现 ${ziweiCanvasCount} 次`);
+  check(ziweiCanvasCount === 0, `#ziwei 已迁移至 SVG，不应再出现 <CanvasPanel，实际 ${ziweiCanvasCount} 次`);
   check(
-    ziweiWorkspace.includes('renderLegacyZiwei'),
-    'ZiweiWorkspace 应调用 renderLegacyZiwei 复用命盘绘制',
+    ziweiWorkspace.includes('ZiweiPalaceGrid'),
+    'ZiweiWorkspace 应使用 ZiweiPalaceGrid 渲染 SVG 命盘',
   );
   check(
     ziweiWorkspace.includes('calculateWithLegacyAdapter') && ziweiWorkspace.includes('ZiweiIztroAdapter'),
@@ -172,6 +174,12 @@ if (exists(ziweiPath)) {
     ziweiWorkspace.includes('useBirth'),
     'ZiweiWorkspace 应读取全局生辰上下文',
   );
+}
+if (exists(ziweiGridPath)) {
+  const grid = read(ziweiGridPath);
+  check(grid.includes('data-testid="ziwei-palace-grid"'), 'ZiweiPalaceGrid 应暴露 data-testid 便于测试');
+  check(grid.includes('BRANCH_TO_GRID'), 'ZiweiPalaceGrid 应按地支映射 4x4 环形布局');
+  check(grid.includes('巳') && grid.includes('戌') && grid.includes('亥'), 'ZiweiPalaceGrid 外环应覆盖全部地支含戌亥');
 }
 
 // ── 3e. #feixing 有 1 个 canvas（流年飞星迁移） ──────────

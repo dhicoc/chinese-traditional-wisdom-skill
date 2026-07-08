@@ -60,7 +60,7 @@ const ziweiWorkspace = read("apps/visual/src/features/ziwei/ZiweiWorkspace.tsx")
 
 const ids = moduleIdsFromModulesSource(modules);
 check(ids.includes("home"), "MODULES 应保留 home 模块 id");
-check(ids.length === 14, "React MODULES 应覆盖 home + 13 个工作区模块");
+check(ids.length >= 14, "React MODULES 应覆盖 home + 至少 13 个工作区模块（当前含日用工具/测试/阅读器/历史，数量随演进增长）");
 for (const id of ids.filter((value) => value !== "home")) {
   check(registry.includes(id + ":"), "workspaceRegistry 应注册模块 " + id);
 }
@@ -70,7 +70,7 @@ check(!commandBar.includes("querySelector"), "CommandBar 不应通过 querySelec
 check(commandBar.includes("dispatchCopyContextIntent(active.id)"), "CommandBar 复制上下文应派发 copy intent");
 check(commandBar.includes("dispatchYearIntent('feixing'"), "CommandBar 应支持年份跳转到流年飞星");
 check(commandBar.includes("dispatchYearIntent('yunqi'"), "CommandBar 应支持年份跳转到五运六气");
-check(commandBar.includes("extractCommandYear(query)"), "CommandBar 应从输入 query 提取年份");
+check(commandBar.includes("extractCommandYear("), "CommandBar 应调用 extractCommandYear 从输入提取年份");
 check(commandBar.includes("ArrowDown"), "CommandBar 应支持 ArrowDown 键盘导航");
 check(commandBar.includes("ArrowUp"), "CommandBar 应支持 ArrowUp 键盘导航");
 check(commandBar.includes("Enter"), "CommandBar 应支持 Enter 选择命令");

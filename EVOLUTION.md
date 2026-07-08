@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-07-08 紫微斗数 SVG 命盘（Phase 10 图表替换）
+
+### 变更
+
+- **新增 `ZiweiPalaceGrid`**：React + SVG 组件，替换 ZiweiWorkspace 中的 `CanvasPanel` + `renderLegacyZiwei`。
+- **布局**：复刻刚修复的 4x4 环形十二宫——外环 12 地支顺时针各居一格（含戌、亥），中心 2x2 四象限信息区（命卦 / 四化 / 生辰 / 主星概览）。
+- **渲染**：星曜彩色圆点（确定性 HSL，与 legacy `starColor` 算法一致）+ 四化标签（禄红/权黄/科青/忌灰）+ 庙旺利得。数据直接来自 `ZiweiIztroAdapter`，无需 legacy ziwei renderer。
+- **契约同步**：更新 `smoke-react-shell.mjs`（ziwei 断言改为 SVG：`ZiweiPalaceGrid`、`data-testid`、地支覆盖戌亥）；修复 `check-react-migration.mjs` 两项预先漂移的契约（MODULES 数量从写死 14 改为 `>=14`、`extractCommandYear` 匹配函数名而非参数名）。
+
+### 理由
+
+- 前几轮连续修复 Canvas 文字溢出（五运六气病势倾向、梅花互卦框、紫微宫位缺失），根因都是 Canvas 文字测量/换行的脆弱性。SVG 文字天然响应式、可选中、可访问，从根上消除这类问题。
+- 紫微 4x4 布局刚理顺数据通路（iztro 中文宫名映射、戌亥独立格），正是替换为 SVG 的最佳时机。
+
+### 取舍
+
+- 不一次性替换所有 Canvas 模块（八字/六爻/梅花/风水/飞星/八宅/五运六气仍是 Canvas），遵循 Phase 10「逐步替换交互收益高的模块」原则。
+- legacy `renderLegacyZiwei` 与 `ziwei.js` 保留，供旧 `visual/index.html` 主入口继续使用，不破坏并行验证闭环。
+
+---
+
 ## 2026-07 v0.4 日用工具扩展
 
 ### 新增工具
