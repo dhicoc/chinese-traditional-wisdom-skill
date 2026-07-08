@@ -98,10 +98,10 @@ test.describe('CommandBar Navigation', () => {
 
     // Type search query
     await page.fill('[data-testid="command-input"]', '八字');
-    await expect(page.locator('[data-testid="command-result"]:has-text("八字命盘")')).toBeVisible();
+    await expect(page.locator('[data-testid="command-result"]:has-text("八字命盘")').first()).toBeVisible();
 
-    // Select result
-    await page.click('[data-testid="command-result"]:has-text("八字命盘")');
+    // Select result (导航项优先，避开 agent 路由项)
+    await page.locator('[data-testid="command-result"]:has-text("八字命盘")').first().click();
     await expect(page.locator('[data-testid="workspace-bazi"]')).toBeVisible();
   });
 
@@ -117,7 +117,7 @@ test.describe('CommandBar Navigation', () => {
   test('should show feedback after selecting a command', async ({ page }) => {
     await page.click('[data-testid="command-bar"]');
     await page.fill('[data-testid="command-input"]', '八字');
-    await page.click('[data-testid="command-result"]:has-text("八字命盘")');
+    await page.locator('[data-testid="command-result"]:has-text("八字命盘")').first().click();
 
     await expect(page.locator('[data-testid="command-feedback"]')).toBeVisible();
     await expect(page.locator('[data-testid="command-feedback"]')).toContainText('已执行：八字命盘');
@@ -130,6 +130,28 @@ test.describe('CommandBar Navigation', () => {
 
     await expect(page.locator('[data-testid="command-feedback"]')).toBeVisible();
     await expect(page.locator('[data-testid="command-feedback"]')).toContainText('已执行：更新全局生辰');
+  });
+
+  test('should agent-route a natural-language question to the right module', async ({ page }) => {
+    await page.click('[data-testid="command-bar"]');
+    await page.fill('[data-testid="command-input"]', '要不要换工作');
+
+    await expect(page.locator('[data-testid="command-result"]:has-text("智能路由")')).toBeVisible();
+    await page.click('[data-testid="command-result"]:has-text("智能路由")');
+
+    await expect(page.locator('[data-testid="workspace-liuyao"]')).toBeVisible();
+    await expect(page.locator('[data-testid="command-feedback"]')).toContainText('六爻占卜');
+  });
+
+  test('should agent-route birth + wealth question to bazi and update birth', async ({ page }) => {
+    await page.click('[data-testid="command-bar"]');
+    await page.fill('[data-testid="command-input"]', '1990-06-15 12 男 今年财运');
+    await page.click('[data-testid="command-result"]:has-text("智能路由")');
+
+    await expect(page.locator('[data-testid="workspace-bazi"]')).toBeVisible();
+    await expect(page.locator('[data-testid="command-feedback"]')).toContainText('八字命盘');
+    // 全局生辰应被更新
+    await expect(page.locator('button').filter({ hasText: '全局生辰' })).toContainText('1990-06-15');
   });
 });
 

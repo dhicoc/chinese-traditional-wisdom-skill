@@ -19,6 +19,7 @@ import {
   parseMeihuaCommand,
   parseReaderSearchCommand,
 } from '@/lib/commandIntents';
+import { routeQuery } from '@/lib/agentRouter';
 
 /* ── 类型 ─────────────────────────────────────────────── */
 
@@ -285,7 +286,9 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
       }
 
       const birthIntent = parseBirthCommand(trimmed);
+      let hasExplicitCommand = false;
       if (birthIntent) {
+        hasExplicitCommand = true;
         dynamicItems.push({
           id: 'birth-update-' + trimmed,
           label: '更新全局生辰',
@@ -297,6 +300,7 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
       }
 
       if (isRefreshAllCommand(trimmed)) {
+        hasExplicitCommand = true;
         dynamicItems.push({
           id: 'refresh-all-' + trimmed,
           label: '刷新 / 重算所有工作区',
@@ -309,6 +313,7 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
 
       const liuyaoIntent = parseLiuyaoCommand(trimmed);
       if (liuyaoIntent) {
+        hasExplicitCommand = true;
         dynamicItems.push({
           id: 'quick-liuyao-' + trimmed,
           label: '六爻快速起卦',
@@ -324,6 +329,7 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
 
       const meihuaIntent = parseMeihuaCommand(trimmed);
       if (meihuaIntent) {
+        hasExplicitCommand = true;
         dynamicItems.push({
           id: 'quick-meihua-' + trimmed,
           label: '梅花易数快速排盘',
@@ -339,6 +345,7 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
 
       const readerIntent = parseReaderSearchCommand(trimmed);
       if (readerIntent) {
+        hasExplicitCommand = true;
         dynamicItems.push({
           id: 'reader-search-' + trimmed,
           label: '古籍搜索：' + readerIntent.term,
@@ -350,6 +357,28 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
             window.setTimeout(() => dispatchReaderSearchIntent(readerIntent), 0);
           },
         });
+      }
+
+      // 智能路由（agent 层）：无显式命令时，用自然语言路由到模块（年份命令不拦截）
+      if (!hasExplicitCommand) {
+        const route = routeQuery(trimmed);
+        if (route) {
+          const targetModule = getModuleById(route.module);
+          dynamicItems.push({
+            id: 'agent-route-' + trimmed,
+            label: '智能路由：' + targetModule.title,
+            hint: route.reason + (route.question ? ' · ' + route.question : ''),
+            group: '智能',
+            keywords: [trimmed, route.module, targetModule.title, targetModule.shortTitle, 'agent', '智能', '路由'],
+            action: () => {
+              if (route.birthPatch) dispatchBirthIntent({ patch: route.birthPatch, source: 'command-bar', raw: trimmed });
+              onSelectModule(route.module);
+              if (route.liuyao) window.setTimeout(() => dispatchLiuyaoIntent(route.liuyao!), 0);
+              if (route.meihua) window.setTimeout(() => dispatchMeihuaIntent(route.meihua!), 0);
+              if (route.reader) window.setTimeout(() => dispatchReaderSearchIntent(route.reader!), 0);
+            },
+          });
+        }
       }
 
       return dynamicItems;

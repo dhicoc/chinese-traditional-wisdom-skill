@@ -1,0 +1,89 @@
+import { describe, expect, it } from 'vitest';
+import { routeQuery } from '@/lib/agentRouter';
+
+describe('agentRouter routeQuery', () => {
+  it('routes a career question to bazi', () => {
+    const route = routeQuery('我想看事业');
+    expect(route?.module).toBe('bazi');
+    expect(route?.reason).toContain('事业');
+  });
+
+  it('routes a wealth question to bazi', () => {
+    const route = routeQuery('今年财运怎么样');
+    expect(route?.module).toBe('bazi');
+  });
+
+  it('routes a marriage question to bazi', () => {
+    const route = routeQuery('什么时候能结婚');
+    expect(route?.module).toBe('bazi');
+  });
+
+  it('routes a divination decision to liuyao', () => {
+    const route = routeQuery('要不要换工作');
+    expect(route?.module).toBe('liuyao');
+    expect(route?.reason).toContain('占断');
+  });
+
+  it('routes fengshui questions to fengshui', () => {
+    const route = routeQuery('办公室风水布局');
+    expect(route?.module).toBe('fengshui');
+  });
+
+  it('routes health/constitution to tizhi', () => {
+    const route = routeQuery('我气虚怎么调养');
+    expect(route?.module).toBe('tizhi');
+  });
+
+  it('extracts birth info and defaults to bazi when no module signal', () => {
+    const route = routeQuery('1990-06-15 12 男');
+    expect(route?.module).toBe('bazi');
+    expect(route?.birthPatch).toMatchObject({ year: 1990, month: 6, day: 15, hour: 12, gender: '男' });
+  });
+
+  it('combines birth info with intent routing', () => {
+    const route = routeQuery('1990-06-15 12 男 我想看事业');
+    expect(route?.module).toBe('bazi');
+    expect(route?.birthPatch).toMatchObject({ year: 1990, gender: '男' });
+    expect(route?.question).toContain('事业');
+  });
+
+  it('routes almanac queries', () => {
+    const route = routeQuery('今天宜什么');
+    expect(route?.module).toBe('almanac');
+  });
+
+  it('routes name analysis', () => {
+    const route = routeQuery('帮我看名字五行');
+    expect(route?.module).toBe('namewuxing');
+  });
+
+  it('returns null for empty or unrecognizable input', () => {
+    expect(routeQuery('')).toBeNull();
+    expect(routeQuery('   ')).toBeNull();
+    // 无任何关键词、无日期的纯助词串
+    expect(routeQuery('的吗呢')).toBeNull();
+  });
+
+  it('routes liuyao explicit command and keeps liuyao detail', () => {
+    const route = routeQuery('六爻 今日财运');
+    expect(route?.module).toBe('liuyao');
+    expect(route?.liuyao).toMatchObject({ method: 'coin', question: '今日财运' });
+  });
+
+  it('routes meihua explicit command and keeps meihua detail', () => {
+    const route = routeQuery('梅花 乾 坤 3 克');
+    expect(route?.module).toBe('meihua');
+    expect(route?.meihua).toMatchObject({ upper: '乾', lower: '坤' });
+  });
+
+  it('routes reader explicit command and keeps reader detail', () => {
+    const route = routeQuery('古籍 生气');
+    expect(route?.module).toBe('reader');
+    expect(route?.reader).toMatchObject({ term: '生气' });
+  });
+
+  it('detects lunar birth in loose extraction', () => {
+    const route = routeQuery('农历 1992-3-4 23 男');
+    expect(route?.birthPatch).toMatchObject({ isLunar: true, year: 1992, gender: '男' });
+  });
+});

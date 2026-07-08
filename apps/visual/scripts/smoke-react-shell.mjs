@@ -530,6 +530,22 @@ if (exists(commandIntentsPath)) {
   check(commandIntents.includes('buildCommandFeedback'), 'commandIntents 应导出命令反馈消息构建器');
 }
 
+// ── 8b. agentRouter 路由层（Phase 8） ─────────────────
+const agentRouterPath = path.join(srcRoot, 'lib/agentRouter.ts');
+check(exists(agentRouterPath), 'agentRouter.ts 应位于 lib/ 目录');
+if (exists(agentRouterPath)) {
+  const agentRouter = read(agentRouterPath);
+  check(agentRouter.includes('export function routeQuery'), 'agentRouter 应导出 routeQuery 路由函数');
+  check(agentRouter.includes('AgentRoute'), 'agentRouter 应定义 AgentRoute 类型');
+  check(agentRouter.includes('QUESTION_INTENT'), 'agentRouter 应定义问句意图路由表');
+  check(agentRouter.includes('TOPIC_KEYWORDS'), 'agentRouter 应定义主题关键词锚点');
+}
+
+check(commandBar.includes('routeQuery'), 'CommandBar 应接入 agent 路由层');
+check(commandBar.includes('agent-route-'), 'CommandBar 应提供智能路由动态项');
+check(commandBar.includes('智能路由'), 'CommandBar 智能路由项应可识别');
+
+
 const copyButton = read(path.join(srcRoot, 'components/shared/CopyContextButton.tsx'));
 check(copyButton.includes("'copied'"), 'CopyContextButton 应包含 copied 状态');
 check(copyButton.includes("'Copied'"), 'CopyContextButton 复制成功应显示 Copied');
