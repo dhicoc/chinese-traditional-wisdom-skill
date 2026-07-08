@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-07-08 八字四柱主盘 SVG（Phase 10 图表替换续）
+
+### 变更
+
+- **新增 `BaziPillarsChart`**：React + SVG 组件，替换 BaziWorkspace 四柱主盘的 `CanvasPanel` + `renderLegacyBazi`。
+- **布局**：四柱(年/月/日/时)横排，每柱天干格 + 地支格，按五行配色（`wuxingColor` 描边 + `wuxingColorLight` 填充）；日柱金色高亮背景；天干/地支五行微标（如「木 / 火」）；藏干格。
+- **自包含五行映射**：天干→五行、地支→五行映射表内置于组件，对齐 `CORE.stemWuxing/branchWuxing`，避免 SVG 组件直接依赖 legacy CORE 全局对象。
+- **八字工作区完全 SVG 化**：四柱主盘 + 五行平衡均不再用 Canvas，`#bazi canvas=0`。
+- **契约同步**：`smoke-react-shell.mjs` bazi 断言从「1 canvas（四柱主盘保留）」改为「0 canvas + BaziPillarsChart + FiveElementsChart + 不再调用 renderLegacyBazi/renderLegacyWuxing」。
+
+### 理由
+
+- 四柱主盘是天干地支格 + 五行配色的规则布局，SVG rect/text 天然适配，文字可选中、可访问。
+- 至此八字工作区（四柱 + 五行）完成 SVG 化，命理核心三件（八字、紫微、六爻）全部脱离 Canvas。
+
+### 取舍
+
+- legacy `bazi.js` / `renderLegacyBazi` 全部保留，旧 `visual/index.html` 主入口不受影响。
+
+---
+
 ## 2026-07-08 八宅大游年 SVG（Phase 10 图表替换续）
 
 ### 变更

@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CanvasPanel } from '@/components/shared/CanvasPanel';
+import { BaziPillarsChart } from '@/components/shared/BaziPillarsChart';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { FiveElementsChart } from '@/components/shared/FiveElementsChart';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { renderDataWithLegacyAdapter, calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
-import { renderLegacyBazi, type BaziPillars, type WuxingStats } from '@/legacy/canvasRenderers';
+import { type BaziPillars, type WuxingStats } from '@/legacy/canvasRenderers';
 import type { BirthData } from '@/legacy/birthBridge';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
@@ -134,15 +134,26 @@ export function BaziWorkspace() {
         </aside>
 
         <div className="space-y-4">
-          <CanvasPanel
-            title="四柱主盘"
-            description="统一 Adapter 计算后调用同一个 bazi renderer，避免 React 页与旧页口径分叉。"
-            data={pillars}
-            width={600}
-            height={480}
-            ready={ready}
-            render={renderLegacyBazi}
-          />
+          <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+            <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-jade-50">四柱主盘</h3>
+                <p className="mt-1 text-sm leading-6 text-jade-100/55">
+                  SVG 四柱主盘对齐 bazi renderer 布局（Phase 10 图表替换）；数据来自统一 Adapter 计算。
+                </p>
+              </div>
+              <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
+                SVG · Phase 10
+              </span>
+            </div>
+            <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
+              {ready ? (
+                <BaziPillarsChart pillars={pillars} />
+              ) : (
+                <p className="py-12 text-center text-sm text-jade-100/45">正在加载八字引擎。</p>
+              )}
+            </div>
+          </section>
           <div className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4">
             <div className="mb-4 flex items-center justify-between border-b border-white/8 pb-3">
               <h3 className="text-lg font-semibold text-jade-50">八字明细</h3>
