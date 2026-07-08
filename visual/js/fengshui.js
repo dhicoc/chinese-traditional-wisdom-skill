@@ -634,6 +634,8 @@ function eightMansionsHitTest(mx, my, data) {
 // ─── 模块注册 ────────────────────────────────────────────
 
 registerVizModule("fengshui", {
+  // 暴露八宅游年映射表，供 React SVG 组件复用同一份规则数据
+  eightMansionsData: EIGHT_MANSIONS_DATA,
   renderCompass: function(canvasId) {
     compassRender(canvasId);
     if (window.CORE) CORE.bindCanvasTooltip(canvasId, function(mx, my) {

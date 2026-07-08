@@ -3,7 +3,9 @@ import type {
   ConstitutionData,
   ConstitutionScores,
   ConstitutionType,
+  EightMansionSector,
   EightMansionsData,
+  EightMansionsGrid,
   EightMansionsSummary,
   FlyingStarCell,
   FlyingStarGrid,
@@ -19,7 +21,9 @@ export type {
   ConstitutionData,
   ConstitutionScores,
   ConstitutionType,
+  EightMansionSector,
   EightMansionsData,
+  EightMansionsGrid,
   EightMansionsSummary,
   FlyingStarCell,
   FlyingStarGrid,
@@ -178,4 +182,30 @@ export function getBazhaiSummary(year: number, gender: '男' | '女'): EightMans
   const gua = core.calcMingGua(year, gender);
   if (!gua || !gua.trigram) return null;
   return { trigram: gua.trigram, group: gua.group };
+}
+
+/** 八方向顺序（从北起顺时针，与 legacy fengshui.js DIR_NAMES 对齐） */
+const EIGHT_DIRECTIONS = ['北', '东北', '东', '东南', '南', '西南', '西', '西北'] as const;
+
+/** 返回八宅命盘完整数据（命卦 + 8 方向扇区），供 SVG 组件渲染；引擎未加载时返回 null。 */
+export function getBazhaiGrid(year: number, gender: '男' | '女'): EightMansionsGrid | null {
+  const core = getLegacyCORE();
+  const fengshui = getLegacyFengshuiModule();
+  if (!core || !fengshui) return null;
+  const gua = core.calcMingGua(year, gender);
+  if (!gua || !gua.trigram) return null;
+  const masterTri = gua.trigram;
+  const mansionMap = fengshui.eightMansionsData?.[masterTri];
+  if (!mansionMap) return null;
+  const symIdx = core.trigrams.indexOf(masterTri);
+  const trigramSymbol = core.trigramsSymbol[symIdx] ?? '';
+  const sectors: EightMansionSector[] = EIGHT_DIRECTIONS.map((dir) => {
+    const star = mansionMap[dir] ?? '';
+    const info = core.eightMansionStars[star] ?? { luck: '', meaning: '' };
+    const dirInfo = core.trigramDirection
+      ? Object.values(core.trigramDirection).find((d) => d.label === dir)
+      : undefined;
+    return { direction: dir, deg: dirInfo?.deg ?? 0, star, luck: info.luck, meaning: info.meaning };
+  });
+  return { trigram: masterTri, trigramSymbol, group: gua.group, sectors };
 }

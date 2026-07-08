@@ -83,3 +83,20 @@ export interface EightMansionsSummary {
   trigram: string;
   group: string;
 }
+
+/** 八宅单个方向扇区（方向 + 游年星 + 吉凶 + 含义 + 方位角度） */
+export interface EightMansionSector {
+  direction: string;
+  deg: number;
+  star: string;
+  luck: string;
+  meaning: string;
+}
+
+/** 八宅命盘完整数据：命卦 + 8 方向扇区 */
+export interface EightMansionsGrid {
+  trigram: string;
+  trigramSymbol: string;
+  group: string;
+  sectors: EightMansionSector[];
+}

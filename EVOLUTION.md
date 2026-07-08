@@ -5,6 +5,28 @@
 
 ---
 
+## 2026-07-08 八宅大游年 SVG（Phase 10 图表替换续）
+
+### 变更
+
+- **新增 `EightMansionsChart`**：React + SVG 组件，替换 BazhaiWorkspace 的 `CanvasPanel` + `renderLegacyEightMansions`。
+- **布局**：8 方向扇区环形命盘（每扇区 45°），每扇区显示方向名、游年星名（大字）、吉凶【】、含义；中心圆显示命卦符号 + 卦名 + 命组。扇区背景按吉凶低透明配色，对齐 legacy `MANSION_COLORS`；径向文字按方位旋转，左侧扇区翻转避免倒读。
+- **新增 `getBazhaiGrid(year, gender)`**：在 `canvasRenderers.ts` 暴露八宅命盘完整数据（命卦+符号+命组+8扇区），复用同一份规则计算。
+- **legacy 数据暴露**：`fengshui.js` 注册对象新增 `eightMansionsData` 字段，把原本局部的 `EIGHT_MANSIONS_DATA` 映射表挂到 module 上，供 React 侧 `getBazhaiGrid` 复用，确保 Canvas 与 SVG 数据同源无漂移。
+- **类型**：`baseTypes.ts` 新增 `EightMansionSector` / `EightMansionsGrid`；`legacyPrivateTypes.ts` 扩展 `LegacyFengshuiModule`（加 `eightMansionsData`）与 `LegacyCORE`（加 `eightMansionStars`/`trigrams`/`trigramsSymbol`/`trigramDirection`）。
+- **契约同步**：`smoke-react-shell.mjs` bazhai 断言从「1 canvas + renderLegacyEightMansions」改为「0 canvas + EightMansionsChart + getBazhaiGrid + 不再调用 renderLegacyEightMansions」。
+
+### 理由
+
+- 八宅环形扇区图涉及 path arc 与径向旋转文字，Canvas 手算坐标脆弱；SVG path + transform rotate 更精确、可访问。
+- 把 `EIGHT_MANSIONS_DATA` 从 fengshui.js 局部常量暴露到 module 层，让 React SVG 与 legacy Canvas 共用同一份领域规则表，避免数据重复维护。
+
+### 取舍
+
+- legacy `fengshui.js` / `renderEightMansions` 全部保留，旧 `visual/index.html` 主入口不受影响。仅给 module 注册对象新增一个 `eightMansionsData` 只读字段，不改变任何现有 render 行为。
+
+---
+
 ## 2026-07-08 流年九宫飞星 SVG（Phase 10 图表替换续）
 
 ### 变更

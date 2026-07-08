@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CanvasPanel } from '@/components/shared/CanvasPanel';
 import { ControlField } from '@/components/shared/ControlField';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { EightMansionsChart } from '@/components/shared/EightMansionsChart';
 import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
 import {
+  getBazhaiGrid,
   getBazhaiSummary,
-  renderLegacyEightMansions,
-  type EightMansionsData,
 } from '@/legacy/canvasRenderers';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import type { LegacyState } from '@/legacy/legacyGlobals';
@@ -27,9 +26,12 @@ export function BazhaiWorkspace() {
   }, []);
 
   const ready = legacyState.mode === 'ready';
-  const data = useMemo<EightMansionsData>(() => ({ year, gender }), [year, gender]);
   const summary = useMemo(
     () => (ready ? getBazhaiSummary(year, gender) : null),
+    [ready, year, gender],
+  );
+  const grid = useMemo(
+    () => (ready ? getBazhaiGrid(year, gender) : null),
     [ready, year, gender],
   );
 
@@ -111,15 +113,26 @@ export function BazhaiWorkspace() {
           />
         </aside>
 
-        <CanvasPanel
-          title="八宅命盘"
-          description="与旧 visual/index.html 的 renderEightMansions 对齐，调用同一个 fengshui renderer。"
-          data={data}
-          width={500}
-          height={500}
-          ready={ready}
-          render={renderLegacyEightMansions}
-        />
+        <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-jade-50">八宅命盘</h3>
+              <p className="mt-1 text-sm leading-6 text-jade-100/55">
+                SVG 环形命盘对齐 renderEightMansions 布局（Phase 10 图表替换）；数据来自同一份 EIGHT_MANSIONS_DATA 规则。
+              </p>
+            </div>
+            <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
+              SVG · Phase 10
+            </span>
+          </div>
+          <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
+            {grid ? (
+              <EightMansionsChart grid={grid} year={year} gender={gender} />
+            ) : (
+              <p className="py-12 text-center text-sm text-jade-100/45">正在加载八宅引擎。</p>
+            )}
+          </div>
+        </section>
       </div>
     </section>
   );

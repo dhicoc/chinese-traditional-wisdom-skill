@@ -9,7 +9,7 @@
  *   - #liuyao 工作区渲染 SVG 卦画（六爻占卜，Phase 10 已从 Canvas 迁移至 HexagramChart）
  *   - #ziwei 工作区渲染 SVG 命盘（紫微斗数，Phase 10 已从 Canvas 迁移至 ZiweiPalaceGrid）
  *   - #feixing 工作区渲染 SVG 九宫飞星图（Phase 10 已从 Canvas 迁移至 NinePalaceGrid）
- *   - #bazhai 工作区渲染 1 个 canvas（八宅大游年）
+ *   - #bazhai 工作区渲染 SVG 八宅命盘（Phase 10 已从 Canvas 迁移至 EightMansionsChart）
  *   - #fengshui 工作区渲染 1 个 canvas（二十四山罗盘）
  *   - AppShell 通过统一 workspace registry 路由各工作区
  *   - legacy registry 桥接已建立（LegacyVizModules / ToolManifest / CapabilityRegistry）
@@ -222,10 +222,18 @@ check(exists(bazhaiPath), 'BazhaiWorkspace.tsx 应位于 features/bazhai/ 目录
 if (exists(bazhaiPath)) {
   const bazhaiWorkspace = read(bazhaiPath);
   const bazhaiCanvasCount = countOccurrences(bazhaiWorkspace, '<CanvasPanel');
-  check(bazhaiCanvasCount === 1, `#bazhai 应渲染 1 个 canvas，实际 <CanvasPanel 出现 ${bazhaiCanvasCount} 次`);
+  check(bazhaiCanvasCount === 0, `#bazhai 已迁移至 SVG，不应再出现 <CanvasPanel，实际 ${bazhaiCanvasCount} 次`);
   check(
-    bazhaiWorkspace.includes('renderLegacyEightMansions'),
-    'BazhaiWorkspace 应调用 renderLegacyEightMansions 复用旧 fengshui renderer',
+    bazhaiWorkspace.includes('EightMansionsChart'),
+    'BazhaiWorkspace 应使用 EightMansionsChart 渲染 SVG 八宅命盘',
+  );
+  check(
+    bazhaiWorkspace.includes('getBazhaiGrid'),
+    'BazhaiWorkspace 应通过 getBazhaiGrid 获取八宅扇区数据',
+  );
+  check(
+    !bazhaiWorkspace.includes('renderLegacyEightMansions'),
+    'BazhaiWorkspace 不应再调用 renderLegacyEightMansions（已由 EightMansionsChart 替换）',
   );
 }
 
