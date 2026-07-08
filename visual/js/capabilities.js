@@ -177,15 +177,55 @@
       ],
       bazi: data.baziRender || null,
       wuxing: bazi.elements || null,
-      ziwei: data.ziwei || null,
+      ziwei: anonymizeZiwei(data.ziwei),
       liuyao: data.divination && data.divination.liuyao ? data.divination.liuyao : null,
       meihua: data.divination && data.divination.meihua ? data.divination.meihua : null,
       feixing: birth.year ? { year: birth.year } : null,
       bazhai: data.fengshui ? { year: birth.year, gender: birth.gender, mingGua: data.fengshui.mingGua } : null,
-      yunqi: data.yunqi || null,
+      yunqi: anonymizeYunqi(data.yunqi),
       constitution: data.constitution || null,
       readings: readings
     };
+  }
+
+  /**
+   * 紫微脱敏：移除 birthInfo 的 month/day/hour 与 chart 里的 solarDate/lunarDate/
+   * rawDates/time 等明文生日字段，仅保留 birthYear 与排盘结果（宫位/星曜/四化）。
+   */
+  function anonymizeZiwei(ziwei) {
+    if (!ziwei) return null;
+    var z = shallowClone(ziwei);
+    if (z.birthInfo) {
+      z.birthInfo = { year: z.birthInfo.year, gender: z.birthInfo.gender };
+    }
+    if (z.chart) {
+      var c = shallowClone(z.chart);
+      delete c.solarDate;
+      delete c.lunarDate;
+      delete c.chineseDate;
+      delete c.rawDates;
+      delete c.time;
+      delete c.timeRange;
+      z.chart = c;
+    }
+    return z;
+  }
+
+  /** 五运六气脱敏：移除 queryDate/dahan 等明文日期，保留 year 与运气推算结果。 */
+  function anonymizeYunqi(yunqi) {
+    if (!yunqi) return null;
+    var y = shallowClone(yunqi);
+    delete y.queryDate;
+    delete y.dahan;
+    return y;
+  }
+
+  function shallowClone(obj) {
+    if (!obj || typeof obj !== "object") return obj;
+    if (Array.isArray(obj)) return obj.slice();
+    var copy = {};
+    for (var k in obj) { if (Object.prototype.hasOwnProperty.call(obj, k)) copy[k] = obj[k]; }
+    return copy;
   }
 
 

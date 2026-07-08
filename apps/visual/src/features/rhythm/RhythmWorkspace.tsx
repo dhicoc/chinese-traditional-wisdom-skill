@@ -169,7 +169,7 @@ export function RhythmWorkspace() {
   const [selectedShiChen, setSelectedShiChen] = useState<ShiChen | null>(null);
 
   return (
-    <div className="space-y-6" data-testid="workspace-rhythm">
+    <div className="space-y-6">
       {/* 头部说明 */}
       <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <div className="flex items-center justify-between">

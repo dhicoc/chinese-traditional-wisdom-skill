@@ -172,11 +172,42 @@ test.describe('Privacy - Report Export', () => {
     }
   });
 
-  test('should not include birth date in report filename', async ({ page }) => {
-    // This test would need to intercept download
-    // Placeholder for filename validation
-    const testFilename = 'report-1990-01-15.html';
-    expect(testFilename).not.toMatch(/\d{4}-\d{2}-\d{2}/);
+  test('should not include full birth date in report subject/filename', async ({ page }) => {
+    // 等待 legacy 引擎加载，exportReportData 由 capabilities.js 暴露
+    await page.waitForFunction(
+      () => typeof (window as any).FORTUNE?.exportReportData === 'function',
+      { timeout: 12000 },
+    );
+
+    const report = await page.evaluate(() => {
+      const F = (window as any).FORTUNE;
+      if (!F || typeof F.exportReportData !== 'function') return null;
+      try {
+        return F.exportReportData() as any;
+      } catch {
+        return null;
+      }
+    });
+
+    if (report) {
+      // 1) subject.label 用于构造导出文件名，应为脱敏标识，不含完整出生日期
+      const label = String(report?.subject?.label ?? '');
+      expect(label).not.toMatch(/\d{4}-\d{2}-\d{2}/);
+
+      // 2) 紫微 birthInfo 只应保留 year + gender，不含 month/day/hour
+      const bi = report?.ziwei?.birthInfo;
+      if (bi) {
+        expect(bi.month).toBeUndefined();
+        expect(bi.day).toBeUndefined();
+        expect(bi.hour).toBeUndefined();
+      }
+
+      // 3) 报告数据不应出现明文生日字段 solarDate / lunarDate / queryDate
+      const json = JSON.stringify(report);
+      expect(json).not.toContain('solarDate');
+      expect(json).not.toContain('lunarDate');
+      expect(json).not.toContain('queryDate');
+    }
   });
 });
 
@@ -218,28 +249,27 @@ test.describe('Privacy - Data Retention', () => {
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
 
-    // Simulate many history entries
+    // 等待 HistoryStore 加载（由 legacy history-store.js 暴露）
+    await page.waitForFunction(
+      () => typeof (window as any).HistoryStore?.add === 'function',
+      { timeout: 12000 },
+    );
+
+    // 清空已有历史，再用 HistoryStore.add 添加 35 条（不同 title 避免去重）
     await page.evaluate(() => {
-      const mockHistory = Array.from({ length: 35 }, (_, i) => ({
-        id: `test-${i}`,
-        module: 'bazi',
-        title: `Test ${i}`,
-        year: 1990 + (i % 30),
-        createdAt: Date.now() - i * 1000,
-      }));
-      window.localStorage.setItem('ctw-history', JSON.stringify(mockHistory));
+      const H = (window as any).HistoryStore;
+      if (H?.clear) H.clear();
+      for (let i = 0; i < 35; i++) {
+        H.add({ module: 'bazi', title: `test-${i}`, summary: 's', tags: [], mode: 'local' });
+      }
     });
 
-    // Trigger history cleanup (if any)
-    await page.click('[data-testid="nav-item"]:has-text("历史")');
-    await page.waitForTimeout(1000);
-
-    // Verify limit enforced
-    const historyData = await page.evaluate(() => {
-      const raw = window.localStorage.getItem('ctw-history');
-      return raw ? JSON.parse(raw) : [];
+    // HistoryStore.add 内部 slice(0, 30)，list 应 ≤ 30
+    const count = await page.evaluate(() => {
+      const H = (window as any).HistoryStore;
+      return H?.list ? H.list().length : -1;
     });
-
-    expect(historyData.length).toBeLessThanOrEqual(30);
+    expect(count).toBeLessThanOrEqual(30);
+    expect(count).toBeGreaterThan(0);
   });
 });

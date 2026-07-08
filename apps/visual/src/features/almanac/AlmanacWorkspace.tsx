@@ -40,7 +40,7 @@ export function AlmanacWorkspace() {
   const xiongHours = useMemo(() => almanac?.hours.filter((h) => h.luck === '凶') ?? [], [almanac]);
 
   return (
-    <div className="space-y-6" data-testid="workspace-almanac">
+    <div className="space-y-6">
       {/* 头部说明 */}
       <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <div className="flex items-center justify-between">

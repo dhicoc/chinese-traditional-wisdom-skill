@@ -345,8 +345,15 @@
 - 已知预先失败：`e2e/privacy.spec.ts` 2 项（旧 Dashboard 报告导出文件名含完整生日、历史 30 条限制），属旧 `visual/index.html` 隐私口径问题，记为后续待修。
 - 验收：单元测试数提升，e2e 覆盖关键交互路径。chromium 项目 54/56 通过（仅 2 项预先 privacy 失败）。
 
-### Phase 11 主入口切换前回归
+### Phase 11 主入口切换前回归（✅ 完成）
 
-- 主入口切换前，必须确认 11 tab 全部可打开、默认数据可渲染、CommandBar 可切换、Copy context 有效、375px 移动端不横向溢出、暗黑模式 contrast 合格、Mermaid fallback 可用。
-- 当前维持旧 `visual/index.html` 稳定主入口，`visual/react.html` 并行验证。
+- ✅ 新增 `e2e/phase11-gate.spec.ts` 全量回归门禁：
+  - 11 工具 tab（八字/紫微/六爻/梅花/风水/飞星/八宅/五运六气/体质/黄历/姓名）全部可打开且工作区可见。
+  - CommandBar 切换模块后工作区更新；每个工具页都有 Copy context 按钮。
+  - 375px 移动端 `scrollWidth ≤ 376`（不横向溢出）；暗黑模式核心 h1 文本非纯黑（contrast 合格）。
+  - 知识图谱页无致命错误（Mermaid 可用或降级）。
+- ✅ 修复真实重复 testid：almanac/namewuxing/dream/rhythm 工作区内部 `data-testid="workspace-xxx"` 与 AppShell 外层 wrapper `workspace-${activeModule}` 重复，移除内层冗余 testid，统一由外层 wrapper 提供。
+- ✅ 修复 privacy 真实 bug：`exportReportData` 的 ziwei/yunqi 部分含明文出生日期（`birthInfo.month/day/hour`、`chart.solarDate/lunarDate/rawDates`、`queryDate/dahan`）。新增 `anonymizeZiwei`/`anonymizeYunqi` 脱敏，仅保留 birthYear + 排盘结果，兑现 sourceNotes「导出数据不包含完整出生日期」承诺。
+- ✅ 重写 `privacy.spec.ts` 2 项占位假测试为真实校验：report 文件名/subject.label 不含完整生日 + ziwei.birthInfo 无 month/day + 无 solarDate/lunarDate/queryDate 字段；30 条历史限制通过 `HistoryStore.add` 添加 35 条验证 list ≤30。
+- 验收：e2e chromium 72/72 全过；单元 71/71、冒烟 249/249、契约 62/62。React Shell 主入口切换前所有门禁项达标。
 

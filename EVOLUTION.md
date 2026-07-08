@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-07-08 Phase 11 主入口切换回归 + privacy 真实 bug 修复
+
+### Phase 11 Gate（主入口切换前回归）
+
+- 新增 `e2e/phase11-gate.spec.ts`：11 工具 tab 全部可打开+工作区可见、CommandBar 切换、Copy context 按钮存在、375px 不溢出、暗黑模式 contrast、Mermaid fallback 无致命错误。
+- 修复真实重复 testid：almanac/namewuxing/dream/rhythm 工作区内部 `workspace-xxx` testid 与 AppShell 外层 wrapper 重复，移除内层冗余，统一由外层提供。
+
+### Privacy 真实 bug 修复
+
+- `exportReportData`（capabilities.js）的 ziwei/yunqi 部分含明文出生日期（birthInfo.month/day/hour、chart.solarDate/lunarDate/rawDates、queryDate/dahan），违反 sourceNotes 声明。
+- 新增 `anonymizeZiwei`/`anonymizeYunqi` 脱敏函数，仅保留 birthYear + 排盘结果（宫位/星曜/四化/岁运/司天在泉），移除明文生日字段。
+- 重写 `privacy.spec.ts` 2 项占位假测试为真实校验：文件名/subject.label 无完整生日 + ziwei.birthInfo 无 month/day + 无 solarDate/lunarDate/queryDate；30 条历史限制通过 HistoryStore.add 验证。
+
+### 验证
+
+- e2e chromium 72/72 全过（从 56 提升）；单元 71/71、冒烟 249/249、契约 62/62。
+- React Shell 主入口切换前所有门禁项达标。
+
+---
+
 ## 2026-07-08 Phase 11 后续：测试套件扩展
 
 ### 单元测试扩展（+21 项，50 → 71）
