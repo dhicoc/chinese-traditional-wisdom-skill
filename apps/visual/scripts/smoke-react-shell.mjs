@@ -10,7 +10,7 @@
  *   - #ziwei 工作区渲染 SVG 命盘（紫微斗数，Phase 10 已从 Canvas 迁移至 ZiweiPalaceGrid）
  *   - #feixing 工作区渲染 SVG 九宫飞星图（Phase 10 已从 Canvas 迁移至 NinePalaceGrid）
  *   - #bazhai 工作区渲染 SVG 八宅命盘（Phase 10 已从 Canvas 迁移至 EightMansionsChart）
- *   - #fengshui 工作区渲染 1 个 canvas（二十四山罗盘）
+ *   - #fengshui 工作区渲染 SVG 二十四山罗盘（Phase 10 已从 Canvas 迁移至 FengshuiCompass）
  *   - AppShell 通过统一 workspace registry 路由各工作区
  *   - legacy registry 桥接已建立（LegacyVizModules / ToolManifest / CapabilityRegistry）
  *   - legacy loader 引用的旧脚本文件确实存在
@@ -243,16 +243,20 @@ if (exists(bazhaiPath)) {
   );
 }
 
-// ── 3d. #fengshui 有 1 个 canvas（风水罗盘迁移） ─────────
+// ── 3d. #fengshui: 已迁移至 SVG（Phase 10 收官） ─────────
 const fengshuiPath = path.join(srcRoot, 'features/fengshui/FengshuiWorkspace.tsx');
 check(exists(fengshuiPath), 'FengshuiWorkspace.tsx 应位于 features/fengshui/ 目录');
 if (exists(fengshuiPath)) {
   const fengshuiWorkspace = read(fengshuiPath);
   const fengshuiCanvasCount = countOccurrences(fengshuiWorkspace, '<CanvasPanel');
-  check(fengshuiCanvasCount === 1, `#fengshui 应渲染 1 个 canvas，实际 <CanvasPanel 出现 ${fengshuiCanvasCount} 次`);
+  check(fengshuiCanvasCount === 0, `#fengshui 已迁移至 SVG，不应再出现 <CanvasPanel，实际 ${fengshuiCanvasCount} 次`);
   check(
-    fengshuiWorkspace.includes('renderLegacyCompass'),
-    'FengshuiWorkspace 应调用 renderLegacyCompass 复用旧 fengshui renderer',
+    fengshuiWorkspace.includes('FengshuiCompass'),
+    'FengshuiWorkspace 应使用 FengshuiCompass 渲染 SVG 二十四山罗盘',
+  );
+  check(
+    !fengshuiWorkspace.includes('renderLegacyCompass'),
+    'FengshuiWorkspace 不应再调用 renderLegacyCompass（已由 FengshuiCompass 替换）',
   );
 }
 

@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-07-08 Phase 10 收官：风水罗盘 SVG + 全工作区脱离 Canvas
+
+### 变更
+
+- **新增 `FengshuiCompass`**：React + SVG 二十四山罗盘，替换 FengshuiWorkspace 的 `CanvasPanel` + `renderLegacyCompass`——Phase 10 最后一个待替换模块。
+- **布局**：三环罗盘——外环二十四山（阳山暖色/阴山冷色，对齐 `YANG_MOUNTAINS`）、中环八卦符号+卦名、内环八方向、中心十字（北红南黑）。「子」居正北，每山 15°，24 山按 `CORE.twentyFourMountains` 顺序顺时针；径向文字按方位旋转（左侧翻转避免倒读）。环半径与 legacy `compassRender` 完全一致。
+- **数据自包含**：二十四山、八卦方位、阴阳山分类内置于组件，对齐 `CORE.twentyFourMountains/trigramDirection/YANG_MOUNTAINS`，避免依赖 legacy CORE 全局。
+- **契约同步**：`smoke-react-shell.mjs` fengshui 断言改为「0 canvas + FengshuiCompass + 不再调用 renderLegacyCompass」。
+
+### Phase 10 收官成果
+
+- 第二阶段共落地 **10 个 SVG 组件**：`RadarChart`、`ZiweiPalaceGrid`、`FiveElementsChart`、`HexagramChart`、`MeihuaChart`、`NinePalaceGrid`、`EightMansionsChart`、`BaziPillarsChart`、`YunqiChart`、`FengshuiCompass`。
+- **全部 13 个工作区 `canvas=0`**：home / bazi / ziwei / liuyao / meihua / fengshui / feixing / bazhai / yunqi / tizhi / mermaid / testing / reader。React Shell 完全脱离 Canvas，`CanvasPanel` 不再被任何工作区使用。
+- 根治了前几轮反复出现的 Canvas 文字溢出/重叠 bug（五运六气病势、梅花互卦、紫微宫位等）——SVG 用 rect/text 锚定 + 字符换行从结构上消除这类脆弱性。
+
+### 取舍
+
+- legacy Canvas renderer（`bazi.js`/`ziwei.js`/`divination.js`/`fengshui.js`/`health.js`）全部保留，旧 `visual/index.html` 主入口与并行验证闭环维持。`CanvasPanel` 组件保留以备未来需要，但当前无工作区引用。
+
+---
+
 ## 2026-07-08 五运六气 SVG（Phase 10 图表替换续）
 
 ### 变更
