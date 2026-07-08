@@ -4,6 +4,7 @@ import { FiveElementsChart } from '@/components/shared/FiveElementsChart';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { analyzeName, type NameAnalysis } from '@/legacy/nameWuxing';
+import { calcNameRating } from '@/legacy/nameRating';
 
 /**
  * 姓名五行工作区
@@ -22,6 +23,7 @@ const LUCK_COLOR: Record<string, string> = {
 export function NamewuxingWorkspace() {
   const [surname, setSurname] = useState('');
   const [givenName, setGivenName] = useState('');
+  const [birthYear, setBirthYear] = useState('');
   const [analysis, setAnalysis] = useState<NameAnalysis | null>(null);
 
   const handleAnalyze = () => {
@@ -34,6 +36,12 @@ export function NamewuxingWorkspace() {
     if (!analysis) return { 木: 0, 火: 0, 土: 0, 金: 0, 水: 0 };
     return analysis.wuxingBalance as { 木: number; 火: number; 土: number; 金: number; 水: number };
   }, [analysis]);
+
+  const rating = useMemo(() => {
+    if (!analysis) return null;
+    const year = Number.parseInt(birthYear, 10);
+    return calcNameRating(analysis, Number.isNaN(year) ? undefined : year);
+  }, [analysis, birthYear]);
 
   return (
     <div className="space-y-6">
@@ -52,7 +60,7 @@ export function NamewuxingWorkspace() {
 
       {/* 输入区 */}
       <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3">
           <ControlField label="姓氏" hint="支持复姓">
             <input
               type="text"
@@ -70,6 +78,18 @@ export function NamewuxingWorkspace() {
               onChange={(e) => setGivenName(e.target.value)}
               placeholder="如：伟 / 子涵"
               maxLength={2}
+              className="w-full min-w-0 rounded-lg border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
+            />
+          </ControlField>
+          <ControlField label="出生年" hint="可选，用于生肖契合度">
+            <input
+              type="number"
+              value={birthYear}
+              onChange={(e) => setBirthYear(e.target.value)}
+              placeholder="如：1990"
+              min={1900}
+              max={2100}
+              inputMode="numeric"
               className="w-full min-w-0 rounded-lg border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
             />
           </ControlField>
@@ -206,6 +226,41 @@ export function NamewuxingWorkspace() {
               </div>
             </div>
           </div>
+
+          {/* 五维评分（fate P3 简化版） */}
+          {rating && (
+            <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument md:col-span-2">
+              <div className="mb-4 flex items-center justify-between border-b border-white/8 pb-3">
+                <div>
+                  <h3 className="text-base font-semibold text-jade-50">五维评分</h3>
+                  <p className="mt-0.5 text-xs text-jade-100/45">五格30% · 三才15% · 五行平衡25% · 字义五行20% · 生肖契合10%</p>
+                </div>
+                <div className="text-right">
+                  <div className="font-mono text-3xl font-bold text-jade-400">{rating.totalScore}</div>
+                  <div className="text-xs text-jade-300">{rating.grade}</div>
+                </div>
+              </div>
+              <div className="grid gap-3 md:grid-cols-5">
+                {rating.dimensions.map((d) => (
+                  <div key={d.name} className="rounded-card border border-white/8 bg-white/[0.02] p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-jade-100/55">{d.name}</span>
+                      <span className="font-mono text-xs text-jade-100/35">{Math.round(d.weight * 100)}%</span>
+                    </div>
+                    <div className="mt-1 font-mono text-xl font-semibold text-jade-300">{d.score}</div>
+                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/8">
+                      <div
+                        className="h-full rounded-full bg-jade-500/60"
+                        style={{ width: `${Math.max(4, d.score)}%` }}
+                      />
+                    </div>
+                    <div className="mt-2 text-[10px] leading-4 text-jade-100/40">{d.detail}</div>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 text-[11px] leading-5 text-jade-100/35">{rating.confidenceNote}</p>
+            </div>
+          )}
 
           {/* 五行平衡（复用 FiveElementsChart） */}
           <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">

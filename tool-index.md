@@ -125,6 +125,7 @@ flowchart TD
 | `babyname/fate` | MIT | 81 数理详注表 | `apps/visual/src/legacy/dayanList.json`（从 `internal/wuge/dayan.go` 提取 81 条，含九星名/详注/女性不宜/最大好运标记） |
 | `babyname/fate` | MIT | 三才配置详描 | `apps/visual/src/legacy/sancaiDetails.json`（从 `internal/analysis/sancai_data.go` 提取 118 组天-人-地五行配置完整详描） |
 | `babyname/fate` | MIT | 喜用神算法 | `apps/visual/src/legacy/xiyong.ts`（参考 `internal/bazi/xiyong.go` 简化版：五行计数算同类/异类/强弱/喜用神，不搬令分数表） |
+| `babyname/fate` | MIT | 五维评分体系 | `apps/visual/src/legacy/nameRating.ts`（参考 `internal/rating/rating.go` 简化自建版：五格30%+三才15%+五行平衡25%+字义五行20%+生肖契合10%，等级对齐 fate scoreToGrade） |
 
 ### 仅参考思路、未复用文案/词表
 
