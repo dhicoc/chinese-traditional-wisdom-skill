@@ -544,6 +544,20 @@ if (exists(agentRouterPath)) {
 check(commandBar.includes('routeQuery'), 'CommandBar 应接入 agent 路由层');
 check(commandBar.includes('agent-route-'), 'CommandBar 应提供智能路由动态项');
 check(commandBar.includes('智能路由'), 'CommandBar 智能路由项应可识别');
+check(commandBar.includes('pendingRoute'), 'CommandBar 应维护待确认路由状态');
+check(commandBar.includes('AgentConfirmPanel'), 'CommandBar 应挂载 AgentConfirmPanel 确认面板');
+
+const agentConfirmPath = path.join(srcRoot, 'components/app-shell/AgentConfirmPanel.tsx');
+check(exists(agentConfirmPath), 'AgentConfirmPanel.tsx 应位于 app-shell 目录');
+if (exists(agentConfirmPath)) {
+  const agentConfirm = read(agentConfirmPath);
+  check(agentConfirm.includes('export function AgentConfirmPanel'), 'AgentConfirmPanel 应导出组件');
+  check(agentConfirm.includes('data-testid="agent-confirm-panel"'), 'AgentConfirmPanel 应有稳定 testid');
+  check(agentConfirm.includes('agent-confirm-execute'), 'AgentConfirmPanel 应有确认执行按钮');
+  check(agentConfirm.includes('agent-confirm-cancel'), 'AgentConfirmPanel 应有取消按钮');
+  check(agentConfirm.includes('agent-confirm-birth'), 'AgentConfirmPanel 应展示生辰预填信息');
+}
+
 
 
 const copyButton = read(path.join(srcRoot, 'components/shared/CopyContextButton.tsx'));

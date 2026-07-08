@@ -19,7 +19,8 @@ import {
   parseMeihuaCommand,
   parseReaderSearchCommand,
 } from '@/lib/commandIntents';
-import { routeQuery } from '@/lib/agentRouter';
+import { routeQuery, type AgentRoute } from '@/lib/agentRouter';
+import { AgentConfirmPanel } from './AgentConfirmPanel';
 
 /* ── 类型 ─────────────────────────────────────────────── */
 
@@ -187,6 +188,7 @@ function CommandPalette({
 export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [feedback, setFeedback] = useState<CommandFeedbackState | null>(null);
+  const [pendingRoute, setPendingRoute] = useState<AgentRoute | null>(null);
   const active = getModuleById(activeModule);
   const inputRef = useRef<HTMLButtonElement>(null);
 
@@ -370,13 +372,7 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
             hint: route.reason + (route.question ? ' · ' + route.question : ''),
             group: '智能',
             keywords: [trimmed, route.module, targetModule.title, targetModule.shortTitle, 'agent', '智能', '路由'],
-            action: () => {
-              if (route.birthPatch) dispatchBirthIntent({ patch: route.birthPatch, source: 'command-bar', raw: trimmed });
-              onSelectModule(route.module);
-              if (route.liuyao) window.setTimeout(() => dispatchLiuyaoIntent(route.liuyao!), 0);
-              if (route.meihua) window.setTimeout(() => dispatchMeihuaIntent(route.meihua!), 0);
-              if (route.reader) window.setTimeout(() => dispatchReaderSearchIntent(route.reader!), 0);
-            },
+            action: () => setPendingRoute(route),
           });
         }
       }
@@ -460,6 +456,28 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
           items={items}
           getDynamicItems={getDynamicItems}
           onDismiss={() => setPaletteOpen(false)}
+        />
+      )}
+
+      {pendingRoute && (
+        <AgentConfirmPanel
+          route={pendingRoute}
+          onConfirm={() => {
+            const route = pendingRoute;
+            const raw = route.question ?? route.reason;
+            if (route.birthPatch) dispatchBirthIntent({ patch: route.birthPatch, source: 'command-bar', raw });
+            onSelectModule(route.module);
+            if (route.liuyao) window.setTimeout(() => dispatchLiuyaoIntent(route.liuyao!), 0);
+            if (route.meihua) window.setTimeout(() => dispatchMeihuaIntent(route.meihua!), 0);
+            if (route.reader) window.setTimeout(() => dispatchReaderSearchIntent(route.reader!), 0);
+            dispatchCommandFeedback({
+              title: '已执行：智能路由 → ' + getModuleById(route.module).title,
+              description: route.reason + (route.question ? ' · ' + route.question : ''),
+              tone: 'success',
+            });
+            setPendingRoute(null);
+          }}
+          onCancel={() => setPendingRoute(null)}
         />
       )}
     </>

@@ -139,6 +139,12 @@ test.describe('CommandBar Navigation', () => {
     await expect(page.locator('[data-testid="command-result"]:has-text("智能路由")')).toBeVisible();
     await page.click('[data-testid="command-result"]:has-text("智能路由")');
 
+    // 确认面板出现，展示六爻目标
+    await expect(page.locator('[data-testid="agent-confirm-panel"]')).toBeVisible();
+    await expect(page.locator('[data-testid="agent-confirm-target"]')).toContainText('六爻占卜');
+
+    // 确认执行
+    await page.click('[data-testid="agent-confirm-execute"]');
     await expect(page.locator('[data-testid="workspace-liuyao"]')).toBeVisible();
     await expect(page.locator('[data-testid="command-feedback"]')).toContainText('六爻占卜');
   });
@@ -148,10 +154,22 @@ test.describe('CommandBar Navigation', () => {
     await page.fill('[data-testid="command-input"]', '1990-06-15 12 男 今年财运');
     await page.click('[data-testid="command-result"]:has-text("智能路由")');
 
+    // 确认面板应展示生辰预填
+    await expect(page.locator('[data-testid="agent-confirm-birth"]')).toContainText('1990-06-15');
+    await page.click('[data-testid="agent-confirm-execute"]');
+
     await expect(page.locator('[data-testid="workspace-bazi"]')).toBeVisible();
     await expect(page.locator('[data-testid="command-feedback"]')).toContainText('八字命盘');
-    // 全局生辰应被更新
     await expect(page.locator('button').filter({ hasText: '全局生辰' })).toContainText('1990-06-15');
+  });
+
+  test('should cancel agent confirm without navigating', async ({ page }) => {
+    await page.click('[data-testid="command-bar"]');
+    await page.fill('[data-testid="command-input"]', '要不要换工作');
+    await page.click('[data-testid="command-result"]:has-text("智能路由")');
+    await expect(page.locator('[data-testid="agent-confirm-panel"]')).toBeVisible();
+    await page.click('[data-testid="agent-confirm-cancel"]');
+    await expect(page.locator('[data-testid="agent-confirm-panel"]')).toHaveCount(0);
   });
 });
 
