@@ -357,3 +357,37 @@
 - ✅ 重写 `privacy.spec.ts` 2 项占位假测试为真实校验：report 文件名/subject.label 不含完整生日 + ziwei.birthInfo 无 month/day + 无 solarDate/lunarDate/queryDate 字段；30 条历史限制通过 `HistoryStore.add` 添加 35 条验证 list ≤30。
 - 验收：e2e chromium 72/72 全过；单元 71/71、冒烟 249/249、契约 62/62。React Shell 主入口切换前所有门禁项达标。
 
+
+## UX 优化建议（待落地）
+
+> 2026-07-08 从用户体验角度梳理的 UI/交互改进项，按影响排序。React Shell 主入口切换前可先做 P0 提升首次体验。
+
+### P0 · 首次进入体验（影响最大）
+
+- **生辰未填引导**：BirthPanel 默认折叠，但八字/紫微/五运六气依赖它。未填生辰时强制展开 BirthPanel 并高亮提示；首次进入命理类工具时自动滚动到 BirthPanel 加闪烁提示，避免新用户看到「等待旧引擎加载」或演示数据不知从何入手。
+- **加载态骨架屏**：各工作区加载时当前是纯文字「正在加载…」，页面像卡住。lunar-javascript + iztro 加载需 1-2 秒，建议加 skeleton 或低饱和脉动 jade 点，给用户「在动」的反馈。
+- **真实/演示人话提示**：能力标识 `local-exact`/`fallback-demo` 是技术标签，普通用户不懂。命盘旁改用人话：「✓ 真实排盘（基于您的生辰）」vs「⚠ 当前为演示数据，请填写生辰查看真实结果」。
+
+### P1 · 体验提升
+
+- **home 场景化入口**：首屏加「我想看运势/起名/问事/看风水」四类入口，引导到对应工具或咨询向导。咨询向导已在旧 Dashboard 落地，React Shell home 未暴露。
+- **统一操作反馈 toast**：CopyContextButton 有「Copied」反馈，但「再起一卦」「刷新」「清空历史」等无反馈或反馈不统一。统一用已有 `COMMAND_FEEDBACK_EVENT` toast 机制。
+- **报告导出入口**：React Shell 各工作区只有 CopyContextButton，缺「导出本页报告」按钮。复用现有 `exportReportData` + HTML 报告能力生成下载。
+- **WorkspaceTabs 分组**：18 标签按 group 分段显示（分隔符或小标题），或改为「常用 + 更多」折叠，让用户感知整体结构。
+
+### P2 · 锦上添花
+
+- **术语解释统一入口**：紫微/六爻/八字有大量专业术语（庙旺利陷、世应、用神、纳音），现仅风水类有 KnowledgeReferencePanel。所有命理图表加「长按/点击术语弹解释」能力。
+- **图表 hover tooltip**：FiveElementsChart/RadarChart 等纯展示无悬停提示，加 hover tooltip 显示五行数值、宫位星曜详情。
+- **移动端导航改造**：375px 下 WorkspaceTabs 占两行且标签多，改为下拉选择或抽屉式分组导航，腾出空间给内容；小屏 SVG 图表（如 4×4 紫微命盘 650×650）加自动缩放或「横屏查看」提示。
+- **暗色对比度**：`text-jade-100/35`、`/45` 等低透明度正文在 `bg-ink-950` 上可能不足 WCAG AA，正文信息提到 `/55` 以上，仅装饰用 `/35`。
+- **键盘焦点态统一**：CommandBar 有 `focus-visible:ring`，但 SidebarNav/各工作区按钮缺明确 focus-visible 样式，全项目统一 `focus-visible:ring-2 ring-jade-500/40`。
+- **不可逆操作确认**：「清空历史」「重置生辰」等加 confirm 弹窗或「撤销」toast（如「已清空，5 秒内可撤销」）。
+
+### 验收标准
+
+- 未填生辰进入命理工具时，BirthPanel 自动展开并可见提示；加载态有视觉反馈（非纯文字）。
+- 命盘真实/演示状态用普通用户可读语言展示。
+- 所有操作按钮点击后有统一 toast 反馈；报告可从工作区直接导出。
+- 移动端导航不占过多屏空间；图表小屏可用。
+- 正文文字对比度达 WCAG AA；键盘焦点可见；不可逆操作有确认。
