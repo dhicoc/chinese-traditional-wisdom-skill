@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ControlField } from '@/components/shared/ControlField';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { HexagramChart } from '@/components/shared/HexagramChart';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
@@ -167,7 +168,10 @@ export function LiuyaoWorkspace() {
               支持铜钱法、时间起卦、手动爻值三种方式；用神依问题事项自动选取。
             </p>
           </div>
-          <CopyContextButton commandScope="liuyao" title="六爻纳甲 React 上下文" payload={contextPayload} />
+          <div className="flex gap-2">
+            <CopyContextButton commandScope="liuyao" title="六爻纳甲 React 上下文" payload={contextPayload} />
+            <ExportReportButton module="命盘" />
+          </div>
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">

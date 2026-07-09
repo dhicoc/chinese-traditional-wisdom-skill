@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { LegendPanel } from '@/components/shared/LegendPanel';
 import { ZiweiPalaceGrid } from '@/components/shared/ZiweiPalaceGrid';
@@ -159,7 +160,10 @@ export function ZiweiWorkspace() {
               SylarLong/iztro v2.5.8 排盘，再复用稳定的十二宫 Canvas renderer。
             </p>
           </div>
-          <CopyContextButton commandScope="ziwei" title="紫微斗数 React 迁移上下文" payload={contextPayload} />
+          <div className="flex gap-2">
+            <CopyContextButton commandScope="ziwei" title="紫微斗数 React 迁移上下文" payload={contextPayload} />
+            <ExportReportButton module="命盘" />
+          </div>
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">

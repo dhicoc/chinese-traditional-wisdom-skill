@@ -449,23 +449,6 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
         </div>
       </header>
 
-      {feedback && (
-        <div
-          data-testid="command-feedback"
-          role="status"
-          aria-live="polite"
-          className={[
-            'fixed right-6 top-6 z-50 max-w-sm rounded-card border px-4 py-3 shadow-instrument backdrop-blur-xl',
-            feedback.tone === 'success'
-              ? 'border-jade-500/35 bg-jade-950/92 text-jade-50'
-              : 'border-gold-500/30 bg-ink-900/92 text-jade-50',
-          ].join(' ')}
-        >
-          <p className="text-sm font-semibold">{feedback.title}</p>
-          {feedback.description && <p className="mt-1 text-xs text-jade-100/55">{feedback.description}</p>}
-        </div>
-      )}
-
       {paletteOpen && (
         <CommandPalette
           items={items}

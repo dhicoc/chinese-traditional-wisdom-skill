@@ -400,7 +400,8 @@ check(commandBar.includes('dispatchReaderSearchIntent'), 'CommandBar 应派发�
 check(commandBar.includes('COMMAND_FEEDBACK_EVENT'), 'CommandBar 应监听命令执行反馈事件');
 check(commandBar.includes('data-testid="command-bar"'), 'CommandBar 搜索入口应提供稳定 data-testid');
 check(commandBar.includes('data-testid="command-palette"'), 'CommandBar 面板应提供稳定 data-testid');
-check(commandBar.includes('data-testid="command-feedback"'), 'CommandBar 执行后应渲染反馈 toast');
+check(commandBar.includes('COMMAND_FEEDBACK_EVENT') || commandBar.includes('dispatchCommandFeedback'), 'CommandBar 应派发 COMMAND_FEEDBACK_EVENT 反馈（GlobalToast 统一渲染）');
+check(fs.existsSync(path.join(srcRoot, 'components/shared/GlobalToast.tsx')), 'GlobalToast 组件应存在（统一反馈渲染）');
 check(commandBar.includes('dispatchCommandFeedback(buildCommandFeedback(item))'), 'CommandBar 选择命令后应派发标准反馈');
 check(commandBar.includes("onSelectModule('liuyao')"), 'CommandBar 六爻快捷命令应跳转 liuyao 模块');
 check(commandBar.includes("onSelectModule('meihua')"), 'CommandBar 梅花快捷命令应跳转 meihua 模块');

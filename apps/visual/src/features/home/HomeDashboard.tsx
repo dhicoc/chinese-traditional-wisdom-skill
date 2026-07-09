@@ -81,6 +81,31 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
 
   return (
     <section className="space-y-5" data-testid="home-dashboard">
+      {/* 场景化入口（UX P1） */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { label: '我想看运势', desc: '八字命盘 · 紫微斗数', module: 'bazi' as ModuleId, icon: '命' },
+          { label: '我想起名', desc: '姓名五行 · 五格评分', module: 'namewuxing' as ModuleId, icon: '名' },
+          { label: '我想问事', desc: '六爻占卜 · 梅花易数 · 奇门遁甲', module: 'liuyao' as ModuleId, icon: '卜' },
+          { label: '我想看风水', desc: '风水罗盘 · 流年飞星 · 八宅', module: 'fengshui' as ModuleId, icon: '堪' },
+        ].map((entry) => (
+          <button
+            key={entry.label}
+            type="button"
+            onClick={() => onSelectModule(entry.module)}
+            className="group flex items-center gap-3 rounded-panel border border-ink-700 bg-ink-850/60 p-4 text-left transition hover:border-jade-500/30 hover:bg-ink-850/80"
+          >
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-jade-500/25 bg-jade-500/10 font-serif text-lg text-jade-400 transition group-hover:bg-jade-500/20">
+              {entry.icon}
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-jade-100">{entry.label}</p>
+              <p className="mt-0.5 truncate text-xs text-jade-100/45">{entry.desc}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+
       <div className="home-console-grid grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)_300px]">
         <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
           <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-3">

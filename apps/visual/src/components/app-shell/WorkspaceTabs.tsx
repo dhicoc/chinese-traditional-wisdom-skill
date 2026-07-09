@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ModuleId } from '@/lib/modules';
-import { MODULES, getModuleById } from '@/lib/modules';
+import { MODULES, MODULE_GROUPS, getModuleById } from '@/lib/modules';
 
 interface WorkspaceTabsProps {
   activeModule: ModuleId;
@@ -65,25 +65,30 @@ export function WorkspaceTabs({ activeModule, onSelectModule }: WorkspaceTabsPro
             role="tablist"
             aria-label="工作区标签"
           >
-            {MODULES.map((module) => {
+            {MODULES.map((module, idx) => {
               const isActive = module.id === activeModule;
+              // 组间分隔符：当前模块的 group 与前一个不同时显示
+              const prevModule = idx > 0 ? MODULES[idx - 1] : null;
+              const showDivider = idx > 0 && prevModule && prevModule.group !== module.group;
               return (
-                <button
-                  key={module.id}
-                  ref={isActive ? activeRef : undefined}
-                  type="button"
-                  role="tab"
-                  aria-selected={isActive}
-                  onClick={() => onSelectModule(module.id)}
-                  className={[
-                    'shrink-0 rounded-full border px-3 py-2 text-xs font-semibold transition',
-                    isActive
-                      ? 'border-jade-500/40 bg-jade-500/12 text-jade-50'
-                      : 'border-transparent text-jade-100/45 hover:border-jade-500/20 hover:text-jade-100',
-                  ].join(' ')}
-                >
+                <span key={module.id} className="flex items-center gap-2">
+                  {showDivider && <span className="h-4 w-px shrink-0 bg-white/10" />}
+                  <button
+                    ref={isActive ? activeRef : undefined}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => onSelectModule(module.id)}
+                    className={[
+                      'shrink-0 rounded-full border px-3 py-2 text-xs font-semibold transition',
+                      isActive
+                        ? 'border-jade-500/40 bg-jade-500/12 text-jade-50'
+                        : 'border-transparent text-jade-100/45 hover:border-jade-500/20 hover:text-jade-100',
+                    ].join(' ')}
+                  >
                   {module.title}
-                </button>
+                  </button>
+                </span>
               );
             })}
           </div>

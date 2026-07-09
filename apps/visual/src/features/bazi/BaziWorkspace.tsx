@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { BaziPillarsChart } from '@/components/shared/BaziPillarsChart';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { DataModeBadge } from '@/components/shared/DataModeBadge';
+import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { FiveElementsChart } from '@/components/shared/FiveElementsChart';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
@@ -111,7 +112,10 @@ export function BaziWorkspace() {
               读取顶部全局生辰，调用 BaziEngine / lunar-javascript Adapter 生成四柱与五行，再复用旧 Canvas renderer。
             </p>
           </div>
-          <CopyContextButton commandScope="bazi" title="八字命盘 React 迁移上下文" payload={contextPayload} />
+          <div className="flex gap-2">
+            <CopyContextButton commandScope="bazi" title="八字命盘 React 迁移上下文" payload={contextPayload} />
+            <ExportReportButton module="八字命盘" />
+          </div>
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-[16px] border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">

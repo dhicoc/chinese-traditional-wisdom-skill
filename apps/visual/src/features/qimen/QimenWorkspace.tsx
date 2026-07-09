@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
@@ -115,7 +116,10 @@ export function QimenWorkspace() {
               3meta v2.6.0 时家奇门排盘（拆补法）：三奇六仪、九星、八门、八神、值符值使、空亡马星、旺相休囚、十二长生、吉凶格局自动检测。文化学习参考。
             </p>
           </div>
-          <CopyContextButton commandScope="qimen" title="奇门遁甲上下文" payload={contextPayload} />
+          <div className="flex gap-2">
+            <CopyContextButton commandScope="qimen" title="奇门遁甲上下文" payload={contextPayload} />
+            <ExportReportButton module="命盘" />
+          </div>
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
