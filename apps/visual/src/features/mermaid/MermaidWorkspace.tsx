@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 
 /**
- * Mermaid 图表数据，与旧 visual/index.html 的 tab-mermaid 五张图对齐。
+ * Mermaid 图表数据。
  * 源码内置，不依赖外部文件；离线时显示源码降级（与旧版行为一致）。
  */
 interface MermaidDiagram {
@@ -219,7 +219,7 @@ export function MermaidWorkspace() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">知识图谱</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              使用 Mermaid.js 动态渲染传统文化知识体系结构图。图源码内置，CDN 未加载时离线显示源码，与旧 visual/index.html 的 tab-mermaid 对齐。
+              传统文化知识体系结构图。CDN 未加载时离线显示源码。
             </p>
           </div>
           <CopyContextButton commandScope="mermaid" title="知识图谱 React 迁移上下文" payload={contextPayload} />

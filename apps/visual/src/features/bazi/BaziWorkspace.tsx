@@ -109,7 +109,7 @@ export function BaziWorkspace() {
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-400">Bazi Plate</p>
             <h2 className="mt-1 text-2xl font-semibold text-jade-50">八字排盘工作台</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              读取顶部全局生辰，调用 BaziEngine / lunar-javascript Adapter 生成四柱与五行，再复用旧 Canvas renderer。
+              读取顶部全局生辰，生成四柱、五行与喜用神分析。
             </p>
           </div>
           <div className="flex gap-2">
@@ -161,11 +161,10 @@ export function BaziWorkspace() {
               <div>
                 <h3 className="text-lg font-semibold text-jade-50">四柱主盘</h3>
                 <p className="mt-1 text-sm leading-6 text-jade-100/55">
-                  SVG 四柱主盘对齐 bazi renderer 布局（Phase 10 图表替换）；数据来自统一 Adapter 计算。
+                  四柱主盘：年/月/日/时天干地支，按五行配色，日柱高亮。
                 </p>
               </div>
               <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-                SVG · Phase 10
               </span>
             </div>
             <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
@@ -225,11 +224,10 @@ export function BaziWorkspace() {
               <div>
                 <h3 className="text-lg font-semibold text-jade-50">五行平衡</h3>
                 <p className="mt-1 text-sm leading-6 text-jade-100/55">
-                  五行相生相克图，统计来自同一次八字计算（Phase 10 SVG 替换）。
+                  五行相生相克图，统计姓名各字五行分布。
                 </p>
               </div>
               <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-                SVG · Phase 10
               </span>
             </div>
             <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">

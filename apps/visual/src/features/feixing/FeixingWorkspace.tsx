@@ -78,7 +78,7 @@ export function FeixingWorkspace() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">流年飞星</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              复用旧 fengshui.js 的九宫飞星 renderer，React 负责年份输入与中宫星摘要，与旧 visual/index.html 的 updateFlyingStars() 规则一致。
+              输入年份，查看流年九宫飞星分布与中宫星摘要。
             </p>
           </div>
           <CopyContextButton commandScope="feixing" title="流年飞星 React 迁移上下文" payload={contextPayload} />
@@ -106,7 +106,7 @@ export function FeixingWorkspace() {
           <InterpretationCard
             title="中宫飞星"
             badge="React 解读卡"
-            subtitle="以旧 renderer 计算结果为准，React 仅负责结构化展示。"
+            subtitle="中宫飞星与方位吉凶参考。"
             items={summary ? [
               { label: '星号', value: summary.centerStar },
               { label: '星名', value: summary.starName },
@@ -119,7 +119,7 @@ export function FeixingWorkspace() {
 
           <LegendPanel
             title="九星五行图例"
-            description="Phase 10 先保留稳定 Canvas，补齐 React 外围图例组件，后续再替换高收益图表。"
+            description="九星五行配色与方位吉凶参考。"
             items={starLegend}
           />
 
@@ -139,12 +139,11 @@ export function FeixingWorkspace() {
             <div>
               <h3 className="text-lg font-semibold text-jade-50">九宫飞星图</h3>
               <p className="mt-1 text-sm leading-6 text-jade-100/55">
-                SVG 九宫格对齐 renderFlyingStars 布局（Phase 10 图表替换）；数据来自同一份 getFlyingStars 计算。
+                九宫飞星图：3×3 洛书九宫，每格宫位名+飞星编号星名，中心格高亮。
               </p>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-                SVG · Phase 10
               </span>
               <DataModeBadge mode="local-approx" ready={ready} />
             </div>

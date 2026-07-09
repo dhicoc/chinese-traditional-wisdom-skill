@@ -260,7 +260,6 @@ export function LiuyaoWorkspace() {
                     京房纳甲：六神(左)、爻象、地支六亲(右)、世应标记。
                   </p>
                 </div>
-                <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2.5 py-1 text-[10px] text-jade-400">SVG · Phase 10</span>
               </div>
               <div className="canvas-stage overflow-x-auto rounded-[18px] border border-jade-500/18 bg-ink-950/92 p-3">
                 {ready ? (

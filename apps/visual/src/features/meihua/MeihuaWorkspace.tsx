@@ -107,7 +107,7 @@ export function MeihuaWorkspace() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">梅花易数</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              先复用旧 divination renderer，React 负责上下卦、动爻和体用关系输入，作为后续接入本地时间起卦与数字起卦规则的外壳。
+              选择上下卦、动爻和体用关系，查看本卦、互卦、变卦与体用生克。
             </p>
           </div>
           <CopyContextButton commandScope="meihua" title="梅花易数 React 迁移上下文" payload={contextPayload} />
@@ -175,12 +175,11 @@ export function MeihuaWorkspace() {
             <div>
               <h3 className="text-lg font-semibold text-jade-50">本卦 · 互卦 · 变卦</h3>
               <p className="mt-1 text-sm leading-6 text-jade-100/55">
-                SVG 卦画对齐 renderMeihua 结构（Phase 10 图表替换）；互卦 inset 框高按内容自适应。
+                本卦·互卦·变卦：上下卦爻象、动爻标记、体用生克关系。
               </p>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-                SVG · Phase 10
               </span>
               <DataModeBadge mode="local-approx" ready={ready} />
             </div>

@@ -143,7 +143,7 @@ export function ZiweiWorkspace() {
       palaceCount,
       source: transformedByIztro ? 'SylarLong/iztro v2.5.8 + visual/js/engine-adapters.js' : 'React fallback demo',
       note: transformedByIztro
-        ? 'React 工作区已通过 Legacy EngineAdapterRegistry 调用真实 iztro 排盘，再复用旧 ziwei canvas renderer。'
+        ? '基于内置 iztro v2.5.8 真实排盘。'
         : '旧引擎未就绪时仅用于界面降级，不作为真实排盘结论。',
     }),
     [data, palaceCount, transformedByIztro],
@@ -157,7 +157,7 @@ export function ZiweiWorkspace() {
             <h2 className="font-serif text-2xl font-semibold text-jade-100">紫微斗数</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               React 侧不再自造紫微结论：页面读取顶部全局生辰，优先通过旧 EngineAdapterRegistry 调用
-              SylarLong/iztro v2.5.8 排盘，再复用稳定的十二宫 Canvas renderer。
+              基于 SylarLong/iztro v2.5.8 真实十二宫排盘。
             </p>
           </div>
           <div className="flex gap-2">
@@ -203,12 +203,11 @@ export function ZiweiWorkspace() {
             <div>
               <h3 className="text-lg font-semibold text-jade-50">十二宫命盘</h3>
               <p className="mt-1 text-sm leading-6 text-jade-100/55">
-                真实数据来自 ZiweiIztroAdapter；SVG 命盘对齐 4x4 环形十二宫布局（Phase 10 图表替换）。
+                十二宫命盘：外环十二地支各居一格，中心为命卦/四化/生辰/主星信息区。
               </p>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-                SVG · Phase 10
               </span>
               <DataModeBadge mode={data.mode} ready={ready} />
             </div>

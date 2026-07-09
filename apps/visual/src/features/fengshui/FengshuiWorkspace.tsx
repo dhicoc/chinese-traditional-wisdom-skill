@@ -13,7 +13,7 @@ const COMPASS_CONTEXT = {
   mode: 'legacy-canvas-react-shell',
   source: 'visual/js/fengshui.js (renderCompass)',
   notes: [
-    '二十四山与八卦方位来自旧版风水 renderer。',
+    '二十四山与八卦方位静态参考。',
     '当前页面聚焦罗盘本体，不带坐向输入。',
   ],
 };
@@ -41,7 +41,7 @@ export function FengshuiWorkspace() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">风水罗盘</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              复用旧 fengshui.js 的二十四山罗盘 renderer。React 只负责工作区结构、上下文复制和后续扩展入口。
+              二十四山罗盘方位参考图。
             </p>
           </div>
           <CopyContextButton commandScope="fengshui" title="风水罗盘 React 迁移上下文" payload={contextPayload} />
@@ -75,12 +75,11 @@ export function FengshuiWorkspace() {
             <div>
               <h3 className="text-lg font-semibold text-jade-50">二十四山罗盘</h3>
               <p className="mt-1 text-sm leading-6 text-jade-100/55">
-                SVG 三环罗盘对齐 renderCompass 布局（Phase 10 图表替换收官）；外环二十四山、中环八卦、内环八方向。
+                三环罗盘：外环二十四山、中环八卦符号、内环八方向，中心十字定方位。
               </p>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-                SVG · Phase 10
               </span>
               <DataModeBadge mode="knowledge" ready={ready} />
             </div>

@@ -57,7 +57,7 @@ export function BazhaiWorkspace() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">八宅大游年</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              复用旧 fengshui.js 的八宅命盘 renderer，React 负责出生年与性别输入，与旧 visual/index.html 的 updateEightMansions() 规则一致。
+              输入出生年与性别，查看命卦与八方位游年星吉凶。
             </p>
           </div>
           <CopyContextButton commandScope="bazhai" title="八宅大游年 React 迁移上下文" payload={contextPayload} />
@@ -121,12 +121,11 @@ export function BazhaiWorkspace() {
             <div>
               <h3 className="text-lg font-semibold text-jade-50">八宅命盘</h3>
               <p className="mt-1 text-sm leading-6 text-jade-100/55">
-                SVG 环形命盘对齐 renderEightMansions 布局（Phase 10 图表替换）；数据来自同一份 EIGHT_MANSIONS_DATA 规则。
+                八宅命盘：八方向扇区，每扇区显示游年星、吉凶与含义，中心为命卦。
               </p>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-                SVG · Phase 10
               </span>
               <DataModeBadge mode="local-approx" ready={ready} />
             </div>

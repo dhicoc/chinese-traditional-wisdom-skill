@@ -70,7 +70,7 @@ export function YunqiWorkspace() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">五运六气</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              复用旧 YunqiEngine 计算链路与 health renderer，验证 React Shell 对本地规则引擎和 Canvas 图表的双重兼容。
+              基于内置 lunar-javascript 精确历法推算岁运、司天在泉与客气六步。
             </p>
           </div>
           <CopyContextButton commandScope="yunqi" title="五运六气 React 迁移上下文" payload={contextPayload} />
@@ -119,12 +119,11 @@ export function YunqiWorkspace() {
             <div>
               <h3 className="text-lg font-semibold text-jade-50">岁运 · 司天 · 在泉</h3>
               <p className="mt-1 text-sm leading-6 text-jade-100/55">
-                SVG 综合图对齐五运六气 renderer 布局（Phase 10 图表替换）；病势倾向按「，」换行自适应。
+                岁运·司天·在泉·客气六步·病势倾向·五行图例综合展示。
               </p>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-                SVG · Phase 10
               </span>
               <DataModeBadge mode="local-exact" ready={ready} />
             </div>
