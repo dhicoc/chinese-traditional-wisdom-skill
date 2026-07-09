@@ -1,26 +1,35 @@
 /**
- * FengshuiCompass — 二十四山 SVG 罗盘（Phase 10 图表替换收官）
+ * FengshuiCompass — 二十四山 SVG 罗盘（增强版）
  *
- * 替代风水工作区的 legacy Canvas `renderCompass`。三环结构：
- * 外环二十四山（阳山暖色/阴山冷色）、中环八卦符号+卦名、内环八方向，
- * 中心十字（北红南黑）。方位与配色对齐 legacy `compassRender`。
- * 「子」居正北，每山 15°，24 山按 CORE.twentyFourMountains 顺序顺时针。
+ * 三环结构：外环二十四山、中环八卦符号+卦名、内环八方向，中心十字。
+ * 增强：支持坐向旋转、飞星吉凶叠加、八宅游年星叠加。
  */
+
+interface PalaceOverlay {
+  palace?: string;
+  starNum?: number;
+  starName?: string;
+  starLuck?: string;
+  usageLabel?: string;
+  mansionStar?: string;
+  mansionLuck?: string;
+}
 
 interface FengshuiCompassProps {
   size?: number;
+  /** 坐向（如 "子午"=坐子向午），传入则罗盘旋转使朝向指向上方 */
+  facing?: string;
+  /** 各方位叠加数据（飞星+八宅） */
+  overlay?: Record<string, PalaceOverlay>;
 }
 
-// 二十四山（对齐 legacy CORE.twentyFourMountains）
 const MOUNTAINS = [
   '壬', '子', '癸', '丑', '艮', '寅', '甲', '卯', '乙', '辰', '巽', '巳',
   '丙', '午', '丁', '未', '坤', '申', '庚', '酉', '辛', '戌', '乾', '亥',
 ];
 
-// 阳山（暖色），其余为阴山（冷色）——对齐 legacy YANG_MOUNTAINS
 const YANG_MOUNTAINS = new Set(['壬', '甲', '丙', '庚', '乾', '艮', '子', '寅', '辰', '午', '申', '戌']);
 
-// 八卦方位（对齐 legacy CORE.trigramDirection），按 deg 升序
 const TRIGRAMS: { tri: string; deg: number; label: string; symbol: string }[] = [
   { tri: '坎', deg: 0, label: '北', symbol: '☵' },
   { tri: '艮', deg: 45, label: '东北', symbol: '☶' },
@@ -32,9 +41,40 @@ const TRIGRAMS: { tri: string; deg: number; label: string; symbol: string }[] = 
   { tri: '乾', deg: 315, label: '西北', symbol: '☰' },
 ];
 
-const DEG = Math.PI / 180;
+// 二十四山 → 角度（从北顺时针，每山15°）
+const MOUNTAIN_DEG: Record<string, number> = {};
+MOUNTAINS.forEach((m, i) => { MOUNTAIN_DEG[m] = i * 15; });
 
-/** 环形扇区 path（deg 为数学角度，北=0 顺时针；SVG y 向下需 -90） */
+// 八方位标签
+const DIR_LABELS: Record<string, string> = {
+  '北': '北', '东北': '东北', '东': '东', '东南': '东南',
+  '南': '南', '西南': '西南', '西': '西', '西北': '西北',
+};
+
+// 宫位 → 方位
+const PALACE_TO_DIR: Record<string, string> = {
+  '坎': '北', '坤': '西南', '震': '东', '巽': '东南',
+  '中': '中', '乾': '西北', '兑': '西', '艮': '东北', '离': '南',
+};
+
+const LUCK_COLOR: Record<string, string> = {
+  '大吉': '#2a9d8f', '吉': '#2a9d8f',
+  '大凶': '#e76f51', '凶': '#e76f51',
+  '中平': '#9a8a7a',
+};
+
+const MOUNTAIN_TO_DIR: Record<string, string> = {
+  '子': '北', '癸': '北', '壬': '北',
+  '丑': '东北', '艮': '东北', '寅': '东北',
+  '甲': '东', '卯': '东', '乙': '东',
+  '辰': '东南', '巽': '东南', '巳': '东南',
+  '丙': '南', '午': '南', '丁': '南',
+  '未': '西南', '坤': '西南', '申': '西南',
+  '庚': '西', '酉': '西', '辛': '西',
+  '戌': '西北', '乾': '西北', '亥': '西北',
+};
+
+/** 环形扇区 path */
 function sectorPath(cx: number, cy: number, rIn: number, rOut: number, deg: number, half: number): string {
   const startDeg = deg - half - 90;
   const endDeg = deg + half - 90;
@@ -57,23 +97,20 @@ function sectorPath(cx: number, cy: number, rIn: number, rOut: number, deg: numb
   ].join(' ');
 }
 
-/** 径向文字定位：返回 x/y 与旋转角度（左侧翻转避免倒读） */
+/** 径向文字定位 */
 function radial(cx: number, cy: number, deg: number, r: number) {
   const rad = ((deg - 90) * Math.PI) / 180;
   const x = cx + r * Math.cos(rad);
   const y = cy + r * Math.sin(rad);
   const flip = deg > 90 && deg < 270;
-  const rotate = flip ? deg + 180 : deg;
-  return { x, y, rotate, flip };
+  return { x, y, rotate: flip ? deg + 180 : deg, flip };
 }
 
-export function FengshuiCompass({ size = 500 }: FengshuiCompassProps) {
+export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompassProps) {
   const W = size;
   const H = size;
   const cx = W / 2;
   const cy = H / 2;
-
-  // 环半径（从外到内，对齐 legacy compassRender）
   const R1 = 235;
   const R1i = 195;
   const R2 = 190;
@@ -82,13 +119,16 @@ export function FengshuiCompass({ size = 500 }: FengshuiCompassProps) {
   const R3i = 88;
   const RC = 38;
 
-  const centerCross = [
-    { label: '北', angle: -90, color: '#D32F2F' },
-    { label: '南', angle: 90, color: '#cfe9dc' },
-    { label: '东', angle: 0, color: '#cfe9dc' },
-    { label: '西', angle: 180, color: '#cfe9dc' },
-  ];
-  const lineLen = RC * 0.72;
+  // 坐向旋转角度：facing 格式如 "子午"(坐子向午)，午在正南(180°)，
+  // 旋转使朝向(第二个字)指向上方(0°/360°)
+  const facingRotation = (() => {
+    if (!facing || facing.length < 2) return 0;
+    const facingMountain = facing.charAt(1); // 朝向山
+    const deg = MOUNTAIN_DEG[facingMountain];
+    if (deg == null) return 0;
+    // 使朝向指向上方：旋转 -deg 度
+    return -deg;
+  })();
 
   return (
     <svg
@@ -96,116 +136,158 @@ export function FengshuiCompass({ size = 500 }: FengshuiCompassProps) {
       viewBox={`0 0 ${W} ${H}`}
       className="mx-auto block h-auto w-full max-w-[520px]"
       role="img"
-      aria-label="二十四山风水罗盘"
+      aria-label={`二十四山风水罗盘${facing ? `，坐${facing.charAt(0)}向${facing.charAt(1)}` : ''}`}
     >
-      {/* 背景 */}
-      <circle cx={cx} cy={cy} r={R1 + 4} fill="#0b1410" stroke="#2a4a3e" strokeWidth={1.5} />
+      {/* 旋转组：按坐向旋转整个罗盘 */}
+      <g transform={`rotate(${facingRotation} ${cx} ${cy})`}>
+        {/* 背景 */}
+        <circle cx={cx} cy={cy} r={R1 + 4} fill="#0b1410" stroke="#2a4a3e" strokeWidth={1.5} />
 
-      {/* 外环：二十四山 */}
-      {MOUNTAINS.map((mtn, i) => {
-        const isYang = YANG_MOUNTAINS.has(mtn);
-        const centerDeg = (i - 1) * 15; // 子(i=1)居 0°
-        const p = radial(cx, cy, centerDeg, (R1 + R1i) / 2);
-        return (
-          <g key={mtn}>
-            <path
-              d={sectorPath(cx, cy, R1i, R1, centerDeg, 7.5)}
-              fill={isYang ? '#3a2818' : '#152a3a'}
-              stroke="#3a4a3a"
-              strokeWidth={0.6}
-            />
-            <g transform={`translate(${p.x.toFixed(2)} ${p.y.toFixed(2)}) rotate(${p.rotate})`}>
-              <text
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fill={isYang ? '#FFB74D' : '#64B5F6'}
-                style={{ fontSize: 12 }}
-              >
-                {p.flip ? mtn : mtn}
+        {/* 外环：二十四山 */}
+        {MOUNTAINS.map((mtn, i) => {
+          const isYang = YANG_MOUNTAINS.has(mtn);
+          const centerDeg = (i - 1) * 15;
+          const p = radial(cx, cy, centerDeg, (R1 + R1i) / 2);
+          const dir = MOUNTAIN_TO_DIR[mtn] || '';
+          const ov = overlay?.[dir];
+          // 飞星叠加：如果该方位有飞星数据，用吉凶色填充扇区
+          const luckColor = ov?.starLuck ? LUCK_COLOR[ov.starLuck] : null;
+          return (
+            <g key={mtn}>
+              <path
+                d={sectorPath(cx, cy, R1i, R1, centerDeg, 7.5)}
+                fill={luckColor ? luckColor + '20' : (isYang ? '#3a2818' : '#152a3a')}
+                stroke="#3a4a3a"
+                strokeWidth={0.6}
+              />
+              <g transform={`translate(${p.x.toFixed(2)} ${p.y.toFixed(2)}) rotate(${p.rotate})`}>
+                <text textAnchor="middle" dominantBaseline="middle"
+                  fill={luckColor ?? (isYang ? '#FFB74D' : '#64B5F6')}
+                  style={{ fontSize: 12 }}
+                >
+                  {mtn}
+                </text>
+              </g>
+            </g>
+          );
+        })}
+        <circle cx={cx} cy={cy} r={R1} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
+        <circle cx={cx} cy={cy} r={R1i} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
+
+        {/* 中环：八卦符号 + 卦名 */}
+        {TRIGRAMS.map((t) => {
+          const pSym = radial(cx, cy, t.deg, (R2 + R2i) / 2 + 6);
+          const pName = radial(cx, cy, t.deg, (R2 + R2i) / 2 - 12);
+          const dir = t.label;
+          const ov = overlay?.[dir];
+          const luckColor = ov?.mansionLuck ? LUCK_COLOR[ov.mansionLuck] : null;
+          return (
+            <g key={t.tri}>
+              <path
+                d={sectorPath(cx, cy, R2i, R2, t.deg, 22.5)}
+                fill={luckColor ? luckColor + '18' : '#16241c'}
+                stroke="#3a4a3a"
+                strokeWidth={0.6}
+              />
+              <g transform={`translate(${pSym.x.toFixed(2)} ${pSym.y.toFixed(2)}) rotate(${pSym.rotate})`}>
+                <text textAnchor="middle" dominantBaseline="middle" fill="#EAD7A4" style={{ fontSize: 17 }}>
+                  {t.symbol}
+                </text>
+              </g>
+              <g transform={`translate(${pName.x.toFixed(2)} ${pName.y.toFixed(2)}) rotate(${pName.rotate})`}>
+                <text textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? '#9a8a7a'} style={{ fontSize: 11 }}>
+                  {t.tri}
+                </text>
+                {ov?.mansionStar && (
+                  <text y={12} textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? '#7a8a7a'} style={{ fontSize: 9 }}>
+                    {ov.mansionStar}
+                  </text>
+                )}
+              </g>
+            </g>
+          );
+        })}
+        <circle cx={cx} cy={cy} r={R2} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
+        <circle cx={cx} cy={cy} r={R2i} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
+
+        {/* 内环：八方向 + 飞星编号 */}
+        {TRIGRAMS.map((t) => {
+          const p = radial(cx, cy, t.deg, (R3 + R3i) / 2);
+          const dir = t.label;
+          const ov = overlay?.[dir];
+          const luckColor = ov?.starLuck ? LUCK_COLOR[ov.starLuck] : null;
+          return (
+            <g key={`dir-${t.tri}`}>
+              <path
+                d={sectorPath(cx, cy, R3i, R3, t.deg, 22.5)}
+                fill={luckColor ? luckColor + '15' : '#101f18'}
+                stroke="#3a4a3a"
+                strokeWidth={0.6}
+              />
+              <g transform={`translate(${p.x.toFixed(2)} ${p.y.toFixed(2)}) rotate(${p.rotate})`}>
+                <text textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? '#cfe9dc'} style={{ fontSize: 13, fontWeight: 700 }}>
+                  {t.label}
+                </text>
+                {ov?.starNum && (
+                  <text y={14} textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? '#9a8a7a'} style={{ fontSize: 11 }}>
+                    {ov.starNum}{ov.starName?.slice(0,2) ?? ''}
+                  </text>
+                )}
+              </g>
+            </g>
+          );
+        })}
+        <circle cx={cx} cy={cy} r={R3} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
+        <circle cx={cx} cy={cy} r={R3i} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
+
+        {/* 中心十字 */}
+        <circle cx={cx} cy={cy} r={RC} fill="#0b1410" stroke="#5a6a5a" strokeWidth={1.5} />
+        {[
+          { label: '北', angle: -90, color: '#D32F2F' },
+          { label: '南', angle: 90, color: '#cfe9dc' },
+          { label: '东', angle: 0, color: '#cfe9dc' },
+          { label: '西', angle: 180, color: '#cfe9dc' },
+        ].map((d) => {
+          const rad = d.angle * (Math.PI / 180);
+          const x2 = cx + RC * 0.72 * Math.cos(rad);
+          const y2 = cy + RC * 0.72 * Math.sin(rad);
+          const lr = RC * 0.9;
+          const lx = cx + lr * Math.cos(rad);
+          const ly = cy + lr * Math.sin(rad);
+          return (
+            <g key={d.label}>
+              <line x1={cx} y1={cy} x2={x2} y2={y2} stroke={d.color} strokeWidth={d.angle === -90 ? 2.5 : 1.5} />
+              <text x={lx} y={ly} textAnchor="middle" dominantBaseline="middle" fill={d.color} style={{ fontSize: 11, fontWeight: d.angle === -90 ? 700 : 400 }}>
+                {d.label}
               </text>
             </g>
-          </g>
-        );
-      })}
-      <circle cx={cx} cy={cy} r={R1} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
-      <circle cx={cx} cy={cy} r={R1i} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
+          );
+        })}
+        <circle cx={cx} cy={cy} r={3} fill="#cfe9dc" />
 
-      {/* 中环：八卦符号 + 卦名 */}
-      {TRIGRAMS.map((t) => {
-        const pSym = radial(cx, cy, t.deg, (R2 + R2i) / 2 + 6);
-        const pName = radial(cx, cy, t.deg, (R2 + R2i) / 2 - 12);
-        return (
-          <g key={t.tri}>
-            <path
-              d={sectorPath(cx, cy, R2i, R2, t.deg, 22.5)}
-              fill="#16241c"
-              stroke="#3a4a3a"
-              strokeWidth={0.6}
-            />
-            <g transform={`translate(${pSym.x.toFixed(2)} ${pSym.y.toFixed(2)}) rotate(${pSym.rotate})`}>
-              <text textAnchor="middle" dominantBaseline="middle" fill="#EAD7A4" style={{ fontSize: 17 }}>
-                {pSym.flip ? t.symbol : t.symbol}
-              </text>
-            </g>
-            <g transform={`translate(${pName.x.toFixed(2)} ${pName.y.toFixed(2)}) rotate(${pName.rotate})`}>
-              <text textAnchor="middle" dominantBaseline="middle" fill="#9a8a7a" style={{ fontSize: 11 }}>
-                {pName.flip ? t.tri : t.tri}
-              </text>
-            </g>
+        {/* 坐向标识：在朝向方位画一个箭头 */}
+        {facing && facing.length >= 2 && (
+          <g>
+            {(() => {
+              const facingDeg = MOUNTAIN_DEG[facing.charAt(1)] ?? 0;
+              const sittingDeg = MOUNTAIN_DEG[facing.charAt(0)] ?? 180;
+              // 朝向箭头（外环外侧）
+              const fr = radial(cx, cy, facingDeg, R1 + 20);
+              const sr = radial(cx, cy, sittingDeg, R1 + 20);
+              return (
+                <>
+                  <text x={fr.x} y={fr.y} textAnchor="middle" dominantBaseline="middle" fill="#e76f51" style={{ fontSize: 14, fontWeight: 700 }}>
+                    ▲向
+                  </text>
+                  <text x={sr.x} y={sr.y} textAnchor="middle" dominantBaseline="middle" fill="#2a9d8f" style={{ fontSize: 14, fontWeight: 700 }}>
+                    ▼坐
+                  </text>
+                </>
+              );
+            })()}
           </g>
-        );
-      })}
-      <circle cx={cx} cy={cy} r={R2} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
-      <circle cx={cx} cy={cy} r={R2i} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
-
-      {/* 内环：八方向 */}
-      {TRIGRAMS.map((t) => {
-        const p = radial(cx, cy, t.deg, (R3 + R3i) / 2);
-        return (
-          <g key={`dir-${t.tri}`}>
-            <path
-              d={sectorPath(cx, cy, R3i, R3, t.deg, 22.5)}
-              fill="#101f18"
-              stroke="#3a4a3a"
-              strokeWidth={0.6}
-            />
-            <g transform={`translate(${p.x.toFixed(2)} ${p.y.toFixed(2)}) rotate(${p.rotate})`}>
-              <text textAnchor="middle" dominantBaseline="middle" fill="#cfe9dc" style={{ fontSize: 13, fontWeight: 700 }}>
-                {p.flip ? t.label : t.label}
-              </text>
-            </g>
-          </g>
-        );
-      })}
-      <circle cx={cx} cy={cy} r={R3} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
-      <circle cx={cx} cy={cy} r={R3i} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
-
-      {/* 中心十字 */}
-      <circle cx={cx} cy={cy} r={RC} fill="#0b1410" stroke="#5a6a5a" strokeWidth={1.5} />
-      {centerCross.map((d) => {
-        const rad = d.angle * DEG;
-        const x2 = cx + lineLen * Math.cos(rad);
-        const y2 = cy + lineLen * Math.sin(rad);
-        const lr = RC * 0.9;
-        const lx = cx + lr * Math.cos(rad);
-        const ly = cy + lr * Math.sin(rad);
-        return (
-          <g key={d.label}>
-            <line x1={cx} y1={cy} x2={x2} y2={y2} stroke={d.color} strokeWidth={d.angle === -90 ? 2.5 : 1.5} />
-            <text
-              x={lx}
-              y={ly}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fill={d.color}
-              style={{ fontSize: 11, fontWeight: d.angle === -90 ? 700 : 400 }}
-            >
-              {d.label}
-            </text>
-          </g>
-        );
-      })}
-      <circle cx={cx} cy={cy} r={3} fill="#cfe9dc" />
+        )}
+      </g>
     </svg>
   );
 }
