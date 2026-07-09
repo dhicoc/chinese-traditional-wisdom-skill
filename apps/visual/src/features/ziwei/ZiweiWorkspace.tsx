@@ -198,6 +198,7 @@ export function ZiweiWorkspace() {
             生辰资料统一由顶部"全局生辰"面板管理；修改后本页会重新排盘。
           </p>
           <TermExplanationPanel
+            ready={ready}
             initialTerm="紫微"
             terms={["紫微","天机","太阳","武曲","天同","廉贞","天府","太阴","贪狼","巨门","天相","天梁","七杀","破军","庙旺","落陷","四化","命宫","福德"]}
             description="点击星曜或术语查看通俗解释。"

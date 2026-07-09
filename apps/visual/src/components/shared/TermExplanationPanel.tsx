@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * TermExplanationPanel — 通用术语解释面板（UX P2）
  *
  * 用 CORE.explain() 查通俗解释，覆盖命理/中医/风水等全部术语。
- * 替代 KnowledgeReferencePanel（仅查风水映射表）用于命理工作区。
+ * 需传入 ready（legacy 引擎是否就绪），就绪后才查解释。
  */
 
 interface TermExplanationPanelProps {
@@ -14,6 +14,8 @@ interface TermExplanationPanelProps {
   terms: string[];
   /** 面板说明 */
   description?: string;
+  /** legacy 引擎是否就绪 */
+  ready?: boolean;
 }
 
 interface LegacyCore {
@@ -25,15 +27,18 @@ function getCore(): LegacyCore | null {
   return w.LegacyCORE ?? null;
 }
 
-export function TermExplanationPanel({ initialTerm, terms, description }: TermExplanationPanelProps) {
+export function TermExplanationPanel({ initialTerm, terms, description, ready }: TermExplanationPanelProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [explanation, setExplanation] = useState<string>('');
   const [notFound, setNotFound] = useState(false);
 
-  const core = useMemo(() => getCore(), []);
-
+  // ready 变化时重新获取 core 并查初始术语
   useEffect(() => {
-    if (initialTerm && core?.explain) {
+    if (!ready) return;
+    const core = getCore();
+    if (!core?.explain) return;
+
+    if (initialTerm) {
       const exp = core.explain(initialTerm);
       if (exp && exp !== '暂无该术语的解释') {
         setSelected(initialTerm);
@@ -41,10 +46,16 @@ export function TermExplanationPanel({ initialTerm, terms, description }: TermEx
         setNotFound(false);
       }
     }
-  }, [initialTerm, core]);
+  }, [ready, initialTerm]);
 
   const lookupTerm = (term: string) => {
     setSelected(term);
+    if (!ready) {
+      setExplanation('');
+      setNotFound(true);
+      return;
+    }
+    const core = getCore();
     if (!core?.explain) {
       setExplanation('');
       setNotFound(true);
