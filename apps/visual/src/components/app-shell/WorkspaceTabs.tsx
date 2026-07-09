@@ -71,7 +71,7 @@ export function WorkspaceTabs({ activeModule, onSelectModule }: WorkspaceTabsPro
               const prevModule = idx > 0 ? MODULES[idx - 1] : null;
               const showDivider = idx > 0 && prevModule && prevModule.group !== module.group;
               return (
-                <span key={module.id} className="flex items-center gap-2">
+                <span key={module.id} className="flex shrink-0 items-center gap-2">
                   {showDivider && <span className="h-4 w-px shrink-0 bg-white/10" />}
                   <button
                     ref={isActive ? activeRef : undefined}
@@ -86,7 +86,7 @@ export function WorkspaceTabs({ activeModule, onSelectModule }: WorkspaceTabsPro
                         : 'border-transparent text-jade-100/45 hover:border-jade-500/20 hover:text-jade-100',
                     ].join(' ')}
                   >
-                  {module.title}
+                    {module.title}
                   </button>
                 </span>
               );
