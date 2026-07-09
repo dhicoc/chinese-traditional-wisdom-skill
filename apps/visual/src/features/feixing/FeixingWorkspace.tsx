@@ -13,7 +13,17 @@ import {
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { DataModeBadge } from '@/components/shared/DataModeBadge';
+import {
+  NINE_STAR_REMEDIES,
+  getYuanYun,
+  getStarStatuses,
+  MING_GUA_DIRECTIONS,
+  PALACE_TO_DIR,
+  type NineStarRemedy,
+} from '@/legacy/flyingStarRemedies';
+import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import type { LegacyState } from '@/legacy/legacyGlobals';
+import { useBirth } from '@/lib/birthContext';
 import {
   YEAR_INTENT_EVENT,
   normalizeCommandYear,
@@ -21,7 +31,20 @@ import {
   type YearIntentDetail,
 } from '@/lib/commandIntents';
 
+const USAGE_LABEL_COLOR: Record<string, string> = {
+  '财位': 'border-gold-500/30 bg-gold-500/10 text-gold-400',
+  '文昌位': 'border-jade-500/30 bg-jade-500/10 text-jade-400',
+  '桃花位': 'border-cinnabar-500/30 bg-cinnabar-500/10 text-cinnabar-400',
+  '喜庆位': 'border-cinnabar-500/30 bg-cinnabar-500/10 text-cinnabar-400',
+  '武贵位': 'border-jade-500/30 bg-jade-500/10 text-jade-400',
+  '病符位': 'border-cinnabar-500/40 bg-cinnabar-500/15 text-cinnabar-300',
+  '五黄凶位': 'border-cinnabar-500/40 bg-cinnabar-500/15 text-cinnabar-300',
+  '是非位': 'border-cinnabar-500/30 bg-cinnabar-500/10 text-cinnabar-400',
+  '破败位': 'border-cinnabar-500/30 bg-cinnabar-500/10 text-cinnabar-400',
+};
+
 export function FeixingWorkspace() {
+  const { birth } = useBirth();
   const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
   const [year, setYear] = useState(() => readPendingCommandYear('feixing'));
 
@@ -30,9 +53,7 @@ export function FeixingWorkspace() {
     loadLegacyScripts().then((state) => {
       if (mounted) setLegacyState(state);
     });
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
   useEffect(() => {
@@ -49,6 +70,46 @@ export function FeixingWorkspace() {
   const ready = legacyState.mode === 'ready';
   const summary = useMemo(() => (ready ? getFeixingSummary(year) : null), [ready, year]);
   const grid = useMemo(() => (ready ? getFeixingGrid(year) : null), [ready, year]);
+
+  // Step 3: 元运标识
+  const yuanYun = useMemo(() => getYuanYun(year), [year]);
+  const starStatuses = useMemo(() => getStarStatuses(yuanYun), [yuanYun]);
+
+  // Step 1+2: 九星化煞建议 + 方位用途
+  const flatGrid = useMemo(() => (grid ? grid.flat() : []), [grid]);
+  const gridRemedies = useMemo(() => {
+    return flatGrid.map((cell) => {
+      const remedy = NINE_STAR_REMEDIES[cell.starNum];
+      return { cell, remedy };
+    });
+  }, [flatGrid]);
+
+  // Step 2: 方位用途一览
+  const usageSummary = useMemo(() => {
+    if (flatGrid.length === 0) return null;
+    const findDir = (starNum: number) => {
+      const cell = flatGrid.find((c) => c.starNum === starNum);
+      return cell ? PALACE_TO_DIR[cell.palace] ?? cell.palace : '';
+    };
+    return {
+      wealth: findDir(8),
+      study: findDir(4),
+      romance: findDir(1),
+      illness: findDir(2),
+      danger: findDir(5),
+    };
+  }, [flatGrid]);
+
+  // Step 4: 命卦合参
+  const mingGuaResult = useMemo(() => {
+    if (!ready) return null;
+    const result = calculateWithLegacyAdapter<{ birth: typeof birth }, any>('bazhai', { birth });
+    if (!result) return null;
+    const guaNum = result.mingGua?.trigram ? trigramToGuaNum(result.mingGua.trigram) : null;
+    if (!guaNum) return null;
+    return MING_GUA_DIRECTIONS[guaNum] ?? null;
+  }, [ready, birth]);
+
   const starLegend = useMemo<LegendItem[]>(
     () => [
       { label: '一白 / 水', color: '#264653', description: '偏向流动、信息与文昌语义。' },
@@ -63,12 +124,14 @@ export function FeixingWorkspace() {
   const contextPayload = useMemo(
     () => ({
       module: 'feixing',
-      mode: 'legacy-canvas-react-shell',
+      mode: 'local-approx',
       year,
       centerStar: summary ?? null,
-      source: 'visual/js/fengshui.js (renderFlyingStars) + visual/js/core.js',
+      yuanYun: yuanYun.name,
+      usageSummary,
+      source: 'visual/js/core.js + flyingStarRemedies.ts',
     }),
-    [year, summary],
+    [year, summary, yuanYun, usageSummary],
   );
 
   return (
@@ -78,16 +141,26 @@ export function FeixingWorkspace() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">流年飞星</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              输入年份，查看流年九宫飞星分布与中宫星摘要。
+              输入年份，查看流年九宫飞星分布、方位用途、化煞建议与命卦合参。
             </p>
           </div>
-          <CopyContextButton commandScope="feixing" title="流年飞星 React 迁移上下文" payload={contextPayload} />
+          <CopyContextButton commandScope="feixing" title="流年飞星上下文" payload={contextPayload} />
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
-            旧引擎加载失败：{legacyState.error}
+            引擎加载失败：{legacyState.error}
           </p>
         )}
+      </div>
+
+      {/* Step 3: 元运标识 */}
+      <div className="flex flex-wrap items-center gap-3 rounded-card border border-gold-500/20 bg-gold-500/5 p-3">
+        <span className="rounded-full border border-gold-500/30 bg-gold-500/10 px-3 py-1 text-xs font-semibold text-gold-400">
+          {yuanYun.name}（{yuanYun.startYear}-{yuanYun.endYear}）
+        </span>
+        <span className="text-xs text-gold-400/60">当令旺星：{NINE_STAR_REMEDIES[yuanYun.wangStar]?.name}</span>
+        <span className="text-xs text-jade-100/45">生气星：{NINE_STAR_REMEDIES[yuanYun.shengStar]?.name}</span>
+        <span className="text-xs text-jade-100/45">退气星：{NINE_STAR_REMEDIES[yuanYun.tuiStar]?.name}</span>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
@@ -105,8 +178,7 @@ export function FeixingWorkspace() {
 
           <InterpretationCard
             title="中宫飞星"
-            badge="React 解读卡"
-            subtitle="中宫飞星与方位吉凶参考。"
+            badge={summary?.luck ?? ''}
             items={summary ? [
               { label: '星号', value: summary.centerStar },
               { label: '星名', value: summary.starName },
@@ -114,8 +186,74 @@ export function FeixingWorkspace() {
               { label: '吉凶', value: summary.luck },
             ] : []}
           >
-            {!summary && <span className="text-jade-100/45">等待旧引擎加载。</span>}
+            {!summary && <span className="text-jade-100/45">等待引擎加载。</span>}
           </InterpretationCard>
+
+          {/* Step 2: 方位用途一览 */}
+          {usageSummary && (
+            <div className="rounded-card border border-white/8 bg-white/[0.025] p-4">
+              <p className="text-sm font-semibold text-jade-100/70">方位用途</p>
+              <div className="mt-2 space-y-1.5 text-xs">
+                <div className="flex justify-between"><span className="text-gold-400">财位</span><span className="text-jade-100/70">{usageSummary.wealth}方</span></div>
+                <div className="flex justify-between"><span className="text-jade-400">文昌位</span><span className="text-jade-100/70">{usageSummary.study}方</span></div>
+                <div className="flex justify-between"><span className="text-cinnabar-400">桃花位</span><span className="text-jade-100/70">{usageSummary.romance}方</span></div>
+                <div className="flex justify-between"><span className="text-cinnabar-300">病符位</span><span className="text-jade-100/70">{usageSummary.illness}方</span></div>
+                <div className="flex justify-between"><span className="text-cinnabar-300">五黄凶位</span><span className="text-jade-100/70">{usageSummary.danger}方</span></div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: 命卦合参 */}
+          {mingGuaResult && (
+            <div className="rounded-card border border-jade-500/20 bg-jade-500/5 p-4">
+              <p className="text-sm font-semibold text-jade-400">命卦合参</p>
+              <p className="mt-1 text-xs text-jade-100/45">基于全局生辰推算个人吉方</p>
+              <div className="mt-2 space-y-1.5 text-xs">
+                <div className="flex justify-between"><span className="text-jade-400">生气位</span><span className="text-jade-100/70">{mingGuaResult.shengqi}方</span></div>
+                <div className="flex justify-between"><span className="text-jade-400">天医位</span><span className="text-jade-100/70">{mingGuaResult.tianyi}方</span></div>
+                <div className="flex justify-between"><span className="text-jade-400">延年位</span><span className="text-jade-100/70">{mingGuaResult.niannian}方</span></div>
+                <div className="flex justify-between"><span className="text-cinnabar-400">绝命位</span><span className="text-jade-100/70">{mingGuaResult.jueming}方</span></div>
+              </div>
+              {usageSummary && mingGuaResult.shengqi === usageSummary.wealth && (
+                <p className="mt-2 rounded-card border border-gold-500/30 bg-gold-500/10 p-2 text-[11px] text-gold-400">
+                  ✦ 大利财运：个人生气位与年飞星财位重合，双重旺财方位！
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Step 1: 九星化煞建议 */}
+          {gridRemedies.length > 0 && (
+            <div className="rounded-card border border-white/8 bg-white/[0.025] p-4">
+              <p className="text-sm font-semibold text-jade-100/70">九星化煞建议</p>
+              <div className="mt-2 space-y-2">
+                {gridRemedies.filter(({ remedy }) => remedy?.nature === '大凶' || remedy?.nature === '凶').map(({ cell, remedy }) => (
+                  <div key={cell.palace} className="rounded-card border border-cinnabar-500/20 bg-cinnabar-500/5 p-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-cinnabar-400">{cell.palace}·{remedy!.name}</span>
+                      <span className={`rounded-full border px-1.5 py-0.5 text-[10px] ${USAGE_LABEL_COLOR[remedy!.usageLabel] ?? ''}`}>
+                        {remedy!.usageLabel}
+                      </span>
+                    </div>
+                    {remedy!.remedy && <p className="mt-1 text-[11px] leading-4 text-cinnabar-400/70">化煞：{remedy!.remedy}</p>}
+                    <p className="mt-0.5 text-[11px] leading-4 text-jade-100/45">{remedy!.health}</p>
+                  </div>
+                ))}
+                {gridRemedies.filter(({ remedy }) => remedy?.nature === '大吉' || remedy?.nature === '吉').map(({ cell, remedy }) => (
+                  <div key={cell.palace} className="rounded-card border border-jade-500/20 bg-jade-500/5 p-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-jade-400">{cell.palace}·{remedy!.name}</span>
+                      <span className={`rounded-full border px-1.5 py-0.5 text-[10px] ${USAGE_LABEL_COLOR[remedy!.usageLabel] ?? ''}`}>
+                        {remedy!.usageLabel}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-[11px] leading-4 text-jade-100/55">宜：{remedy!.roomUse.join('、')}</p>
+                    <p className="mt-0.5 text-[11px] leading-4 text-jade-100/45">{remedy!.career}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <LegendPanel
             title="九星五行图例"
@@ -128,9 +266,9 @@ export function FeixingWorkspace() {
           </p>
 
           <KnowledgeReferencePanel
-            initialTerm={summary?.starName ?? "五黄"}
-            terms={Array.from(new Set([summary?.starName ?? "廉贞", "一白", "二黑", "五黄", "九紫", "病符", "文昌"]))}
-            description="点击中宫星、九星名或飞星术语，查看流年飞星映射与古籍索引线索。"
+            initialTerm={summary?.starName ?? '五黄'}
+            terms={Array.from(new Set([summary?.starName ?? '廉贞', '一白', '二黑', '五黄', '九紫', '病符', '文昌']))}
+            description="点击术语查看飞星映射与古籍索引。"
           />
         </aside>
 
@@ -139,14 +277,10 @@ export function FeixingWorkspace() {
             <div>
               <h3 className="text-lg font-semibold text-jade-50">九宫飞星图</h3>
               <p className="mt-1 text-sm leading-6 text-jade-100/55">
-                九宫飞星图：3×3 洛书九宫，每格宫位名+飞星编号星名，中心格高亮。
+                3×3 洛书九宫，每格宫位名+飞星编号星名+方位用途标签，中心格高亮。
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-              </span>
-              <DataModeBadge mode="local-approx" ready={ready} />
-            </div>
+            <DataModeBadge mode="local-approx" ready={ready} />
           </div>
           <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
             {grid ? (
@@ -157,8 +291,35 @@ export function FeixingWorkspace() {
               <LoadingSkeleton label="正在加载飞星引擎" />
             )}
           </div>
+
+          {/* Step 3: 九星旺衰状态 */}
+          <div className="mt-4 grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
+            {starStatuses.map((s) => {
+              const remedy = NINE_STAR_REMEDIES[s.star];
+              return (
+                <div key={s.star} className={`rounded-card border p-2 ${
+                  s.status === '当令旺' ? 'border-gold-500/30 bg-gold-500/8' :
+                  s.status === '生气' ? 'border-jade-500/25 bg-jade-500/6' :
+                  s.status === '退气' ? 'border-white/10 bg-white/[0.02]' :
+                  'border-cinnabar-500/25 bg-cinnabar-500/6'
+                }`}>
+                  <p className="text-xs font-semibold text-jade-100/70">{remedy?.name ?? `${s.star}星`}</p>
+                  <p className={`mt-0.5 text-[10px] ${s.status === '当令旺' ? 'text-gold-400' : s.status === '生气' ? 'text-jade-400' : s.status === '退气' ? 'text-jade-100/45' : 'text-cinnabar-400'}`}>
+                    {s.status}
+                  </p>
+                  <p className="mt-0.5 text-[10px] leading-3 text-jade-100/40">{s.description}</p>
+                </div>
+              );
+            })}
+          </div>
         </section>
       </div>
     </section>
   );
+}
+
+/** 卦名 → 卦数映射 */
+function trigramToGuaNum(trigram: string): number | null {
+  const map: Record<string, number> = { '坎': 1, '坤': 2, '震': 3, '巽': 4, '乾': 6, '兑': 7, '艮': 8, '离': 9 };
+  return map[trigram] ?? null;
 }
