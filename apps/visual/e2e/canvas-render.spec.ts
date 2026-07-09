@@ -104,12 +104,13 @@ test.describe('Chart Rendering - Health Tools', () => {
 
 test.describe('Chart Rendering - No Console Errors', () => {
   test('should not have chart-related errors across all tools', async ({ page }) => {
+    test.setTimeout(120000); // 遍历 9 工具需加载 legacy + 渲染，给足超时
     const errors: string[] = [];
     page.on('console', (msg) => {
       if (msg.type() === 'error') errors.push(msg.text());
     });
 
-    const tools = ['八字', '紫微', '六爻', '梅花', '风水', '飞星', '八宅', '五运六气', '体质'];
+    const tools = ['八字命盘', '紫微斗数', '六爻占卜', '梅花易数', '风水罗盘', '流年飞星', '八宅大游年', '五运六气', '体质辨识'];
     for (const tool of tools) {
       await page.goto(BASE_URL);
       await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
@@ -119,7 +120,7 @@ test.describe('Chart Rendering - No Console Errors', () => {
         // legacy 加载超时不阻塞：体质等不依赖 legacy 仍可校验
       }
       await page.locator('[data-testid="nav-item"]').filter({ hasText: tool }).click();
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(1500);
     }
 
     const criticalErrors = errors.filter(
@@ -129,6 +130,9 @@ test.describe('Chart Rendering - No Console Errors', () => {
         !e.includes('Manifest') &&
         !e.includes('React DevTools'),
     );
+    if (criticalErrors.length > 0) {
+      console.error('Console errors detected:', JSON.stringify(criticalErrors, null, 2));
+    }
     expect(criticalErrors).toHaveLength(0);
   });
 });
