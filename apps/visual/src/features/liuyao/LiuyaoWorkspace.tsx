@@ -8,6 +8,7 @@ import type { LiuyaoData } from '@/legacy/canvasRenderers';
 import type { LiuyaoLine } from '@/legacy/divinationTypes';
 import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
 import { LIUYAO_INTENT_EVENT, type LiuyaoIntentDetail } from '@/lib/commandIntents';
@@ -263,7 +264,7 @@ export function LiuyaoWorkspace() {
                     <HexagramChart data={result as LiuyaoData} />
                   </ZoomableSvg>
                 ) : (
-                  <p className="py-12 text-center text-sm text-jade-100/45">正在加载六爻引擎。</p>
+                  <LoadingSkeleton label="正在加载六爻引擎" />
                 )}
               </div>
             </section>

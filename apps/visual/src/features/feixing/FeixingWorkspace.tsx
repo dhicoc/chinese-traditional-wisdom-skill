@@ -11,6 +11,8 @@ import {
   getFeixingSummary,
 } from '@/legacy/canvasRenderers';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
+import { DataModeBadge } from '@/components/shared/DataModeBadge';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 import {
   YEAR_INTENT_EVENT,
@@ -140,9 +142,12 @@ export function FeixingWorkspace() {
                 SVG 九宫格对齐 renderFlyingStars 布局（Phase 10 图表替换）；数据来自同一份 getFlyingStars 计算。
               </p>
             </div>
-            <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-              SVG · Phase 10
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
+                SVG · Phase 10
+              </span>
+              <DataModeBadge ready={ready} />
+            </div>
           </div>
           <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
             {grid ? (
@@ -150,7 +155,7 @@ export function FeixingWorkspace() {
                 <NinePalaceGrid grid={grid} year={year} />
               </ZoomableSvg>
             ) : (
-              <p className="py-12 text-center text-sm text-jade-100/45">正在加载飞星引擎。</p>
+              <LoadingSkeleton label="正在加载飞星引擎" />
             )}
           </div>
         </section>

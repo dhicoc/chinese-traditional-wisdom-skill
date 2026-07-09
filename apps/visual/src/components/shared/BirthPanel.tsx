@@ -1,23 +1,51 @@
 import { useState } from 'react';
 import { useBirth } from '@/lib/birthContext';
 import { ControlField } from '@/components/shared/ControlField';
+import { DEFAULT_BIRTH } from '@/legacy/birthBridge';
 
 /**
  * 全局出生资料面板 — 同步到旧 FORTUNE 全局数据。
  * 放在 CommandBar 下方，所有工作区共享同一份出生资料。
+ * UX P0：默认生辰时自动展开 + 高亮提示，引导新用户先填生辰。
  */
 export function BirthPanel() {
   const { birth, legacyReady, updateBirth, resetBirth } = useBirth();
-  const [expanded, setExpanded] = useState(false);
+
+  // 判断是否仍为默认生辰（用户未修改过）
+  const isDefaultBirth =
+    birth.year === DEFAULT_BIRTH.year &&
+    birth.month === DEFAULT_BIRTH.month &&
+    birth.day === DEFAULT_BIRTH.day &&
+    birth.hour === DEFAULT_BIRTH.hour &&
+    birth.gender === DEFAULT_BIRTH.gender;
+
+  // 默认生辰时自动展开，引导用户修改
+  const [userToggled, setUserToggled] = useState(false);
+  const [userToggledHidden, setUserToggledHidden] = useState(false);
+  const expanded = userToggledHidden ? false : (userToggled || isDefaultBirth);
 
   const summary = `${birth.year}-${String(birth.month).padStart(2, '0')}-${String(birth.day).padStart(2, '0')} ${birth.gender} ${birth.isLunar ? '农历' : '公历'} ${birth.useExactCalendar ? '精确' : '近似'}`;
 
+  const handleToggle = () => {
+    if (isDefaultBirth && !userToggledHidden) {
+      // 首次点击（默认展开状态）→ 收起
+      setUserToggledHidden(true);
+    } else {
+      setUserToggled(!userToggled);
+      setUserToggledHidden(false);
+    }
+  };
+
   return (
-    <div className="rounded-panel border border-ink-700 bg-ink-850/60 p-3">
+    <div className={`rounded-panel p-3 transition ${
+      isDefaultBirth
+        ? 'border border-gold-500/30 bg-gold-500/5 shadow-[0_0_20px_rgba(201,178,122,0.08)]'
+        : 'border border-ink-700 bg-ink-850/60'
+    }`}>
       <div className="flex items-center justify-between gap-3">
         <button
           type="button"
-          onClick={() => setExpanded((prev) => !prev)}
+          onClick={handleToggle}
           className="flex items-center gap-2 text-left text-sm text-jade-100/70 transition hover:text-jade-100"
         >
           <span className="font-mono text-xs text-jade-400">{expanded ? '▾' : '▸'}</span>
@@ -37,6 +65,16 @@ export function BirthPanel() {
           </button>
         )}
       </div>
+
+      {/* 默认生辰提示 */}
+      {isDefaultBirth && (
+        <div className="mt-2 flex items-center gap-2 rounded-card border border-gold-500/20 bg-gold-500/8 px-3 py-2">
+          <span className="text-gold-400">⚠</span>
+          <span className="text-xs text-gold-400/80">
+            当前为默认生辰（1990-06-15），请修改为您的真实出生信息以查看真实排盘结果。
+          </span>
+        </div>
+      )}
 
       {expanded && (
         <div className="mt-3 grid gap-3 md:grid-cols-3 lg:grid-cols-6">

@@ -3,6 +3,7 @@ import { ControlField } from '@/components/shared/ControlField';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { getAlmanacData, type AlmanacData } from '@/legacy/almanacData';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 
 /**
@@ -69,7 +70,7 @@ export function AlmanacWorkspace() {
       {/* 加载中 / 错误 */}
       {legacyState.mode === 'loading' && (
         <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-4 text-sm text-jade-100/55">
-          正在加载 lunar-javascript 历法引擎。
+          <LoadingSkeleton label="正在加载历法引擎" />
         </p>
       )}
       {loadError && (

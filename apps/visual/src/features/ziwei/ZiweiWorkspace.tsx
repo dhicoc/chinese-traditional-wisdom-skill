@@ -6,6 +6,8 @@ import { ZiweiPalaceGrid } from '@/components/shared/ZiweiPalaceGrid';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
+import { DataModeBadge } from '@/components/shared/DataModeBadge';
 import type { BirthData } from '@/legacy/birthBridge';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
@@ -200,13 +202,16 @@ export function ZiweiWorkspace() {
                 真实数据来自 ZiweiIztroAdapter；SVG 命盘对齐 4x4 环形十二宫布局（Phase 10 图表替换）。
               </p>
             </div>
-            <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-              SVG · Phase 10
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
+                SVG · Phase 10
+              </span>
+              <DataModeBadge mode={data.mode} ready={ready} />
+            </div>
           </div>
           <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
             {!ready ? (
-              <p className="py-12 text-center text-sm text-jade-100/45">正在加载 iztro 排盘引擎。</p>
+              <LoadingSkeleton label="正在加载 iztro 排盘引擎" />
             ) : (
               <ZoomableSvg title="紫微斗数十二宫命盘">
                 <ZiweiPalaceGrid data={data} />

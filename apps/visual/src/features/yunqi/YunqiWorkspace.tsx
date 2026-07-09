@@ -5,6 +5,8 @@ import { YunqiChart } from '@/components/shared/YunqiChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { calculateLegacyYunqi, type YunqiData } from '@/legacy/canvasRenderers';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
+import { DataModeBadge } from '@/components/shared/DataModeBadge';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 import {
   YEAR_INTENT_EVENT,
@@ -120,9 +122,12 @@ export function YunqiWorkspace() {
                 SVG 综合图对齐五运六气 renderer 布局（Phase 10 图表替换）；病势倾向按「，」换行自适应。
               </p>
             </div>
-            <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-              SVG · Phase 10
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
+                SVG · Phase 10
+              </span>
+              <DataModeBadge ready={ready} />
+            </div>
           </div>
           <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
             {ready && data ? (
@@ -130,7 +135,7 @@ export function YunqiWorkspace() {
                 <YunqiChart data={data} />
               </ZoomableSvg>
             ) : (
-              <p className="py-12 text-center text-sm text-jade-100/45">正在加载五运六气引擎。</p>
+              <LoadingSkeleton label="正在加载五运六气引擎" />
             )}
           </div>
         </section>

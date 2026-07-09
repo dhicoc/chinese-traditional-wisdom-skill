@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BaziPillarsChart } from '@/components/shared/BaziPillarsChart';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { DataModeBadge } from '@/components/shared/DataModeBadge';
 import { FiveElementsChart } from '@/components/shared/FiveElementsChart';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { renderDataWithLegacyAdapter, calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
@@ -120,6 +122,9 @@ export function BaziWorkspace() {
 
       <div className="bazi-console-grid grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)_320px]">
         <aside className="space-y-4">
+          <div className="mb-2">
+            <DataModeBadge mode={result?.mode} ready={ready} />
+          </div>
           <InterpretationCard
             title="排盘信息"
             badge={ready ? '已接入' : '加载中'}
@@ -165,7 +170,7 @@ export function BaziWorkspace() {
                   <BaziPillarsChart pillars={pillars} />
                 </ZoomableSvg>
               ) : (
-                <p className="py-12 text-center text-sm text-jade-100/45">正在加载八字引擎。</p>
+                <LoadingSkeleton label="正在加载八字引擎" />
               )}
             </div>
           </section>
@@ -229,7 +234,7 @@ export function BaziWorkspace() {
                   <FiveElementsChart stats={wuxing} />
                 </ZoomableSvg>
               ) : (
-                <p className="py-12 text-center text-sm text-jade-100/45">正在加载八字引擎。</p>
+                <LoadingSkeleton label="正在加载八字引擎" />
               )}
             </div>
           </section>

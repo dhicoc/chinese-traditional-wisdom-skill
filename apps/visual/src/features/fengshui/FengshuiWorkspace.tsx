@@ -4,6 +4,8 @@ import { FengshuiCompass } from '@/components/shared/FengshuiCompass';
 import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
+import { DataModeBadge } from '@/components/shared/DataModeBadge';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 
 const COMPASS_CONTEXT = {
@@ -76,9 +78,12 @@ export function FengshuiWorkspace() {
                 SVG 三环罗盘对齐 renderCompass 布局（Phase 10 图表替换收官）；外环二十四山、中环八卦、内环八方向。
               </p>
             </div>
-            <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-              SVG · Phase 10
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
+                SVG · Phase 10
+              </span>
+              <DataModeBadge ready={ready} />
+            </div>
           </div>
           <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
             {ready ? (
@@ -86,7 +91,7 @@ export function FengshuiWorkspace() {
                 <FengshuiCompass />
               </ZoomableSvg>
             ) : (
-              <p className="py-12 text-center text-sm text-jade-100/45">正在加载风水引擎。</p>
+              <LoadingSkeleton label="正在加载风水引擎" />
             )}
           </div>
         </section>

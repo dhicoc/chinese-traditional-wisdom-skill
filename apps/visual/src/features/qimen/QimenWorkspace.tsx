@@ -3,6 +3,7 @@ import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
 
@@ -125,7 +126,7 @@ export function QimenWorkspace() {
 
       {!ready && (
         <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-4 text-sm text-jade-100/55">
-          正在加载奇门引擎（3meta + lunar-javascript）。
+          <LoadingSkeleton label="正在加载奇门引擎" />
         </p>
       )}
 
