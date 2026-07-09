@@ -30,7 +30,15 @@ interface LiuyaoResult extends LiuyaoData {
   engineName?: string;
   mode?: string;
   confidenceNote?: string;
-  lines: (LiuyaoLine & { stem?: string; branchElement?: string })[];
+  // 补齐 ichingshifa 能力
+  xunkong?: string[];
+  monthJian?: string;
+  dayJian?: string;
+  monthGanZhi?: string;
+  dayGanZhi?: string;
+  shenYao?: number;
+  hiddenStars?: { relation: string; hiddenStem: string; hiddenBranch: string; hiddenBranchElement: string; hiddenAtPureYao: number }[];
+  lines: (LiuyaoLine & { stem?: string; branchElement?: string; wangShuai?: string })[];
 }
 
 const METHOD_OPTIONS: { value: CastMethod; label: string; hint: string }[] = [
@@ -242,9 +250,31 @@ export function LiuyaoWorkspace() {
               { label: '应爻', value: `第${result.yingYao}爻` },
               { label: '用神', value: result.yongShen },
               { label: '动爻', value: result.changingYao && result.changingYao.length ? result.changingYao.join('、') : '无' },
-              { label: '日干', value: result.dayStem ?? '?' },
+              { label: '日干支', value: result.dayGanZhi || result.dayStem || '?' },
+              { label: '月干支', value: result.monthGanZhi || '?' },
+              { label: '月建', value: result.monthJian || '?' },
+              { label: '日建', value: result.dayJian || '?' },
+              { label: '空亡', value: result.xunkong && result.xunkong.length ? result.xunkong.join('、') : '—' },
+              ...(result.shenYao ? [{ label: '身爻', value: `第${result.shenYao}爻` }] : []),
             ]}
           />
+
+          {/* 伏神 */}
+          {result.hiddenStars && result.hiddenStars.length > 0 && (
+            <div className="rounded-card border border-gold-500/20 bg-gold-500/5 p-3">
+              <p className="text-xs font-semibold text-gold-400">伏神</p>
+              <p className="mt-0.5 text-[10px] text-gold-400/50">本宫卦有而当前卦缺的六亲</p>
+              <div className="mt-2 space-y-1">
+                {result.hiddenStars.map((h, i) => (
+                  <div key={i} className="text-xs">
+                    <span className="text-gold-400/80">{h.relation}</span>
+                    <span className="ml-2 text-jade-100/55">{h.hiddenStem}{h.hiddenBranch}（{h.hiddenBranchElement}）</span>
+                    <span className="ml-1 text-[10px] text-jade-100/35">本宫第{h.hiddenAtPureYao}爻</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <p className="rounded-card border border-white/8 bg-black/24 p-3 text-xs leading-5 text-jade-100/55">
             生辰由顶部「全局生辰」统一管理。用神规则：求财→妻财、求官→官鬼、考试→父母、子女→子孙、合伙→兄弟。
@@ -308,8 +338,8 @@ export function LiuyaoWorkspace() {
               </span>
             </div>
             <div className="overflow-hidden rounded-card border border-white/10">
-              <div className="grid grid-cols-6 bg-white/[0.035] text-center text-[11px] text-jade-100/45">
-                {['爻位', '阴阳', '纳甲(干支)', '五行', '六亲', '六神'].map((h) => (
+              <div className="grid grid-cols-7 bg-white/[0.035] text-center text-[11px] text-jade-100/45">
+                {['爻位', '阴阳', '纳甲(干支)', '五行', '六亲', '六神', '旺衰'].map((h) => (
                   <div key={h} className="border-b border-white/10 px-2 py-2">
                     {h}
                   </div>
@@ -322,7 +352,7 @@ export function LiuyaoWorkspace() {
                 return (
                   <div
                     key={yaoNum}
-                    className={`grid grid-cols-6 border-b border-white/8 text-center text-xs last:border-b-0 ${
+                    className={`grid grid-cols-7 border-b border-white/8 text-center text-xs last:border-b-0 ${
                       line.changing ? 'bg-cinnabar-500/8' : 'bg-black/8'
                     }`}
                   >
@@ -342,6 +372,13 @@ export function LiuyaoWorkspace() {
                     <div className="px-2 py-2.5 text-jade-100/55">{line.branchElement ?? '?'}</div>
                     <div className="px-2 py-2.5 text-jade-100/70">{line.relation}</div>
                     <div className="px-2 py-2.5 text-jade-100/55">{line.god}</div>
+                    <div className={`px-2 py-2.5 ${
+                      line.wangShuai === '旺' ? 'text-jade-400' :
+                      line.wangShuai === '相' ? 'text-jade-300' :
+                      line.wangShuai === '死' ? 'text-cinnabar-400' :
+                      line.wangShuai === '囚' ? 'text-cinnabar-400/70' :
+                      'text-jade-100/45'
+                    }`}>{line.wangShuai || '—'}</div>
                   </div>
                 );
               })}

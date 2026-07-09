@@ -405,6 +405,26 @@
 
     var yongShen = resolveYongShen(input.question, birth.gender);
 
+    // 补齐 ichingshifa 能力：空亡、月建日建、伏神、旺衰、身爻
+    var dayGz = resolveDayGanZhi(birth);
+    var dayBranch = dayGz.dayBranch || dayGz.branch || "";
+    var monthBranch = dayGz.monthBranch || "";
+    // 空亡
+    var xunkong = dayGz.dayGanZhi ? getDayXunkong(dayGz.dayGanZhi) : [];
+    // 月建日建标注
+    var monthJian = monthBranch;
+    var dayJian = dayBranch;
+    // 旺衰
+    var linesWithWangShuai = lines.map(function (l) {
+      l.wangShuai = wangShuai(l.branchElement, monthBranch);
+      return l;
+    });
+    // 伏神
+    var currentRelations = lines.map(function (l) { return l.relation; });
+    var hiddenStars = getHiddenStars(hex, currentRelations);
+    // 身爻
+    var shenYao = getShenYao(shiYingRes.shi, lines);
+
     // 变卦：动爻阴阳互变
     var changedLines = lines.map(function (l) {
       return { yin: l.changing ? !l.yin : l.yin };
@@ -432,6 +452,14 @@
       changingYao: changingYao,
       changingHexagramName: changingYao.length ? changedHex.name : hex.name,
       changingHexagramNumber: changingYao.length ? hexagramIndex(changedHex.name) : hexagramIndex(hex.name),
+      // 补齐 ichingshifa 能力字段
+      xunkong: xunkong,                    // 空亡地支
+      monthJian: monthJian,               // 月建（当月地支）
+      dayJian: dayJian,                    // 日建（当日地支）
+      monthGanZhi: dayGz.monthGanZhi || "", // 月干支
+      dayGanZhi: dayGz.dayGanZhi || "",     // 日干支
+      shenYao: shenYao,                    // 身爻位置(1-6, 0=无)
+      hiddenStars: hiddenStars,            // 伏神列表
       engineName: "LocalLiuyaoNajiaAdapter",
       mode: "local-exact",
       version: "1.0.0",
@@ -450,6 +478,132 @@
     }
     var idx = _hexOrder.indexOf(name) + 1;
     return idx || 0;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  补齐 ichingshifa 能力：空亡、月建日建、伏神、旺衰、身爻
+  // ═══════════════════════════════════════════════════════
+
+  var DIZHI = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+  var TIANGAN = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
+
+  // 六十甲子
+  var JIAZI = [];
+  for (var _jz = 0; _jz < 60; _jz++) {
+    JIAZI.push(TIANGAN[_jz % 10] + DIZHI[_jz % 12]);
+  }
+
+  // 旬空表：每个旬首对应的两个空亡地支
+  // 甲子旬空戌亥、甲戌旬空申酉、甲申旬空午未、甲午旬空辰巳、甲辰旬空寅卯、甲寅旬空子丑
+  var XUNKONG = {
+    "甲子": ["戌","亥"], "甲戌": ["申","酉"], "甲申": ["午","未"],
+    "甲午": ["辰","巳"], "甲辰": ["寅","卯"], "甲寅": ["子","丑"]
+  };
+
+  // 计算空亡：给定日干支，查其所在旬的空亡地支
+  function getDayXunkong(dayGanZhi) {
+    if (!dayGanZhi || dayGanZhi.length < 2) return [];
+    var idx = JIAZI.indexOf(dayGanZhi);
+    if (idx < 0) return [];
+    var xunStart = Math.floor(idx / 10) * 10; // 旬首在六十甲子中的索引
+    var xunHead = JIAZI[xunStart]; // 旬首（甲子/甲戌/...）
+    return XUNKONG[xunHead] || [];
+  }
+
+  // 月令旺衰：按月支判断五行旺衰（旺相休囚死）
+  // 当令者旺、生令者相、生我者休、克我者囚、我克者死
+  var MONTH_ELEMENT = {
+    "寅":"木","卯":"木", "巳":"火","午":"火", "申":"金","酉":"金",
+    "亥":"水","子":"水", "丑":"土","辰":"土","未":"土","戌":"土"
+  };
+
+  function wangShuai(element, monthBranch) {
+    var monthEl = MONTH_ELEMENT[monthBranch];
+    if (!monthEl || !element) return "平";
+    if (element === monthEl) return "旺";           // 同我=旺
+    if (GENERATES[monthEl] === element) return "相"; // 生我=相（月令生此五行）
+    if (GENERATES[element] === monthEl) return "休"; // 我生=休
+    if (CONTROLS[element] === monthEl) return "囚"; // 我克月令=囚
+    if (CONTROLS[monthEl] === element) return "死"; // 月令克我=死
+    return "平";
+  }
+
+  // 身爻：按世爻位置推算
+  // 阳世阴身、阴世阳身规则：世爻地支阴阳决定身爻位置
+  // 简化规则（ichingshifa 口径）：身爻 = 世爻所在卦的地支序对应位置
+  // 更准确：身爻在世爻对面，按地支相冲定
+  function getShenYao(shiPos, lines) {
+    if (!shiPos || shiPos < 1 || shiPos > 6) return 0;
+    var shiBranch = lines[shiPos - 1] ? lines[shiPos - 1].branch : "";
+    if (!shiBranch) return 0;
+    // 身爻 = 与世爻地支相冲的爻位
+    var chongMap = {"子":"午","午":"子","丑":"未","未":"丑","寅":"申","申":"寅",
+                    "卯":"酉","酉":"卯","辰":"戌","戌":"辰","巳":"亥","亥":"巳"};
+    var chongBranch = chongMap[shiBranch];
+    if (!chongBranch) return 0;
+    for (var i = 0; i < lines.length; i++) {
+      if (lines[i].branch === chongBranch) return i + 1;
+    }
+    return 0;
+  }
+
+  // 伏神：本宫纯卦有而当前卦缺的六亲
+  // 逻辑（najia 口径）：取本宫卦的六亲列表，找当前卦缺少的六亲
+  function getHiddenStars(hex, currentRelations) {
+    var palacePure = PALACE_HEXAGRAMS[hex.palaceName][0]; // 本宫纯卦 [上卦, 下卦]
+    var pureUpper = palacePure[0];
+    var pureLower = palacePure[1];
+    // 构建本宫纯卦的六亲
+    var pureHex = { upper: pureUpper, lower: pureLower, palaceElement: hex.palaceElement };
+    var pureNajia = buildNajia(pureHex);
+    var pureRelations = pureNajia.map(function (nj) { return nj.relation; });
+    // 找当前卦缺少的六亲
+    var currentSet = {};
+    currentRelations.forEach(function (r) { currentSet[r] = true; });
+    var missing = [];
+    for (var i = 0; i < pureRelations.length; i++) {
+      if (!currentSet[pureRelations[i]]) {
+        missing.push({
+          relation: pureRelations[i],
+          hiddenStem: pureNajia[i].stem,
+          hiddenBranch: pureNajia[i].branch,
+          hiddenBranchElement: pureNajia[i].branchElement,
+          hiddenAtPureYao: i + 1
+        });
+      }
+    }
+    // 去重
+    var seen = {};
+    return missing.filter(function (m) {
+      if (seen[m.relation]) return false;
+      seen[m.relation] = true;
+      return true;
+    });
+  }
+
+  // 日干支完整获取（含日支，用于月建日建）
+  function resolveDayGanZhi(birth) {
+    if (birth && birth.useExactCalendar !== false && typeof window !== "undefined" &&
+        window.Solar && (typeof window.Solar.fromYmdHms === "function" || typeof window.Solar.fromYmd === "function")) {
+      try {
+        var solar = window.Solar.fromYmdHms
+          ? window.Solar.fromYmdHms(birth.year, birth.month, birth.day, birth.hour || 12, birth.minute || 0, 0)
+          : window.Solar.fromYmd(birth.year, birth.month, birth.day);
+        var lunar = solar && typeof solar.getLunar === "function" ? solar.getLunar() : null;
+        if (lunar) {
+          var dayGz = "";
+          if (typeof lunar.getDayInGanZhiExact === "function") dayGz = lunar.getDayInGanZhiExact();
+          else if (typeof lunar.getDayInGanZhi === "function") dayGz = lunar.getDayInGanZhi();
+          if (dayGz && dayGz.length === 2) return { stem: dayGz[0], branch: dayGz[1], ganZhi: dayGz };
+          var monthGz = "";
+          if (typeof lunar.getMonthInGanZhiExact === "function") monthGz = lunar.getMonthInGanZhiExact();
+          else if (typeof lunar.getMonthInGanZhi === "function") monthGz = lunar.getMonthInGanZhi();
+          if (monthGz && monthGz.length === 2) return { dayStem: dayGz[0], dayBranch: dayGz[1], dayGanZhi: dayGz, monthStem: monthGz[0], monthBranch: monthGz[1], monthGanZhi: monthGz };
+        }
+      } catch (e) {}
+    }
+    // 近似回退
+    return { dayStem: resolveDayStem(birth), dayBranch: "", dayGanZhi: "", monthBranch: "", monthGanZhi: "" };
   }
 
   // 日干：优先 lunar-javascript；否则按公历近似(基准日推算)
