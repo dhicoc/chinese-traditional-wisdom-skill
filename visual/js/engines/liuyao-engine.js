@@ -410,7 +410,13 @@
     var dayBranch = dayGz.dayBranch || dayGz.branch || "";
     var monthBranch = dayGz.monthBranch || "";
     // 空亡
-    var xunkong = dayGz.dayGanZhi ? getDayXunkong(dayGz.dayGanZhi) : [];
+    // 空亡：优先用 lunar-javascript 的 getDayXunKong，回退到自建函数
+    var xunkong = [];
+    if (dayGz.xunkong) {
+      xunkong = dayGz.xunkong.split("").filter(function(c) { return c; });
+    } else if (dayGz.dayGanZhi) {
+      xunkong = getDayXunkong(dayGz.dayGanZhi);
+    }
     // 月建日建标注
     var monthJian = monthBranch;
     var dayJian = dayBranch;
@@ -581,7 +587,7 @@
     });
   }
 
-  // 日干支完整获取（含日支，用于月建日建）
+  // 日干支完整获取（含日支、月干支，用于月建日建空亡）
   function resolveDayGanZhi(birth) {
     if (birth && birth.useExactCalendar !== false && typeof window !== "undefined" &&
         window.Solar && (typeof window.Solar.fromYmdHms === "function" || typeof window.Solar.fromYmd === "function")) {
@@ -591,14 +597,28 @@
           : window.Solar.fromYmd(birth.year, birth.month, birth.day);
         var lunar = solar && typeof solar.getLunar === "function" ? solar.getLunar() : null;
         if (lunar) {
+          // 日干支
           var dayGz = "";
           if (typeof lunar.getDayInGanZhiExact === "function") dayGz = lunar.getDayInGanZhiExact();
           else if (typeof lunar.getDayInGanZhi === "function") dayGz = lunar.getDayInGanZhi();
-          if (dayGz && dayGz.length === 2) return { stem: dayGz[0], branch: dayGz[1], ganZhi: dayGz };
+          // 月干支
           var monthGz = "";
           if (typeof lunar.getMonthInGanZhiExact === "function") monthGz = lunar.getMonthInGanZhiExact();
           else if (typeof lunar.getMonthInGanZhi === "function") monthGz = lunar.getMonthInGanZhi();
-          if (monthGz && monthGz.length === 2) return { dayStem: dayGz[0], dayBranch: dayGz[1], dayGanZhi: dayGz, monthStem: monthGz[0], monthBranch: monthGz[1], monthGanZhi: monthGz };
+          // 空亡（lunar-javascript 直接提供）
+          var xk = "";
+          if (typeof lunar.getDayXunKong === "function") xk = lunar.getDayXunKong();
+          // 组装返回（不再提前 return）
+          var result = {
+            dayStem: dayGz ? dayGz.charAt(0) : "",
+            dayBranch: dayGz ? dayGz.charAt(1) : "",
+            dayGanZhi: dayGz || "",
+            monthStem: monthGz ? monthGz.charAt(0) : "",
+            monthBranch: monthGz ? monthGz.charAt(1) : "",
+            monthGanZhi: monthGz || "",
+          };
+          if (xk) result.xunkong = xk;
+          return result;
         }
       } catch (e) {}
     }
