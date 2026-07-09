@@ -58,6 +58,20 @@ export interface MeihuaData {
   bodyTrigram: string;
   useTrigram: string;
   bodyUseRelation: string;
+  /** 吉凶分级（大吉/可成/不利/大凶/平顺） */
+  fortuneLevel?: string;
+  /** 吉凶详述 */
+  fortuneDetail?: string;
+  /** 策略指导（进/退/变/守/顺） */
+  strategy?: string;
+  /** 体卦卦德 */
+  bodyGuaDe?: string;
+  /** 用卦卦德 */
+  useGuaDe?: string;
+  /** 错卦 */
+  cuoTrigram?: { upper: string; lower: string; name: string };
+  /** 综卦 */
+  zongTrigram?: { upper: string; lower: string; name: string };
   hexagramName: string;
   changingHexagramName?: string;
 }

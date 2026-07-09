@@ -292,6 +292,40 @@
     return "";
   }
 
+  // ── 梅花增强：卦德、吉凶分级、策略指导、错卦综卦 ──
+  // 数据提炼自 muyen/meihua-yishu SKILL.md 与 handsomejustin/meihua-yi engine.py
+  var MEIHUA_GUA_DE = {
+    "乾": "健（刚健不息）", "兑": "悦（喜悦和悦）", "离": "丽（附丽光明）",
+    "震": "动（奋发振动）", "巽": "入（顺入渗透）", "坎": "陷（险陷下沉）",
+    "艮": "止（静止安止）", "坤": "顺（柔顺承载）"
+  };
+
+  var MEIHUA_FORTUNE_LEVEL = {
+    "用生体": { level: "大吉", detail: "用卦生体卦，事可成，多得助力" },
+    "体生用": { level: "不利", detail: "体卦生用卦，泄气耗散，事倍功半" },
+    "体克用": { level: "可成", detail: "体卦克用卦，费力可成，己方占优" },
+    "用克体": { level: "大凶", detail: "用卦克体卦，受阻受损，宜避不宜争" },
+    "比和": { level: "平顺", detail: "体用同五行，和顺平稳，诸事谐调" }
+  };
+
+  var MEIHUA_STRATEGY = {
+    "用生体": "进——有利可图，宜主动出击、把握机会",
+    "体生用": "退——耗散之象，宜保守积蓄、不宜大举",
+    "体克用": "变——费力可成，宜调整策略、以巧取胜",
+    "用克体": "守——受制之象，宜静观待变、避免冲动",
+    "比和": "顺——和顺之象，宜维持现状、稳步推进"
+  };
+
+  // 错卦：阴阳全部互换
+  function cuoTrigram(name) {
+    var cuoMap = { "乾": "坤", "坤": "乾", "震": "巽", "巽": "震", "坎": "离", "离": "坎", "艮": "兑", "兑": "艮" };
+    return cuoMap[name] || name;
+  }
+  // 综卦：上下颠倒
+  function zongTrigram(upper, lower) {
+    return { upper: lower, lower: upper };
+  }
+
   function calculateLocalMeihua(input) {
     var birth = normalizeBirth(input);
     var method = (input && input.method) || "time";
@@ -335,6 +369,14 @@
     var useTrigram = movingLine <= 3 ? lower : upper;
     var hexagramName = MEIHUA_NATURE[upper].nature + MEIHUA_NATURE[lower].nature;
     var changedHexagramName = MEIHUA_NATURE[changedUpper].nature + MEIHUA_NATURE[changedLower].nature;
+    var relation = getBodyUseRelation(bodyTrigram, useTrigram);
+    var fortune = MEIHUA_FORTUNE_LEVEL[relation] || { level: "—", detail: "" };
+    var strategy = MEIHUA_STRATEGY[relation] || "";
+    // 错卦：阴阳全换
+    var cuoUpper = cuoTrigram(upper);
+    var cuoLower = cuoTrigram(lower);
+    // 综卦：上下颠倒
+    var zong = zongTrigram(upper, lower);
     return {
       upperTrigram: meihuaTrigramInfo(upper),
       lowerTrigram: meihuaTrigramInfo(lower),
@@ -343,14 +385,21 @@
       mutualLower: meihuaTrigramInfo(mutualLower),
       bodyTrigram: bodyTrigram,
       useTrigram: useTrigram,
-      bodyUseRelation: getBodyUseRelation(bodyTrigram, useTrigram),
+      bodyUseRelation: relation,
+      fortuneLevel: fortune.level,
+      fortuneDetail: fortune.detail,
+      strategy: strategy,
+      bodyGuaDe: MEIHUA_GUA_DE[bodyTrigram] || "",
+      useGuaDe: MEIHUA_GUA_DE[useTrigram] || "",
+      cuoTrigram: { upper: cuoUpper, lower: cuoLower, name: MEIHUA_NATURE[cuoUpper].nature + MEIHUA_NATURE[cuoLower].nature },
+      zongTrigram: { upper: zong.upper, lower: zong.lower, name: MEIHUA_NATURE[zong.upper].nature + MEIHUA_NATURE[zong.lower].nature },
       hexagramName: hexagramName,
       changingHexagramName: changedHexagramName,
       sourceMethod: sourceLabel,
       numbers: numbers,
       engineName: "LocalMeihuaTimeAdapter",
       mode: birth.useExactCalendar !== false && hasLunarJavascript() ? "local-exact" : "local",
-      confidenceNote: "本地时间起卦：按年月日时取数定上下卦与动爻，并计算互卦、变卦、体用生克；不同流派可能采用不同取数口径。"
+      confidenceNote: "本地时间起卦：按年月日时取数定上下卦与动爻，并计算互卦、变卦、体用生克、错卦、综卦、卦德、吉凶分级与策略指导；不同流派可能采用不同取数口径。"
     };
   }
   function generateDemoDivination(input) {

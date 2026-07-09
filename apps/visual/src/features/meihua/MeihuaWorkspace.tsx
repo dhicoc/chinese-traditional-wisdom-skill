@@ -82,6 +82,13 @@ export function MeihuaWorkspace() {
       bodyTrigram: lower,
       useTrigram: upper,
       bodyUseRelation: relation,
+      fortuneLevel: relation === '生' ? '大吉' : relation === '克' ? '大凶' : '平顺',
+      fortuneDetail: relation === '生' ? '用生体，事可成' : relation === '克' ? '用克体，受阻' : '比和，平顺',
+      strategy: relation === '生' ? '进——有利可图，宜主动出击' : relation === '克' ? '守——受制之象，宜静观待变' : '顺——和顺之象，稳步推进',
+      bodyGuaDe: '顺（柔顺承载）',
+      useGuaDe: '健（刚健不息）',
+      cuoTrigram: { upper: '坤', lower: '乾', name: '地天' },
+      zongTrigram: { upper: '乾', lower: '坤', name: '天地' },
       hexagramName: `${NAME_MAP[upper]}${NAME_MAP[lower]}`,
       changingHexagramName: `${NAME_MAP[upper]}${NAME_MAP[lower]}（变）`,
     }),
@@ -193,6 +200,56 @@ export function MeihuaWorkspace() {
               <LoadingSkeleton label="正在加载梅花引擎" />
             )}
           </div>
+
+          {/* 梅花增强：吉凶分级 + 策略 + 卦德 + 错卦综卦 */}
+          {data.fortuneLevel && (
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div className={`rounded-card border p-3 ${
+                data.fortuneLevel === '大吉' ? 'border-jade-500/30 bg-jade-500/8' :
+                data.fortuneLevel === '大凶' ? 'border-cinnabar-500/30 bg-cinnabar-500/8' :
+                'border-white/8 bg-white/[0.02]'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-jade-100/70">吉凶判断</span>
+                  <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+                    data.fortuneLevel === '大吉' ? 'border-jade-500/40 text-jade-300' :
+                    data.fortuneLevel === '大凶' ? 'border-cinnabar-500/40 text-cinnabar-300' :
+                    data.fortuneLevel === '可成' ? 'border-jade-500/30 text-jade-400' :
+                    data.fortuneLevel === '不利' ? 'border-gold-500/30 text-gold-400' :
+                    'border-white/10 text-jade-100/55'
+                  }`}>{data.fortuneLevel}</span>
+                </div>
+                {data.fortuneDetail && <p className="mt-1.5 text-xs leading-5 text-jade-100/55">{data.fortuneDetail}</p>}
+                {data.strategy && (
+                  <p className="mt-1.5 text-xs leading-5 text-jade-400">
+                    策略：{data.strategy}
+                  </p>
+                )}
+              </div>
+
+              <div className="rounded-card border border-white/8 bg-white/[0.02] p-3">
+                <span className="text-sm font-semibold text-jade-100/70">卦德</span>
+                <div className="mt-1.5 space-y-1 text-xs">
+                  {data.bodyGuaDe && <div><span className="text-jade-400">体卦</span><span className="ml-2 text-jade-100/55">{data.bodyGuaDe}</span></div>}
+                  {data.useGuaDe && <div><span className="text-jade-400">用卦</span><span className="ml-2 text-jade-100/55">{data.useGuaDe}</span></div>}
+                </div>
+                {data.cuoTrigram?.name && (
+                  <div className="mt-2 border-t border-white/5 pt-1.5 text-xs">
+                    <span className="text-jade-100/45">错卦：</span>
+                    <span className="text-jade-100/70">{data.cuoTrigram.name}</span>
+                    <span className="ml-1 text-[10px] text-jade-100/35">（阴阳互换，事物的对立面）</span>
+                  </div>
+                )}
+                {data.zongTrigram?.name && (
+                  <div className="mt-0.5 text-xs">
+                    <span className="text-jade-100/45">综卦：</span>
+                    <span className="text-jade-100/70">{data.zongTrigram.name}</span>
+                    <span className="ml-1 text-[10px] text-jade-100/35">（上下颠倒，另一角度）</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </section>
       </div>
     </section>
