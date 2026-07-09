@@ -182,7 +182,7 @@ export function MeihuaWorkspace() {
               <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
                 SVG · Phase 10
               </span>
-              <DataModeBadge ready={ready} />
+              <DataModeBadge mode="local-approx" ready={ready} />
             </div>
           </div>
           <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
