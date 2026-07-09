@@ -174,10 +174,11 @@ export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompass
         <circle cx={cx} cy={cy} r={R1} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
         <circle cx={cx} cy={cy} r={R1i} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
 
-        {/* 中环：八卦符号 + 卦名 */}
+        {/* 中环：八卦符号 + 卦名 + 游年星 */}
         {TRIGRAMS.map((t) => {
-          const pSym = radial(cx, cy, t.deg, (R2 + R2i) / 2 + 6);
-          const pName = radial(cx, cy, t.deg, (R2 + R2i) / 2 - 12);
+          const pSym = radial(cx, cy, t.deg, (R2 + R2i) / 2 + 10);
+          const pName = radial(cx, cy, t.deg, (R2 + R2i) / 2 - 8);
+          const pStar = radial(cx, cy, t.deg, (R2 + R2i) / 2 - 22);
           const dir = t.label;
           const ov = overlay?.[dir];
           const luckColor = ov?.mansionLuck ? LUCK_COLOR[ov.mansionLuck] : null;
@@ -190,20 +191,22 @@ export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompass
                 strokeWidth={0.6}
               />
               <g transform={`translate(${pSym.x.toFixed(2)} ${pSym.y.toFixed(2)}) rotate(${pSym.rotate})`}>
-                <text textAnchor="middle" dominantBaseline="middle" fill="#EAD7A4" style={{ fontSize: 17 }}>
+                <text textAnchor="middle" dominantBaseline="middle" fill="#EAD7A4" style={{ fontSize: 15 }}>
                   {t.symbol}
                 </text>
               </g>
               <g transform={`translate(${pName.x.toFixed(2)} ${pName.y.toFixed(2)}) rotate(${pName.rotate})`}>
-                <text textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? '#9a8a7a'} style={{ fontSize: 11 }}>
+                <text textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? '#9a8a7a'} style={{ fontSize: 10 }}>
                   {t.tri}
                 </text>
-                {ov?.mansionStar && (
-                  <text y={12} textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? '#7a8a7a'} style={{ fontSize: 9 }}>
+              </g>
+              {ov?.mansionStar && (
+                <g transform={`translate(${pStar.x.toFixed(2)} ${pStar.y.toFixed(2)}) rotate(${pStar.rotate})`}>
+                  <text textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? '#7a8a7a'} style={{ fontSize: 8 }}>
                     {ov.mansionStar}
                   </text>
-                )}
-              </g>
+                </g>
+              )}
             </g>
           );
         })}
@@ -212,7 +215,8 @@ export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompass
 
         {/* 内环：八方向 + 飞星编号 */}
         {TRIGRAMS.map((t) => {
-          const p = radial(cx, cy, t.deg, (R3 + R3i) / 2);
+          const pDir = radial(cx, cy, t.deg, (R3 + R3i) / 2 + 8);
+          const pStar = radial(cx, cy, t.deg, (R3 + R3i) / 2 - 10);
           const dir = t.label;
           const ov = overlay?.[dir];
           const luckColor = ov?.starLuck ? LUCK_COLOR[ov.starLuck] : null;
@@ -224,16 +228,18 @@ export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompass
                 stroke="#3a4a3a"
                 strokeWidth={0.6}
               />
-              <g transform={`translate(${p.x.toFixed(2)} ${p.y.toFixed(2)}) rotate(${p.rotate})`}>
-                <text textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? '#cfe9dc'} style={{ fontSize: 13, fontWeight: 700 }}>
+              <g transform={`translate(${pDir.x.toFixed(2)} ${pDir.y.toFixed(2)}) rotate(${pDir.rotate})`}>
+                <text textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? '#cfe9dc'} style={{ fontSize: 11, fontWeight: 700 }}>
                   {t.label}
                 </text>
-                {ov?.starNum && (
-                  <text y={14} textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? '#9a8a7a'} style={{ fontSize: 11 }}>
+              </g>
+              {ov?.starNum && (
+                <g transform={`translate(${pStar.x.toFixed(2)} ${pStar.y.toFixed(2)}) rotate(${pStar.rotate})`}>
+                  <text textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? '#9a8a7a'} style={{ fontSize: 10 }}>
                     {ov.starNum}{ov.starName?.slice(0,2) ?? ''}
                   </text>
-                )}
-              </g>
+                </g>
+              )}
             </g>
           );
         })}
@@ -272,8 +278,8 @@ export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompass
               const facingDeg = MOUNTAIN_DEG[facing.charAt(1)] ?? 0;
               const sittingDeg = MOUNTAIN_DEG[facing.charAt(0)] ?? 180;
               // 朝向箭头（外环外侧）
-              const fr = radial(cx, cy, facingDeg, R1 + 20);
-              const sr = radial(cx, cy, sittingDeg, R1 + 20);
+              const fr = radial(cx, cy, facingDeg, R1 + 28);
+              const sr = radial(cx, cy, sittingDeg, R1 + 28);
               return (
                 <>
                   <text x={fr.x} y={fr.y} textAnchor="middle" dominantBaseline="middle" fill="#e76f51" style={{ fontSize: 14, fontWeight: 700 }}>
