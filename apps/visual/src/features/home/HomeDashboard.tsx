@@ -156,7 +156,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
             <div className="home-plate-grid">
               {['年', '月', '日', '时'].map((label, index) => (
                 <div key={label} className="home-pillar-cell">
-                  <span className="text-xs text-jade-100/40">{label}柱</span>
+                  <span className="text-xs text-jade-100/55">{label}柱</span>
                   <strong>{['庚', '辛', '甲', '戊'][index]}</strong>
                   <small>{['午', '巳', '寅', '辰'][index]}</small>
                 </div>
@@ -241,9 +241,9 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
                   <button key={tool.id} type="button" onClick={() => isModuleId(tool.entryTab) && onSelectModule(tool.entryTab)} className="flex items-center justify-between gap-3 rounded-[16px] border border-white/8 bg-black/25 px-3 py-3 text-left transition hover:border-jade-500/25 hover:bg-white/[0.04]">
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-medium text-jade-100">{tool.title}</span>
-                      <span className="mt-0.5 block truncate text-xs text-jade-100/35">{tool.questionTypes.slice(0, 2).join(' / ')}</span>
+                      <span className="mt-0.5 block truncate text-xs text-jade-100/55">{tool.questionTypes.slice(0, 2).join(' / ')}</span>
                     </span>
-                    <span className="shrink-0 rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-jade-100/40">{modeLabel}</span>
+                    <span className="shrink-0 rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-jade-100/55">{modeLabel}</span>
                   </button>
                 );
               })}

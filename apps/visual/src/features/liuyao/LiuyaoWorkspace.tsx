@@ -245,7 +245,7 @@ export function LiuyaoWorkspace() {
             ]}
           />
 
-          <p className="rounded-card border border-white/8 bg-black/24 p-3 text-xs leading-5 text-jade-100/40">
+          <p className="rounded-card border border-white/8 bg-black/24 p-3 text-xs leading-5 text-jade-100/55">
             生辰由顶部「全局生辰」统一管理。日干取自 lunar-javascript 精确历法，未加载时回退近似。用神规则：求财→妻财、求官/升职/官非/病→官鬼、考试/房屋→父母、子女/医药→子孙、合伙/朋友→兄弟。
           </p>
         </aside>

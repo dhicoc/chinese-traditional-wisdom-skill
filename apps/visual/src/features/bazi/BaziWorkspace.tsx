@@ -5,6 +5,7 @@ import { DataModeBadge } from '@/components/shared/DataModeBadge';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { FiveElementsChart } from '@/components/shared/FiveElementsChart';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
+import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
@@ -153,6 +154,11 @@ export function BaziWorkspace() {
               { label: '说明', value: xiyong?.confidenceNote ?? result?.confidenceNote ?? '顶部“全局生辰”面板是所有工作区的唯一输入源。' },
             ]}
           />
+          <KnowledgeReferencePanel
+            initialTerm={result?.dayMasterWuxing ?? '日主'}
+            terms={['日主', '十神', '正印', '偏印', '正官', '七杀', '正财', '偏财', '比肩', '劫财', '食神', '伤官', '喜用神', '五行', '纳音']}
+            description="点击术语查看通俗解释与命理含义。"
+          />
         </aside>
 
         <div className="space-y-4">
@@ -209,7 +215,7 @@ export function BaziWorkspace() {
                   <div key={key}>
                     <div className="mb-1 flex items-center justify-between text-xs">
                       <span className="text-jade-100/70">{key}</span>
-                      <span className="font-mono text-jade-100/35">{value}</span>
+                      <span className="font-mono text-jade-100/55">{value}</span>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-white/8">
                       <div className="h-full rounded-full" style={{ width: Math.max(8, (value / maxWuxing) * 100) + '%', backgroundColor: WUXING_COLORS[key] }} />

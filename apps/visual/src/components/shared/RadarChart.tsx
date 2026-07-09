@@ -129,7 +129,9 @@ export function RadarChart({
           fill={highlightIndex === i ? 'rgb(214,183,96)' : 'rgb(158,240,214)'}
           stroke={highlightIndex === i ? 'rgb(214,183,96)' : 'rgb(44,159,132)'}
           strokeWidth={1.5}
-        />
+        >
+          <title>{axes[i].label}：{axes[i].value}{highlightIndex === i ? '（主要体质）' : ''}</title>
+        </circle>
       ))}
 
       {/* 轴标签：亮色 + 暗描边，确保叠在数据多边形上也清晰 */}

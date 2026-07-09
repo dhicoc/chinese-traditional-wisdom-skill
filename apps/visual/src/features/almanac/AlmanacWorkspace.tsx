@@ -242,7 +242,7 @@ export function AlmanacWorkspace() {
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-[11px] text-jade-100/35">
+            <p className="mt-3 text-[11px] text-jade-100/55">
               吉时 {jiHours.length} 辰 · 凶时 {xiongHours.length} 辰；时辰宜忌详见 lunar-javascript 推算。
             </p>
           </div>

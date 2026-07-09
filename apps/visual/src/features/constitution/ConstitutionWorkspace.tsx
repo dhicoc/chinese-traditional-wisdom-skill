@@ -156,7 +156,7 @@ export function ConstitutionWorkspace() {
               <div className="space-y-3">
                 <div>
                   <h3 className="font-serif text-base font-semibold text-jade-100">{activeGroup.type}</h3>
-                  <p className="mt-0.5 text-xs text-jade-100/40">调养方向：{activeGroup.direction} · 食疗：{activeGroup.diet}</p>
+                  <p className="mt-0.5 text-xs text-jade-100/55">调养方向：{activeGroup.direction} · 食疗：{activeGroup.diet}</p>
                 </div>
                 {activeGroup.questions.map((q, qi) => {
                   const key = `${activeGroup.type}-${qi}`;
@@ -172,7 +172,7 @@ export function ConstitutionWorkspace() {
                             className={`rounded-lg px-2.5 py-1 text-xs transition ${
                               answers[key] === opt.value
                                 ? 'border border-jade-500/40 bg-jade-500/15 text-jade-300'
-                                : 'border border-white/8 text-jade-100/40 hover:text-jade-100'
+                                : 'border border-white/8 text-jade-100/55 hover:text-jade-100'
                             }`}
                           >
                             {opt.label}
@@ -186,7 +186,7 @@ export function ConstitutionWorkspace() {
 
               {/* 进度 + 导航 */}
               <div className="space-y-2 border-t border-white/5 pt-3">
-                <p className="text-xs text-jade-100/40">已答 {answeredCount}/{totalQuestions} 题</p>
+                <p className="text-xs text-jade-100/55">已答 {answeredCount}/{totalQuestions} 题</p>
                 <div className="flex items-center justify-between">
                   <button
                     type="button"
@@ -267,7 +267,7 @@ export function ConstitutionWorkspace() {
             <ZoomableSvg title="九种体质雷达图">
               <RadarChart axes={radarAxes} highlightIndex={highlightIndex} title="九种体质雷达图" />
             </ZoomableSvg>
-            <p className="mt-3 text-center text-[10px] text-jade-100/40">
+            <p className="mt-3 text-center text-[10px] text-jade-100/55">
               体质评分基于问卷自评，非生辰推算；金色顶点为主要体质。
             </p>
           </div>

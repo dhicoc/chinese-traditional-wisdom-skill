@@ -131,7 +131,7 @@ export function NamewuxingWorkspace() {
                       )}
                       {c.estimated && <div className="text-[10px] text-gold-400">估算</div>}
                       {c.meaning && (
-                        <div className="mt-1 border-t border-white/5 pt-1 text-[10px] leading-4 text-jade-100/35 line-clamp-2">
+                        <div className="mt-1 border-t border-white/5 pt-1 text-[10px] leading-4 text-jade-100/55 line-clamp-2">
                           {c.meaning}
                         </div>
                       )}
@@ -153,7 +153,7 @@ export function NamewuxingWorkspace() {
                       )}
                       {c.estimated && <div className="text-[10px] text-gold-400">估算</div>}
                       {c.meaning && (
-                        <div className="mt-1 border-t border-white/5 pt-1 text-[10px] leading-4 text-jade-100/35 line-clamp-2">
+                        <div className="mt-1 border-t border-white/5 pt-1 text-[10px] leading-4 text-jade-100/55 line-clamp-2">
                           {c.meaning}
                         </div>
                       )}
@@ -206,7 +206,7 @@ export function NamewuxingWorkspace() {
                   </div>
                 ))}
               </div>
-              <p className="mt-3 text-[11px] leading-5 text-jade-100/35">
+              <p className="mt-3 text-[11px] leading-5 text-jade-100/55">
                 天格=姓笔画+1；人格=姓末字+名首字；地格=名笔画和（单名+1）；外格=总格-人格+1；总格=全名笔画和。九星名与数理详注来自 fate 大衍数表。
               </p>
             </div>
@@ -255,7 +255,7 @@ export function NamewuxingWorkspace() {
                   <div key={d.name} className="rounded-card border border-white/8 bg-white/[0.02] p-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-jade-100/55">{d.name}</span>
-                      <span className="font-mono text-xs text-jade-100/35">{Math.round(d.weight * 100)}%</span>
+                      <span className="font-mono text-xs text-jade-100/55">{Math.round(d.weight * 100)}%</span>
                     </div>
                     <div className="mt-1 font-mono text-xl font-semibold text-jade-300">{d.score}</div>
                     <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/8">
@@ -264,11 +264,11 @@ export function NamewuxingWorkspace() {
                         style={{ width: `${Math.max(4, d.score)}%` }}
                       />
                     </div>
-                    <div className="mt-2 text-[10px] leading-4 text-jade-100/40">{d.detail}</div>
+                    <div className="mt-2 text-[10px] leading-4 text-jade-100/55">{d.detail}</div>
                   </div>
                 ))}
               </div>
-              <p className="mt-3 text-[11px] leading-5 text-jade-100/35">{rating.confidenceNote}</p>
+              <p className="mt-3 text-[11px] leading-5 text-jade-100/55">{rating.confidenceNote}</p>
             </div>
           )}
 
@@ -278,7 +278,7 @@ export function NamewuxingWorkspace() {
             <ZoomableSvg title="姓名五行平衡">
               <FiveElementsChart stats={wuxingStats} />
             </ZoomableSvg>
-            <p className="mt-2 text-center text-[11px] text-jade-100/35">
+            <p className="mt-2 text-center text-[11px] text-jade-100/55">
               统计姓名各字五行分布；相生相克图供参考。
             </p>
           </div>

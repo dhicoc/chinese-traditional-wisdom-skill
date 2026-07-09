@@ -5,6 +5,7 @@ import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { LegendPanel } from '@/components/shared/LegendPanel';
 import { ZiweiPalaceGrid } from '@/components/shared/ZiweiPalaceGrid';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
+import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
 import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
@@ -194,8 +195,13 @@ export function ZiweiWorkspace() {
           />
 
           <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
-            生辰资料统一由顶部“全局生辰”面板管理；修改后本页会重新调用 adapter。若 iztro 或旧引擎加载失败，页面会显式标记为降级演示。
+            生辰资料统一由顶部"全局生辰"面板管理；修改后本页会重新排盘。
           </p>
+          <KnowledgeReferencePanel
+            initialTerm="紫微"
+            terms={['紫微', '天机', '太阳', '武曲', '天同', '廉贞', '天府', '太阴', '贪狼', '巨门', '天相', '天梁', '七杀', '破军', '庙旺', '落陷', '四化', '命宫', '福德']}
+            description="点击星曜或术语查看通俗解释。"
+          />
         </aside>
 
         <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">

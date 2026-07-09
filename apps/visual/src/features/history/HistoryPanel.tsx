@@ -110,11 +110,11 @@ function EntryCard({
           >
             {moduleLabel}
           </span>
-          <span className="text-[10px] text-jade-100/35">{formatTime(entry.createdAt)}</span>
+          <span className="text-[10px] text-jade-100/55">{formatTime(entry.createdAt)}</span>
           <button
             type="button"
             onClick={() => onRemove(entry.id)}
-            className="text-[10px] text-jade-100/35 transition hover:text-cinnabar-500"
+            className="text-[10px] text-jade-100/55 transition hover:text-cinnabar-500"
           >
             删除
           </button>

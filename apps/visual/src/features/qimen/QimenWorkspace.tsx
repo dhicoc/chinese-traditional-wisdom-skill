@@ -194,7 +194,7 @@ export function QimenWorkspace() {
                       {p.isZhiFu && <span className="rounded-full border border-jade-500/30 px-1.5 py-0.5 text-[9px] text-jade-400">符</span>}
                       {p.isZhiShi && <span className="rounded-full border border-gold-500/30 px-1.5 py-0.5 text-[9px] text-gold-400">使</span>}
                       {p.horse && <span className="rounded-full border border-cinnabar-500/30 px-1.5 py-0.5 text-[9px] text-cinnabar-400">马</span>}
-                      {p.voidness?.hasVoidness && <span className="rounded-full border border-white/20 px-1.5 py-0.5 text-[9px] text-jade-100/40">空</span>}
+                      {p.voidness?.hasVoidness && <span className="rounded-full border border-white/20 px-1.5 py-0.5 text-[9px] text-jade-100/55">空</span>}
                     </div>
                   </div>
                   <div className="space-y-1 text-xs">
@@ -223,14 +223,14 @@ export function QimenWorkspace() {
                       </div>
                     )}
                     {p.fiveElements && (
-                      <div className="text-[10px] text-jade-100/35">
+                      <div className="text-[10px] text-jade-100/55">
                         {p.fiveElements}
                         {p.status ? ` · 星${p.status.star} 门${p.status.gate}` : ''}
                         {p.innerOuter ? ` · ${p.innerOuter}` : ''}
                       </div>
                     )}
                     {p.tenStemResponse && (p.tenStemResponse.heavenlyToEarthly || p.tenStemResponse.timeToDay) && (
-                      <div className="mt-1 border-t border-white/5 pt-1 text-[10px] leading-4 text-jade-100/35">
+                      <div className="mt-1 border-t border-white/5 pt-1 text-[10px] leading-4 text-jade-100/55">
                         {p.tenStemResponse.heavenlyToEarthly && <div>{p.tenStemResponse.heavenlyToEarthly}</div>}
                         {p.tenStemResponse.timeToDay && <div>{p.tenStemResponse.timeToDay}</div>}
                       </div>
@@ -249,12 +249,12 @@ export function QimenWorkspace() {
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-[11px] leading-5 text-jade-100/35">
+            <p className="mt-3 text-[11px] leading-5 text-jade-100/55">
               九宫按洛书序排布（坎1/坤2/震3/巽4/中5/乾6/兑7/艮8/离9）。
               <span className="text-jade-400"> 符</span>=值符所在宫，
               <span className="text-gold-400"> 使</span>=值使所在宫，
               <span className="text-cinnabar-400"> 马</span>=马星，
-              <span className="text-jade-100/40"> 空</span>=空亡。
+              <span className="text-jade-100/55"> 空</span>=空亡。
               天盘/地盘为三奇六仪天干；★吉格 ✗凶格为本宫检测到的格局。
             </p>
           </div>

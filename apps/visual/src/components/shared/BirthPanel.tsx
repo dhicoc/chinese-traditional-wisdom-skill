@@ -58,7 +58,11 @@ export function BirthPanel() {
         {expanded && (
           <button
             type="button"
-            onClick={resetBirth}
+            onClick={() => {
+              if (window.confirm('确定重置生辰为默认值（1990-06-15 12时 男）？')) {
+                resetBirth();
+              }
+            }}
             className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-jade-100/55 transition hover:text-jade-100"
           >
             重置

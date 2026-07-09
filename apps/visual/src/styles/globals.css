@@ -53,6 +53,16 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* UX P2: 全局键盘焦点态统一 */
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+input:focus-visible,
+[role="tab"]:focus-visible {
+  outline: 2px solid rgba(var(--jade), 0.5);
+  outline-offset: 2px;
+}
+
 ::selection {
   background: rgba(var(--jade), 0.32);
   color: rgb(var(--foreground));

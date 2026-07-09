@@ -190,7 +190,9 @@ export function FiveElementsChart({ stats, size = 420 }: FiveElementsChartProps)
         const labelY = p.y + vertexR + 16;
         return (
           <g key={p.wx}>
-            <circle cx={p.x} cy={p.y} r={vertexR} fill={light} stroke={color} strokeWidth={2.5} />
+            <circle cx={p.x} cy={p.y} r={vertexR} fill={light} stroke={color} strokeWidth={2.5}>
+              <title>{p.wx}：{count}</title>
+            </circle>
             <text
               x={p.x}
               y={p.y}

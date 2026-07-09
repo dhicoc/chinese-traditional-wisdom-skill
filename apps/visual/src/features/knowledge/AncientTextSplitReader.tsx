@@ -163,7 +163,7 @@ export function AncientTextSplitReader() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="搜索原文关键词…"
-          className="flex-1 bg-transparent text-sm text-jade-100 placeholder:text-jade-100/35 focus:outline-none"
+          className="flex-1 bg-transparent text-sm text-jade-100 placeholder:text-jade-100/55 focus:outline-none"
         />
         {searchTerm && (
           <button
