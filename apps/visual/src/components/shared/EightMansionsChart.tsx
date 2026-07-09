@@ -57,15 +57,16 @@ function sectorPath(cx: number, cy: number, rIn: number, rOut: number, deg: numb
   ].join(' ');
 }
 
-/** 径向文字：沿扇区中线方向放置，字头朝外。返回 x/y 与旋转角度。 */
+/** 径向文字：沿扇区中线方向放置。返回 x/y 与旋转角度。
+ *  南半圈（90°~270°）文字会倒置，需 +180° 让字正过来；切勿同时反转字符，
+ *  否则 rotate 与 reverse 叠加会产生镜像。 */
 function radialLabel(cx: number, cy: number, deg: number, r: number) {
   const rad = ((deg - 90) * Math.PI) / 180;
   const x = cx + r * Math.cos(rad);
   const y = cy + r * Math.sin(rad);
-  // 文字水平排布时，左侧扇区（180°±）需翻转避免倒读
   const flip = deg > 90 && deg < 270;
   const rotate = flip ? deg + 180 : deg;
-  return { x, y, rotate, flip };
+  return { x, y, rotate };
 }
 
 export function EightMansionsChart({ grid, year, gender, size = 500 }: EightMansionsChartProps) {
@@ -111,25 +112,25 @@ export function EightMansionsChart({ grid, year, gender, size = 500 }: EightMans
             {/* 方向名 */}
             <g transform={`translate(${dirLabel.x.toFixed(2)} ${dirLabel.y.toFixed(2)}) rotate(${dirLabel.rotate})`}>
               <text textAnchor="middle" dominantBaseline="middle" fill="#cfe9dc" style={{ fontSize: 13, fontWeight: 700 }}>
-                {dirLabel.flip ? s.direction.split('').reverse().join('') : s.direction}
+                {s.direction}
               </text>
             </g>
             {/* 游年星名（大字） */}
             <g transform={`translate(${starLabel.x.toFixed(2)} ${starLabel.y.toFixed(2)}) rotate(${starLabel.rotate})`}>
               <text textAnchor="middle" dominantBaseline="middle" fill={color} style={{ fontSize: 16, fontWeight: 700 }}>
-                {starLabel.flip ? s.star.split('').reverse().join('') : s.star}
+                {s.star}
               </text>
             </g>
             {/* 吉凶 */}
             <g transform={`translate(${luckLabel.x.toFixed(2)} ${luckLabel.y.toFixed(2)}) rotate(${luckLabel.rotate})`}>
               <text textAnchor="middle" dominantBaseline="middle" fill={color} style={{ fontSize: 11 }}>
-                {luckLabel.flip ? `【${s.luck}】`.split('').reverse().join('') : `【${s.luck}】`}
+                {`【${s.luck}】`}
               </text>
             </g>
             {/* 含义（小字） */}
             <g transform={`translate(${meaningLabel.x.toFixed(2)} ${meaningLabel.y.toFixed(2)}) rotate(${meaningLabel.rotate})`}>
               <text textAnchor="middle" dominantBaseline="middle" fill="#9a8a7a" style={{ fontSize: 10 }}>
-                {meaningLabel.flip ? s.meaning.split('').reverse().join('') : s.meaning}
+                {s.meaning}
               </text>
             </g>
           </g>

@@ -733,17 +733,27 @@ const CORE = {
 
   /** 命卦计算 */
   calcMingGua(year, gender) {
-    let y2 = year % 100;
+    // 命卦推算：1900-1999 用传统男减女加公式；2000 年起采用世纪调整版
+    // （男 9-y、女 y+6，y 为年份后两位）。5 男寄坤2、女寄艮8。
+    const y2 = year % 100;
     let rem;
-    if(gender === "男") {
-      rem = (100 - y2) % 9;
-      if(rem === 0) rem = 9;
-      if(rem === 5) rem = 2; // 男寄坤2
+    if (year >= 2000) {
+      // 世纪调整版：2000 年男命 = 离(9)、女命 = 乾(6)
+      if (gender === "男") {
+        rem = (9 - y2) % 9;
+      } else {
+        rem = (y2 + 6) % 9;
+      }
     } else {
-      rem = (y2 - 4) % 9;
-      if(rem === 0) rem = 9;
-      if(rem === 5) rem = 8; // 女寄艮8
+      if (gender === "男") {
+        rem = (100 - y2) % 9;
+      } else {
+        rem = (y2 - 4) % 9;
+      }
     }
+    rem = ((rem % 9) + 9) % 9; // 归一化到 0-8，防负数
+    if (rem === 0) rem = 9;
+    if (rem === 5) rem = gender === "男" ? 2 : 8; // 男寄坤2，女寄艮8
     const map = {
       1:{trigram:"坎",group:"东四命"}, 2:{trigram:"坤",group:"西四命"},
       3:{trigram:"震",group:"东四命"}, 4:{trigram:"巽",group:"东四命"},
