@@ -176,7 +176,7 @@ export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompass
 
         {/* 中环：八卦符号 + 卦名 + 游年星（首字） */}
         {TRIGRAMS.map((t) => {
-          const pSym = radial(cx, cy, t.deg, R2 - 8);
+          const pSym = radial(cx, cy, t.deg, R2 - 14);
           const pName = radial(cx, cy, t.deg, (R2 + R2i) / 2);
           const pStar = radial(cx, cy, t.deg, R2i + 6);
           const dir = t.label;
