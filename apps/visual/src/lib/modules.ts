@@ -231,18 +231,6 @@ export const MODULES: WisdomModule[] = [
     description: '通过 Mermaid 和后续 Split Reader 展示知识结构与古籍映射。',
   },
   {
-    id: 'testing',
-    group: '开发者',
-    title: '测试控制台',
-    shortTitle: '测试',
-    status: 'derived',
-    statusLabel: '测试入口',
-    privacyLevel: '不含个人资料',
-    questionTypes: ['CLI', '浏览器', '验证页'],
-    accent: '#c9b27a',
-    description: '汇总 Node CLI 测试、浏览器端测试和自动验证页入口，提供环境诊断与结果摘要。',
-  },
-  {
     id: 'reader',
     group: '开发者',
     title: '古籍 Split Reader',

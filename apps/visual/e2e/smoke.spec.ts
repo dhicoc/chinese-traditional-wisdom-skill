@@ -22,7 +22,7 @@ test.describe('Application Smoke Tests', () => {
     await expect(page.locator('[data-testid="sidebar-nav"]')).toBeVisible();
     // Verify all module nav items exist (home + 18 tools)
     const navItems = page.locator('[data-testid="nav-item"]');
-    await expect(navItems).toHaveCount(19);
+    await expect(navItems).toHaveCount(18);
   });
 
   test('should render command bar', async ({ page }) => {
