@@ -5,7 +5,7 @@ import { DataModeBadge } from '@/components/shared/DataModeBadge';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { FiveElementsChart } from '@/components/shared/FiveElementsChart';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
-import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
+import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
@@ -154,9 +154,9 @@ export function BaziWorkspace() {
               { label: '说明', value: xiyong?.confidenceNote ?? result?.confidenceNote ?? '顶部“全局生辰”面板是所有工作区的唯一输入源。' },
             ]}
           />
-          <KnowledgeReferencePanel
-            initialTerm={result?.dayMasterWuxing ?? '日主'}
-            terms={['日主', '十神', '正印', '偏印', '正官', '七杀', '正财', '偏财', '比肩', '劫财', '食神', '伤官', '喜用神', '五行', '纳音']}
+          <TermExplanationPanel
+            initialTerm={result?.dayMasterWuxing ?? "日主"}
+            terms={["日主","十神","正印","偏印","正官","七杀","正财","偏财","比肩","劫财","食神","伤官","喜用神","五行","纳音"]}
             description="点击术语查看通俗解释与命理含义。"
           />
         </aside>

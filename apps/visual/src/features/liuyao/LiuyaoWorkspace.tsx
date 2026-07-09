@@ -5,6 +5,7 @@ import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { HexagramChart } from '@/components/shared/HexagramChart';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
+import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import type { LiuyaoData } from '@/legacy/canvasRenderers';
 import type { LiuyaoLine } from '@/legacy/divinationTypes';
 import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
@@ -246,8 +247,13 @@ export function LiuyaoWorkspace() {
           />
 
           <p className="rounded-card border border-white/8 bg-black/24 p-3 text-xs leading-5 text-jade-100/55">
-            生辰由顶部「全局生辰」统一管理。日干取自 lunar-javascript 精确历法，未加载时回退近似。用神规则：求财→妻财、求官/升职/官非/病→官鬼、考试/房屋→父母、子女/医药→子孙、合伙/朋友→兄弟。
+            生辰由顶部「全局生辰」统一管理。用神规则：求财→妻财、求官→官鬼、考试→父母、子女→子孙、合伙→兄弟。
           </p>
+          <TermExplanationPanel
+            initialTerm="用神"
+            terms={['世爻', '应爻', '用神', '原神', '忌神', '动爻', '变爻', '纳甲', '六亲', '六神', '青龙', '朱雀', '勾陈', '螣蛇', '白虎', '玄武', '妻财', '官鬼', '父母', '子孙', '兄弟']}
+            description="点击术语查看通俗解释。"
+          />
         </aside>
 
         <div className="space-y-4">
