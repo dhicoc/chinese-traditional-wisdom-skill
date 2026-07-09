@@ -36,11 +36,11 @@ test.describe('Application Smoke Tests', () => {
     await expect(page.getByTestId('home-dashboard').getByText('四柱 / 九宫工作台')).toBeVisible();
   });
 
-  test('should show capability indicators', async ({ page }) => {
-    // Home dashboard should show capability metrics
-    await expect(page.getByTestId('home-dashboard').getByText('工具入口').first()).toBeVisible();
-    await expect(page.getByTestId('home-dashboard').getByText('本地能力')).toBeVisible();
-    await expect(page.getByTestId('home-dashboard').getByText('演示边界')).toBeVisible();
+  test('should show core plate and birth input', async ({ page }) => {
+    // 面向用户的核心内容：排盘信息 + 四柱命盘
+    await expect(page.getByTestId('home-dashboard').getByText('排盘信息')).toBeVisible();
+    await expect(page.getByTestId('home-dashboard').getByText('四柱 / 九宫工作台')).toBeVisible();
+    await expect(page.getByTestId('home-bazi-plate')).toBeVisible();
   });
 
   test('should not have console errors on load', async ({ page }) => {

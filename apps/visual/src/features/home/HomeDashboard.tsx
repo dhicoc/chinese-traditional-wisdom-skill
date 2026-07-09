@@ -1,10 +1,43 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { HomeBaziPlate } from '@/components/shared/HomeBaziPlate';
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
+import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import type { ModuleId } from '@/lib/modules';
 import { MODULES } from '@/lib/modules';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
+import { renderDataWithLegacyAdapter, calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
+import { type BaziPillars } from '@/legacy/canvasRenderers';
 import { getCapabilityForTool, getLegacyTools, getToolModeLabel, type LegacyTool } from '@/legacy/toolRegistry';
+import type { BirthData } from '@/legacy/birthBridge';
+import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
+
+const FALLBACK_PILLARS: BaziPillars = {
+  year: { stem: '甲', branch: '辰' },
+  month: { stem: '丙', branch: '寅' },
+  day: { stem: '戊', branch: '午' },
+  hour: { stem: '庚', branch: '申' },
+  dayMaster: '戊',
+  gender: '男',
+};
+
+interface BaziResult {
+  pillars?: unknown;
+  dayMaster?: string;
+  dayMasterWuxing?: string;
+  engineName?: string;
+  mode?: string;
+  confidenceNote?: string;
+}
+
+/** 用真实八字引擎算四柱；引擎未就绪时回退占位四柱（仅展示，不宣称真实）。 */
+function resolvePillars(birth: BirthData, ready: boolean): { pillars: BaziPillars; engineName?: string } {
+  if (!ready) return { pillars: { ...FALLBACK_PILLARS, gender: birth.gender } };
+  const result = calculateWithLegacyAdapter<BirthData, BaziResult>('bazi', birth);
+  const pillars = result ? renderDataWithLegacyAdapter<BirthData, BaziResult, BaziPillars>('bazi', result, birth) : null;
+  return { pillars: pillars ?? { ...FALLBACK_PILLARS, gender: birth.gender }, engineName: result?.engineName };
+}
 
 interface HomeDashboardProps {
   activeModule: ModuleId;
@@ -51,21 +84,25 @@ function birthSummary(year: number, month: number, day: number, hour: number) {
 export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardProps) {
   const { birth } = useBirth();
   const [tools, setTools] = useState<LegacyTool[]>(() => fallbackTools());
-  const [legacyReady, setLegacyReady] = useState(false);
+  const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
 
   useEffect(() => {
     let mounted = true;
     loadLegacyScripts().then((state) => {
       if (!mounted) return;
+      setLegacyState(state);
       if (state.mode === 'ready') {
         setTools(getLegacyTools());
-        setLegacyReady(true);
       }
     });
     return () => {
       mounted = false;
     };
   }, []);
+
+  const ready = legacyState.mode === 'ready';
+  const legacyReady = ready;
+  const { pillars } = useMemo(() => resolvePillars(birth, ready), [birth, ready]);
 
   const selected = MODULES.find((module) => module.id === activeModule) ?? MODULES[0];
   const grouped = useMemo(
@@ -106,7 +143,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
         ))}
       </div>
 
-      <div className="home-console-grid grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)_300px]">
+      <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
         <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
           <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-3">
             <div>
@@ -138,7 +175,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
           </button>
         </section>
 
-        <section className="console-panel center-oracle rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
+        <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-400">Core Plate</p>
@@ -150,41 +187,21 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
               payload={{ module: selected, tools: tools.length, localCapabilities: counts.local, demoBoundaries: counts.demo, legacyReady, source: 'ToolManifest + CapabilityRegistry + React HomeDashboard' }}
             />
           </div>
-          <div className="home-plate mx-auto mt-4 aspect-square max-h-[360px] w-full max-w-[420px]">
-            <div className="home-plate-ring home-plate-ring-outer" />
-            <div className="home-plate-ring home-plate-ring-inner" />
-            <div className="home-plate-grid">
-              {['年', '月', '日', '时'].map((label, index) => (
-                <div key={label} className="home-pillar-cell">
-                  <span className="text-xs text-jade-100/55">{label}柱</span>
-                  <strong>{['庚', '辛', '甲', '戊'][index]}</strong>
-                  <small>{['午', '巳', '寅', '辰'][index]}</small>
-                </div>
-              ))}
-            </div>
-            <div className="home-plate-orbit home-plate-wood">木</div>
-            <div className="home-plate-orbit home-plate-fire">火</div>
-            <div className="home-plate-orbit home-plate-earth">土</div>
-            <div className="home-plate-orbit home-plate-metal">金</div>
-            <div className="home-plate-core">命</div>
-          </div>
-        </section>
-
-        <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
-          <div className="flex items-center justify-between border-b border-white/8 pb-3">
-            <h2 className="text-lg font-semibold text-jade-50">基本信息</h2>
-            <span className="rounded-full border border-gold-500/25 bg-gold-500/10 px-2.5 py-1 text-[10px] text-gold-400">详析</span>
-          </div>
-          <dl className="mt-4 space-y-3 text-sm">
-            <div className="flex justify-between gap-4"><dt className="text-jade-100/45">工具入口</dt><dd className="font-mono text-gold-400">{tools.length}</dd></div>
-            <div className="flex justify-between gap-4"><dt className="text-jade-100/45">本地能力</dt><dd className="font-mono text-jade-400">{counts.local}</dd></div>
-            <div className="flex justify-between gap-4"><dt className="text-jade-100/45">演示边界</dt><dd className="font-mono text-cinnabar-500">{counts.demo}</dd></div>
-            <div className="flex justify-between gap-4"><dt className="text-jade-100/45">当前模块</dt><dd className="text-jade-100">{selected.title}</dd></div>
-            <div className="flex justify-between gap-4"><dt className="text-jade-100/45">Manifest</dt><dd className="text-jade-100">{legacyReady ? '已读取' : 'Fallback'}</dd></div>
-          </dl>
-          <div className="mt-5 rounded-[18px] border border-cinnabar-500/20 bg-cinnabar-500/8 p-3">
-            <p className="text-xs font-semibold text-cinnabar-500">边界说明</p>
-            <p className="mt-1 text-xs leading-5 text-jade-100/55">六爻已接入本地京房八宫纳甲引擎；不同流派在纳甲地支顺逆与六神起例上可能存在口径差异。</p>
+          <div className="mt-4">
+            {ready ? (
+              <div className="mx-auto max-w-[460px]">
+                <ZoomableSvg title="四柱 / 九宫命盘">
+                  <HomeBaziPlate pillars={pillars} size={460} />
+                </ZoomableSvg>
+              </div>
+            ) : (
+              <div className="mx-auto max-w-[460px]">
+                <LoadingSkeleton label="正在加载八字引擎" />
+              </div>
+            )}
+            <p className="mt-2 text-center text-[11px] text-jade-100/45">
+              {ready ? '真实四柱 · 双击放大查看 · 右键复制为图像' : '引擎加载后显示真实四柱'}
+            </p>
           </div>
         </section>
       </div>

@@ -20,7 +20,7 @@ interface ModeInfo {
 
 function getModeInfo(mode: string | undefined, ready: boolean | undefined): ModeInfo {
   if (!ready) {
-    return { label: '引擎加载中', color: 'text-jade-100/40 border-white/10 bg-white/[0.02]', icon: '◌' };
+    return { label: '引擎加载中', color: 'text-jade-100/55 border-white/10 bg-white/[0.02]', icon: '◌' };
   }
   switch (mode) {
     case 'local-exact':

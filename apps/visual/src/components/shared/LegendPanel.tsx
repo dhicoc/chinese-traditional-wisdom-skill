@@ -21,7 +21,7 @@ export function LegendPanel({ title, description, items }: LegendPanelProps) {
           <p className="text-sm font-semibold text-jade-100">{title}</p>
           {description && <p className="mt-1 text-xs leading-5 text-jade-100/45">{description}</p>}
         </div>
-        <span className="rounded-full bg-black/24 px-2 py-0.5 text-[10px] text-jade-100/40">Legend</span>
+        <span className="rounded-full bg-black/24 px-2 py-0.5 text-[10px] text-jade-100/55">Legend</span>
       </div>
 
       <div className="mt-3 grid gap-2">
@@ -35,9 +35,9 @@ export function LegendPanel({ title, description, items }: LegendPanelProps) {
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-xs font-semibold text-jade-100">{item.label}</span>
-                {item.value && <span className="text-[10px] text-jade-100/40">{item.value}</span>}
+                {item.value && <span className="text-[10px] text-jade-100/55">{item.value}</span>}
               </div>
-              {item.description && <p className="mt-1 text-xs leading-5 text-jade-100/40">{item.description}</p>}
+              {item.description && <p className="mt-1 text-xs leading-5 text-jade-100/55">{item.description}</p>}
             </div>
           </div>
         ))}

@@ -19,10 +19,10 @@ function HitCard({ hit }: { hit: KnowledgeReferenceHit }) {
         <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2 py-0.5 text-[10px] text-jade-400">
           {hit.kind === 'mapping' ? '映射表' : '古籍索引'}
         </span>
-        <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-jade-100/40">
+        <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-jade-100/55">
           {hit.completeness}
         </span>
-        <span className="text-[10px] text-jade-100/40">{hit.source} · {hit.field}</span>
+        <span className="text-[10px] text-jade-100/55">{hit.source} · {hit.field}</span>
       </div>
       <h4 className="mt-2 text-sm font-semibold text-jade-100">{hit.title}</h4>
       <p className="mt-1 text-xs leading-5 text-jade-100/60">{hit.summary}</p>
@@ -85,7 +85,7 @@ export function KnowledgeReferencePanel({
         {hits.length > 0 ? (
           hits.map((hit) => <HitCard key={hit.id} hit={hit} />)
         ) : (
-          <p className="rounded-card border border-white/8 bg-black/24 p-3 text-xs leading-5 text-jade-100/40">
+          <p className="rounded-card border border-white/8 bg-black/24 p-3 text-xs leading-5 text-jade-100/55">
             暂未命中映射表或风水知识库索引。可尝试“坎”“生气”“五黄”“反弓煞”等关键词。
           </p>
         )}

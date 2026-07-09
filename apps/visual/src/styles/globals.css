@@ -179,105 +179,6 @@ input:focus-visible,
   border-left-color: rgba(var(--jade), 0.35);
 }
 
-.home-plate {
-  position: relative;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background:
-    radial-gradient(circle, rgba(var(--jade), 0.16), transparent 16%),
-    radial-gradient(circle, rgba(var(--cinnabar), 0.10), transparent 54%),
-    rgba(2, 8, 6, 0.48);
-  box-shadow:
-    inset 0 0 78px rgba(var(--jade), 0.08),
-    0 0 80px rgba(var(--jade), 0.12);
-}
-
-.home-plate-ring {
-  position: absolute;
-  border-radius: inherit;
-  border: 1px solid rgba(var(--jade), 0.22);
-  background: repeating-conic-gradient(from 0deg, rgba(var(--jade), 0.16) 0deg 1deg, transparent 1deg 12deg);
-  mask-image: radial-gradient(circle, transparent 0 58%, black 59% 66%, transparent 67%);
-}
-
-.home-plate-ring-outer {
-  inset: 2%;
-  animation: tianpan-disc-rotate 96s linear infinite;
-}
-
-.home-plate-ring-inner {
-  inset: 18%;
-  animation: tianpan-bagua-counter 64s linear infinite;
-}
-
-.home-plate-grid {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  width: 54%;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  overflow: hidden;
-  border-radius: 18px;
-  border: 1px solid rgba(var(--jade), 0.22);
-  background: rgba(3, 8, 5, 0.72);
-}
-
-.home-pillar-cell {
-  display: grid;
-  min-height: 5rem;
-  place-items: center;
-  border: 1px solid rgba(var(--jade), 0.08);
-  padding: 0.5rem;
-}
-
-.home-pillar-cell strong {
-  color: rgb(var(--jade));
-  font-family: "Noto Serif CJK SC", "Songti SC", SimSun, serif;
-  font-size: clamp(1.8rem, 4vw, 3rem);
-  line-height: 1;
-}
-
-.home-pillar-cell small {
-  color: rgba(var(--metal), 0.86);
-  font-family: "Noto Serif CJK SC", "Songti SC", SimSun, serif;
-  font-size: 1.1rem;
-}
-
-.home-plate-orbit {
-  position: absolute;
-  z-index: 2;
-  display: grid;
-  width: 3rem;
-  height: 3rem;
-  place-items: center;
-  border-radius: 999px;
-  border: 1px solid currentColor;
-  background: rgba(3, 8, 5, 0.82);
-  font-weight: 700;
-  box-shadow: 0 0 28px color-mix(in srgb, currentColor 26%, transparent);
-}
-
-.home-plate-wood { left: 4%; top: 43%; color: rgb(var(--wood)); }
-.home-plate-fire { left: 50%; top: 3%; transform: translateX(-50%); color: rgb(var(--fire)); }
-.home-plate-earth { right: 4%; top: 43%; color: rgb(var(--earth)); }
-.home-plate-metal { left: 50%; bottom: 3%; transform: translateX(-50%); color: rgb(var(--metal)); }
-.home-plate-core {
-  position: absolute;
-  z-index: 3;
-  display: grid;
-  width: 2.8rem;
-  height: 2.8rem;
-  place-items: center;
-  border-radius: 999px;
-  border: 1px solid rgba(var(--jade), 0.34);
-  background: rgba(4, 10, 7, 0.88);
-  color: rgb(var(--jade));
-  font-family: "Noto Serif CJK SC", "Songti SC", SimSun, serif;
-  font-size: 1.2rem;
-  pointer-events: none;
-}
-
 .tool-tile:before {
   content: "";
   position: absolute;
@@ -290,17 +191,6 @@ input:focus-visible,
 
 .tool-tile:hover:before {
   opacity: 1;
-}
-
-@media (max-width: 768px) {
-  .home-pillar-cell {
-    min-height: 5rem;
-  }
-
-  .home-plate-orbit {
-    width: 2.5rem;
-    height: 2.5rem;
-  }
 }
 
 /* Canvas 仪器面板主题 */
@@ -333,22 +223,4 @@ input:focus-visible,
   box-shadow:
     0 0 0 1px rgba(var(--jade), 0.16),
     0 18px 52px rgba(0, 0, 0, 0.42);
-}
-
-/* 首页命盘环动画（home-plate-ring 使用） */
-@keyframes tianpan-disc-rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes tianpan-bagua-counter {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .home-plate-ring-outer,
-  .home-plate-ring-inner {
-    animation: none;
-  }
 }

@@ -258,9 +258,9 @@ export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompass
           { label: '西', angle: 180, color: '#cfe9dc' },
         ].map((d) => {
           const rad = d.angle * (Math.PI / 180);
-          const x2 = cx + RC * 0.72 * Math.cos(rad);
-          const y2 = cy + RC * 0.72 * Math.sin(rad);
-          const lr = RC * 0.9;
+          const x2 = cx + RC * 0.64 * Math.cos(rad);
+          const y2 = cy + RC * 0.64 * Math.sin(rad);
+          const lr = RC * 0.8;
           const lx = cx + lr * Math.cos(rad);
           const ly = cy + lr * Math.sin(rad);
           return (

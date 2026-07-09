@@ -33,7 +33,7 @@ export function InterpretationCard({ title, badge, subtitle, items = [], childre
         <dl className="mt-3 space-y-2 text-sm text-jade-100/60">
           {items.map((item) => (
             <div key={item.label} className="grid gap-1 rounded-card bg-black/50 px-3 py-2 sm:grid-cols-[80px_minmax(0,1fr)]">
-              <dt className="text-xs text-jade-100/40">{item.label}</dt>
+              <dt className="text-xs text-jade-100/55">{item.label}</dt>
               <dd className="min-w-0 text-jade-100">
                 {item.value}
                 {item.description && <p className="mt-1 text-xs leading-5 text-jade-100/45">{item.description}</p>}
