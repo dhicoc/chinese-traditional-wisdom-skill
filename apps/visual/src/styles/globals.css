@@ -225,10 +225,10 @@ input:focus-visible,
 
 .home-pillar-cell {
   display: grid;
-  min-height: 6.4rem;
+  min-height: 5rem;
   place-items: center;
   border: 1px solid rgba(var(--jade), 0.08);
-  padding: 0.75rem;
+  padding: 0.5rem;
 }
 
 .home-pillar-cell strong {
@@ -266,15 +266,16 @@ input:focus-visible,
   position: absolute;
   z-index: 3;
   display: grid;
-  width: 4.2rem;
-  height: 4.2rem;
+  width: 2.8rem;
+  height: 2.8rem;
   place-items: center;
   border-radius: 999px;
   border: 1px solid rgba(var(--jade), 0.34);
   background: rgba(4, 10, 7, 0.88);
   color: rgb(var(--jade));
   font-family: "Noto Serif CJK SC", "Songti SC", SimSun, serif;
-  font-size: 1.65rem;
+  font-size: 1.2rem;
+  pointer-events: none;
 }
 
 .tool-tile:before {
