@@ -155,7 +155,7 @@ export function BaziWorkspace() {
             ]}
           />
           <TermExplanationPanel
-            initialTerm={result?.dayMasterWuxing ?? "日主"}
+            initialTerm="日主"
             terms={["日主","十神","正印","偏印","正官","七杀","正财","偏财","比肩","劫财","食神","伤官","喜用神","五行","纳音"]}
             description="点击术语查看通俗解释与命理含义。"
           />
