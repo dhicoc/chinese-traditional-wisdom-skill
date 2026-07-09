@@ -7,6 +7,7 @@ import { calculateLegacyYunqi, type YunqiData } from '@/legacy/canvasRenderers';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { DataModeBadge } from '@/components/shared/DataModeBadge';
+import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 import {
   YEAR_INTENT_EVENT,
@@ -139,6 +140,15 @@ export function YunqiWorkspace() {
           </div>
         </section>
       </div>
+
+      {ready && (
+        <TermExplanationPanel
+          ready={ready}
+          initialTerm="岁运"
+          terms={["岁运","司天","在泉","客气","主气","六气","客主加临","厥阴风木","少阴君火","少阳相火","太阴湿土","阳明燥金","太阳寒水","初之气","二之气","三之气","四之气","五之气","六之气","大寒","节气","太过","不及"]}
+          description="点击术语查看五运六气通俗解释。"
+        />
+      )}
     </section>
   );
 }

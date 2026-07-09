@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
+import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
@@ -259,6 +260,15 @@ export function QimenWorkspace() {
             </p>
           </div>
         </div>
+      )}
+
+      {ready && (
+        <TermExplanationPanel
+          ready={ready}
+          initialTerm="值符"
+          terms={["值符","值使","八门","九星","八神","三奇六仪","休门","生门","伤门","杜门","景门","死门","惊门","开门","天蓬","天任","天冲","天辅","天英","天芮","天柱","天心","天禽","直符","腾蛇","太阴","六合","白虎","玄武","九地","九天","阳遁","阴遁","局数","空亡","马星"]}
+          description="点击术语查看奇门遁甲通俗解释。"
+        />
       )}
     </section>
   );
