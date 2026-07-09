@@ -174,14 +174,16 @@ export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompass
         <circle cx={cx} cy={cy} r={R1} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
         <circle cx={cx} cy={cy} r={R1i} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
 
-        {/* 中环：八卦符号 + 卦名 + 游年星 */}
+        {/* 中环：八卦符号 + 卦名 + 游年星（首字） */}
         {TRIGRAMS.map((t) => {
           const pSym = radial(cx, cy, t.deg, (R2 + R2i) / 2 + 10);
           const pName = radial(cx, cy, t.deg, (R2 + R2i) / 2 - 8);
-          const pStar = radial(cx, cy, t.deg, (R2 + R2i) / 2 - 22);
+          const pStar = radial(cx, cy, t.deg, R2i + 8);
           const dir = t.label;
           const ov = overlay?.[dir];
           const luckColor = ov?.mansionLuck ? LUCK_COLOR[ov.mansionLuck] : null;
+          // 游年星只显示首字避免超出中环边界，完整名称在侧栏
+          const starShort = ov?.mansionStar ? ov.mansionStar.charAt(0) : '';
           return (
             <g key={t.tri}>
               <path
@@ -200,10 +202,11 @@ export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompass
                   {t.tri}
                 </text>
               </g>
-              {ov?.mansionStar && (
+              {starShort && (
                 <g transform={`translate(${pStar.x.toFixed(2)} ${pStar.y.toFixed(2)}) rotate(${pStar.rotate})`}>
-                  <text textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? '#7a8a7a'} style={{ fontSize: 8 }}>
-                    {ov.mansionStar}
+                  <text textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? '#7a8a7a'} style={{ fontSize: 9 }} >
+                    {starShort}
+                    <title>{ov?.mansionStar}</title>
                   </text>
                 </g>
               )}
