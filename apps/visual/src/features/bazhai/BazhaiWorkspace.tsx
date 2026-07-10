@@ -8,6 +8,12 @@ import {
   getBazhaiGrid,
   getBazhaiSummary,
 } from '@/legacy/canvasRenderers';
+import {
+  checkMingZhaiCompatibility,
+  getHouseGua,
+  getPersonalDirections,
+  FACING_OPTIONS,
+} from '@/legacy/bazhaiHouse';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { DataModeBadge } from '@/components/shared/DataModeBadge';
@@ -17,6 +23,7 @@ export function BazhaiWorkspace() {
   const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
   const [year, setYear] = useState(1990);
   const [gender, setGender] = useState<'男' | '女'>('男');
+  const [facing, setFacing] = useState<string>('南');
 
   useEffect(() => {
     let mounted = true;
@@ -37,6 +44,15 @@ export function BazhaiWorkspace() {
     () => (ready ? getBazhaiGrid(year, gender) : null),
     [ready, year, gender],
   );
+  const houseGua = useMemo(() => getHouseGua(facing), [facing]);
+  const compatibility = useMemo(
+    () => (summary && houseGua ? checkMingZhaiCompatibility(summary.trigram, houseGua) : null),
+    [summary, houseGua],
+  );
+  const personalDirs = useMemo(
+    () => (summary ? getPersonalDirections(summary.trigram) : null),
+    [summary],
+  );
 
   const contextPayload = useMemo(
     () => ({
@@ -44,10 +60,13 @@ export function BazhaiWorkspace() {
       mode: 'legacy-canvas-react-shell',
       year,
       gender,
+      facing,
       mingGua: summary ?? null,
-      source: 'visual/js/fengshui.js (renderEightMansions) + visual/js/core.js',
+      houseGua: houseGua ?? null,
+      compatibility: compatibility ?? null,
+      source: 'visual/js/fengshui.js + visual/js/core.js + bazhaiHouse.ts',
     }),
-    [year, gender, summary],
+    [year, gender, facing, summary, houseGua, compatibility],
   );
 
   return (
@@ -93,6 +112,18 @@ export function BazhaiWorkspace() {
             </select>
           </ControlField>
 
+          <ControlField label="房屋朝向" hint="按朝向方定宅卦">
+            <select
+              value={facing}
+              onChange={(event) => setFacing(event.target.value)}
+              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+            >
+              {FACING_OPTIONS.map((f) => (
+                <option key={f} value={f}>{f}方</option>
+              ))}
+            </select>
+          </ControlField>
+
           <div className="rounded-card border border-white/8 bg-white/[0.035] p-4">
             <p className="text-sm font-semibold text-jade-100">命卦</p>
             {summary ? (
@@ -104,6 +135,57 @@ export function BazhaiWorkspace() {
               <p className="mt-2 text-sm text-jade-100/45">等待旧引擎加载。</p>
             )}
           </div>
+
+          {houseGua && (
+            <div className="rounded-card border border-white/8 bg-white/[0.035] p-4">
+              <p className="text-sm font-semibold text-jade-100">宅卦</p>
+              <dl className="mt-3 space-y-2 text-sm text-jade-100/55">
+                <div className="flex justify-between gap-3"><dt>宅卦</dt><dd className="text-jade-100">{houseGua.name}</dd></div>
+                <div className="flex justify-between gap-3"><dt>分组</dt><dd className="text-jade-100">{houseGua.group}</dd></div>
+              </dl>
+            </div>
+          )}
+
+          {compatibility && (
+            <div className={`rounded-card border p-4 ${compatibility.level === '相配' ? 'border-jade-500/30 bg-jade-500/8' : 'border-cinnabar-500/30 bg-cinnabar-500/8'}`}>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-jade-100">命宅相配</p>
+                <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${compatibility.level === '相配' ? 'border border-jade-500/40 text-jade-400' : 'border border-cinnabar-500/40 text-cinnabar-400'}`}>
+                  {compatibility.level}
+                </span>
+              </div>
+              <p className="mt-2 text-xs leading-5 text-jade-100/65">{compatibility.detail}</p>
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-jade-100/45">
+                <span>命卦五行：{compatibility.mingWuxing}</span>
+                <span>宅卦五行：{compatibility.houseWuxing}</span>
+                {compatibility.wuxingRelation && <span>生克：{compatibility.wuxingRelation}</span>}
+              </div>
+            </div>
+          )}
+
+          {personalDirs && (
+            <div className="rounded-card border border-white/8 bg-white/[0.035] p-4">
+              <p className="text-sm font-semibold text-jade-100">个人吉凶方位速查</p>
+              <p className="mt-1 text-[11px] text-jade-100/45">四吉方（宜床位/书桌/财位）</p>
+              <div className="mt-1.5 grid grid-cols-2 gap-1.5 text-xs">
+                {personalDirs.auspicious.map((d) => (
+                  <div key={d.star} className="flex justify-between rounded bg-jade-500/8 px-2 py-1">
+                    <span className="text-jade-300">{d.star}</span>
+                    <span className="text-jade-100/70">{d.direction}方</span>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-2.5 text-[11px] text-jade-100/45">四凶方（宜置厕所/储物化解）</p>
+              <div className="mt-1.5 grid grid-cols-2 gap-1.5 text-xs">
+                {personalDirs.inauspicious.map((d) => (
+                  <div key={d.star} className="flex justify-between rounded bg-cinnabar-500/8 px-2 py-1">
+                    <span className="text-cinnabar-300">{d.star}</span>
+                    <span className="text-jade-100/70">{d.direction}方</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
             八宅游年仅作传统文化学习与方位参考，不构成风水操作或决策建议。
