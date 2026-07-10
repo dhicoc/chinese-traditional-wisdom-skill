@@ -12,6 +12,7 @@ import {
   checkMingZhaiCompatibility,
   getHouseGua,
   getPersonalDirections,
+  getSectorAnalysis,
   FACING_OPTIONS,
 } from '@/legacy/bazhaiHouse';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
@@ -51,6 +52,10 @@ export function BazhaiWorkspace() {
   );
   const personalDirs = useMemo(
     () => (summary ? getPersonalDirections(summary.trigram) : null),
+    [summary],
+  );
+  const sectorAnalysis = useMemo(
+    () => (summary ? getSectorAnalysis(summary.trigram) : null),
     [summary],
   );
 
@@ -183,6 +188,31 @@ export function BazhaiWorkspace() {
                     <span className="text-jade-100/70">{d.direction}方</span>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {sectorAnalysis && (
+            <div className="rounded-card border border-white/8 bg-white/[0.035] p-4">
+              <p className="text-sm font-semibold text-jade-100">方位用途宜忌</p>
+              <p className="mt-1 text-[11px] text-jade-100/45">八星古典主象 + 房间布局建议（《八宅明镜》《阳宅三要》）</p>
+              <div className="mt-2.5 space-y-2">
+                {sectorAnalysis.map((s) => {
+                  const isJi = s.use.quality === '大吉' || s.use.quality === '吉';
+                  const isXiong = s.use.quality === '大凶' || s.use.quality === '凶' || s.use.quality === '次凶';
+                  return (
+                    <div key={s.direction} className="rounded border border-white/5 bg-black/30 p-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-jade-100">{s.direction}方 · {s.use.star}</span>
+                        <span className={`text-[10px] ${isJi ? 'text-jade-400' : isXiong ? 'text-cinnabar-400' : 'text-jade-100/55'}`}>
+                          {s.use.classicalName} · {s.use.quality}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[11px] leading-4 text-jade-100/55">{s.use.meaning}</p>
+                      <p className="mt-0.5 text-[11px] leading-4 text-jade-300/70">{s.use.advice}</p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

@@ -193,3 +193,113 @@ export function getPersonalDirections(
 
 /** 八方位选项（朝向下拉用）。 */
 export const FACING_OPTIONS = ['南', '北', '东', '西', '东南', '西北', '东北', '西南'] as const;
+
+/**
+ * 游年星方位用途宜忌 + 古典九星详描。
+ * 数据提炼自 suangua SECTOR_QUALITY + knowledge.fengshui_classical.py
+ * BAYUAN_JIUXING（《八宅明镜》《阳宅三要》古典星名/主象/适宜/化解）。
+ */
+export interface SectorUse {
+  /** 游年星名（生气/天医/...） */
+  star: string;
+  /** 古典九星名（贪狼木星等） */
+  classicalName: string;
+  /** 吉凶等级 */
+  quality: string;
+  /** 主象（该星主导意象） */
+  meaning: string;
+  /** 方位用途宜忌（宜置卧室/书房/厨房/厕所等） */
+  advice: string;
+}
+
+const SECTOR_USE: Record<string, SectorUse> = {
+  生气: {
+    star: '生气',
+    classicalName: '贪狼木星',
+    quality: '大吉',
+    meaning: '升官发财，生机勃勃，子嗣繁荣',
+    advice: '宜置大门、主卧、书房；作财位、旺丁位',
+  },
+  天医: {
+    star: '天医',
+    classicalName: '巨门土星',
+    quality: '吉',
+    meaning: '贵人相助，平安健康，家庭和睦',
+    advice: '宜置主卧、厨房、客厅；作求贵人之位',
+  },
+  延年: {
+    star: '延年',
+    classicalName: '武曲金星',
+    quality: '吉',
+    meaning: '长寿延年，婚姻美满，事业稳定',
+    advice: '宜置主卧、客厅；作夫妻感情和谐位',
+  },
+  伏位: {
+    star: '伏位',
+    classicalName: '辅弼木星',
+    quality: '中性',
+    meaning: '稳固守成，小有所成',
+    advice: '宜置书房、储藏室、辅助空间',
+  },
+  祸害: {
+    star: '祸害',
+    classicalName: '廉贞火星',
+    quality: '凶',
+    meaning: '口舌是非，小病小灾，财有所损',
+    advice: '宜置厕所、储物间（化凶为用），切忌主卧大门',
+  },
+  六煞: {
+    star: '六煞',
+    classicalName: '文曲水星',
+    quality: '次凶',
+    meaning: '桃花煞，感情不顺，破财',
+    advice: '宜置厕所、杂物间，不宜主卧大门',
+  },
+  五鬼: {
+    star: '五鬼',
+    classicalName: '廉贞火星变',
+    quality: '凶',
+    meaning: '口舌是非、鬼怪盗贼、火灾',
+    advice: '宜置厕所、厨房（火化火），不可作主要空间',
+  },
+  绝命: {
+    star: '绝命',
+    classicalName: '破军金星',
+    quality: '大凶',
+    meaning: '绝后无嗣、大病大凶、破财散家',
+    advice: '宜置厕所（绝命归厕最化煞），切勿作大门主卧',
+  },
+};
+
+/** 取某游年星的方位用途宜忌详描。 */
+export function getSectorUse(star: string): SectorUse | null {
+  return SECTOR_USE[star] ?? null;
+}
+
+/**
+ * 取个人命卦八方方位用途分析（按方位排列，含星名/吉凶/主象/宜忌）。
+ * 依赖运行时 CORE.eightMansionsData。
+ */
+export function getSectorAnalysis(
+  mingGua: string,
+): { direction: string; use: SectorUse }[] | null {
+  try {
+    const w = window as unknown as {
+      CORE?: { eightMansionsData?: Record<string, Record<string, string>> };
+    };
+    const map = w.CORE?.eightMansionsData?.[mingGua];
+    if (!map) return null;
+    return Object.entries(map).map(([direction, star]) => ({
+      direction,
+      use: getSectorUse(star) ?? {
+        star,
+        classicalName: '',
+        quality: '',
+        meaning: '',
+        advice: '',
+      },
+    }));
+  } catch {
+    return null;
+  }
+}
