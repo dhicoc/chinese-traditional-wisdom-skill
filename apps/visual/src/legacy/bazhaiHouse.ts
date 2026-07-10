@@ -210,6 +210,8 @@ export interface SectorUse {
   meaning: string;
   /** 方位用途宜忌（宜置卧室/书房/厨房/厕所等） */
   advice: string;
+  /** 凶位化解物品（吉位为空） */
+  remedy?: string;
 }
 
 const SECTOR_USE: Record<string, SectorUse> = {
@@ -247,6 +249,7 @@ const SECTOR_USE: Record<string, SectorUse> = {
     quality: '凶',
     meaning: '口舌是非，小病小灾，财有所损',
     advice: '宜置厕所、储物间（化凶为用），切忌主卧大门',
+    remedy: '金属物品化土煞（铜铃/六帝钱），或安置厕所储物间压之',
   },
   六煞: {
     star: '六煞',
@@ -254,6 +257,7 @@ const SECTOR_USE: Record<string, SectorUse> = {
     quality: '次凶',
     meaning: '桃花煞，感情不顺，破财',
     advice: '宜置厕所、杂物间，不宜主卧大门',
+    remedy: '绿色植物化水煞（木泄水），或置厕所杂物间压之',
   },
   五鬼: {
     star: '五鬼',
@@ -261,6 +265,7 @@ const SECTOR_USE: Record<string, SectorUse> = {
     quality: '凶',
     meaning: '口舌是非、鬼怪盗贼、火灾',
     advice: '宜置厕所、厨房（火化火），不可作主要空间',
+    remedy: '陶瓷土类物品化火煞（土泄火），置厨房以火化火',
   },
   绝命: {
     star: '绝命',
@@ -268,6 +273,7 @@ const SECTOR_USE: Record<string, SectorUse> = {
     quality: '大凶',
     meaning: '绝后无嗣、大病大凶、破财散家',
     advice: '宜置厕所（绝命归厕最化煞），切勿作大门主卧',
+    remedy: '蓝色黑色物品化金煞（水泄金），绝命归厕最化煞',
   },
 };
 
@@ -303,3 +309,39 @@ export function getSectorAnalysis(
     return null;
   }
 }
+
+/**
+ * 形煞化解表。
+ * 数据提炼自 suangua knowledge/fengshui_classical.py 的
+ * SHAQT_HUAJIE（7 形煞）+ SHAJIAO_HUAJIE（外六煞 + 内七煞），
+ * 综合各典（路冲/天斩/壁刀/反弓/镰刀/烟囱/穿堂/镜煞/梁压等）。
+ */
+export interface ShapeSha {
+  /** 煞名 */
+  name: string;
+  /** 形成条件 */
+  form: string;
+  /** 影响 */
+  effect: string;
+  /** 化解法 */
+  remedy: string;
+  /** 分类：外部形煞 / 内部形煞 */
+  category: '外部形煞' | '内部形煞';
+}
+
+export const SHAPE_SHA: ShapeSha[] = [
+  // ── 外部形煞 ──
+  { name: '路冲煞', category: '外部形煞', form: '道路直冲大门或窗户', effect: '财气外散，意外血光多', remedy: '门前种植、屏风遮挡、泰山石敢当' },
+  { name: '天斩煞', category: '外部形煞', form: '两栋高楼之间的刀形缝隙正对住宅', effect: '血光手术之灾', remedy: '风铃、葫芦挡煞，或移门避之' },
+  { name: '壁刀煞', category: '外部形煞', form: '对面建筑墙角直冲住宅', effect: '破财、小人是非', remedy: '八卦镜反射、门帘化解' },
+  { name: '反弓煞', category: '外部形煞', form: '弯曲道路凸面对向住宅', effect: '财气背离，退财', remedy: '避免住在弯道外侧，或植树遮挡' },
+  { name: '镰刀煞', category: '外部形煞', form: '高架桥弧形切割到住宅', effect: '意外血光，运势被切', remedy: '墙面放凸面镜反射' },
+  { name: '烟囱煞', category: '外部形煞', form: '附近烟囱正对住宅', effect: '健康受损，火气过旺', remedy: '植树遮挡，或迁居' },
+  // ── 内部形煞 ──
+  { name: '穿堂煞', category: '内部形煞', form: '大门与后门或窗户在一条直线', effect: '财气直穿而过，守财难', remedy: '屏风遮挡，改变布局阻断直线' },
+  { name: '镜煞', category: '内部形煞', form: '大型镜面正对大门或床', effect: '财气反射，睡眠不宁', remedy: '移除或遮挡镜面' },
+  { name: '梁压煞', category: '内部形煞', form: '横梁压床头或压沙发', effect: '头痛、压力、运势受阻', remedy: '吊顶包梁，或移床位沙发避之' },
+  { name: '开门见灶', category: '内部形煞', form: '进门直见厨房炉灶', effect: '破财，财气被火烧', remedy: '屏风或门帘遮挡视线' },
+  { name: '开门见厕', category: '内部形煞', form: '进门直见厕所', effect: '疾病污秽入门', remedy: '屏风遮挡，常闭厕门' },
+  { name: '房门对冲', category: '内部形煞', form: '两个卧室门正对', effect: '口舌是非，家人不和', remedy: '门帘遮挡，或常闭一门' },
+];

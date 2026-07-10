@@ -13,6 +13,7 @@ import {
   getHouseGua,
   getPersonalDirections,
   getSectorAnalysis,
+  SHAPE_SHA,
   FACING_OPTIONS,
 } from '@/legacy/bazhaiHouse';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
@@ -210,9 +211,34 @@ export function BazhaiWorkspace() {
                       </div>
                       <p className="mt-1 text-[11px] leading-4 text-jade-100/55">{s.use.meaning}</p>
                       <p className="mt-0.5 text-[11px] leading-4 text-jade-300/70">{s.use.advice}</p>
+                      {s.use.remedy && (
+                        <p className="mt-0.5 text-[11px] leading-4 text-cinnabar-300/70">
+                          <span className="text-cinnabar-400">化解：</span>{s.use.remedy}
+                        </p>
+                      )}
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {SHAPE_SHA.length > 0 && (
+            <div className="rounded-card border border-white/8 bg-white/[0.035] p-4">
+              <p className="text-sm font-semibold text-jade-100">形煞化解参考</p>
+              <p className="mt-1 text-[11px] text-jade-100/45">常见外部形煞与内部形煞的形成、影响与化解法（综合各典）</p>
+              <div className="mt-2.5 space-y-2">
+                {SHAPE_SHA.map((sha) => (
+                  <div key={sha.name} className="rounded border border-white/5 bg-black/30 p-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-jade-100">{sha.name}</span>
+                      <span className={`text-[10px] ${sha.category === '外部形煞' ? 'text-gold-400' : 'text-purple-400'}`}>{sha.category}</span>
+                    </div>
+                    <p className="mt-1 text-[11px] leading-4 text-jade-100/55">{sha.form}</p>
+                    <p className="mt-0.5 text-[11px] leading-4 text-cinnabar-300/70"><span className="text-cinnabar-400">影响：</span>{sha.effect}</p>
+                    <p className="mt-0.5 text-[11px] leading-4 text-jade-300/70"><span className="text-jade-400">化解：</span>{sha.remedy}</p>
+                  </div>
+                ))}
               </div>
             </div>
           )}
