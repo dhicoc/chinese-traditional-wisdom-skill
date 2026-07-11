@@ -1,0 +1,12 @@
+{
+  "cline.alwaysAllowReadOnly": true,
+  "cline.allowedCommands": ["npx tsx"],
+  "cline.mcpServers": {
+    "chinese-wisdom": {
+      "command": "npx",
+      "args": ["tsx", "ABSOLUTE_PATH_TO/apps/mcp-server/src/index.ts"],
+      "disabled": false,
+      "autoApprove": true
+    }
+  }
+}
