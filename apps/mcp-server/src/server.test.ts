@@ -96,7 +96,7 @@ describe('MCP Server 端到端协议', () => {
     const list = responses.find((r) => r.id === 2);
     expect(list).toBeDefined();
     const tools = (list!.result as { tools: Array<{ name: string; description: string; inputSchema: { type: string; properties: unknown } }> }).tools;
-    expect(tools.length).toBe(12);
+    expect(tools.length).toBe(15);
     tools.forEach((t) => {
       expect(t.name).toMatch(/^[a-z][a-z0-9_]*$/);
       expect(t.description.length).toBeGreaterThan(10);

@@ -25,7 +25,7 @@ describe('agent_guidance 参数引导', () => {
 
   it('listToolGuidance 返回 10 个工具摘要', () => {
     const list = listToolGuidance();
-    expect(list.length).toBe(10);
+    expect(list.length).toBe(13);
     list.forEach((g) => {
       expect(g.tool).toMatch(/^[a-z_]+$/);
       expect(g.purpose).toBeTruthy();
@@ -151,5 +151,25 @@ describe('wisdom_dispatch 意图路由', () => {
     // dream priority 90 > bazi 50
     const r = dispatchIntent('梦见算命先生给我排八字');
     expect(r.tool).toBe('dream_interpret');
+  });
+
+  it('combo: "综合运势" → combo_annual_fortune', () => {
+    const r = dispatchIntent('帮我看1990年6月15日12时男今年的综合运势');
+    expect(r.hit).toBe(true);
+    expect(r.tool).toBe('combo_annual_fortune');
+    const args = r.arguments as { birth: { year: number } };
+    expect(args.birth.year).toBe(1990);
+  });
+
+  it('combo: "三卜交叉验证" → combo_decision', () => {
+    const r = dispatchIntent('用三卜交叉验证一下我该不该换工作，1990年6月15日12时男');
+    expect(r.tool).toBe('combo_decision');
+    const args = r.arguments as { question?: string };
+    expect(args.question).toBeTruthy();
+  });
+
+  it('combo: "风水布局" → combo_space_time', () => {
+    const r = dispatchIntent('帮我看1990年6月15日12时男的风水布局');
+    expect(r.tool).toBe('combo_space_time');
   });
 });

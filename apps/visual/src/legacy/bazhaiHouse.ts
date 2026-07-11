@@ -122,6 +122,44 @@ export interface MingZhaiCompatibility {
   remedyDirection: string;
 }
 
+/** 命卦推算结果 */
+export interface MingGua {
+  trigram: string;
+  group: string; // 东四命 / 西四命
+  num?: number; // 卦数（1坎2坤3震4巽6乾7兑8艮9离）
+}
+
+/**
+ * 命卦推算（纯 TS，从 core.js calcMingGua 移植）。
+ * 1900-1999 用传统男减女加公式；2000 年起世纪调整版（男 9-y、女 y+6）。
+ * 5 男寄坤2、女寄艮8。rem==0→9。
+ * @param year 公历年
+ * @param gender 男 / 女
+ */
+export function calcMingGua(year: number, gender: string): MingGua {
+  const y2 = year % 100;
+  let rem: number;
+  if (year >= 2000) {
+    rem = gender === '男' ? (9 - y2) % 9 : (y2 + 6) % 9;
+  } else {
+    rem = gender === '男' ? (100 - y2) % 9 : (y2 - 4) % 9;
+  }
+  rem = ((rem % 9) + 9) % 9; // 归一化防负数
+  if (rem === 0) rem = 9;
+  if (rem === 5) rem = gender === '男' ? 2 : 8;
+  const map: Record<number, MingGua> = {
+    1: { trigram: '坎', group: '东四命', num: 1 },
+    2: { trigram: '坤', group: '西四命', num: 2 },
+    3: { trigram: '震', group: '东四命', num: 3 },
+    4: { trigram: '巽', group: '东四命', num: 4 },
+    6: { trigram: '乾', group: '西四命', num: 6 },
+    7: { trigram: '兑', group: '西四命', num: 7 },
+    8: { trigram: '艮', group: '西四命', num: 8 },
+    9: { trigram: '离', group: '东四命', num: 9 },
+  };
+  return map[rem] ?? { trigram: '?', group: '?' };
+}
+
 /** 按朝向方位定宅卦。 */
 export function getHouseGua(facing: string): HouseGua | null {
   const num = DIRECTION_GUA[facing];

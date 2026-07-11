@@ -160,6 +160,34 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     doNotAssume: ['keyword'],
     workflow: '确认梦象关键词 → 调 dream_interpret → 看现代解读与古文断语。',
   },
+  // ─── 跨系统联合分析 ───
+  combo_annual_fortune: {
+    tool: 'combo_annual_fortune',
+    purpose: '年度综合运势：八字+五运六气+奇门+命卦方位 联合推算某年运势。需完整生辰 + 欲测年份。',
+    requiredParams: BIRTH_PARAMS,
+    safeDefaults: { birth: { minute: 0 } },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
+    workflow: '确认生辰 + 欲测年份 → 调 combo_annual_fortune → 看三系统一致性 + 方位建议。',
+  },
+  combo_decision: {
+    tool: 'combo_decision',
+    purpose: '事件决策：六爻+梅花+奇门 三卜交叉验证。需完整生辰 + 求测事项。',
+    requiredParams: [
+      { name: 'question', required: true, description: '求测事项', promptToUser: '请说明想测什么事（如"今年适合换工作吗""投资能否获利"）。' },
+      ...BIRTH_PARAMS,
+    ],
+    safeDefaults: { birth: { minute: 0 } },
+    doNotAssume: ['question', 'birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
+    workflow: '确认生辰 + 求测事项 → 调 combo_decision → 看三卜一致性，以六爻为主断吉凶。',
+  },
+  combo_space_time: {
+    tool: 'combo_space_time',
+    purpose: '空间+时间：飞星+八宅命卦+奇门吉方 联合推算某年布局方位。需完整生辰 + 欲测年份。',
+    requiredParams: BIRTH_PARAMS,
+    safeDefaults: { birth: { minute: 0 } },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
+    workflow: '确认生辰 + 欲测年份 → 调 combo_space_time → 看主卧/财位/凶位布局建议。',
+  },
 };
 
 /** 取某工具的参数引导。未注册工具返回 null。 */

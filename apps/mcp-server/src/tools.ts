@@ -19,6 +19,7 @@ import { calcLiuyaoEnveloped } from '../../visual/src/legacy/liuyaoEngine';
 import { calcBaziEnveloped } from '../../visual/src/legacy/baziEngine';
 import { calcZiweiEnveloped } from '../../visual/src/legacy/ziweiEngine';
 import { calcQimenEnveloped } from '../../visual/src/legacy/qimenEngine';
+import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo } from '../../visual/src/legacy/comboEngine';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
 const solarEntry: unknown = (() => {
@@ -153,5 +154,51 @@ export const TOOLS: ToolDef[] = [
       (i as { keyword: string }).keyword,
       (i as { useFull?: boolean }).useFull ?? false,
     ),
+  },
+  // ─── 跨系统联合分析（ROADMAP 功能层增强 Step 1）───
+  {
+    name: 'combo_annual_fortune',
+    description: '年度综合运势联合分析：八字（大运/日主/喜用）+ 五运六气（年运）+ 奇门年盘 + 命卦方位。聚合多系统得年度运势定调 + 一致性检验 + 方位建议。',
+    schema: z.object({
+      birth: birthSchema,
+      targetYear: z.number().int().min(1900).max(2100).optional().describe('欲测年份（默认用出生年）'),
+      currentMonth: z.number().int().min(1).max(12).optional().describe('当前月（五运六气用，不传用系统月）'),
+    }),
+    handler: (i) => calcAnnualFortuneCombo({
+      birth: (i as { birth: unknown }).birth as never,
+      targetYear: (i as { targetYear?: number }).targetYear,
+      currentMonth: (i as { currentMonth?: number }).currentMonth,
+      solar: solarEntry,
+    }),
+  },
+  {
+    name: 'combo_decision',
+    description: '事件决策联合分析（三卜交叉验证）：六爻 + 梅花易数 + 奇门。三卜结论一致→高置信；两同一异→以六爻为主。需提供求测事项。',
+    schema: z.object({
+      birth: birthSchema,
+      question: z.string().min(1).describe('求测事项（如"今年适合换工作吗"）'),
+      seed: z.number().int().optional().describe('铜钱法随机种子（可选，同 seed 同结果）'),
+    }),
+    handler: (i) => calcDecisionCombo({
+      birth: (i as { birth: unknown }).birth as never,
+      question: (i as { question: string }).question,
+      seed: (i as { seed?: number }).seed,
+      solar: solarEntry,
+    }),
+  },
+  {
+    name: 'combo_space_time',
+    description: '空间+时间联合分析：飞星年盘 + 八宅命卦吉方 + 奇门吉门方位。推算某年最佳布局方位（主卧/财位/凶位规避）。',
+    schema: z.object({
+      birth: birthSchema,
+      targetYear: z.number().int().min(1900).max(2100).optional().describe('欲测年份（默认用出生年）'),
+      facing: z.string().optional().describe('房屋朝向（可选，八宅宅卦用）'),
+    }),
+    handler: (i) => calcSpaceTimeCombo({
+      birth: (i as { birth: unknown }).birth as never,
+      targetYear: (i as { targetYear?: number }).targetYear,
+      facing: (i as { facing?: string }).facing,
+      solar: solarEntry,
+    }),
   },
 ];

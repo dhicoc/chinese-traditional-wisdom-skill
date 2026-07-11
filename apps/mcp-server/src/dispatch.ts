@@ -31,8 +31,11 @@ interface RouteRule {
   priority: number;
 }
 
-// 按优先级排序的路由规则
+// 按优先级排序的路由规则（combo 联合分析优先级最高，明确联合意图时优先匹配）
 const ROUTE_RULES: RouteRule[] = [
+  { tool: 'combo_annual_fortune', keywords: ['综合运势', '年度运势', '今年运势', '全年运势', '运势总览', '综合看', '多角度'], priority: 95 },
+  { tool: 'combo_decision', keywords: ['三卜', '交叉验证', '综合测算', '多法验证', '帮我决', '该不该', '能否成功'], priority: 95 },
+  { tool: 'combo_space_time', keywords: ['风水布局', '布局建议', '空间布局', '综合布局', '主卧财位', '办公室布局'], priority: 95 },
   { tool: 'dream_interpret', keywords: ['梦见', '做梦', '梦境', '梦到', '解梦', '周公'], priority: 90 },
   { tool: 'analyze_name', keywords: ['姓名', '起名', '取名', '名字', '打分', '改名', '测名'], priority: 85 },
   { tool: 'ziwei_chart', keywords: ['紫微', '紫微斗数', '命盘', '主星', '十二宫', '斗数'], priority: 80 },
@@ -141,6 +144,15 @@ export function dispatchIntent(text: string): DispatchResult {
     case 'ziwei_chart':
     case 'arrange_qimen':
       if (birth.birth) args.birth = birth.birth;
+      break;
+    case 'combo_annual_fortune':
+    case 'combo_space_time':
+      if (birth.birth) args.birth = birth.birth;
+      // targetYear 不自动填（易与出生年混淆），由 AI 据 guidance 追问或用户明确年份时填
+      break;
+    case 'combo_decision':
+      if (birth.birth) args.birth = birth.birth;
+      if (question) args.question = question;
       break;
     case 'cast_meihua':
       if (birth.birth) args.birth = birth.birth;

@@ -42,7 +42,7 @@ function findTool(name: string) {
 
 describe('MCP TOOLS 注册完整性', () => {
   it('注册了 10 个工具', () => {
-    expect(TOOLS.length).toBe(10);
+    expect(TOOLS.length).toBe(13);
   });
 
   it('所有工具有 name/description/schema/handler', () => {
@@ -228,4 +228,42 @@ describe('dream_interpret', () => {
     expect(e.ok).toBe(true);
     expect(e.tool).toBe('DreamDictionaryAdapter');
   }, 15000);
+});
+
+// ─── 跨系统联合分析（combo）handler 测试 ───
+
+describe('combo_annual_fortune', () => {
+  it('返回含3子系统 + 一致性的 ComboResult envelope', () => {
+    const t = findTool('combo_annual_fortune');
+    const env = t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, targetYear: 2024, currentMonth: 6 });
+    const e = expectValidEnvelope(env);
+    const data = e.data as { comboName: string; subsystems: unknown[]; consistency: { confidence: string }; export_snapshot: { summary: string } };
+    expect(data.comboName).toBe('年度综合运势');
+    expect(data.subsystems.length).toBe(3);
+    expect(data.export_snapshot.summary).toContain('2024');
+    expectExportSnapshot(e);
+  });
+});
+
+describe('combo_decision', () => {
+  it('返回含3卜子系统的 ComboResult envelope', () => {
+    const t = findTool('combo_decision');
+    const env = t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, question: '今年适合换工作吗' });
+    const e = expectValidEnvelope(env);
+    const data = e.data as { comboName: string; subsystems: Array<{ name: string }> };
+    expect(data.comboName).toBe('事件决策');
+    expect(data.subsystems.map((s) => s.name)).toEqual(['六爻', '梅花', '奇门']);
+  });
+});
+
+describe('combo_space_time', () => {
+  it('返回含命卦 + 奇门吉方的 ComboResult envelope', () => {
+    const t = findTool('combo_space_time');
+    const env = t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, targetYear: 2024 });
+    const e = expectValidEnvelope(env);
+    const data = e.data as { comboName: string; export_snapshot: { summary: string } };
+    expect(data.comboName).toBe('空间+时间');
+    expect(data.export_snapshot.summary).toContain('命卦');
+    expect(data.export_snapshot.summary).toContain('坎'); // 1990男坎命
+  });
 });
