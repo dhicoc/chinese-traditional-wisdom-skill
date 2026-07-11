@@ -263,6 +263,16 @@ export function DreamWorkspace() {
 }
 
 /** 单条梦象解读卡片（长文按实际高度自适应折叠，展开看全文） */
+
+// 渐变模糊层：每层从底边起向上延伸至 height，模糊半径递增。
+// 越靠近底部，叠加的层数越多 → 越模糊；顶部只被最低层覆盖 → 接近清晰。
+const GRADIENT_BLUR_LAYERS = [
+  { h: 24, blur: 0.6 },   // 顶层：覆盖范围最大，模糊最弱
+  { h: 20, blur: 1.6 },
+  { h: 16, blur: 3.0 },
+  { h: 12, blur: 5.0 },   // 底层：范围最小，模糊最强
+];
+
 function DreamEntryCard({ entry }: { entry: DreamEntry }) {
   const color = LUCK_COLOR[entry.luck] ?? '#888';
   const [expanded, setExpanded] = useState(false);
@@ -283,6 +293,8 @@ function DreamEntryCard({ entry }: { entry: DreamEntry }) {
     setIsOverflow(fullHeight > COLLAPSED_MAX_HEIGHT + 4);
   }, [entry.meaning]);
 
+  // 折叠态：文字带朦胧模糊，渐变遮罩淡出底部，营造"未揭晓"质感；展开时揭幕清晰
+  const collapsed = !expanded && isOverflow;
   return (
     <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
       <div className="mb-3 flex items-center justify-between">
@@ -294,17 +306,46 @@ function DreamEntryCard({ entry }: { entry: DreamEntry }) {
           {entry.luck}
         </span>
       </div>
-      <p
-        ref={textRef}
-        className="text-sm leading-7 text-jade-100/70"
-        style={{
-          maxHeight: expanded ? 'none' : `${COLLAPSED_MAX_HEIGHT}px`,
-          overflow: 'hidden',
-          transition: 'max-height 200ms ease',
-        }}
-      >
-        {entry.meaning}
-      </p>
+      <div className="relative">
+        <p
+          ref={textRef}
+          className="text-sm leading-7 text-jade-100/70"
+          style={{
+            maxHeight: expanded ? 'none' : `${COLLAPSED_MAX_HEIGHT}px`,
+            overflow: 'hidden',
+            transition: 'max-height 260ms ease',
+          }}
+        >
+          {entry.meaning}
+        </p>
+        {/*
+          折叠态：底部渐变模糊 + 墨色渐隐。
+          单层 backdrop-filter 是均匀模糊，无法渐变；这里堆叠多层不同强度、
+          不同高度的透明条带（均从底边起向上延伸），越靠下被叠加的层越多、越模糊，
+          从上到下形成"清晰 → 朦胧"的自然过渡，而非一刀切。
+        */}
+        {collapsed && (
+          <>
+            {GRADIENT_BLUR_LAYERS.map((layer, i) => (
+              <div
+                key={i}
+                className="pointer-events-none absolute inset-x-0 bottom-0 rounded-b"
+                style={{
+                  height: `${layer.h}px`,
+                  backdropFilter: `blur(${layer.blur}px)`,
+                  WebkitBackdropFilter: `blur(${layer.blur}px)`,
+                  background: 'transparent',
+                }}
+              />
+            ))}
+            {/* 底部墨色渐隐，让模糊与按钮区自然衔接 */}
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-24 rounded-b"
+              style={{ background: 'linear-gradient(to bottom, rgba(7,13,11,0) 0%, rgba(7,13,11,0.55) 55%, rgba(7,13,11,0.95) 100%)' }}
+            />
+          </>
+        )}
+      </div>
       {isOverflow && (
         <button
           type="button"
