@@ -21,8 +21,8 @@ const TONE_STYLE: Record<Tone, { label: string; border: string; bg: string; text
 
 /** 强弱标识样式（独立于吉凶，日主强弱等中性信息用） */
 const STRENGTH_STYLE: Record<Exclude<Strength, null>, { label: string; text: string; border: string }> = {
-  强: { label: '强', text: 'text-gold-300', border: 'border-gold-500/40' },
-  弱: { label: '弱', text: 'text-cyan-300', border: 'border-cyan-500/40' },
+  强: { label: '身强', text: 'text-gold-300', border: 'border-gold-500/40' },
+  弱: { label: '身弱', text: 'text-cyan-300', border: 'border-cyan-500/40' },
 };
 
 const CATEGORY_LABEL: Record<ActionCategory, string> = {
@@ -93,7 +93,10 @@ export function FourLayerReport({ report, title, defaultDetailsOpen = false }: F
                           {ss.label}
                         </span>
                       )}
-                      <span className={`text-[10px] font-semibold ${hs.text}`}>{hs.label}</span>
+                      {/* tone 徽章只在非"中"时显示（"中"是默认态，省略避免与强弱标混淆） */}
+                      {h.tone !== '中' && (
+                        <span className={`text-[10px] font-semibold ${hs.text}`}>{hs.label}</span>
+                      )}
                     </div>
                   </div>
                   <p className="mt-1 text-xs leading-5 text-jade-100/65">{h.value}</p>

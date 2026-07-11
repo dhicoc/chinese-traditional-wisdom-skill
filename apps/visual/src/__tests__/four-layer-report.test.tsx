@@ -105,7 +105,7 @@ describe('FourLayerReport 渲染', () => {
     expect(screen.getByText('某来源说明')).toBeInTheDocument();
   });
 
-  it('highlight 含 strength 时渲染强弱小标（强/弱）', () => {
+  it('highlight 含 strength 时渲染「身强/身弱」小标', () => {
     const report: LayerReport = {
       tldr: 't', overallTone: '中',
       highlights: [
@@ -114,20 +114,43 @@ describe('FourLayerReport 渲染', () => {
       details: [], actions: [],
     };
     render(<FourLayerReport report={report} />);
-    // strength 小标"强"应出现
-    expect(screen.getByText('强')).toBeInTheDocument();
+    // strength 小标显示完整词「身强」
+    expect(screen.getByText('身强')).toBeInTheDocument();
     expect(screen.getByText('日主辛金偏强')).toBeInTheDocument();
   });
 
-  it('highlight strength 为 null 时不渲染强弱小标', () => {
+  it('highlight tone=中时不显示"中"徽章（避免与强弱标混淆）', () => {
+    const report: LayerReport = {
+      tldr: 't', overallTone: '中',
+      highlights: [{ label: '日主强弱', value: '偏强', tone: '中', strength: '强' }],
+      details: [], actions: [],
+    };
+    render(<FourLayerReport report={report} />);
+    // 总体 tone 徽章"中"在 tldr 区显示，但 highlight 卡片内不应再有"中"徽章
+    // highlight 卡片应只有「身强」小标
+    expect(screen.getByText('身强')).toBeInTheDocument();
+  });
+
+  it('highlight tone=吉时显示吉徽章 + 身强小标并存', () => {
+    const report: LayerReport = {
+      tldr: 't', overallTone: '吉',
+      highlights: [{ label: '某项', value: '大吉', tone: '吉', strength: '强' }],
+      details: [], actions: [],
+    };
+    render(<FourLayerReport report={report} />);
+    expect(screen.getByText('身强')).toBeInTheDocument();
+    // tone=吉应显示吉徽章（tldr 区总体 + highlight 卡片各一个）
+    expect(screen.getAllByText('吉').length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('highlight strength 为 null 且 tone=中时不渲染任何小标', () => {
     const report: LayerReport = {
       tldr: 't', overallTone: '吉',
       highlights: [{ label: '某项', value: '某值', tone: '中', strength: null }],
       details: [], actions: [],
     };
     render(<FourLayerReport report={report} />);
-    // 不应有"强"/"弱"小标
-    expect(screen.queryByText('强')).not.toBeInTheDocument();
-    expect(screen.queryByText('弱')).not.toBeInTheDocument();
+    expect(screen.queryByText('身强')).not.toBeInTheDocument();
+    expect(screen.queryByText('身弱')).not.toBeInTheDocument();
   });
 });
