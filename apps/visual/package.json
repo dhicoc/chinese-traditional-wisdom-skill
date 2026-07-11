@@ -19,6 +19,7 @@
   "dependencies": {
     "@radix-ui/react-slot": "latest",
     "@vitejs/plugin-react": "latest",
+    "3meta": "^2.6.0",
     "autoprefixer": "latest",
     "class-variance-authority": "latest",
     "clsx": "latest",
