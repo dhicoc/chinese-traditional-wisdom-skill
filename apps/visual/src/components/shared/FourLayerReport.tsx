@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { LayerReport, Tone, ActionCategory } from '@/legacy/reportLayers';
+import type { LayerReport, Tone, ActionCategory, Strength } from '@/legacy/reportLayers';
 
 /**
  * FourLayerReport — 报告四层显式分层渲染组件（ROADMAP 功能层增强 Step 2）
@@ -17,6 +17,12 @@ const TONE_STYLE: Record<Tone, { label: string; border: string; bg: string; text
   吉: { label: '吉', border: 'border-jade-500/40', bg: 'bg-jade-500/12', text: 'text-jade-300' },
   凶: { label: '凶', border: 'border-cinnabar-500/40', bg: 'bg-cinnabar-500/12', text: 'text-cinnabar-300' },
   中: { label: '中', border: 'border-white/15', bg: 'bg-white/5', text: 'text-jade-100/55' },
+};
+
+/** 强弱标识样式（独立于吉凶，日主强弱等中性信息用） */
+const STRENGTH_STYLE: Record<Exclude<Strength, null>, { label: string; text: string; border: string }> = {
+  强: { label: '强', text: 'text-gold-300', border: 'border-gold-500/40' },
+  弱: { label: '弱', text: 'text-cyan-300', border: 'border-cyan-500/40' },
 };
 
 const CATEGORY_LABEL: Record<ActionCategory, string> = {
@@ -76,11 +82,19 @@ export function FourLayerReport({ report, title, defaultDetailsOpen = false }: F
           <div className="grid gap-2 sm:grid-cols-2">
             {report.highlights.map((h, i) => {
               const hs = TONE_STYLE[h.tone];
+              const ss = h.strength ? STRENGTH_STYLE[h.strength] : null;
               return (
                 <div key={i} className={`rounded-card border ${hs.border} ${hs.bg} px-3 py-2`}>
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-medium text-jade-100/70">{h.label}</span>
-                    <span className={`text-[10px] font-semibold ${hs.text}`}>{hs.label}</span>
+                    <div className="flex items-center gap-1">
+                      {ss && (
+                        <span className={`rounded-full border ${ss.border} bg-black/30 px-1.5 py-0.5 text-[10px] font-semibold ${ss.text}`}>
+                          {ss.label}
+                        </span>
+                      )}
+                      <span className={`text-[10px] font-semibold ${hs.text}`}>{hs.label}</span>
+                    </div>
                   </div>
                   <p className="mt-1 text-xs leading-5 text-jade-100/65">{h.value}</p>
                 </div>

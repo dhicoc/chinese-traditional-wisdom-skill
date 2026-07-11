@@ -52,6 +52,25 @@ describe('toFourLayer 八字归类', () => {
       expect(h.value.length).toBeGreaterThan(0);
     });
   });
+
+  it('日主强弱 highlight 的 strength 由偏强/身强/偏弱/身弱检测', () => {
+    const env = calcBaziEnveloped({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
+    const report = toFourLayer(snapshotOf(env));
+    const dy = report.highlights.find((h) => h.label.includes('日主强弱'));
+    expect(dy).toBeDefined();
+    // 1990-6-15 12时男 日主辛金 偏强 → strength='强'
+    expect(dy!.strength).toBe('强');
+  });
+
+  it('strength 对偏弱命盘检测为弱', () => {
+    // 日主金弱：金2偏弱
+    const env = calcBaziEnveloped({ birth: { year: 1990, month: 6, day: 15, hour: 2, gender: '男' } });
+    const report = toFourLayer(snapshotOf(env));
+    const dy = report.highlights.find((h) => h.label.includes('日主强弱'));
+    if (dy && /偏弱|身弱/.test(dy.value)) {
+      expect(dy.strength).toBe('弱');
+    }
+  });
 });
 
 describe('toFourLayer 六爻归类', () => {

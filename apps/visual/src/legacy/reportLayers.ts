@@ -30,10 +30,15 @@ export interface ReadingLike {
 
 export type Tone = '吉' | '凶' | '中';
 
+/** 强弱维度（用于日主强弱等中性但需醒目的 highlight，独立于吉凶 tone） */
+export type Strength = '强' | '弱' | null;
+
 export interface Highlight {
   label: string;
   value: string;
   tone: Tone;
+  /** 强弱标识（从 body 检测偏强/身强/偏弱/身弱，命理中性，不占吉凶 tone） */
+  strength: Strength;
 }
 
 export type ActionCategory = '生活调整' | '养生' | '心性' | '择吉' | '决策';
@@ -95,6 +100,13 @@ function detectTone(text: string): Tone {
   return '中';
 }
 
+/** 检测强弱维度（独立于吉凶，用于日主强弱等中性信息） */
+function detectStrength(text: string): Strength {
+  if (/偏强|身强|偏旺|得令|得地|得势/.test(text)) return '强';
+  if (/偏弱|身弱|偏衰|失令|失地|失势/.test(text)) return '弱';
+  return null;
+}
+
 /** 判定 action 分类 */
 function detectActionCategory(text: string): ActionCategory {
   for (const { kw, category } of ACTION_CATEGORY_KW) {
@@ -131,6 +143,7 @@ export function toFourLayer(reading: ReadingLike): LayerReport {
         label: section.heading,
         value: coreValue.slice(0, 80),
         tone: detectTone(section.body),
+        strength: detectStrength(section.body),
       });
       // 高亮段也保留进 details 供详细查看？不——高亮段不重复进 details，避免冗余
     } else if (isAction) {

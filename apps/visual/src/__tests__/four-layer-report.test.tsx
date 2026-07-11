@@ -104,4 +104,30 @@ describe('FourLayerReport 渲染', () => {
     render(<FourLayerReport report={report} />);
     expect(screen.getByText('某来源说明')).toBeInTheDocument();
   });
+
+  it('highlight 含 strength 时渲染强弱小标（强/弱）', () => {
+    const report: LayerReport = {
+      tldr: 't', overallTone: '中',
+      highlights: [
+        { label: '日主强弱', value: '日主辛金偏强', tone: '中', strength: '强' },
+      ],
+      details: [], actions: [],
+    };
+    render(<FourLayerReport report={report} />);
+    // strength 小标"强"应出现
+    expect(screen.getByText('强')).toBeInTheDocument();
+    expect(screen.getByText('日主辛金偏强')).toBeInTheDocument();
+  });
+
+  it('highlight strength 为 null 时不渲染强弱小标', () => {
+    const report: LayerReport = {
+      tldr: 't', overallTone: '吉',
+      highlights: [{ label: '某项', value: '某值', tone: '中', strength: null }],
+      details: [], actions: [],
+    };
+    render(<FourLayerReport report={report} />);
+    // 不应有"强"/"弱"小标
+    expect(screen.queryByText('强')).not.toBeInTheDocument();
+    expect(screen.queryByText('弱')).not.toBeInTheDocument();
+  });
 });
