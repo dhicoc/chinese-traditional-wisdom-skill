@@ -10,7 +10,9 @@ import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { renderDataWithLegacyAdapter, calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
-import { calculateBazi as calculateBaziPure } from '@/legacy/baziEngine';
+import { calculateBazi as calculateBaziPure, calcBaziEnveloped } from '@/legacy/baziEngine';
+import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
+import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { type BaziPillars, type WuxingStats } from '@/legacy/canvasRenderers';
 import { calcXiYong } from '@/legacy/xiyong';
 import type { BirthData } from '@/legacy/birthBridge';
@@ -47,11 +49,12 @@ interface BaziResult {
 
 function calculateBazi(birth: BirthData, ready: boolean) {
   if (!ready) {
-    return { result: null, pillars: { ...DEFAULT_PILLARS, gender: birth.gender }, wuxing: DEFAULT_WUXING };
+    return { result: null, pillars: { ...DEFAULT_PILLARS, gender: birth.gender }, wuxing: DEFAULT_WUXING, envelope: null };
   }
   // 优先用纯 TS 引擎（架构重构后推荐路径），传入浏览器 lunar-javascript 的 Solar 走精确历法
   try {
     const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
+    const env = calcBaziEnveloped({ birth, solar: solarEntry ?? null });
     const pure = calculateBaziPure({ birth, solar: solarEntry ?? null });
     const pillars: BaziPillars = {
       year: { stem: pure.pillars.year.stem, branch: pure.pillars.year.branch, hidden: pure.hiddenStems.year },
@@ -61,7 +64,7 @@ function calculateBazi(birth: BirthData, ready: boolean) {
       dayMaster: pure.dayMaster,
       gender: pure.gender,
     };
-    return { result: pure as unknown as BaziResult, pillars, wuxing: { ...DEFAULT_WUXING, ...pure.elements } };
+    return { result: pure as unknown as BaziResult, pillars, wuxing: { ...DEFAULT_WUXING, ...pure.elements }, envelope: env };
   } catch {
     // 回退旧 adapter（legacy window 引擎）
   }
@@ -71,6 +74,7 @@ function calculateBazi(birth: BirthData, ready: boolean) {
     result,
     pillars: renderData ?? { ...DEFAULT_PILLARS, gender: birth.gender },
     wuxing: { ...DEFAULT_WUXING, ...(result?.elements ?? {}) },
+    envelope: null,
   };
 }
 
@@ -93,7 +97,11 @@ export function BaziWorkspace() {
   }, []);
 
   const ready = legacyState.mode === 'ready';
-  const { result, pillars, wuxing } = useMemo(() => calculateBazi(birth, ready), [birth, ready]);
+  const { result, pillars, wuxing, envelope } = useMemo(() => calculateBazi(birth, ready), [birth, ready]);
+  const fourLayer = useMemo<LayerReport | null>(() => {
+    if (!envelope) return null;
+    return toFourLayer(envelope.data.export_snapshot as ReadingLike);
+  }, [envelope]);
   const pillarRows = [
     ['年柱', pillars.year],
     ['月柱', pillars.month],
@@ -177,6 +185,11 @@ export function BaziWorkspace() {
             terms={["日主","十神","正印","偏印","正官","七杀","正财","偏财","比肩","劫财","食神","伤官","喜用神","五行","纳音"]}
             description="点击术语查看通俗解释与命理含义。"
           />
+          {fourLayer && (
+            <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+              <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
+            </div>
+          )}
         </aside>
 
         <div className="space-y-4">
