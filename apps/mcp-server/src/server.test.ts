@@ -91,23 +91,51 @@ describe('MCP Server 端到端协议', () => {
     expect(result.protocolVersion).toBe('2024-11-05');
   }, 30000);
 
-  it('tools/list 返回 10 个工具且 inputSchema 完整', async () => {
+  it('tools/list 返回 12 个工具（10 计算 + 2 元工具）且 inputSchema 完整', async () => {
     const responses = await runMcpSession([INIT_MSG, INITIALIZED_MSG, TOOLS_LIST_MSG]);
     const list = responses.find((r) => r.id === 2);
     expect(list).toBeDefined();
     const tools = (list!.result as { tools: Array<{ name: string; description: string; inputSchema: { type: string; properties: unknown } }> }).tools;
-    expect(tools.length).toBe(10);
+    expect(tools.length).toBe(12);
     tools.forEach((t) => {
       expect(t.name).toMatch(/^[a-z][a-z0-9_]*$/);
       expect(t.description.length).toBeGreaterThan(10);
       expect(t.inputSchema.type).toBe('object');
       expect(t.inputSchema.properties).toBeDefined();
     });
-    // 验证关键工具存在
+    // 验证关键工具存在（含元工具）
     const names = tools.map((t) => t.name);
     expect(names).toContain('bazi_calculate');
     expect(names).toContain('ziwei_chart');
     expect(names).toContain('dream_interpret');
+    expect(names).toContain('agent_guidance');
+    expect(names).toContain('wisdom_dispatch');
+  }, 30000);
+
+  it('tools/call agent_guidance 返回 bazi 引导', async () => {
+    const responses = await runMcpSession([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(20, 'agent_guidance', { toolName: 'bazi_calculate' }),
+    ]);
+    const call = responses.find((r) => r.id === 20);
+    const result = call!.result as { content: Array<{ type: string; text: string }> };
+    const payload = JSON.parse(result.content[0].text) as { tool: string; requiredParams: Array<{ name: string }>; workflow: string };
+    expect(payload.tool).toBe('bazi_calculate');
+    expect(payload.requiredParams.some((p) => p.name === 'birth.hour')).toBe(true);
+    expect(payload.workflow).toBeTruthy();
+  }, 30000);
+
+  it('tools/call wisdom_dispatch 路由"排八字"到 bazi_calculate', async () => {
+    const responses = await runMcpSession([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(21, 'wisdom_dispatch', { text: '帮我排个八字，1990年6月15日12时男' }),
+    ]);
+    const call = responses.find((r) => r.id === 21);
+    const result = call!.result as { content: Array<{ type: string; text: string }> };
+    const payload = JSON.parse(result.content[0].text) as { tool: string; arguments: { birth: { year: number } }; hit: boolean };
+    expect(payload.hit).toBe(true);
+    expect(payload.tool).toBe('bazi_calculate');
+    expect(payload.arguments.birth.year).toBe(1990);
   }, 30000);
 
   it('tools/call bazi_calculate 返回 ToolEnvelope 内容', async () => {
