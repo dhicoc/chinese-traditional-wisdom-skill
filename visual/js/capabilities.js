@@ -159,6 +159,12 @@
         } catch (e) {}
       });
     }
+    // 四层归类：对每个 reading 生成 fourLayer（tldr/highlights/details/actions）
+    // 复刻 apps/visual/src/legacy/reportLayers.ts toFourLayer 核心规则（精简版）
+    var fourLayer = {};
+    Object.keys(readings).forEach(function (name) {
+      fourLayer[name] = toFourLayerJS(readings[name]);
+    });
     return {
       version: REPORT_DATA_VERSION,
       generatedAt: new Date().toISOString(),
@@ -184,8 +190,61 @@
       bazhai: data.fengshui ? { year: birth.year, gender: birth.gender, mingGua: data.fengshui.mingGua } : null,
       yunqi: anonymizeYunqi(data.yunqi),
       constitution: data.constitution || null,
-      readings: readings
+      readings: readings,
+      fourLayer: fourLayer
     };
+  }
+
+  /**
+   * 精简四层归类（复刻 apps/visual/src/legacy/reportLayers.ts toFourLayer）。
+   * 旧 JS 路径用，HTML 报告模板可消费 fourLayer.{name}.{tldr,highlights,details,actions}。
+   */
+  var HIGHLIGHT_HEADINGS = ["命宫","四化","值符值使","世应用神","体用生克","喜用神","日主强弱","强弱判断","格局","遁局","综合评级","卦象"];
+  var ACTION_HEADINGS = ["策略指导","化解","布局建议","择日","行动建议"];
+  function toFourLayerJS(reading) {
+    if (!reading || !reading.sections) return { tldr: "", highlights: [], details: [], actions: [] };
+    var highlights = [], details = [], actions = [];
+    reading.sections.forEach(function (section) {
+      var isH = HIGHLIGHT_HEADINGS.some(function (h) { return section.heading.indexOf(h) >= 0; });
+      var isA = ACTION_HEADINGS.some(function (h) { return section.heading.indexOf(h) >= 0; });
+      if (isH) {
+        var core = (section.body.split("。")[0] || section.body).slice(0, 80);
+        highlights.push({ label: section.heading, value: core, tone: detectToneJS(section.body), strength: detectStrengthJS(section.body) });
+      } else if (isA) {
+        section.body.split(/[；。\n]/).forEach(function (s) {
+          if (s.trim().length >= 4) actions.push({ text: s.trim(), category: detectActionCategoryJS(s) });
+        });
+      } else {
+        details.push(section);
+      }
+    });
+    return {
+      tldr: reading.summary || "",
+      overallTone: detectToneJS((reading.summary || "") + " " + (reading.tags || []).join(" ")),
+      highlights: highlights,
+      details: details,
+      actions: actions,
+      sourceNotes: reading.sourceNotes || "",
+      tags: reading.tags || []
+    };
+  }
+  function detectToneJS(text) {
+    if (/大吉|吉格|用生体|可成|身强|旺|相|生门|休门|开门|阳遁|禄|权|科/.test(text)) return "吉";
+    if (/大凶|凶格|用克体|不利|身弱|死|囚|绝命|五鬼|祸害|六煞|死门|惊门|伤门|忌/.test(text)) return "凶";
+    return "中";
+  }
+  function detectStrengthJS(text) {
+    if (/偏强|身强|偏旺|得令|得地|得势/.test(text)) return "强";
+    if (/偏弱|身弱|偏衰|失令|失地|失势/.test(text)) return "弱";
+    return null;
+  }
+  function detectActionCategoryJS(text) {
+    if (/进|退|变|守|顺|出击|保守|静观|主动|把握/.test(text)) return "决策";
+    if (/布局|方位|摆放|财位|催财|化煞|卧室|厨房|书房/.test(text)) return "生活调整";
+    if (/养生|食疗|经络|作息|锻炼|饮食|体质/.test(text)) return "养生";
+    if (/禅|修心|心性|情绪|豁达|随缘|放下/.test(text)) return "心性";
+    if (/择日|择吉|时机|时间窗口|宜|忌/.test(text)) return "择吉";
+    return "生活调整";
   }
 
   /**
@@ -283,6 +342,47 @@
           html += "</div></details>";
         }
         html += "<p style='font-size:11px;color:#aaa;margin-top:4px;'>" + escapeHtml(r.sourceNotes) + "</p></div>";
+      });
+      html += "</div>";
+    }
+    // 四层报告
+    if (reportData.fourLayer && Object.keys(reportData.fourLayer).length) {
+      html += "<div class=\"card\"><h2>四层报告 (fourLayer)</h2>";
+      Object.keys(reportData.fourLayer).forEach(function (name) {
+        var fl = reportData.fourLayer[name];
+        if (!fl || !fl.tldr) return;
+        var toneColor = fl.overallTone === "吉" ? "#2e7d32" : fl.overallTone === "凶" ? "#c62828" : "#757575";
+        html += "<div class='item' style='margin-bottom:14px;'><b>" + escapeHtml(name) + " · 四层报告</b> " +
+          "<span style='display:inline-block;border:1px solid " + toneColor + ";color:" + toneColor + ";border-radius:3px;padding:1px 6px;font-size:11px;'>" + escapeHtml(fl.overallTone) + "</span><br>" +
+          "<p style='font-size:14px;margin-top:6px;'>" + escapeHtml(fl.tldr) + "</p>";
+        // highlights
+        if (fl.highlights && fl.highlights.length) {
+          html += "<div style='margin-top:8px;font-size:12px;color:#666;'>关键亮点 / 风险</div><div style='display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px;'>";
+          fl.highlights.forEach(function (h) {
+            var hc = h.tone === "吉" ? "#2e7d32" : h.tone === "凶" ? "#c62828" : "#999";
+            html += "<div style='border:1px solid " + hc + "33;background:" + hc + "0d;border-radius:4px;padding:6px;'><b style='font-size:12px;'>" + escapeHtml(h.label) + "</b> " +
+              (h.strength ? "<span style='font-size:10px;color:#b8860b;border:1px solid #b8860b66;border-radius:2px;padding:0 4px;'>" + escapeHtml(h.strength === "强" ? "身强" : "身弱") + "</span>" : "") +
+              "<span style='font-size:10px;color:" + hc + ";'>" + escapeHtml(h.tone) + "</span><br>" +
+              "<span style='font-size:11px;color:#777;'>" + escapeHtml(h.value) + "</span></div>";
+          });
+          html += "</div>";
+        }
+        // actions
+        if (fl.actions && fl.actions.length) {
+          html += "<div style='margin-top:8px;font-size:12px;color:#666;'>可执行建议</div>";
+          fl.actions.forEach(function (a) {
+            html += "<div style='font-size:12px;margin-top:2px;'><span style='color:#888;'>[" + escapeHtml(a.category) + "]</span> " + escapeHtml(a.text) + "</div>";
+          });
+        }
+        // details（折叠）
+        if (fl.details && fl.details.length) {
+          html += "<details style='margin-top:6px;'><summary style='cursor:pointer;font-size:12px;color:#999;'>详细分析（" + fl.details.length + "段）</summary><div style='padding:6px 0;'>";
+          fl.details.forEach(function (d) {
+            html += "<div style='margin-bottom:4px;font-size:13px;'><b>" + escapeHtml(d.heading) + "</b>：" + escapeHtml(d.body) + "</div>";
+          });
+          html += "</div></details>";
+        }
+        html += "</div>";
       });
       html += "</div>";
     }

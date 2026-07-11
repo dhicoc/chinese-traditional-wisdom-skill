@@ -90,6 +90,11 @@ check(capabilities.includes("subject: {"), "exportReportData 缺少 subject");
 check(capabilities.includes("birthYear"), "exportReportData 缺少脱敏出生年份");
 check(!/subject:\s*\{[\s\S]{0,260}\b(month|day|hour)\s*:/.test(capabilities), "subject 不应导出完整月日时");
 check(capabilities.includes("不包含完整出生日期"), "exportReportData 缺少隐私说明");
+// 四层报告联动：exportReportData 应含 fourLayer 字段 + toFourLayerJS 归类函数
+check(capabilities.includes("fourLayer: fourLayer"), "exportReportData 缺少 fourLayer 字段");
+check(capabilities.includes("function toFourLayerJS"), "capabilities.js 缺少 toFourLayerJS 四层归类函数");
+check(capabilities.includes("HIGHLIGHT_HEADINGS"), "toFourLayerJS 缺少 highlights 归类规则");
+check(/四层报告 \(fourLayer\)/.test(capabilities), "downloadReport HTML 缺少四层报告渲染段");
 
 const mappingDir = path.join(root, "knowledge-base", "fengshui", "mappings");
 const mappingCount = fs.readdirSync(mappingDir).filter((name) => name.endsWith(".json")).length;
