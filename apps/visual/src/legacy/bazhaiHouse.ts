@@ -48,6 +48,45 @@ const GUA_WUXING: Record<string, string> = {
   乾: '金', 兑: '金', 艮: '土', 离: '火',
 };
 
+/**
+ * 八宅大游年方位表：命卦 → { 方位: 游年星 }。
+ * 与 visual/js/fengshui.js 的 EIGHT_MANSIONS_DATA 同源（已修复乾卦错位）。
+ * 内嵌一份使本模块在无 window 环境下也能独立计算（A 类纯 TS，MCP 可直接 import）；
+ * 运行时若 window.CORE.eightMansionsData 存在则优先用其覆盖（保持旧调用方零改动）。
+ */
+const EIGHT_MANSIONS_DATA: Record<string, Record<string, string>> = {
+  坎: { 北: '伏位', 东北: '五鬼', 东: '天医', 东南: '生气', 南: '延年', 西南: '绝命', 西: '祸害', 西北: '六煞' },
+  坤: { 北: '绝命', 东北: '生气', 东: '祸害', 东南: '五鬼', 南: '六煞', 西南: '伏位', 西: '天医', 西北: '延年' },
+  震: { 北: '天医', 东北: '六煞', 东: '伏位', 东南: '延年', 南: '生气', 西南: '祸害', 西: '绝命', 西北: '五鬼' },
+  巽: { 北: '生气', 东北: '祸害', 东: '延年', 东南: '伏位', 南: '天医', 西南: '六煞', 西: '五鬼', 西北: '绝命' },
+  乾: { 北: '六煞', 东北: '天医', 东: '五鬼', 东南: '祸害', 南: '绝命', 西南: '延年', 西: '生气', 西北: '伏位' },
+  兑: { 北: '祸害', 东北: '延年', 东: '五鬼', 东南: '绝命', 南: '六煞', 西南: '天医', 西: '伏位', 西北: '生气' },
+  艮: { 北: '五鬼', 东北: '伏位', 东: '六煞', 东南: '祸害', 南: '绝命', 西南: '生气', 西: '延年', 西北: '天医' },
+  离: { 北: '延年', 东北: '绝命', 东: '生气', 东南: '天医', 南: '伏位', 西南: '五鬼', 西: '祸害', 西北: '六煞' },
+};
+
+/** 仅供测试/外部校验：导出内嵌八宅方位表（与 fengshui.js EIGHT_MANSIONS_DATA 同源） */
+export const EIGHT_MANSIONS_DATA_EXPORTED_FOR_TEST = EIGHT_MANSIONS_DATA;
+
+/**
+ * 解析八宅方位数据源。
+ * - 调用方传入 mansionsData 时直接用（A 类路径，Node/MCP 可用）。
+ * - 未传时回退读 window.CORE.eightMansionsData（旧 JS 暴露），再回退内嵌常量。
+ * 这样既支持纯 TS 独立计算，又保持旧调用方零改动。
+ */
+function resolveMansionsData(mansionsData?: Record<string, Record<string, string>> | null): Record<string, Record<string, string>> | null {
+  if (mansionsData) return mansionsData;
+  try {
+    if (typeof window !== 'undefined') {
+      const w = window as unknown as { CORE?: { eightMansionsData?: Record<string, Record<string, string>> } };
+      if (w.CORE?.eightMansionsData) return w.CORE.eightMansionsData;
+    }
+  } catch {
+    /* window 不可用时走内嵌 */
+  }
+  return EIGHT_MANSIONS_DATA;
+}
+
 export interface HouseGua {
   /** 朝向方位 */
   facing: string;
@@ -96,6 +135,7 @@ export function getHouseGua(facing: string): HouseGua | null {
 export function checkMingZhaiCompatibility(
   mingGua: string,
   houseGua: HouseGua,
+  mansionsData?: Record<string, Record<string, string>> | null,
 ): MingZhaiCompatibility | null {
   const mingNum = GUA_NAME_TO_NUM[mingGua];
   if (!mingNum) return null;
@@ -120,7 +160,7 @@ export function checkMingZhaiCompatibility(
     };
   }
   // 不相配：找个人生气位方向作为弥补
-  const remedy = getPersonalDirection(mingGua, '生气');
+  const remedy = getPersonalDirection(mingGua, '生气', mansionsData);
   return {
     level: '不相配',
     mingGua,
@@ -149,46 +189,33 @@ function relateWuxing(a: string, b: string): string {
 }
 
 /**
- * 取个人某游年星所在方位。依赖运行时 CORE.eightMansionsData（由 fengshui.js
- * 暴露）。CORE 未加载时返回 '未知'。
+ * 取个人某游年星所在方位。
+ * @param mansionsData 可选八宅方位表；未传则走 resolveMansionsData（window.CORE 或内嵌）
  */
-function getPersonalDirection(mingGua: string, star: string): string {
-  try {
-    const w = window as unknown as {
-      CORE?: { eightMansionsData?: Record<string, Record<string, string>> };
-    };
-    const map = w.CORE?.eightMansionsData?.[mingGua];
-    if (!map) return '未知';
-    for (const [dir, name] of Object.entries(map)) {
-      if (name === star) return dir;
-    }
-    return '未知';
-  } catch {
-    return '未知';
+function getPersonalDirection(mingGua: string, star: string, mansionsData?: Record<string, Record<string, string>> | null): string {
+  const map = resolveMansionsData(mansionsData)?.[mingGua];
+  if (!map) return '未知';
+  for (const [dir, name] of Object.entries(map)) {
+    if (name === star) return dir;
   }
+  return '未知';
 }
 
-/** 取个人四吉方 / 四凶方速查（依赖运行时 CORE.eightMansionsData）。 */
+/** 取个人四吉方 / 四凶方速查。 */
 export function getPersonalDirections(
   mingGua: string,
+  mansionsData?: Record<string, Record<string, string>> | null,
 ): { auspicious: { star: string; direction: string }[]; inauspicious: { star: string; direction: string }[] } | null {
-  try {
-    const w = window as unknown as {
-      CORE?: { eightMansionsData?: Record<string, Record<string, string>> };
-    };
-    const map = w.CORE?.eightMansionsData?.[mingGua];
-    if (!map) return null;
-    const auspiciousStars = ['生气', '天医', '延年', '伏位'];
-    const inauspiciousStars = ['绝命', '五鬼', '六煞', '祸害'];
-    const pick = (stars: string[]) =>
-      stars.map((star) => {
-        const direction = Object.entries(map).find(([, name]) => name === star)?.[0] ?? '未知';
-        return { star, direction };
-      });
-    return { auspicious: pick(auspiciousStars), inauspicious: pick(inauspiciousStars) };
-  } catch {
-    return null;
-  }
+  const map = resolveMansionsData(mansionsData)?.[mingGua];
+  if (!map) return null;
+  const auspiciousStars = ['生气', '天医', '延年', '伏位'];
+  const inauspiciousStars = ['绝命', '五鬼', '六煞', '祸害'];
+  const pick = (stars: string[]) =>
+    stars.map((star) => {
+      const direction = Object.entries(map).find(([, name]) => name === star)?.[0] ?? '未知';
+      return { star, direction };
+    });
+  return { auspicious: pick(auspiciousStars), inauspicious: pick(inauspiciousStars) };
 }
 
 /** 八方位选项（朝向下拉用）。 */
@@ -284,30 +311,23 @@ export function getSectorUse(star: string): SectorUse | null {
 
 /**
  * 取个人命卦八方方位用途分析（按方位排列，含星名/吉凶/主象/宜忌）。
- * 依赖运行时 CORE.eightMansionsData。
  */
 export function getSectorAnalysis(
   mingGua: string,
+  mansionsData?: Record<string, Record<string, string>> | null,
 ): { direction: string; use: SectorUse }[] | null {
-  try {
-    const w = window as unknown as {
-      CORE?: { eightMansionsData?: Record<string, Record<string, string>> };
-    };
-    const map = w.CORE?.eightMansionsData?.[mingGua];
-    if (!map) return null;
-    return Object.entries(map).map(([direction, star]) => ({
-      direction,
-      use: getSectorUse(star) ?? {
-        star,
-        classicalName: '',
-        quality: '',
-        meaning: '',
-        advice: '',
-      },
-    }));
-  } catch {
-    return null;
-  }
+  const map = resolveMansionsData(mansionsData)?.[mingGua];
+  if (!map) return null;
+  return Object.entries(map).map(([direction, star]) => ({
+    direction,
+    use: getSectorUse(star) ?? {
+      star,
+      classicalName: '',
+      quality: '',
+      meaning: '',
+      advice: '',
+    },
+  }));
 }
 
 /**

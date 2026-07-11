@@ -139,19 +139,28 @@ function hourLabel(zhi: string): string {
 }
 
 /**
- * 取指定公历日期的黄历数据。lunar-javascript 未加载时返回 null。
+ * 取指定公历日期的黄历数据。
  * @param dateStr 公历日期字符串 yyyy-mm-dd
+ * @param solar 可选 lunar-javascript Solar 入口；传入时走纯 TS 路径（A 类，MCP 可直接 import lunar-javascript 的 ESM 版传入）。
+ *              未传时回退读 window.Solar（旧 JS 暴露），两者皆不可用返回 null。
  */
-export function getAlmanacData(dateStr: string): AlmanacData | null {
-  const win = window as LegacyWindowWithLunar;
-  if (!win.Solar) return null;
+export function getAlmanacData(dateStr: string, solar?: SolarLike | null): AlmanacData | null {
+  const solarEntry = solar ?? (() => {
+    try {
+      if (typeof window !== 'undefined') return (window as LegacyWindowWithLunar).Solar ?? null;
+    } catch {
+      /* window 不可用 */
+    }
+    return null;
+  })();
+  if (!solarEntry) return null;
   const parts = dateStr.split('-').map(Number);
   if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return null;
   const [year, month, day] = parts;
 
   let lunar: LunarLike;
   try {
-    lunar = win.Solar.fromYmd(year, month, day).getLunar();
+    lunar = solarEntry.fromYmd(year, month, day).getLunar();
   } catch {
     return null;
   }
