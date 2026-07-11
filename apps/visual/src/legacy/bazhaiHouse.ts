@@ -345,3 +345,114 @@ export const SHAPE_SHA: ShapeSha[] = [
   { name: '开门见厕', category: '内部形煞', form: '进门直见厕所', effect: '疾病污秽入门', remedy: '屏风遮挡，常闭厕门' },
   { name: '房门对冲', category: '内部形煞', form: '两个卧室门正对', effect: '口舌是非，家人不和', remedy: '门帘遮挡，或常闭一门' },
 ];
+
+// ─── 八宅 + 飞星合参 ───────────────────────────────────
+
+import { MING_GUA_DIRECTIONS, PALACE_TO_DIR } from './flyingStarRemedies';
+
+/** 卦名 → 卦数 */
+const GUA_NAME_TO_NUM_COMPAT: Record<string, number> = {
+  坎: 1, 坤: 2, 震: 3, 巽: 4, 乾: 6, 兑: 7, 艮: 8, 离: 9,
+};
+
+/** 飞星网格单元（与 canvasRenderers getFeixingGrid 返回一致） */
+interface FeixingCell {
+  palace: string;
+  starNum: number;
+  starName: string;
+  wuxing: string;
+  luck: string;
+}
+type FeixingGrid = FeixingCell[][];
+
+export interface BazhaiFeixingCombo {
+  /** 个人生气位（八宅最旺财方） */
+  shengqiDirection: string;
+  /** 年飞星财位（八白所在方位） */
+  caiweiDirection: string;
+  /** 个人生气位与年飞星财位是否重合 */
+  doubleWealth: boolean;
+  /** 重合方位（双重旺财），不重合为空 */
+  doubleWealthDirection: string;
+  /** 五黄凶位所在方位 */
+  wuhuangDirection: string;
+  /** 二黑病符所在方位 */
+  erheiDirection: string;
+  /** 合参建议条目 */
+  suggestions: { label: string; value: string; tone: '吉' | '凶' | '中' }[];
+}
+
+/**
+ * 八宅（个人命卦静态方位吉凶）与流年飞星（年动态方位吉凶）合参。
+ * - 个人生气位与年飞星八白财位重合 → 「双重旺财方位」特别提示。
+ * - 标注当年五黄煞、二黑病符方位与化煞建议。
+ * @param mingGua 命卦名（坎/坤/...）
+ * @param feixingGrid 年飞星 3×3 网格（来自 getFeixingGrid）
+ */
+export function combineBazhaiFeixing(
+  mingGua: string,
+  feixingGrid: FeixingGrid | null,
+): BazhaiFeixingCombo | null {
+  const guaNum = GUA_NAME_TO_NUM_COMPAT[mingGua];
+  if (!guaNum) return null;
+  const dirs = MING_GUA_DIRECTIONS[guaNum];
+  if (!dirs) return null;
+
+  const shengqiDirection = dirs.shengqi;
+
+  // 从飞星网格找八白(8)/五黄(5)/二黑(2)所在宫位 → 方位
+  let caiweiDirection = '未知';
+  let wuhuangDirection = '未知';
+  let erheiDirection = '未知';
+  if (feixingGrid) {
+    for (const row of feixingGrid) {
+      for (const cell of row) {
+        if (cell.starNum === 8) caiweiDirection = PALACE_TO_DIR[cell.palace] ?? '未知';
+        if (cell.starNum === 5) wuhuangDirection = PALACE_TO_DIR[cell.palace] ?? '未知';
+        if (cell.starNum === 2) erheiDirection = PALACE_TO_DIR[cell.palace] ?? '未知';
+      }
+    }
+  }
+
+  const doubleWealth = shengqiDirection === caiweiDirection && shengqiDirection !== '未知';
+  const doubleWealthDirection = doubleWealth ? shengqiDirection : '';
+
+  const suggestions: BazhaiFeixingCombo['suggestions'] = [];
+  if (doubleWealth) {
+    suggestions.push({
+      label: '双重旺财方位',
+      value: `个人生气位与流年八白财位同在${doubleWealthDirection}方，本年此方财气最旺，宜作主卧、财位，置招财物品。`,
+      tone: '吉',
+    });
+  } else {
+    suggestions.push({
+      label: '个人财位',
+      value: `个人生气位在${shengqiDirection}方（八宅旺财丁），流年八白财位在${caiweiDirection}方。两方皆宜催财，可分别布局。`,
+      tone: '吉',
+    });
+  }
+  if (wuhuangDirection !== '未知') {
+    suggestions.push({
+      label: '五黄煞方位',
+      value: `本年五黄大煞在${wuhuangDirection}方，忌动土修造，宜置厕所储物压之，用六帝钱、铜风铃、葫芦化煞。`,
+      tone: '凶',
+    });
+  }
+  if (erheiDirection !== '未知') {
+    suggestions.push({
+      label: '二黑病符方位',
+      value: `本年二黑病符在${erheiDirection}方，主疾病，宜置厕所，用铜葫芦、六帝钱化煞，忌作主卧厨房。`,
+      tone: '凶',
+    });
+  }
+
+  return {
+    shengqiDirection,
+    caiweiDirection,
+    doubleWealth,
+    doubleWealthDirection,
+    wuhuangDirection,
+    erheiDirection,
+    suggestions,
+  };
+}

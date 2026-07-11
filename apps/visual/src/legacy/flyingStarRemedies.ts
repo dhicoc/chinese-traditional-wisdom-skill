@@ -161,7 +161,10 @@ export function getStarStatuses(yuanYun: YuanYun): StarStatus[] {
 }
 
 /**
- * 命卦吉方表（提炼自 suangua MING_GUA_LUCKY）
+ * 命卦吉方表（八星 → 方位）。
+ * 数据直接由项目权威 EIGHT_MANSIONS_DATA（visual/js/fengshui.js，乾卦已修正）
+ * 反推生成，确保与八宅模块一致。此前转录自 suangua MING_GUA_LUCKY 的版本
+ * 存在系统性方位错位（坎/坤/兑/艮/乾等多卦四凶位错位），已据此校正。
  */
 export interface MingGuaDirections {
   shengqi: string;   // 生气位（最旺财丁）
@@ -175,14 +178,14 @@ export interface MingGuaDirections {
 }
 
 export const MING_GUA_DIRECTIONS: Record<number, MingGuaDirections> = {
-  1: { shengqi: '东南', tianyi: '东', niannian: '南', fuwei: '北', jueming: '西', wugui: '西北', liusha: '东北', huohai: '西南' },
-  2: { shengqi: '西北', tianyi: '西南', niannian: '东北', fuwei: '西南', jueming: '东', wugui: '东南', liusha: '南', huohai: '北' },
-  3: { shengqi: '南', tianyi: '北', niannian: '东南', fuwei: '东', jueming: '西南', wugui: '东北', liusha: '西北', huohai: '西' },
+  1: { shengqi: '东南', tianyi: '东', niannian: '南', fuwei: '北', jueming: '西南', wugui: '东北', liusha: '西北', huohai: '西' },
+  2: { shengqi: '东北', tianyi: '西', niannian: '西北', fuwei: '西南', jueming: '北', wugui: '东南', liusha: '南', huohai: '东' },
+  3: { shengqi: '南', tianyi: '北', niannian: '东南', fuwei: '东', jueming: '西', wugui: '西北', liusha: '东北', huohai: '西南' },
   4: { shengqi: '北', tianyi: '南', niannian: '东', fuwei: '东南', jueming: '西北', wugui: '西', liusha: '西南', huohai: '东北' },
-  6: { shengqi: '西南', tianyi: '东北', niannian: '西', fuwei: '西北', jueming: '南', wugui: '北', liusha: '东', huohai: '东南' },
-  7: { shengqi: '东北', tianyi: '西', niannian: '西北', fuwei: '西', jueming: '东', wugui: '南', liusha: '东南', huohai: '北' },
-  8: { shengqi: '西', tianyi: '西北', niannian: '西南', fuwei: '东北', jueming: '东南', wugui: '东', liusha: '南', huohai: '北' },
-  9: { shengqi: '东', tianyi: '东南', niannian: '北', fuwei: '南', jueming: '西南', wugui: '西', liusha: '西北', huohai: '东北' },
+  6: { shengqi: '西', tianyi: '东北', niannian: '西南', fuwei: '西北', jueming: '南', wugui: '东', liusha: '北', huohai: '东南' },
+  7: { shengqi: '西北', tianyi: '西南', niannian: '东北', fuwei: '西', jueming: '东南', wugui: '东', liusha: '南', huohai: '北' },
+  8: { shengqi: '西南', tianyi: '西北', niannian: '西', fuwei: '东北', jueming: '南', wugui: '北', liusha: '东', huohai: '东南' },
+  9: { shengqi: '东', tianyi: '东南', niannian: '北', fuwei: '南', jueming: '东北', wugui: '西南', liusha: '西北', huohai: '西' },
 };
 
 /** 方位 → 九宫宫位映射（洛书） */

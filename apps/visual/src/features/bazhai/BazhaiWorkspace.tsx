@@ -7,9 +7,11 @@ import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import {
   getBazhaiGrid,
   getBazhaiSummary,
+  getFeixingGrid,
 } from '@/legacy/canvasRenderers';
 import {
   checkMingZhaiCompatibility,
+  combineBazhaiFeixing,
   getHouseGua,
   getPersonalDirections,
   getSectorAnalysis,
@@ -26,6 +28,7 @@ export function BazhaiWorkspace() {
   const [year, setYear] = useState(1990);
   const [gender, setGender] = useState<'男' | '女'>('男');
   const [facing, setFacing] = useState<string>('南');
+  const [flowYear, setFlowYear] = useState(2026);
 
   useEffect(() => {
     let mounted = true;
@@ -45,6 +48,14 @@ export function BazhaiWorkspace() {
   const grid = useMemo(
     () => (ready ? getBazhaiGrid(year, gender) : null),
     [ready, year, gender],
+  );
+  const feixingGrid = useMemo(
+    () => (ready ? getFeixingGrid(flowYear) : null),
+    [ready, flowYear],
+  );
+  const combo = useMemo(
+    () => (summary ? combineBazhaiFeixing(summary.trigram, feixingGrid) : null),
+    [summary, feixingGrid],
   );
   const houseGua = useMemo(() => getHouseGua(facing), [facing]);
   const compatibility = useMemo(
@@ -67,12 +78,14 @@ export function BazhaiWorkspace() {
       year,
       gender,
       facing,
+      flowYear,
       mingGua: summary ?? null,
       houseGua: houseGua ?? null,
       compatibility: compatibility ?? null,
-      source: 'visual/js/fengshui.js + visual/js/core.js + bazhaiHouse.ts',
+      combo: combo ?? null,
+      source: 'visual/js/fengshui.js + visual/js/core.js + bazhaiHouse.ts + flyingStarRemedies.ts',
     }),
-    [year, gender, facing, summary, houseGua, compatibility],
+    [year, gender, facing, flowYear, summary, houseGua, compatibility, combo],
   );
 
   return (
@@ -129,6 +142,8 @@ export function BazhaiWorkspace() {
               ))}
             </select>
           </ControlField>
+
+          <ControlField label="流年" hint="八宅+飞星合参年份" type="number" min={1900} max={2100} inputMode="numeric" value={flowYear} onChange={(event) => setFlowYear(Number.parseInt(event.target.value, 10) || 2026)} />
 
           <div className="rounded-card border border-white/8 bg-white/[0.035] p-4">
             <p className="text-sm font-semibold text-jade-100">命卦</p>
@@ -219,6 +234,34 @@ export function BazhaiWorkspace() {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {combo && (
+            <div className="rounded-card border border-gold-500/25 bg-gold-500/6 p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-jade-100">八宅 + 飞星合参</p>
+                <span className="text-[10px] text-gold-400">{flowYear}流年</span>
+              </div>
+              <p className="mt-1 text-[11px] text-jade-100/45">个人命卦方位（静态）与流年飞星方位（动态）交叉分析</p>
+              <div className="mt-2 grid grid-cols-2 gap-1.5 text-xs">
+                <div className="flex justify-between rounded bg-jade-500/8 px-2 py-1"><span className="text-jade-300">个人生气位</span><span className="text-jade-100/80">{combo.shengqiDirection}方</span></div>
+                <div className="flex justify-between rounded bg-jade-500/8 px-2 py-1"><span className="text-jade-300">流年财位</span><span className="text-jade-100/80">{combo.caiweiDirection}方</span></div>
+                <div className="flex justify-between rounded bg-cinnabar-500/8 px-2 py-1"><span className="text-cinnabar-300">五黄煞</span><span className="text-jade-100/80">{combo.wuhuangDirection}方</span></div>
+                <div className="flex justify-between rounded bg-cinnabar-500/8 px-2 py-1"><span className="text-cinnabar-300">二黑病符</span><span className="text-jade-100/80">{combo.erheiDirection}方</span></div>
+              </div>
+              {combo.doubleWealth && (
+                <p className="mt-2 rounded bg-gold-500/15 px-2 py-1.5 text-[11px] leading-4 text-gold-300">
+                  ★ 双重旺财：{combo.doubleWealthDirection}方本年财气最旺
+                </p>
+              )}
+              <div className="mt-2 space-y-1.5">
+                {combo.suggestions.map((s, i) => (
+                  <div key={i} className={`rounded border px-2.5 py-1.5 text-[11px] leading-4 ${s.tone === '吉' ? 'border-jade-500/20 bg-jade-500/6 text-jade-100/70' : s.tone === '凶' ? 'border-cinnabar-500/20 bg-cinnabar-500/6 text-jade-100/70' : 'border-white/8 bg-black/20 text-jade-100/70'}`}>
+                    <span className={`font-semibold ${s.tone === '吉' ? 'text-jade-400' : s.tone === '凶' ? 'text-cinnabar-400' : 'text-jade-100/55'}`}>{s.label}：</span>{s.value}
+                  </div>
+                ))}
               </div>
             </div>
           )}
