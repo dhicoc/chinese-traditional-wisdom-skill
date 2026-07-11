@@ -153,88 +153,123 @@ const cline = {
 
 const CLIENTS = [claudeCode, claudeDesktop, cursor, cline];
 
-// ─── 主流程 ───
+// ─── 导出供测试 ───
+export { CLIENTS, hasCommand, readJson, writeJson, REPO_ROOT, MCP_SERVER_ENTRY, MCP_SERVER_DIR, SERVER_NAME, buildServerEntry };
+export { claudeCode, claudeDesktop, cursor, cline };
 
-const args = process.argv.slice(2);
-const checkOnly = args.includes('--check');
-const clientFilter = args.find((a) => a.startsWith('--client='))?.split('=')[1];
+/** 构造 server 启动配置（command + args），供测试断言 */
+function buildServerEntry() {
+  return { command: NPX_CMD, args: NPX_ARGS };
+}
 
-console.log('═══════════════════════════════════════════════════');
-console.log('  chinese-wisdom MCP 自动配置');
-console.log('═══════════════════════════════════════════════════');
-console.log(`仓库路径: ${REPO_ROOT}`);
-console.log(`MCP 入口: ${MCP_SERVER_ENTRY}`);
-console.log(`平台: ${platform()}${IS_WIN ? ' (用 cmd /c npx 包裹)' : ''}`);
-console.log('');
+/** 检测所有客户端（不写入），返回检测结果 */
+export function detectAll() {
+  return CLIENTS.map((c) => ({ name: c.name, configPath: c.configPath, detected: c.detect() }));
+}
 
-// 前置检查：mcp-server 依赖是否已装
-const nodeModulesOk = existsSync(join(MCP_SERVER_DIR, 'node_modules'));
-if (!nodeModulesOk) {
-  console.log('⚠️  apps/mcp-server/node_modules 不存在，先安装依赖...');
-  if (!checkOnly) {
+/** 配置指定客户端（写入），返回结果数组 */
+export function configureAll(options = {}) {
+  const { filter, checkOnly = false } = options;
+  const results = [];
+  for (const client of CLIENTS) {
+    if (filter && !client.name.toLowerCase().replace(/\s+/g, '-').includes(filter.toLowerCase().replace(/\s+/g, '-'))) continue;
+    const detected = client.detect();
+    if (!detected) { results.push({ name: client.name, detected: false, configured: false }); continue; }
+    if (checkOnly) { results.push({ name: client.name, detected: true, configured: false }); continue; }
     try {
-      execSync('npm install', { cwd: MCP_SERVER_DIR, stdio: 'inherit' });
-    } catch {
-      console.error('❌ 依赖安装失败，请手动 cd apps/mcp-server && npm install');
-      process.exit(1);
+      const r = client.configure();
+      results.push({ name: client.name, detected: true, configured: r.ok, message: r.message });
+    } catch (e) {
+      results.push({ name: client.name, detected: true, configured: false, error: e instanceof Error ? e.message : String(e) });
+    }
+  }
+  return results;
+}
+
+// ─── 主流程（仅当直接执行时跑，被 import 时不跑）───
+
+function isMain() {
+  // ESM 判断：process.argv[1] 是当前模块路径
+  const invokedPath = process.argv[1];
+  return invokedPath && fileURLToPath(import.meta.url) === resolve(invokedPath);
+}
+
+function main() {
+  const args = process.argv.slice(2);
+  const checkOnly = args.includes('--check');
+  const clientFilter = args.find((a) => a.startsWith('--client='))?.split('=')[1];
+
+  console.log('═══════════════════════════════════════════════════');
+  console.log('  chinese-wisdom MCP 自动配置');
+  console.log('═══════════════════════════════════════════════════');
+  console.log(`仓库路径: ${REPO_ROOT}`);
+  console.log(`MCP 入口: ${MCP_SERVER_ENTRY}`);
+  console.log(`平台: ${platform()}${IS_WIN ? ' (用 cmd /c npx 包裹)' : ''}`);
+  console.log('');
+
+  // 前置检查：mcp-server 依赖是否已装
+  const nodeModulesOk = existsSync(join(MCP_SERVER_DIR, 'node_modules'));
+  if (!nodeModulesOk) {
+    console.log('⚠️  apps/mcp-server/node_modules 不存在，先安装依赖...');
+    if (!checkOnly) {
+      try {
+        execSync('npm install', { cwd: MCP_SERVER_DIR, stdio: 'inherit' });
+      } catch {
+        console.error('❌ 依赖安装失败，请手动 cd apps/mcp-server && npm install');
+        process.exit(1);
+      }
+    } else {
+      console.log('   (check 模式，跳过安装)');
     }
   } else {
-    console.log('   (check 模式，跳过安装)');
-  }
-} else {
-  console.log('✅ apps/mcp-server 依赖已就绪');
-}
-console.log('');
-
-// 检测 tsx 是否可用
-const tsxOk = (() => {
-  try {
-    execSync(`${IS_WIN ? 'where' : 'which'} tsx`, { stdio: 'ignore' });
-    return true;
-  } catch {
-    return existsSync(join(MCP_SERVER_DIR, 'node_modules', '.bin', 'tsx'));
-  }
-})();
-if (!tsxOk) {
-  console.log('⚠️  tsx 未全局可用（npx 会自动拉取，首次启动稍慢）');
-} else {
-  console.log('✅ tsx 可用');
-}
-console.log('');
-
-console.log('─── 客户端检测 ───');
-let configured = 0;
-for (const client of CLIENTS) {
-  if (clientFilter && !client.name.toLowerCase().replace(/\s+/g, '-').includes(clientFilter.toLowerCase().replace(/\s+/g, '-'))) continue;
-  client.detected = client.detect();
-  const status = client.detected ? '✅ 检测到' : '⬜ 未安装';
-  console.log(`${status}  ${client.name}`);
-  console.log(`         配置: ${client.configPath}`);
-  if (client.detected && !checkOnly) {
-    try {
-      const result = client.configure();
-      console.log(`         → ${result.ok ? '✅' : '❌'} ${result.message}`);
-      if (result.ok) configured++;
-    } catch (e) {
-      console.log(`         → ❌ 配置失败: ${e instanceof Error ? e.message : e}`);
-    }
-  } else if (client.detected && checkOnly) {
-    console.log('         → (check 模式，未写入)');
+    console.log('✅ apps/mcp-server 依赖已就绪');
   }
   console.log('');
+
+  // 检测 tsx 是否可用
+  const tsxOk = (() => {
+    try {
+      execSync(`${IS_WIN ? 'where' : 'which'} tsx`, { stdio: 'ignore' });
+      return true;
+    } catch {
+      return existsSync(join(MCP_SERVER_DIR, 'node_modules', '.bin', 'tsx'));
+    }
+  })();
+  if (!tsxOk) {
+    console.log('⚠️  tsx 未全局可用（npx 会自动拉取，首次启动稍慢）');
+  } else {
+    console.log('✅ tsx 可用');
+  }
+  console.log('');
+
+  console.log('─── 客户端检测 ───');
+  const results = configureAll({ filter: clientFilter, checkOnly });
+  let configured = 0;
+  for (const r of results) {
+    const status = r.detected ? '✅ 检测到' : '⬜ 未安装';
+    const client = CLIENTS.find((c) => c.name === r.name);
+    console.log(`${status}  ${r.name}`);
+    console.log(`         配置: ${client.configPath}`);
+    if (r.detected && r.configured) { console.log(`         → ✅ ${r.message}`); configured++; }
+    else if (r.detected && r.error) { console.log(`         → ❌ 配置失败: ${r.error}`); }
+    else if (r.detected && checkOnly) { console.log('         → (check 模式，未写入)'); }
+    console.log('');
+  }
+
+  console.log('═══════════════════════════════════════════════════');
+  if (checkOnly) {
+    console.log(`检测完成：${results.filter((r) => r.detected).length} 个客户端可用`);
+  } else {
+    console.log(`配置完成：${configured} 个客户端已写入 ${SERVER_NAME} server`);
+    if (configured > 0) {
+      console.log('');
+      console.log('下一步：重启对应客户端，应能看到 chinese-wisdom server 已连接。');
+      console.log('在 AI 对话中可直接说「排个八字」等，AI 会自动调用对应工具。');
+    } else {
+      console.log('未检测到任何 MCP 客户端。可手动参考 apps/mcp-server/examples/ 配置。');
+    }
+  }
+  console.log('═══════════════════════════════════════════════════');
 }
 
-console.log('═══════════════════════════════════════════════════');
-if (checkOnly) {
-  console.log(`检测完成：${CLIENTS.filter((c) => c.detected).length} 个客户端可用`);
-} else {
-  console.log(`配置完成：${configured} 个客户端已写入 ${SERVER_NAME} server`);
-  if (configured > 0) {
-    console.log('');
-    console.log('下一步：重启对应客户端，应能看到 chinese-wisdom server 已连接。');
-    console.log('在 AI 对话中可直接说「排个八字」等，AI 会自动调用对应工具。');
-  } else {
-    console.log('未检测到任何 MCP 客户端。可手动参考 apps/mcp-server/examples/ 配置。');
-  }
-}
-console.log('═══════════════════════════════════════════════════');
+if (isMain()) main();
