@@ -85,3 +85,18 @@ apps/visual/
 ## 回滚方式
 
 如新应用出现问题，直接停止使用 `apps/visual/`，保留旧 `visual/index.html`。迁移期不得删除旧入口、旧 renderer 或旧测试文件。
+
+---
+
+## 2026-07-10 后续：Workspace 切纯 TS 引擎（架构层重构）
+
+Phase 11 收官后，启动了**计算层与 window 解耦**的架构重构（详见 `EVOLUTION.md` 2026-07-10 节）。本节记录对 React Shell 的影响：
+
+- **10 个纯 TS enveloped 引擎**（`apps/visual/src/legacy/*Engine.ts`）：零 DOM 依赖，统一返回 `ToolEnvelope`。MCP server（`apps/mcp-server/`）与 React Dashboard 共享同一份引擎。
+- **4 个 Workspace 切纯 TS 引擎**（commit 7a2e8c4）：BaziWorkspace / ZiweiWorkspace / LiuyaoWorkspace / QimenWorkspace 优先用纯 TS 引擎（`calculateBazi`/`calculateZiwei`/`calculateLiuyao`/`calculateQimen`），失败回退旧 `calculateWithLegacyAdapter`。Solar 参数化：传入 `window.Solar`（vendor lunar-javascript）走精确历法。
+- **Constitution/Feixing/Home 未切**：无对应纯 TS 引擎或结构不对应，仍走旧 adapter。
+- **旧 JS 全保留作 fallback**：`visual/js/engines/` + `engine-adapters.js` 不删，`EngineAdapterRegistry` 照常工作。零回归。
+- **bundle 影响**：iztro + 3meta ESM 进主 bundle，4955→5809KB（gzip 2108KB），可接受。
+- **测试**：visual 150 项 + mcp-server 53 项全过。
+
+此变更不破坏 Phase 0 冻结的契约（tab id、`window.FORTUNE`、ToolManifest、CapabilityRegistry、EngineAdapterRegistry、renderer 接口、测试入口全部兼容）。

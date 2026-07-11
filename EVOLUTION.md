@@ -5,6 +5,48 @@
 
 ---
 
+## 2026-07-10 架构层重构 + MCP Server 落地（三层架构 Layer 2）
+
+### 背景
+
+ROADMAP 原计划"待整个项目全部做完后再启动 MCP"，但担心后期 C 类旧 JS 引擎（深度耦合 `window`）剥离工程量过大，提前启动**计算层与 window 解耦**的架构重构。目标：系统做完时 MCP server 是薄壳，无需回头剥离 window 耦合。
+
+### 变更（按提交顺序）
+
+1. **ToolEnvelope 统一类型**（7fdea6a）：`apps/visual/src/legacy/baseTypes.ts` 定义 `ToolEnvelope<TData>` / `ExportSnapshot` / `InputNormalized` + `wrapEnvelope()`，借鉴 horosa-skill 字段设计思想（AGPL 仅思想不复制代码；export_snapshot 放 data 内部对齐 horosa 真实结构）。周公解梦样板 `envelopeSample.ts`。
+2. **B 类引擎参数化**（a42f405）：`bazhaiHouse.ts` 内嵌 `EIGHT_MANSIONS_DATA` + `mansionsData` 入参；`almanacData.ts` `solar` 入参。B 类清零升 A 类。
+3. **A 类批量 envelope**（7e838f4）：`envelopeAdapters.ts` 包 xiyong/nameRating/constitutionTendency 三个 envelope。
+4. **C 类迁移 6/6**（9259437→c8c2108）：meihua/yunqi/liuyao/bazi/ziwei/qimen 六个旧 JS Adapter 全部移植成纯 TS，`window.Solar` 参数化（传入精确 local-exact，未传近似 local-approx），iztro/3meta 用 ESM `import`。**关键 bug 修复**：`callFirst`/`call` 里 `obj[name]()` 裸调导致 lunar-javascript 方法 `this` 丢失 → 改 `.call(obj)`。
+5. **MCP Server 薄壳**（d37e266）：新建 `apps/mcp-server/`，`@modelcontextprotocol/sdk` + StdioServerTransport，注册 10 个计算工具（import 纯 TS enveloped 引擎，无计算逻辑）+ `agent_guidance`（参数引导防瞎猜）+ `wisdom_dispatch`（自然语言意图路由）两个元工具。借鉴 horosa agent_guidance + horosa_dispatch 设计（软引导而非硬闸门）。
+6. **客户端配置 + 自动配置脚本**（f8f83e2→d695e30→9c0d11a）：`examples/` 三客户端配置 + README 挂载指南；`scripts/setup-mcp.mjs` 一键自动检测并配置 Claude Code/Desktop/Cursor/Cline（AI 自主激活，解决 MCP 便携性痛点）。
+7. **4 个 Workspace 切纯 TS 引擎**（7a2e8c4）：BaziWorkspace/ZiweiWorkspace/LiuyaoWorkspace/QimenWorkspace 优先用纯 TS 引擎，旧 adapter 留 fallback，零回归。
+
+### 引擎分类最终状态
+
+| 类 | 之前 | 现在 |
+|----|------|------|
+| A 纯 TS 计算 | 5 个 | 10 个 envelope + bazhaiHouse + almanacData |
+| B TS 读 window | 2 个 | 0（已清零） |
+| C 旧 JS+window | 6 个 Adapter | 6 个已迁纯 TS（旧 JS 留 fallback） |
+
+### MCP 工具池（12 个）
+
+`bazi_calculate` / `ziwei_chart` / `cast_liuyao` / `arrange_qimen` / `cast_meihua` / `calc_yunqi` / `analyze_name` / `calc_xiyong` / `get_constitution_tendency` / `dream_interpret` + `agent_guidance` + `wisdom_dispatch`。统一返回 `ToolEnvelope`，`data.export_snapshot` 是稳定段表供 LLM 消费。
+
+### 关键取舍
+
+- **不搞重型后端**（horosa 那种 Java runtime + SQLite）：本项目引擎全是 JS，纯前端 + 可选薄 MCP 壳即够，学 horosa 搞后端会摧毁"双击即用"核心卖点。见记忆 `no-heavy-backend`。
+- **软引导 vs 硬闸门**：horosa agent_guidance 是硬拒绝计算；本项目用软引导（缺参时在 envelope 旁附 prompt_to_user），更友好，不破坏直接调用。
+- **旧 JS 全保留作 fallback**：各 Workspace 优先用纯 TS 引擎，失败回退旧 `calculateWithLegacyAdapter`，保证零回归。
+
+### 验证
+
+- visual 150 单元 + e2e 全过；mcp-server 53 项（tools 17 + server 7 + guidance 17 + setup-mcp 12）全过。合计 203 项。
+- MCP 端到端：`claude mcp list` 显示 `chinese-wisdom ✔ Connected`；`wisdom_dispatch` 路由「紫微排盘 1988年10月5日8时女」→ `ziwei_chart` + 自动填充参数。
+- 构建：bundle 4955→5809KB（iztro+3meta ESM 进主 bundle，gzip 2108KB，可接受）。
+
+---
+
 ## 2026-07-08 奇门遁甲升级：3meta 真实排盘
 
 ### 变更

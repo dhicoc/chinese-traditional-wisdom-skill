@@ -2,6 +2,11 @@
 
 > 本文件指导如何集成 wuyun-liuqi 项目的 calculate_yunqi_api.py，用于"中医"维度的气候-体质-疾病趋势分析。
 
+> **2026-07-10 架构重构后推荐路径**：本项目已内置纯 TS 五运六气引擎 `apps/visual/src/legacy/yunqiEngine.ts`，零 DOM 依赖，统一返回 `ToolEnvelope`。MCP server 与 React Dashboard 直接 import 使用，无需外部 API/Python 依赖。
+> - **纯 TS 调用**：`calcYunqiEnveloped({ year, birthMonth, birthDay, solar, currentMonth })`，`solar` 传入走精确大寒定年（local-exact），未传走公历年近似（local-approx）。含岁运、司天在泉、客气六步、客主加临、疾病倾向。
+> - **MCP 工具**：`calc_yunqi`（体质倾向可联动 `get_constitution_tendency`）。
+> - 本指南下方的 wuyun-liuqi API 集成方式仍可用（交叉验证或 fallback），但 Dashboard/MCP 默认走纯 TS 路径。
+
 ---
 
 ## 概览

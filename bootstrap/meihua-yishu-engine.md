@@ -2,6 +2,11 @@
 
 > 本文件指导如何集成 muyen/meihua-yishu 项目，用于"卜"维度的梅花易数占断。
 
+> **2026-07-10 架构重构后推荐路径**：本项目已内置纯 TS 梅花引擎 `apps/visual/src/legacy/meihuaEngine.ts`，零 DOM 依赖，统一返回 `ToolEnvelope`。MCP server 与 React Dashboard 直接 import 使用，无需外部 Python 依赖。
+> - **纯 TS 调用**：`calcMeihuaEnveloped({ birth, method, numberA, numberB, solar })`，支持时间起卦与数字起卦，含体用生克、吉凶分级、策略指导、错综卦。`solar` 传入走精确农历取数（local-exact），未传走公历近似（local-approx）。
+> - **MCP 工具**：`cast_meihua`。
+> - 本指南下方的 muyen/meihua-yishu（CC BY-NC-SA 4.0，许可证受限）不进入运行代码，仅作规则参考。
+
 ---
 
 ## 引擎概览

@@ -2,7 +2,10 @@
 
 > 本文件指导如何集成 ichingshifa Python 库，用于"卜"维度的周易六爻卜卦。
 >
-> ⚠️ **优先级提示**：Dashboard 与 React Shell 已内置本地京房八宫纳甲引擎 `visual/js/engines/liuyao-engine.js`（`mode: local-exact`），覆盖纳甲、六亲、六神、世应、用神、变卦与三种起卦方式，**无需 Python 依赖**。下方 ichingshifa 仅作为命令行/后端的可选 oracle 或规则交叉校验参考，不再是 Dashboard 的必需依赖。
+> ⚠️ **优先级提示**：Dashboard 与 React Shell 已内置本地京房八宫纳甲引擎。2026-07-10 架构重构后，纯 TS 版 `apps/visual/src/legacy/liuyaoEngine.ts`（零 DOM 依赖，统一返回 `ToolEnvelope`）为推荐路径，覆盖纳甲、六亲、六神、世应、用神、变卦、空亡、旺衰、伏神、身爻与三种起卦方式（铜钱法/时间/手动爻值），**无需 Python 依赖**。
+> - **纯 TS 调用**：`calcLiuyaoEnveloped({ birth, method, yaoValues, question, solar })`，`solar` 传入走精确日干支/空亡（local-exact），未传走基准日近似（local-approx）。
+> - **MCP 工具**：`cast_liuyao`。
+> - 下方 ichingshifa 仅作为命令行/后端的可选 oracle 或规则交叉校验参考，不再是 Dashboard/MCP 的必需依赖。
 
 ---
 

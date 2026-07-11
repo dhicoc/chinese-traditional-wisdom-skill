@@ -2,6 +2,11 @@
 
 > 本文件指导如何集成 Renhuai123/ziwei-doushu 排盘引擎，用于"命"维度的排盘与格局分析。
 
+> **2026-07-10 架构重构后推荐路径**：本项目已内置纯 TS 紫微引擎 `apps/visual/src/legacy/ziweiEngine.ts`，用 ESM `import { astro } from 'iztro'`（v2.5.8，MIT），零 DOM 依赖，统一返回 `ToolEnvelope`。MCP server 与 React Dashboard 直接 import 使用，无需 Python iztro-py。
+> - **纯 TS 调用**：`calcZiweiEnveloped({ birth, mingGua })`，输出十二宫 + 四化 + 主星。**关键**：iztro ESM 版四化不在顶层 sihua，标在每颗星的 `mutagen` 字段 → `extractSihuaFromChart` 遍历全盘提取。
+> - **MCP 工具**：`ziwei_chart`。
+> - 本指南下方的 Python iztro-py 集成方式仍可用（命令行交叉验证或 fallback），但 Dashboard/MCP 默认走纯 TS ESM iztro 路径。
+
 ---
 
 ## 引擎概览

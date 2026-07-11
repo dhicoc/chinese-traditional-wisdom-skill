@@ -2,6 +2,11 @@
 
 > 本文件指导如何集成 dzcmemory-web/bazi-ziwei-skill 引擎，用于"命"维度的八字四柱排盘与格局分析。
 
+> **2026-07-10 架构重构后推荐路径**：本项目已内置纯 TS 八字引擎 `apps/visual/src/legacy/baziEngine.ts`，零 DOM 依赖，统一返回 `ToolEnvelope`。MCP server 与 React Dashboard 直接 import 使用，无需外部 Python/npm 引擎。
+> - **纯 TS 调用**：`calcBaziEnveloped({ birth, solar })`，`solar` 传入 lunar-javascript `Solar` 走精确节气干支（local-exact），未传走本地近似（local-approx）。
+> - **MCP 工具**：`bazi_calculate`（详见 `apps/mcp-server/README.md`）。
+> - 本指南下方的 Python/npm 集成方式仍可用（命令行交叉验证或 fallback），但 Dashboard/MCP 默认走纯 TS 路径。
+
 ---
 
 ## 引擎概览

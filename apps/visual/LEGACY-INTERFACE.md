@@ -4,6 +4,8 @@
 > 目的：当后续用真实引擎（如 lunar-javascript 精确历法）替换 demo / local-approx 模块时，
 > 只需满足同一契约，无需改动 React 工作区层。
 
+> **2026-07-10 架构重构后补充**：本文档固化的旧 `visual/js/` 契约仍有效（作 fallback），但推荐路径已变为**纯 TS enveloped 引擎**（`apps/visual/src/legacy/*Engine.ts`，零 DOM 依赖，统一返回 `ToolEnvelope`）。BaziWorkspace/ZiweiWorkspace/LiuyaoWorkspace/QimenWorkspace 已优先用纯 TS 引擎，失败回退本文档固化的旧契约。MCP server（`apps/mcp-server/`）直接 import 纯 TS 引擎，不经本文档的 Legacy 桥接层。详见 `EVOLUTION.md` 2026-07-10 节与 `tool-index.md`「纯 TS 引擎 + ToolEnvelope」节。
+
 ## 1. 分层架构
 
 ```

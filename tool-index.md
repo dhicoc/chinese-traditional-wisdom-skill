@@ -30,6 +30,49 @@
 
 ---
 
+## 纯 TS 引擎 + ToolEnvelope（2026-07-10 架构重构后推荐路径）
+
+> 架构层重构后，6 个旧 JS Adapter + 若干 A 类引擎已全部迁移成**纯 TS、零 DOM 依赖**，统一返回 `ToolEnvelope` 结构。MCP server 与 React Dashboard 共享同一份引擎。旧 JS 保留作 fallback。
+
+**统一信封结构**（`apps/visual/src/legacy/baseTypes.ts`）：
+```ts
+ToolEnvelope<TData> = { ok, tool, version, input_normalized, data: TData & { export_snapshot }, summary?, warnings?, error? }
+```
+`data.export_snapshot` = `{ summary, tags, sections, sourceNotes }` 稳定段表，供 LLM/报告渲染消费。
+
+| 引擎 | 文件 | envelope 函数 | 接入方式 |
+|------|------|--------------|---------|
+| 周公解梦 | `legacy/envelopeSample.ts` | `searchDreamEnveloped` | 纯查表 |
+| 喜用神 | `legacy/envelopeAdapters.ts` | `calcXiYongEnveloped` | 纯查表 |
+| 姓名五维评分 | `legacy/envelopeAdapters.ts` | `calcNameRatingEnveloped` | 纯查表 |
+| 体质倾向 | `legacy/envelopeAdapters.ts` | `getConstitutionTendencyEnveloped` | 纯查表 |
+| 梅花易数 | `legacy/meihuaEngine.ts` | `calcMeihuaEnveloped` | Solar 参数化 |
+| 五运六气 | `legacy/yunqiEngine.ts` | `calcYunqiEnveloped` | Solar 参数化(大寒定年) |
+| 六爻纳甲 | `legacy/liuyaoEngine.ts` | `calcLiuyaoEnveloped` | Solar 参数化(日干支/空亡) |
+| 八字排盘 | `legacy/baziEngine.ts` | `calcBaziEnveloped` | Solar 参数化(节气干支) |
+| 紫微斗数 | `legacy/ziweiEngine.ts` | `calcZiweiEnveloped` | ESM `import { astro } from 'iztro'` |
+| 奇门遁甲 | `legacy/qimenEngine.ts` | `calcQimenEnveloped` | ESM `import { QimenChart } from '3meta'` |
+
+**Solar 参数化模式**：lunar-javascript 的 Solar 入口作为可选入参，传入走精确（local-exact），未传走本地近似（local-approx）。MCP 端 `import { Solar } from 'lunar-javascript'` 传入；Dashboard 端用 `window.Solar`（vendor）传入。
+
+---
+
+## MCP Server（三层架构 Layer 2）
+
+> `apps/mcp-server/`：薄壳包装上述 10 个 enveloped 引擎为 MCP 工具，供 Claude Code/Desktop/Cursor/Cline 调用。无计算逻辑，import 纯 TS 引擎。
+
+**12 个 MCP 工具**：上述 10 个计算工具（snake_case 命名，如 `bazi_calculate`）+ `agent_guidance`（参数引导防瞎猜）+ `wisdom_dispatch`（自然语言意图路由）。
+
+**一键自动配置**（无需手动编辑 JSON）：
+```bash
+node scripts/setup-mcp.mjs            # 自动检测并配置所有已装客户端
+node scripts/setup-mcp.mjs --check    # 仅检查
+```
+
+详见 `apps/mcp-server/README.md` 与 `examples/`。SKILL.md「MCP 自动激活」节引导 AI 在用户说"启用 MCP"时自主跑此脚本。
+
+---
+
 ## Dashboard 能力边界
 
 | 模块 | Dashboard 状态 | 说明 |
