@@ -4,6 +4,7 @@ import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
+import { calculateQimen as calculateQimenPure } from '@/legacy/qimenEngine';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import type { LegacyState } from '@/legacy/legacyGlobals';
@@ -87,7 +88,12 @@ export function QimenWorkspace() {
   const ready = legacyState.mode === 'ready';
   const result = useMemo<QimenResult | null>(() => {
     if (!ready) return null;
-    return calculateWithLegacyAdapter<{ birth: typeof birth }, QimenResult>('qimen', { birth });
+    // 优先用纯 TS 引擎（ESM 3meta，架构重构后推荐路径），失败回退旧 adapter
+    try {
+      return calculateQimenPure({ birth }) as unknown as QimenResult;
+    } catch {
+      return calculateWithLegacyAdapter<{ birth: typeof birth }, QimenResult>('qimen', { birth });
+    }
   }, [ready, birth]);
 
   const contextPayload = useMemo(

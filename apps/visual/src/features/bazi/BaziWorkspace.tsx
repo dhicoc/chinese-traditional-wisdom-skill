@@ -10,6 +10,7 @@ import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { renderDataWithLegacyAdapter, calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
+import { calculateBazi as calculateBaziPure } from '@/legacy/baziEngine';
 import { type BaziPillars, type WuxingStats } from '@/legacy/canvasRenderers';
 import { calcXiYong } from '@/legacy/xiyong';
 import type { BirthData } from '@/legacy/birthBridge';
@@ -47,6 +48,22 @@ interface BaziResult {
 function calculateBazi(birth: BirthData, ready: boolean) {
   if (!ready) {
     return { result: null, pillars: { ...DEFAULT_PILLARS, gender: birth.gender }, wuxing: DEFAULT_WUXING };
+  }
+  // 优先用纯 TS 引擎（架构重构后推荐路径），传入浏览器 lunar-javascript 的 Solar 走精确历法
+  try {
+    const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
+    const pure = calculateBaziPure({ birth, solar: solarEntry ?? null });
+    const pillars: BaziPillars = {
+      year: { stem: pure.pillars.year.stem, branch: pure.pillars.year.branch, hidden: pure.hiddenStems.year },
+      month: { stem: pure.pillars.month.stem, branch: pure.pillars.month.branch, hidden: pure.hiddenStems.month },
+      day: { stem: pure.pillars.day.stem, branch: pure.pillars.day.branch, hidden: pure.hiddenStems.day },
+      hour: { stem: pure.pillars.hour.stem, branch: pure.pillars.hour.branch, hidden: pure.hiddenStems.hour },
+      dayMaster: pure.dayMaster,
+      gender: pure.gender,
+    };
+    return { result: pure as unknown as BaziResult, pillars, wuxing: { ...DEFAULT_WUXING, ...pure.elements } };
+  } catch {
+    // 回退旧 adapter（legacy window 引擎）
   }
   const result = calculateWithLegacyAdapter<BirthData, BaziResult>('bazi', birth);
   const renderData = result ? renderDataWithLegacyAdapter<BirthData, BaziResult, BaziPillars>('bazi', result, birth) : null;

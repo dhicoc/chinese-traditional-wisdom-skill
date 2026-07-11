@@ -7,6 +7,7 @@ import { ZiweiPalaceGrid } from '@/components/shared/ZiweiPalaceGrid';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
+import { calculateZiwei as calculateZiweiPure } from '@/legacy/ziweiEngine';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { DataModeBadge } from '@/components/shared/DataModeBadge';
@@ -102,6 +103,12 @@ function buildFallbackZiweiData(birth: BirthData, mingGua: ZiweiMingGua): ZiweiD
 function calculateZiweiData(birth: BirthData, ready: boolean): ZiweiData {
   const mingGua = calcMingGua(birth.year, birth.gender);
   if (ready) {
+    // 优先用纯 TS 引擎（ESM iztro，架构重构后推荐路径）
+    try {
+      return calculateZiweiPure({ birth, mingGua }) as ZiweiData;
+    } catch {
+      // 回退旧 adapter
+    }
     const adapterData = calculateWithLegacyAdapter<{ birth: BirthData; mingGua: ZiweiMingGua }, ZiweiData>('ziwei', {
       birth,
       mingGua,

@@ -9,6 +9,7 @@ import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import type { LiuyaoData } from '@/legacy/canvasRenderers';
 import type { LiuyaoLine } from '@/legacy/divinationTypes';
 import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
+import { calculateLiuyao as calculateLiuyaoPure } from '@/legacy/liuyaoEngine';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import type { LegacyState } from '@/legacy/legacyGlobals';
@@ -128,10 +129,19 @@ export function LiuyaoWorkspace() {
     if (method === 'coin') {
       input.seed = birth.year * 10000 + birth.month * 100 + birth.day + birth.hour + castCount * 7919;
     }
-    const calculated = calculateWithLegacyAdapter<
-      { birth: typeof birth; method: string; question?: string; yaoValues?: string; seed?: number },
-      LiuyaoResult
-    >('liuyao', { birth, ...input });
+    const calculated = (() => {
+      // 优先用纯 TS 引擎（架构重构后推荐路径），传入浏览器 lunar-javascript Solar 走精确日干支/空亡
+      try {
+        const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
+        return calculateLiuyaoPure({ birth, ...input, solar: solarEntry ?? null }) as unknown as LiuyaoResult;
+      } catch {
+        // 回退旧 adapter
+      }
+      return calculateWithLegacyAdapter<
+        { birth: typeof birth; method: string; question?: string; yaoValues?: string; seed?: number },
+        LiuyaoResult
+      >('liuyao', { birth, ...input });
+    })();
     return calculated ?? DEFAULT_FALLBACK;
   }, [ready, birth, method, question, yaoValues, castCount]);
 
