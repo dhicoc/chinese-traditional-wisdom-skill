@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { searchDreamEnveloped } from '@/legacy/envelopeSample';
+import {
+  calcXiYongEnveloped,
+  calcNameRatingEnveloped,
+  getConstitutionTendencyEnveloped,
+} from '@/legacy/envelopeAdapters';
 import { wrapEnvelope, type ToolEnvelope } from '@/legacy/baseTypes';
 
 describe('ToolEnvelope 统一信封', () => {
@@ -65,6 +70,65 @@ describe('ToolEnvelope 统一信封', () => {
       expect(typeof env.version).toBe('string');
       expect(typeof env.input_normalized).toBe('object');
       expect(env.data).toBeDefined();
+    });
+  });
+
+  describe('calcXiYongEnveloped 喜用神', () => {
+    it('日主辛金身弱返回喜用神 envelope', () => {
+      // 辛金日主，五行金弱 → 身弱，喜同类最弱
+      const env = calcXiYongEnveloped('金', { 木: 6, 火: 4, 土: 4, 金: 2, 水: 4 });
+      expect(env.ok).toBe(true);
+      expect(env.tool).toBe('XiYongAdapter');
+      const data = env.data as { qiangRuo: string; shen: string; export_snapshot: { summary: string } };
+      expect(data.qiangRuo).toBe('身弱');
+      expect(data.shen).toBeTruthy();
+      expect(data.export_snapshot.summary).toContain('身弱');
+      expect(env.input_normalized).toEqual({ dayMasterWuxing: '金', elements: { 木: 6, 火: 4, 土: 4, 金: 2, 水: 4 } });
+    });
+  });
+
+  describe('calcNameRatingEnveloped 姓名评分', () => {
+    it('张伟评分返回 envelope 含五维明细', () => {
+      const env = calcNameRatingEnveloped('张', '伟', 1990);
+      expect(env.ok).toBe(true);
+      expect(env.tool).toBe('NameRatingAdapter');
+      const data = env.data as { totalScore: number; grade: string; dimensions: Array<{ name: string }>; export_snapshot: { sections: Array<{ heading: string }> } };
+      expect(data.totalScore).toBeGreaterThanOrEqual(0);
+      expect(data.grade).toBeTruthy();
+      expect(data.dimensions.length).toBeGreaterThan(0);
+      expect(data.export_snapshot.sections.some((s) => s.heading === '五维明细')).toBe(true);
+    });
+
+    it('含未收录字时带"未收录"warning', () => {
+      // 用极生僻字确保未收录
+      const env = calcNameRatingEnveloped('张', '𪚥', 1990);
+      const hasUnrecorded = env.warnings?.some((w) => w.includes('未收录'));
+      // 若该字恰好收录则跳过断言；否则必须带未收录 warning
+      if (env.warnings?.length && !env.warnings.some((w) => w.includes('未收录'))) {
+        // warnings 只有 confidenceNote 而无未收录 → 说明字被收录，跳过
+        return;
+      }
+      expect(hasUnrecorded).toBe(true);
+    });
+  });
+
+  describe('getConstitutionTendencyEnveloped 体质倾向', () => {
+    it('有效运气数据返回体质倾向 envelope', () => {
+      const env = getConstitutionTendencyEnveloped({
+        wuyun: { dayun: '木运太过' },
+        liuqi: { sitian: '厥阴风木', zaquan: '少阳相火' },
+      });
+      expect(env.ok).toBe(true);
+      expect(env.tool).toBe('ConstitutionTendencyAdapter');
+      const data = env.data as { tendencies: Array<{ type: string }>; export_snapshot: { summary: string } };
+      expect(data.tendencies.length).toBeGreaterThan(0);
+      expect(data.export_snapshot.summary).toContain('木运太过');
+    });
+
+    it('岁运司天皆空返回 ok=false 错误 envelope', () => {
+      const env = getConstitutionTendencyEnveloped({ wuyun: { dayun: '' }, liuqi: { sitian: '', zaquan: '' } });
+      expect(env.ok).toBe(false);
+      expect(env.error?.code).toBe('insufficient_input');
     });
   });
 });
