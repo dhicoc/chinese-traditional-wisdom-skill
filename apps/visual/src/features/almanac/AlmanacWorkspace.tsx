@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { ControlField } from '@/components/shared/ControlField';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
+import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { getAlmanacData, type AlmanacData } from '@/legacy/almanacData';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
@@ -49,9 +50,12 @@ export function AlmanacWorkspace() {
             <h2 className="text-lg font-semibold text-jade-50">每日黄历</h2>
             <p className="text-sm text-jade-100/55">真实历法推算 · 民俗参考 · 非预测结论</p>
           </div>
-          <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-            lunar-javascript
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
+              lunar-javascript
+            </span>
+            <ExportReportButton module="每日黄历" />
+          </div>
         </div>
       </div>
 

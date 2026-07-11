@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ControlField } from '@/components/shared/ControlField';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { EightMansionsChart } from '@/components/shared/EightMansionsChart';
 import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
@@ -99,7 +100,10 @@ export function BazhaiWorkspace() {
               输入出生年与性别，查看命卦与八方位游年星吉凶。
             </p>
           </div>
-          <CopyContextButton commandScope="bazhai" title="八宅大游年 React 迁移上下文" payload={contextPayload} />
+          <div className="flex gap-2">
+            <CopyContextButton commandScope="bazhai" title="八宅大游年 React 迁移上下文" payload={contextPayload} />
+            <ExportReportButton module="八宅大游年" />
+          </div>
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">

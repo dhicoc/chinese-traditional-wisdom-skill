@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { FengshuiCompass } from '@/components/shared/FengshuiCompass';
 import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
@@ -137,7 +138,10 @@ export function FengshuiWorkspace() {
               二十四山罗盘，支持坐向旋转、流年飞星吉凶叠加、八宅游年星标注与命卦合参。
             </p>
           </div>
-          <CopyContextButton commandScope="fengshui" title="风水罗盘上下文" payload={contextPayload} />
+          <div className="flex gap-2">
+            <CopyContextButton commandScope="fengshui" title="风水罗盘上下文" payload={contextPayload} />
+            <ExportReportButton module="风水罗盘" />
+          </div>
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">

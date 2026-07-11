@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { DataModeBadge } from '@/components/shared/DataModeBadge';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
@@ -217,6 +218,7 @@ export function ComboWorkspace() {
                 subsystems: data.subsystems.map((s) => ({ name: s.name, tone: s.tone, summary: s.summary })),
               }}
             />
+            <ExportReportButton module={data.comboName} />
           </div>
         </div>
       )}

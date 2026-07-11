@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ControlField } from '@/components/shared/ControlField';
+import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 
 /**
@@ -177,9 +178,12 @@ export function RhythmWorkspace() {
             <h2 className="text-lg font-semibold text-jade-50">每日节律</h2>
             <p className="text-sm text-jade-100/55">十二时辰与经络养生</p>
           </div>
-          <span className="rounded-full border border-jade-500/30 bg-jade-500/10 px-3 py-1 text-xs text-jade-500">
-            养生参考
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full border border-jade-500/30 bg-jade-500/10 px-3 py-1 text-xs text-jade-500">
+              养生参考
+            </span>
+            <ExportReportButton module="每日节律" />
+          </div>
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { ControlField } from '@/components/shared/ControlField';
 import { YunqiChart } from '@/components/shared/YunqiChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
@@ -87,7 +88,10 @@ export function YunqiWorkspace() {
               基于内置 lunar-javascript 精确历法推算岁运、司天在泉与客气六步。
             </p>
           </div>
-          <CopyContextButton commandScope="yunqi" title="五运六气 React 迁移上下文" payload={contextPayload} />
+          <div className="flex gap-2">
+            <CopyContextButton commandScope="yunqi" title="五运六气 React 迁移上下文" payload={contextPayload} />
+            <ExportReportButton module="五运六气" />
+          </div>
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">

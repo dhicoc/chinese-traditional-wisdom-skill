@@ -3,6 +3,7 @@ import { ControlField } from '@/components/shared/ControlField';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { LegendPanel, type LegendItem } from '@/components/shared/LegendPanel';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
 import { NinePalaceGrid } from '@/components/shared/NinePalaceGrid';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
@@ -144,7 +145,10 @@ export function FeixingWorkspace() {
               输入年份，查看流年九宫飞星分布、方位用途、化煞建议与命卦合参。
             </p>
           </div>
-          <CopyContextButton commandScope="feixing" title="流年飞星上下文" payload={contextPayload} />
+          <div className="flex gap-2">
+            <CopyContextButton commandScope="feixing" title="流年飞星上下文" payload={contextPayload} />
+            <ExportReportButton module="流年飞星" />
+          </div>
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">

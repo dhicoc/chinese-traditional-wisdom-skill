@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ControlField } from '@/components/shared/ControlField';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { MeihuaChart } from '@/components/shared/MeihuaChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { MEIHUA_TRIGRAMS, type MeihuaData } from '@/legacy/canvasRenderers';
@@ -117,7 +118,10 @@ export function MeihuaWorkspace() {
               选择上下卦、动爻和体用关系，查看本卦、互卦、变卦与体用生克。
             </p>
           </div>
-          <CopyContextButton commandScope="meihua" title="梅花易数 React 迁移上下文" payload={contextPayload} />
+          <div className="flex gap-2">
+            <CopyContextButton commandScope="meihua" title="梅花易数 React 迁移上下文" payload={contextPayload} />
+            <ExportReportButton module="梅花易数" />
+          </div>
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">

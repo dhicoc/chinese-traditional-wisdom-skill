@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ControlField } from '@/components/shared/ControlField';
+import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { FiveElementsChart } from '@/components/shared/FiveElementsChart';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
@@ -52,9 +53,12 @@ export function NamewuxingWorkspace() {
             <h2 className="text-lg font-semibold text-jade-50">姓名五行</h2>
             <p className="text-sm text-jade-100/55">康熙笔画 · 五格剖象法 · 文化参考</p>
           </div>
-          <span className="rounded-full border border-jade-500/30 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-            民俗参考
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full border border-jade-500/30 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
+              民俗参考
+            </span>
+            <ExportReportButton module="姓名五行" />
+          </div>
         </div>
       </div>
 

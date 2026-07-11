@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
+import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { ControlField } from '@/components/shared/ControlField';
 import { DataModeBadge } from '@/components/shared/DataModeBadge';
 import { RadarChart, type RadarAxis } from '@/components/shared/RadarChart';
@@ -107,7 +108,10 @@ export function ConstitutionWorkspace() {
               基于中华中医药学会《中医体质分类与判定》标准问卷自评，结合五运六气出生年倾向参考。体质评分由问卷驱动，非生辰推算。
             </p>
           </div>
-          <CopyContextButton commandScope="tizhi" title="体质辨识上下文" payload={contextPayload} />
+          <div className="flex gap-2">
+            <CopyContextButton commandScope="tizhi" title="体质辨识上下文" payload={contextPayload} />
+            <ExportReportButton module="体质辨识" />
+          </div>
         </div>
       </div>
 

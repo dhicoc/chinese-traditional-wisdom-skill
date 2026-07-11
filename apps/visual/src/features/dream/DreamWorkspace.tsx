@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ControlField } from '@/components/shared/ControlField';
+import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import {
   searchDream,
@@ -62,9 +63,12 @@ export function DreamWorkspace() {
             <h2 className="text-lg font-semibold text-jade-50">周公解梦</h2>
             <p className="text-sm text-jade-100/55">传统梦象吉凶解读 · 古文原典 + 现代解说 · 民俗参考</p>
           </div>
-          <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs text-purple-400">
-            民俗参考
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs text-purple-400">
+              民俗参考
+            </span>
+            <ExportReportButton module="周公解梦" />
+          </div>
         </div>
         <p className="mt-3 text-xs leading-5 text-jade-100/45">
           数据源自开源周公解梦库（MIT 许可）：现代解读 9550 条 + 原版古文断语 952 条。输入梦象关键词查询吉凶寓意，并可查看相关方位联动提示。梦境解读为传统民俗象征，非预言绝对，请结合自身境遇理性参考。
