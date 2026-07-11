@@ -1,0 +1,27 @@
+{
+  "name": "chinese-wisdom-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server 暴露中国传统玄学计算引擎（八字/紫微/六爻/梅花/奇门/风水/姓名/五运六气/体质/周公解梦），复用 apps/visual/src/legacy 的纯 TS enveloped 引擎。",
+  "type": "module",
+  "main": "src/index.ts",
+  "bin": {
+    "chinese-wisdom-mcp": "src/index.ts"
+  },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "iztro": "2.5.8",
+    "3meta": "2.6.0",
+    "lunar-javascript": "1.7.7",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^4.0.0"
+  }
+}

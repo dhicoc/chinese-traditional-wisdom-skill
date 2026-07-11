@@ -259,7 +259,8 @@ function callFirst(obj: LunarEightCharLike | undefined, names: string[]): string
   if (!obj) return '';
   for (const name of names) {
     const v = (obj as Record<string, unknown>)[name];
-    if (typeof v === 'function') return (v as () => unknown)() as string;
+    // 用 call(obj) 保证 this 绑定（lunar-javascript 方法依赖 this 访问内部 _p）
+    if (typeof v === 'function') return (v as (...a: unknown[]) => unknown).call(obj) as string;
     if (v !== undefined) return String(v);
   }
   return '';

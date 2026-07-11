@@ -393,7 +393,32 @@
 
 ## 三层架构演进：Skill + MCP Server + Dashboard
 
-> 规划日期：2026-07-08。项目已从单一 Skill 演进为全套工作流，定位为「既是 Skill 那样轻量、又有 Workflow 那样全面」。核心矛盾：Skill 层要轻量（AI 快速加载），但计算数据量大（kangxiStrokes 536KB + charMeanings 1.6MB + vendor 893KB + 引擎 45KB + JSON 数据 2.2MB+）。解决方案：三层架构，把计算层包装成 MCP server，Skill 层只做路由。**待整个项目全部做完后再启动此阶段。**
+> 规划日期：2026-07-08。项目已从单一 Skill 演进为全套工作流，定位为「既是 Skill 那样轻量、又有 Workflow 那样全面」。核心矛盾：Skill 层要轻量（AI 快速加载），但计算数据量大（kangxiStrokes 536KB + charMeanings 1.6MB + vendor 893KB + 引擎 45KB + JSON 数据 2.2MB+）。解决方案：三层架构，把计算层包装成 MCP server，Skill 层只做路由。
+
+### 架构层重构已完成（2026-07-10，C 类引擎迁移全部完成）
+
+> 原计划"待整个项目全部做完后再启动"，但因担心后期工程量过大，提前启动了**计算层与 window 解耦**的架构重构。现已完成：所有核心引擎都是纯 TS、零 DOM 依赖、返回统一 `ToolEnvelope`，MCP server 可薄壳接入，无需回头剥离 window 耦合。
+
+**已完成 10 个 envelope 工具**（均纯 TS，`apps/visual/src/legacy/`）：
+
+| 工具函数 | 引擎 | 文件 | 接入方式 |
+|---------|------|------|---------|
+| searchDreamEnveloped | 周公解梦 | envelopeSample.ts | 纯查表 |
+| calcXiYongEnveloped | 喜用神 | envelopeAdapters.ts | 纯查表 |
+| calcNameRatingEnveloped | 姓名五维评分 | envelopeAdapters.ts | 纯查表 |
+| getConstitutionTendencyEnveloped | 体质倾向 | envelopeAdapters.ts | 纯查表 |
+| calcMeihuaEnveloped | 梅花易数 | meihuaEngine.ts | Solar 参数化 |
+| calcYunqiEnveloped | 五运六气 | yunqiEngine.ts | Solar 参数化(大寒定年) |
+| calcLiuyaoEnveloped | 六爻纳甲 | liuyaoEngine.ts | Solar 参数化(日干支/空亡) |
+| calcBaziEnveloped | 八字排盘 | baziEngine.ts | Solar 参数化(节气干支) |
+| calcZiweiEnveloped | 紫微斗数 | ziweiEngine.ts | ESM iztro@2.5.8 |
+| calcQimenEnveloped | 奇门遁甲 | qimenEngine.ts | ESM 3meta@2.6.0 |
+
+- 统一 `ToolEnvelope<TData>` 类型（`baseTypes.ts`）：`ok/tool/version/input_normalized/data/summary/warnings/export_snapshot`，借鉴 horosa 字段设计思想（AGPL 仅思想不复制代码）。
+- **Solar 参数化模式**：lunar-javascript 的 Solar 入口作为可选入参，传入走精确（local-exact），未传走本地近似（local-approx）。MCP 端可 `import Solar from 'lunar-javascript'` 传入。
+- **ESM 第三方库**：iztro/3meta 用 npm ESM 包 `import` 即用，替代 vendor UMD 全局。
+- 旧 JS 全部保留作 `EngineAdapterRegistry` fallback，各 Workspace 暂未切换调用方，bundle 体积不变，150 项测试零回归。
+
 
 ### 架构
 

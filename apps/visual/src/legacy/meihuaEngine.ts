@@ -152,8 +152,10 @@ function getMeihuaDateNumbers(birth: MeihuaBirth, solar?: SolarLike | null) {
       if (lunar) {
         const call = (obj: LunarLike, names: string[]): unknown => {
           for (const n of names) {
-            if (typeof (obj as Record<string, unknown>)[n] === 'function') return ((obj as Record<string, (...a: unknown[]) => unknown>)[n] as () => unknown)();
-            if ((obj as Record<string, unknown>)[n] !== undefined) return (obj as Record<string, unknown>)[n];
+            const v = (obj as Record<string, unknown>)[n];
+            // 用 call(obj) 保证 this 绑定（lunar-javascript 方法依赖 this 访问内部 _p）
+            if (typeof v === 'function') return (v as (...a: unknown[]) => unknown).call(obj);
+            if (v !== undefined) return v;
           }
           return '';
         };
