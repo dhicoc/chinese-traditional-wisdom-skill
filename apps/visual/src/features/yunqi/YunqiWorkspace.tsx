@@ -4,6 +4,9 @@ import { ControlField } from '@/components/shared/ControlField';
 import { YunqiChart } from '@/components/shared/YunqiChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { calculateLegacyYunqi, type YunqiData } from '@/legacy/canvasRenderers';
+import { calcYunqiEnveloped } from '@/legacy/yunqiEngine';
+import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
+import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { DataModeBadge } from '@/components/shared/DataModeBadge';
@@ -52,6 +55,16 @@ export function YunqiWorkspace() {
   }, []);
 
   const ready = legacyState.mode === 'ready' && !!data;
+  const fourLayer = useMemo<LayerReport | null>(() => {
+    if (!year) return null;
+    try {
+      const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
+      const env = calcYunqiEnveloped({ year, solar: solarEntry ?? null, currentMonth: new Date().getMonth() + 1 });
+      return toFourLayer(env.data.export_snapshot as ReadingLike);
+    } catch {
+      return null;
+    }
+  }, [year]);
   const contextPayload = useMemo(
     () => ({
       module: 'yunqi',
@@ -148,6 +161,11 @@ export function YunqiWorkspace() {
           terms={["岁运","司天","在泉","客气","主气","六气","客主加临","厥阴风木","少阴君火","少阳相火","太阴湿土","阳明燥金","太阳寒水","初之气","二之气","三之气","四之气","五之气","六之气","大寒","节气","太过","不及"]}
           description="点击术语查看五运六气通俗解释。"
         />
+      )}
+      {fourLayer && (
+        <div className="console-panel mt-4 rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
+        </div>
       )}
     </section>
   );

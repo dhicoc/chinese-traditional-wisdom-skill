@@ -7,7 +7,9 @@ import { ZiweiPalaceGrid } from '@/components/shared/ZiweiPalaceGrid';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
-import { calculateZiwei as calculateZiweiPure } from '@/legacy/ziweiEngine';
+import { calculateZiwei as calculateZiweiPure, calcZiweiEnveloped } from '@/legacy/ziweiEngine';
+import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
+import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { DataModeBadge } from '@/components/shared/DataModeBadge';
@@ -139,6 +141,15 @@ export function ZiweiWorkspace() {
 
   const ready = legacyState.mode === 'ready';
   const data = useMemo(() => calculateZiweiData(birth, ready), [birth, ready]);
+  const fourLayer = useMemo<LayerReport | null>(() => {
+    if (!ready) return null;
+    try {
+      const env = calcZiweiEnveloped({ birth, mingGua: { trigram: '?', group: '?' } });
+      return toFourLayer(env.data.export_snapshot as ReadingLike);
+    } catch {
+      return null;
+    }
+  }, [birth, ready]);
   const palaceCount = Object.keys(data.palaces || {}).length;
   const transformedByIztro = data.engineName === 'ZiweiIztroAdapter';
   const contextPayload = useMemo(
@@ -210,6 +221,11 @@ export function ZiweiWorkspace() {
             terms={["紫微","天机","太阳","武曲","天同","廉贞","天府","太阴","贪狼","巨门","天相","天梁","七杀","破军","庙旺","落陷","四化","命宫","福德"]}
             description="点击星曜或术语查看通俗解释。"
           />
+          {fourLayer && (
+            <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+              <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
+            </div>
+          )}
         </aside>
 
         <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">

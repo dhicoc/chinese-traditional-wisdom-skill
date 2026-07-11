@@ -9,7 +9,9 @@ import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import type { LiuyaoData } from '@/legacy/canvasRenderers';
 import type { LiuyaoLine } from '@/legacy/divinationTypes';
 import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
-import { calculateLiuyao as calculateLiuyaoPure } from '@/legacy/liuyaoEngine';
+import { calculateLiuyao as calculateLiuyaoPure, calcLiuyaoEnveloped } from '@/legacy/liuyaoEngine';
+import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
+import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import type { LegacyState } from '@/legacy/legacyGlobals';
@@ -143,6 +145,23 @@ export function LiuyaoWorkspace() {
       >('liuyao', { birth, ...input });
     })();
     return calculated ?? DEFAULT_FALLBACK;
+  }, [ready, birth, method, question, yaoValues, castCount]);
+
+  const fourLayer = useMemo<LayerReport | null>(() => {
+    if (!ready) return null;
+    try {
+      const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
+      const input: { birth: typeof birth; method: typeof method; question?: string; yaoValues?: string; seed?: number; solar: unknown } = {
+        birth, method, solar: solarEntry ?? null,
+      };
+      if (question) input.question = question;
+      if (method === 'manual' && yaoValues) input.yaoValues = yaoValues.replace(/\s/g, '');
+      if (method === 'coin') input.seed = birth.year * 10000 + birth.month * 100 + birth.day + birth.hour + castCount * 7919;
+      const env = calcLiuyaoEnveloped(input);
+      return toFourLayer(env.data.export_snapshot as ReadingLike);
+    } catch {
+      return null;
+    }
   }, [ready, birth, method, question, yaoValues, castCount]);
 
   const changedLines = useMemo<LiuyaoData | null>(() => {
@@ -295,6 +314,11 @@ export function LiuyaoWorkspace() {
             terms={['世爻', '应爻', '用神', '原神', '忌神', '动爻', '变爻', '纳甲', '六亲', '六神', '青龙', '朱雀', '勾陈', '螣蛇', '白虎', '玄武', '妻财', '官鬼', '父母', '子孙', '兄弟']}
             description="点击术语查看通俗解释。"
           />
+          {fourLayer && (
+            <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+              <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
+            </div>
+          )}
         </aside>
 
         <div className="space-y-4">

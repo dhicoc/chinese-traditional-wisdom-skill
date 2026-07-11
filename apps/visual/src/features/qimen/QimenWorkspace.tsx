@@ -4,7 +4,9 @@ import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
-import { calculateQimen as calculateQimenPure } from '@/legacy/qimenEngine';
+import { calculateQimen as calculateQimenPure, calcQimenEnveloped } from '@/legacy/qimenEngine';
+import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
+import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import type { LegacyState } from '@/legacy/legacyGlobals';
@@ -95,6 +97,16 @@ export function QimenWorkspace() {
       return calculateWithLegacyAdapter<{ birth: typeof birth }, QimenResult>('qimen', { birth });
     }
   }, [ready, birth]);
+
+  const fourLayer = useMemo<LayerReport | null>(() => {
+    if (!ready || !result) return null;
+    try {
+      const env = calcQimenEnveloped({ birth });
+      return toFourLayer(env.data.export_snapshot as ReadingLike);
+    } catch {
+      return null;
+    }
+  }, [ready, birth, result]);
 
   const contextPayload = useMemo(
     () => ({
@@ -275,6 +287,11 @@ export function QimenWorkspace() {
           terms={["值符","值使","八门","九星","八神","三奇六仪","休门","生门","伤门","杜门","景门","死门","惊门","开门","天蓬","天任","天冲","天辅","天英","天芮","天柱","天心","天禽","直符","腾蛇","太阴","六合","白虎","玄武","九地","九天","阳遁","阴遁","局数","空亡","马星"]}
           description="点击术语查看奇门遁甲通俗解释。"
         />
+      )}
+      {fourLayer && (
+        <div className="console-panel mt-4 rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
+        </div>
       )}
     </section>
   );
