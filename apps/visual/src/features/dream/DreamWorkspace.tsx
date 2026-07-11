@@ -262,9 +262,12 @@ export function DreamWorkspace() {
   );
 }
 
-/** 单条梦象解读卡片 */
+/** 单条梦象解读卡片（长文可折叠展开） */
 function DreamEntryCard({ entry }: { entry: DreamEntry }) {
   const color = LUCK_COLOR[entry.luck] ?? '#888';
+  const [expanded, setExpanded] = useState(false);
+  // 超过约 4 行（按字符数估算，中文每行约 38 字）则可展开
+  const isLong = entry.meaning.length > 150;
   return (
     <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
       <div className="mb-3 flex items-center justify-between">
@@ -276,7 +279,18 @@ function DreamEntryCard({ entry }: { entry: DreamEntry }) {
           {entry.luck}
         </span>
       </div>
-      <p className="text-sm leading-7 text-jade-100/70">{entry.meaning}</p>
+      <p className={`text-sm leading-7 text-jade-100/70 ${!expanded && isLong ? 'line-clamp-4' : ''}`}>
+        {entry.meaning}
+      </p>
+      {isLong && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-2 inline-flex items-center gap-1 rounded-full border border-jade-500/25 bg-jade-500/8 px-3 py-1 text-xs text-jade-300 transition-colors hover:border-jade-500/45 hover:bg-jade-500/15"
+        >
+          {expanded ? '收起 ▲' : '展开全文 ▼'}
+        </button>
+      )}
     </div>
   );
 }
