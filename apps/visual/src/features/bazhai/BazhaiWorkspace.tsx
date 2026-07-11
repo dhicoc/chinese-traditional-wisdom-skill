@@ -3,6 +3,7 @@ import { ControlField } from '@/components/shared/ControlField';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { EightMansionsChart } from '@/components/shared/EightMansionsChart';
 import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
+import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import {
   getBazhaiGrid,
@@ -292,8 +293,21 @@ export function BazhaiWorkspace() {
 
           <KnowledgeReferencePanel
             initialTerm={summary?.trigram ?? "生气"}
-            terms={[summary?.trigram ?? "坎", "东四命", "西四命", "生气", "天医", "绝命", "五鬼"]}
+            terms={[summary?.trigram ?? "坎", "东四命", "西四命", "东四宅", "西四宅", "宅卦", "命宅相配", "生气", "天医", "延年", "伏位", "绝命", "五鬼", "六煞", "祸害"]}
             description="点击命卦、命组或游年星，查看八宅映射表与古籍索引线索。"
+          />
+
+          <TermExplanationPanel
+            ready={ready}
+            initialTerm={summary ? `${summary.trigram}卦` : "生气"}
+            terms={[
+              summary?.trigram ?? "坎", "东四命", "西四命", "东四宅", "西四宅", "宅卦", "命宅相配",
+              "生气", "天医", "延年", "伏位", "绝命", "五鬼", "六煞", "祸害",
+              "贪狼木星", "巨门土星", "武曲金星", "辅弼木星", "廉贞火星", "文曲水星", "破军金星",
+              "路冲煞", "天斩煞", "壁刀煞", "镰刀煞", "镜煞", "梁压煞", "穿堂煞", "反弓煞",
+              "八宅明镜", "阳宅三要",
+            ]}
+            description="点击术语查看八宅、九星古典名、形煞与典籍的通俗解释。"
           />
         </aside>
 
