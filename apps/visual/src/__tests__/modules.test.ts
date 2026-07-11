@@ -42,7 +42,7 @@ describe('Modules Registry', () => {
       'home', 'bazi', 'ziwei', 'liuyao', 'meihua', 'qimen',
       'fengshui', 'feixing', 'bazhai', 'yunqi', 'tizhi',
       'almanac', 'namewuxing', 'dream', 'rhythm',
-      'mermaid', 'testing', 'reader', 'history'
+      'mermaid', 'testing', 'reader', 'history', 'combo'
     ];
     const ids = MODULES.map(m => m.id);
     ids.forEach(id => {
