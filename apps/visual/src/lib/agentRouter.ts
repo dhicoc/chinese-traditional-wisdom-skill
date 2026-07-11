@@ -118,7 +118,7 @@ const QUESTION_INTENT: Array<{ pattern: RegExp; module: ModuleId; reason: string
   { pattern: /(五运六气|运气|岁运|司天|在泉|六气)/, module: 'yunqi', reason: '运气推算 → 五运六气' },
   { pattern: /(黄历|宜忌|吉日|择日|今天宜|搬家|动土|嫁娶)/, module: 'almanac', reason: '黄历宜忌 → 每日黄历' },
   { pattern: /(姓名|名字|起名|改名|测名)/, module: 'namewuxing', reason: '姓名分析 → 姓名五行' },
-  { pattern: /(梦|解梦|梦境|梦见|梦到)/, module: 'dream', reason: '解梦 → 梦境意象' },
+  { pattern: /(梦|解梦|梦境|梦见|梦到)/, module: 'dream', reason: '解梦 → 周公解梦' },
   { pattern: /(节律|时辰|经络|子午流注|养生节律)/, module: 'rhythm', reason: '养生节律 → 每日节律' },
   { pattern: /(紫微|斗数|十二宫|星曜|四化)/, module: 'ziwei', reason: '紫微排盘 → 紫微斗数' },
   { pattern: /(古籍|原文|经典|书|古籍对照)/, module: 'reader', reason: '古籍阅读 → Split Reader' },

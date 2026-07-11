@@ -197,14 +197,14 @@ export const MODULES: WisdomModule[] = [
   {
     id: 'dream',
     group: '日用工具',
-    title: '梦境意象',
+    title: '周公解梦',
     shortTitle: '解梦',
     status: 'folk-experience',
-    statusLabel: '民俗体验',
+    statusLabel: '民俗参考',
     privacyLevel: '不保存个人资料',
-    questionTypes: ['意象', '情绪', '联想'],
+    questionTypes: ['梦象', '吉凶', '古文断语'],
     accent: '#6b5b95',
-    description: '基于传统解梦词库提供意象联想参考，用于自我观察，不做预言判断。',
+    description: '基于开源周公解梦库（9550条现代解读+952条古文断语）提供梦象吉凶寓意查询，民俗参考，非预言绝对。',
   },
   {
     id: 'rhythm',

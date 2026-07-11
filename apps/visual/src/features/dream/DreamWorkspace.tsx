@@ -1,282 +1,282 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ControlField } from '@/components/shared/ControlField';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
+import {
+  searchDream,
+  getHotDreams,
+  getDreamLinks,
+  loadFullDictionary,
+  LUCK_COLOR,
+  BIG_CATEGORIES,
+  CATEGORY_DESC,
+  type DreamEntry,
+  type DreamSearchResult,
+} from '@/legacy/dreamDictionary';
+import { DREAM_ENTRIES as DREAM_ENTRIES_FILTERED } from '@/legacy/dream-data/dreamData';
 
 /**
- * 梦境意象工作区
- * 基于传统解梦词库提供意象联想参考
- * 注意：用于自我观察，不做预言判断
+ * 周公解梦工作区。
+ *
+ * 数据来自开源周公解梦库（均 MIT）：
+ * - 现代解读：oswin-hu/zhougong_dream 9550 条（精选 137 内嵌，全量按需 fetch）
+ * - 古文原典：KianReed/dreamlogic-mcp 952 条原版古文断语
+ *
+ * 定位：传统民俗梦象解读参考，非预言绝对。与八宅/飞星方位体系联动提示。
  */
-
-interface DreamSymbol {
-  symbol: string;
-  category: string;
-  meanings: string[];
-  emotion: string;
-  context: string;
-}
-
-// 简化解梦词库（实际应用可扩展为完整数据库）
-const DREAM_SYMBOLS: Record<string, DreamSymbol> = {
-  '水': {
-    symbol: '水',
-    category: '自然',
-    meanings: ['情感流动', '潜意识', '变化', '净化', '阻碍'],
-    emotion: '平静/焦虑',
-    context: '水的状态（清澈/浑浊/湍急）反映内心情绪状态',
-  },
-  '火': {
-    symbol: '火',
-    category: '自然',
-    meanings: ['热情', '愤怒', '转变', '毁灭', '光明'],
-    emotion: '激动/恐惧',
-    context: '火的大小与可控性反映情绪的强度与管理',
-  },
-  '山': {
-    symbol: '山',
-    category: '自然',
-    meanings: ['阻碍', '目标', '稳定', '挑战', '高度'],
-    emotion: '敬畏/压力',
-    context: '登山或遇山反映面对困难的态度',
-  },
-  '路': {
-    symbol: '路',
-    category: '场景',
-    meanings: ['人生方向', '选择', '旅程', '未知', '目标'],
-    emotion: '期待/迷茫',
-    context: '路的宽窄、平坦与否反映对前途的感受',
-  },
-  '门': {
-    symbol: '门',
-    category: '场景',
-    meanings: ['机会', '界限', '过渡', '选择', '未知'],
-    emotion: '好奇/犹豫',
-    context: '开门或关门反映对新事物的态度',
-  },
-  '飞': {
-    symbol: '飞行',
-    category: '动作',
-    meanings: ['自由', '超越', '逃避', '理想', '失控'],
-    emotion: '兴奋/恐惧',
-    context: '飞行的高度与控制反映对自由的渴望或失控感',
-  },
-  '坠落': {
-    symbol: '坠落',
-    category: '动作',
-    meanings: ['失控', '恐惧', '失败', '放下', '转变'],
-    emotion: '恐惧/释然',
-    context: '坠落的速度与结局反映对失去控制的态度',
-  },
-  '蛇': {
-    symbol: '蛇',
-    category: '动物',
-    meanings: ['智慧', '危险', '转变', '诱惑', '治愈'],
-    emotion: '恐惧/敬畏',
-    context: '蛇在传统文化中既是危险也是智慧的象征',
-  },
-  '龙': {
-    symbol: '龙',
-    category: '动物',
-    meanings: ['力量', '权威', '变化', '吉祥', '潜能'],
-    emotion: '敬畏/兴奋',
-    context: '龙为祥瑞之兽，象征内在潜能与变化力量',
-  },
-  '鱼': {
-    symbol: '鱼',
-    category: '动物',
-    meanings: ['富足', '机遇', '灵动', '潜意识', '繁衍'],
-    emotion: '愉悦/期待',
-    context: '鱼游水中，常象征机遇与财富的流动',
-  },
-};
-
-// 搜索梦境意象
-function searchDreamSymbols(keyword: string): DreamSymbol[] {
-  if (!keyword) return [];
-
-  const results: DreamSymbol[] = [];
-  const lowerKeyword = keyword.toLowerCase();
-
-  Object.values(DREAM_SYMBOLS).forEach((symbol) => {
-    if (
-      symbol.symbol.includes(keyword) ||
-      symbol.meanings.some((m) => m.includes(keyword)) ||
-      symbol.category.includes(keyword)
-    ) {
-      results.push(symbol);
-    }
-  });
-
-  return results;
-}
-
-// 获取随机推荐
-function getRandomSymbols(count: number): DreamSymbol[] {
-  const symbols = Object.values(DREAM_SYMBOLS);
-  const shuffled = [...symbols].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count);
-}
 
 export function DreamWorkspace() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [results, setResults] = useState<DreamSymbol[]>([]);
-  const [recommendations] = useState(() => getRandomSymbols(4));
+  const [query, setQuery] = useState('');
+  const [useFull, setUseFull] = useState(false);
+  const [fullLoaded, setFullLoaded] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-  const handleSearch = () => {
-    setResults(searchDreamSymbols(searchTerm));
+  const hotDreams = useMemo(() => getHotDreams(10), []);
+
+  const result: DreamSearchResult = useMemo(
+    () => (query ? searchDream(query, useFull) : { entries: [], classics: [], hit: false }),
+    [query, useFull],
+  );
+
+  const links = useMemo(() => getDreamLinks(query), [query]);
+
+  // 按大类浏览（精选库）
+  const categoryEntries = useMemo(() => {
+    if (!activeCategory) return [];
+    return DREAM_ENTRIES_FILTERED.filter((e) => e.biglx === activeCategory).slice(0, 24);
+  }, [activeCategory]);
+
+  const handleSearch = () => setQuery(searchTerm.trim());
+
+  const enableFull = () => {
+    setUseFull(true);
+    loadFullDictionary().then(() => setFullLoaded(true));
   };
 
   return (
     <div className="space-y-6">
-      {/* 头部说明 */}
+      {/* 头部 */}
       <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-jade-50">梦境意象</h2>
-            <p className="text-sm text-jade-100/55">自我观察 · 非预言判断</p>
+            <h2 className="text-lg font-semibold text-jade-50">周公解梦</h2>
+            <p className="text-sm text-jade-100/55">传统梦象吉凶解读 · 古文原典 + 现代解说 · 民俗参考</p>
           </div>
-          <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs text-purple-500">
-            民俗体验
+          <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs text-purple-400">
+            民俗参考
           </span>
         </div>
+        <p className="mt-3 text-xs leading-5 text-jade-100/45">
+          数据源自开源周公解梦库（MIT 许可）：现代解读 9550 条 + 原版古文断语 952 条。输入梦象关键词查询吉凶寓意，并可查看相关方位联动提示。梦境解读为传统民俗象征，非预言绝对，请结合自身境遇理性参考。
+        </p>
       </div>
 
       {/* 搜索区 */}
       <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-        <ControlField label="搜索梦境意象">
+        <ControlField label="搜索梦象" hint="如：蛇、水、棺材、牙齿、飞、结婚">
           <div className="flex gap-2">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="输入梦境中的事物（如：水、山、飞行...）"
+              placeholder="输入梦境中的事物（如：蛇、水、棺材、飞...）"
               className="flex-1 rounded-lg border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             />
             <button
               onClick={handleSearch}
-              className="rounded-lg bg-purple-500/20 px-4 py-2 text-sm font-medium text-purple-500 transition-colors hover:bg-purple-500/30"
+              className="rounded-lg bg-purple-500/20 px-4 py-2 text-sm font-medium text-purple-400 transition-colors hover:bg-purple-500/30"
             >
-              搜索
+              解梦
             </button>
           </div>
         </ControlField>
 
-        {/* 热门推荐 */}
+        {/* 热门梦象快捷 */}
         <div className="mt-4">
-          <span className="text-xs text-jade-100/45">热门意象：</span>
+          <span className="text-xs text-jade-100/45">热门梦象：</span>
           <div className="mt-2 flex flex-wrap gap-2">
-            {Object.keys(DREAM_SYMBOLS).slice(0, 8).map((symbol) => (
+            {hotDreams.map((d) => (
               <button
-                key={symbol}
-                onClick={() => {
-                  setSearchTerm(symbol);
-                  setResults(searchDreamSymbols(symbol));
-                }}
+                key={d.title}
+                onClick={() => { setSearchTerm(d.title); setQuery(d.title); }}
                 className="rounded-full border border-jade-500/20 bg-ink-900/50 px-3 py-1 text-sm text-jade-100/55 transition-colors hover:border-jade-500/50 hover:text-jade-100/80"
               >
-                {symbol}
+                {d.title}
               </button>
             ))}
           </div>
         </div>
+
+        {/* 全量库开关 */}
+        <div className="mt-4 flex items-center gap-3 rounded-lg border border-white/5 bg-ink-900/50 p-3">
+          <span className="text-xs text-jade-100/55">数据范围：</span>
+          <button
+            onClick={enableFull}
+            disabled={fullLoaded}
+            className={`rounded-full px-3 py-1 text-xs transition-colors ${
+              fullLoaded
+                ? 'border border-jade-500/40 bg-jade-500/10 text-jade-400'
+                : 'border border-white/10 bg-black/30 text-jade-100/55 hover:border-jade-500/30'
+            }`}
+          >
+            {fullLoaded ? '✓ 已载入全量库（9548条）' : '载入全量解梦库（9548条）'}
+          </button>
+          <span className="text-[11px] text-jade-100/40">
+            {useFull ? '当前在全量库中搜索' : '当前仅搜索精选常见梦象（137条）'}
+          </span>
+        </div>
       </div>
 
       {/* 搜索结果 */}
-      {results.length > 0 && (
+      {query && (
         <div className="space-y-4">
-          <h3 className="text-base font-semibold text-jade-50">搜索结果</h3>
-          {results.map((symbol) => (
-            <div
-              key={symbol.symbol}
-              className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument"
-            >
-              <div className="mb-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl font-bold text-purple-500">{symbol.symbol}</span>
-                  <span className="rounded-full border border-jade-500/20 bg-ink-900/50 px-2 py-0.5 text-xs text-jade-100/55">
-                    {symbol.category}
-                  </span>
-                </div>
-                <span className="text-sm text-jade-100/45">情绪：{symbol.emotion}</span>
-              </div>
+          <h3 className="text-base font-semibold text-jade-50">
+            「{query}」解梦结果 {result.hit ? '' : '— 未命中'}
+          </h3>
 
-              <div className="mb-3">
-                <h4 className="mb-2 text-sm text-jade-100/55">可能含义</h4>
-                <div className="flex flex-wrap gap-2">
-                  {symbol.meanings.map((meaning) => (
-                    <span
-                      key={meaning}
-                      className="rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-sm text-purple-500"
-                    >
-                      {meaning}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-lg border border-white/5 bg-ink-900/50 p-3">
-                <h4 className="mb-1 text-sm text-jade-100/55">解梦语境</h4>
-                <p className="text-sm text-jade-100/70">{symbol.context}</p>
-              </div>
+          {!result.hit && (
+            <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 text-sm text-jade-100/55">
+              未在周公解梦库中找到「{query}」。可尝试更通用的关键词（如用"蛇"代替"梦见蛇咬我"），或
+              <button onClick={enableFull} className="mx-1 text-jade-400 underline">载入全量库</button>
+              后再查。
             </div>
-          ))}
+          )}
+
+          {/* 现代解读卡片 */}
+          {result.entries.length > 0 && (
+            <div className="space-y-3">
+              {result.entries.slice(0, useFull ? 8 : 3).map((e) => (
+                <DreamEntryCard key={e.title + e.biglx} entry={e} />
+              ))}
+            </div>
+          )}
+
+          {/* 古文原典卡片 */}
+          {result.classics.length > 0 && (
+            <div className="console-panel rounded-[22px] border border-gold-500/20 bg-gold-500/6 p-4">
+              <h4 className="mb-2 text-sm font-semibold text-gold-300">原版周公解梦古文</h4>
+              <div className="space-y-1.5">
+                {result.classics.slice(0, 6).map((c, i) => (
+                  <div key={i} className="rounded border border-gold-500/15 bg-black/30 px-3 py-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-serif text-sm text-gold-200">{c.original}</span>
+                      <span className="text-[10px] text-gold-400/60">{c.category.replace(/\s+/g, ' ')}</span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-gold-100/60">断语：{c.interpretation}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-2 text-[11px] text-gold-400/45">古文断语为原版周公解梦条目，多来自《周公解梦》《梦林玄解》《敦煌本梦书》。</p>
+            </div>
+          )}
+
+          {/* 方位联动 */}
+          {links.length > 0 && (
+            <div className="console-panel rounded-[22px] border border-jade-500/20 bg-jade-500/6 p-4">
+              <h4 className="mb-2 text-sm font-semibold text-jade-300">方位联动提示</h4>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {links.map((l) => (
+                  <div key={l.label} className="rounded border border-jade-500/15 bg-black/30 px-3 py-2">
+                    <p className="text-[11px] text-jade-100/45">{l.label}</p>
+                    <p className="mt-0.5 text-sm text-jade-200/80">{l.value}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-2 text-[11px] text-jade-100/40">传统"梦象应方位"说法，可与八宅/飞星方位体系参看，仅作参考。</p>
+            </div>
+          )}
         </div>
       )}
 
-      {/* 推荐意象 */}
-      {!results.length && (
-        <div className="space-y-4">
-          <h3 className="text-base font-semibold text-jade-50">推荐意象</h3>
-          <div className="grid gap-4 md:grid-cols-2">
-            {recommendations.map((symbol) => (
-              <div
-                key={symbol.symbol}
-                className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument"
+      {/* 大类浏览 */}
+      {!query && (
+        <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <h3 className="mb-3 text-base font-semibold text-jade-50">按类别浏览梦象</h3>
+          <div className="flex flex-wrap gap-2">
+            {BIG_CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
+                className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
+                  activeCategory === cat
+                    ? 'border border-jade-500/50 bg-jade-500/15 text-jade-200'
+                    : 'border border-jade-500/20 bg-ink-900/50 text-jade-100/55 hover:border-jade-500/40'
+                }`}
               >
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xl font-bold text-purple-500">{symbol.symbol}</span>
-                  <span className="text-xs text-jade-100/45">{symbol.category}</span>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {symbol.meanings.slice(0, 3).map((meaning) => (
-                    <span
-                      key={meaning}
-                      className="text-xs text-jade-100/55"
-                    >
-                      {meaning}
-                    </span>
-                  ))}
-                </div>
-              </div>
+                {cat}
+              </button>
             ))}
           </div>
+          {activeCategory && (
+            <>
+              <p className="mt-3 text-xs text-jade-100/45">{CATEGORY_DESC[activeCategory]}</p>
+              <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
+                {categoryEntries.map((e) => (
+                  <button
+                    key={e.title}
+                    onClick={() => { setSearchTerm(e.title); setQuery(e.title); }}
+                    className="rounded-lg border border-white/8 bg-white/[0.03] p-2.5 text-left transition hover:border-jade-500/30"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-serif text-sm text-jade-100">{e.title}</span>
+                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: LUCK_COLOR[e.luck] ?? '#888' }} />
+                    </div>
+                    <span className="mt-0.5 block text-[11px]" style={{ color: LUCK_COLOR[e.luck] ?? '#888' }}>{e.luck} · {e.smalllx}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* 热门推荐 */}
+          {!activeCategory && (
+            <>
+              <h4 className="mt-5 text-sm font-semibold text-jade-100/70">热门梦象推荐</h4>
+              <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+                {hotDreams.map((d) => (
+                  <button
+                    key={d.title}
+                    onClick={() => { setSearchTerm(d.title); setQuery(d.title); }}
+                    className="rounded-lg border border-white/8 bg-white/[0.03] p-3 text-left transition hover:border-jade-500/30"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-serif text-base text-jade-100">{d.title}</span>
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: LUCK_COLOR[d.luck] ?? '#888' }} />
+                    </div>
+                    <span className="mt-1 block text-[11px]" style={{ color: LUCK_COLOR[d.luck] ?? '#888' }}>{d.luck}</span>
+                    <span className="mt-0.5 block text-[10px] text-jade-100/40">{d.biglx}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
 
-      {/* 解梦方法说明 */}
-      <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-        <h3 className="mb-3 text-base font-semibold text-jade-50">如何理解梦境</h3>
-        <div className="grid gap-3 text-sm text-jade-100/55 md:grid-cols-3">
-          <div className="rounded-lg border border-white/5 bg-ink-900/50 p-3">
-            <h4 className="mb-1 text-jade-100/70">1. 记录细节</h4>
-            <p>醒来立即记录梦境中的关键事物、情绪和场景</p>
-          </div>
-          <div className="rounded-lg border border-white/5 bg-ink-900/50 p-3">
-            <h4 className="mb-1 text-jade-100/70">2. 联想个人</h4>
-            <p>意象含义因人而异，结合自身经历理解</p>
-          </div>
-          <div className="rounded-lg border border-white/5 bg-ink-900/50 p-3">
-            <h4 className="mb-1 text-jade-100/70">3. 关注情绪</h4>
-            <p>梦中的情绪往往比内容本身更重要</p>
-          </div>
-        </div>
-      </div>
-
       {/* 边界说明 */}
-      <InterpretationCard title="使用说明" subtitle="自我观察">
-        梦境意象分析基于传统文化中的象征体系，用于自我观察和情绪觉察。梦境解读具有高度主观性，不应作为决策依据或预言判断。如有持续困扰的梦境，建议咨询专业心理工作者。
+      <InterpretationCard title="使用说明" subtitle="民俗参考">
+        周公解梦相传由周公旦所著（或后人托名），收录大量梦象象征与吉凶寓意，属象数易学分支，与梅花易数、六爻同源。本工具数据源自开源周公解梦库，含原版古文断语与现代白话解说。梦境解读为传统民俗象征体系，强调"梦为心声"、象征隐喻，**非预言绝对**，请结合自身境遇理性参考。如持续受噩梦困扰，建议咨询专业心理工作者。
       </InterpretationCard>
+    </div>
+  );
+}
+
+/** 单条梦象解读卡片 */
+function DreamEntryCard({ entry }: { entry: DreamEntry }) {
+  const color = LUCK_COLOR[entry.luck] ?? '#888';
+  return (
+    <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="font-serif text-2xl font-bold" style={{ color }}>{entry.title}</span>
+          <span className="rounded-full border border-white/10 bg-ink-900/50 px-2 py-0.5 text-xs text-jade-100/55">{entry.biglx} · {entry.smalllx}</span>
+        </div>
+        <span className="rounded-full px-3 py-1 text-sm font-semibold" style={{ color, backgroundColor: `${color}1a`, border: `1px solid ${color}40` }}>
+          {entry.luck}
+        </span>
+      </div>
+      <p className="text-sm leading-7 text-jade-100/70">{entry.meaning}</p>
     </div>
   );
 }
