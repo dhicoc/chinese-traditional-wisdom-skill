@@ -43,11 +43,15 @@ function searchEntries(entries: DreamEntry[], keyword: string): DreamEntry[] {
   if (!keyword) return [];
   const kw = keyword.trim();
   if (!kw) return [];
-  const exact = entries.filter((e) => e.title === kw);
+  // 排除空 title 脏数据；只匹配 title 包含关键词的条目。
+  // 注意不能用 kw.includes(e.title)：空 title 会让任何 kw 都命中，
+  // 且短 title（如"大"）会误匹配长关键词（如"大象"）。
+  const pool = entries.filter((e) => e.title && e.title.trim());
+  const exact = pool.filter((e) => e.title === kw);
   if (exact.length) return exact.sort((a, b) => (LUCK_ORDER[a.luck] ?? 2) - (LUCK_ORDER[b.luck] ?? 2));
-  const starts = entries.filter((e) => e.title.startsWith(kw) || kw.startsWith(e.title));
+  const starts = pool.filter((e) => e.title.startsWith(kw));
   if (starts.length) return starts.sort((a, b) => a.title.length - b.title.length || (LUCK_ORDER[a.luck] ?? 2) - (LUCK_ORDER[b.luck] ?? 2));
-  const includes = entries.filter((e) => e.title.includes(kw) || kw.includes(e.title));
+  const includes = pool.filter((e) => e.title.includes(kw));
   return includes.sort((a, b) => a.title.length - b.title.length || (LUCK_ORDER[a.luck] ?? 2) - (LUCK_ORDER[b.luck] ?? 2));
 }
 
@@ -73,11 +77,12 @@ export function loadFullDictionary(): Promise<DreamEntry[]> {
   fullLoadingPromise = fetch('/dream/dream-dictionary.json')
     .then((res) => {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.json() as Promise<DreamEntry[]>;
+      return res.json() as unknown as DreamEntry[];
     })
     .then((data) => {
-      fullEntriesCache = data;
-      return data;
+      // 清洗空 title 脏数据
+      fullEntriesCache = data.filter((e) => e.title && e.title.trim() && e.biglx && e.biglx.trim());
+      return fullEntriesCache;
     })
     .catch((err) => {
       fullLoadingPromise = null;
