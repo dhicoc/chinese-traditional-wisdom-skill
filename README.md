@@ -89,13 +89,17 @@ file://<SKILL_ROOT>/visual/index.html
 
 ### 方式 C：MCP Server（AI 客户端直接调用）
 
-把八字/紫微/六爻/奇门/梅花/风水/姓名/五运六气/体质/周公解梦 10 个引擎挂载到 Claude Desktop、Cursor、Cline 等 MCP 客户端，AI 可直接调用排盘工具：
+把八字/紫微/六爻/奇门/梅花/风水/姓名/五运六气/体质/周公解梦 10 个引擎挂载到 Claude Code、Claude Desktop、Cursor、Cline 等 MCP 客户端，AI 可直接调用排盘工具。
+
+**一键自动配置**（无需手动编辑配置文件）：
 
 ```bash
-cd apps/mcp-server && npm install
+node scripts/setup-mcp.mjs
 ```
 
-然后在客户端 MCP 配置中加（详见 `apps/mcp-server/README.md` 与 `examples/`）：
+脚本自动检测已安装的客户端并写入对应配置（幂等不覆盖）。配置后重启客户端，`chinese-wisdom` server 即连接，对话中说「排个八字」「解梦」等 AI 自动调用工具。
+
+如需手动配置或脚本未覆盖的客户端，参考 `apps/mcp-server/examples/` 与 `apps/mcp-server/README.md`：
 
 ```json
 {
@@ -108,7 +112,7 @@ cd apps/mcp-server && npm install
 }
 ```
 
-MCP server 是三层架构 Layer 2 的薄壳，复用 `apps/visual/src/legacy` 的纯 TS 引擎，统一返回 `ToolEnvelope` 结构化结果。与 Dashboard 共享同一份计算逻辑，互不依赖。
+MCP server 是三层架构 Layer 2 的薄壳，复用 `apps/visual/src/legacy` 的纯 TS 引擎，统一返回 `ToolEnvelope` 结构化结果，含 `agent_guidance`（防参数瞎猜）+ `wisdom_dispatch`（自然语言意图路由）两个元工具。与 Dashboard 共享同一份计算逻辑，互不依赖。
 
 <p align="right">(<a href="#快速开始">返回顶部</a>)</p>
 

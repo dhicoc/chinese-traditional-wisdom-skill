@@ -42,7 +42,24 @@ npm install
 
 依赖：`@modelcontextprotocol/sdk`、`iztro`、`3meta`、`lunar-javascript`、`zod`。Node ≥ 20。
 
-## 客户端配置
+## 客户端配置（推荐：一键自动配置）
+
+**无需手动编辑配置文件**。在仓库根目录跑：
+
+```bash
+node scripts/setup-mcp.mjs
+```
+
+该脚本自动检测已安装的 MCP 客户端（Claude Code / Claude Desktop / Cursor / Cline），并自动写入/合并对应配置文件（幂等，不覆盖已有 server）。Windows 下自动用 `cmd /c npx tsx` 包裹。配置后重启客户端即可。
+
+- 仅检查不写入：`node scripts/setup-mcp.mjs --check`
+- 只配指定客户端：`node scripts/setup-mcp.mjs --client=claude-code`（支持 claude-code / claude-desktop / cursor / cline）
+
+> AI 自主激活：用户在对话中说"启用 MCP"，AI 可执行上述脚本自动完成配置（详见 SKILL.md「MCP 自动激活」节）。
+
+## 客户端配置（手动，备选）
+
+如需手动配置（或脚本未覆盖的客户端），参考 `examples/` 下对应示例：
 
 ### Claude Desktop
 
