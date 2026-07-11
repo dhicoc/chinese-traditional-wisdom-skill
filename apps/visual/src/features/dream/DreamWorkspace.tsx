@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ControlField } from '@/components/shared/ControlField';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import {
@@ -262,12 +262,27 @@ export function DreamWorkspace() {
   );
 }
 
-/** 单条梦象解读卡片（长文可折叠展开） */
+/** 单条梦象解读卡片（长文按实际高度自适应折叠，展开看全文） */
 function DreamEntryCard({ entry }: { entry: DreamEntry }) {
   const color = LUCK_COLOR[entry.luck] ?? '#888';
   const [expanded, setExpanded] = useState(false);
-  // 超过约 4 行（按字符数估算，中文每行约 38 字）则可展开
-  const isLong = entry.meaning.length > 150;
+  const [isOverflow, setIsOverflow] = useState(false);
+  const textRef = useRef<HTMLParagraphElement | null>(null);
+  // 折叠态限高（约 6 行，行高 1.75rem → 10.5rem）
+  const COLLAPSED_MAX_HEIGHT = 160;
+
+  // 测量实际内容高度，判断是否超出折叠限高（不依赖固定字符数，按数据多少自适应）
+  useEffect(() => {
+    const el = textRef.current;
+    if (!el) return;
+    // 临时解除限高测真实高度
+    const prev = el.style.maxHeight;
+    el.style.maxHeight = 'none';
+    const fullHeight = el.scrollHeight;
+    el.style.maxHeight = prev;
+    setIsOverflow(fullHeight > COLLAPSED_MAX_HEIGHT + 4);
+  }, [entry.meaning]);
+
   return (
     <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
       <div className="mb-3 flex items-center justify-between">
@@ -279,10 +294,18 @@ function DreamEntryCard({ entry }: { entry: DreamEntry }) {
           {entry.luck}
         </span>
       </div>
-      <p className={`text-sm leading-7 text-jade-100/70 ${!expanded && isLong ? 'line-clamp-4' : ''}`}>
+      <p
+        ref={textRef}
+        className="text-sm leading-7 text-jade-100/70"
+        style={{
+          maxHeight: expanded ? 'none' : `${COLLAPSED_MAX_HEIGHT}px`,
+          overflow: 'hidden',
+          transition: 'max-height 200ms ease',
+        }}
+      >
         {entry.meaning}
       </p>
-      {isLong && (
+      {isOverflow && (
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
