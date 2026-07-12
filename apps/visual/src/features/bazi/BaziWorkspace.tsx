@@ -47,15 +47,15 @@ interface BaziResult {
   confidenceNote?: string;
 }
 
-function calculateBazi(birth: BirthData, ready: boolean) {
+function calculateBazi(solarBirth: BirthData, ready: boolean) {
   if (!ready) {
-    return { result: null, pillars: { ...DEFAULT_PILLARS, gender: birth.gender }, wuxing: DEFAULT_WUXING, envelope: null };
+    return { result: null, pillars: { ...DEFAULT_PILLARS, gender: solarBirth.gender }, wuxing: DEFAULT_WUXING, envelope: null };
   }
   // 优先用纯 TS 引擎（架构重构后推荐路径），传入浏览器 lunar-javascript 的 Solar 走精确历法
   try {
     const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
-    const env = calcBaziEnveloped({ birth, solar: solarEntry ?? null });
-    const pure = calculateBaziPure({ birth, solar: solarEntry ?? null });
+    const env = calcBaziEnveloped({ birth: solarBirth, solar: solarEntry ?? null });
+    const pure = calculateBaziPure({ birth: solarBirth, solar: solarEntry ?? null });
     const pillars: BaziPillars = {
       year: { stem: pure.pillars.year.stem, branch: pure.pillars.year.branch, hidden: pure.hiddenStems.year },
       month: { stem: pure.pillars.month.stem, branch: pure.pillars.month.branch, hidden: pure.hiddenStems.month },
@@ -72,18 +72,18 @@ function calculateBazi(birth: BirthData, ready: boolean) {
   const renderData = result ? renderDataWithLegacyAdapter<BirthData, BaziResult, BaziPillars>('bazi', result, birth) : null;
   return {
     result,
-    pillars: renderData ?? { ...DEFAULT_PILLARS, gender: birth.gender },
+    pillars: renderData ?? { ...DEFAULT_PILLARS, gender: solarBirth.gender },
     wuxing: { ...DEFAULT_WUXING, ...(result?.elements ?? {}) },
     envelope: null,
   };
 }
 
-function birthSummary(birth: BirthData) {
-  return birth.year + '-' + String(birth.month).padStart(2, '0') + '-' + String(birth.day).padStart(2, '0') + ' ' + String(birth.hour).padStart(2, '0') + ':00';
+function birthSummary(solarBirth: BirthData) {
+  return solarBirth.year + '-' + String(solarBirth.month).padStart(2, '0') + '-' + String(solarBirth.day).padStart(2, '0') + ' ' + String(solarBirth.hour).padStart(2, '0') + ':00';
 }
 
 export function BaziWorkspace() {
-  const { birth } = useBirth();
+  const { solarBirth } = useBirth();
   const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
 
   useEffect(() => {
@@ -97,7 +97,7 @@ export function BaziWorkspace() {
   }, []);
 
   const ready = legacyState.mode === 'ready';
-  const { result, pillars, wuxing, envelope } = useMemo(() => calculateBazi(birth, ready), [birth, ready]);
+  const { result, pillars, wuxing, envelope } = useMemo(() => calculateBazi(solarBirth, ready), [solarBirth, ready]);
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!envelope) return null;
     return toFourLayer(envelope.data.export_snapshot as ReadingLike);
@@ -119,12 +119,12 @@ export function BaziWorkspace() {
       module: 'bazi',
       mode: result?.mode ?? 'fallback-demo',
       engineName: result?.engineName ?? '等待旧引擎',
-      birth,
+      solarBirth,
       pillars,
       wuxing,
       source: 'visual/js/engine-adapters.js + visual/js/bazi.js',
     }),
-    [birth, pillars, result, wuxing],
+    [solarBirth, pillars, result, wuxing],
   );
 
   return (
@@ -156,9 +156,9 @@ export function BaziWorkspace() {
             title="排盘信息"
             badge={ready ? '已接入' : '加载中'}
             items={[
-              { label: '生辰', value: birthSummary(birth) },
-              { label: '历法', value: (birth.isLunar ? '农历' : '公历') + ' · ' + (birth.useExactCalendar ? '精确' : '近似') },
-              { label: '性别', value: birth.gender },
+              { label: '生辰', value: birthSummary(solarBirth) },
+              { label: '历法', value: (solarBirth.isLunar ? '农历' : '公历') + ' · ' + (solarBirth.useExactCalendar ? '精确' : '近似') },
+              { label: '性别', value: solarBirth.gender },
             ]}
           />
           <InterpretationCard

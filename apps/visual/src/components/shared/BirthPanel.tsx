@@ -130,15 +130,25 @@ export function BirthPanel() {
             </select>
           </label>
           <div className="flex flex-col gap-2">
-            <label className="flex items-center gap-2 text-xs text-jade-100/55">
-              <input
-                type="checkbox"
-                checked={birth.isLunar}
-                onChange={(e) => updateBirth({ isLunar: e.target.checked })}
-                className="h-3.5 w-3.5 accent-jade-500"
-              />
-              农历
-            </label>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-jade-100/45">历法</span>
+              <div className="flex items-center gap-0.5 rounded-full border border-white/10 bg-black/30 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => updateBirth({ isLunar: false })}
+                  className={`rounded-full px-2.5 py-1 text-[10px] font-medium transition ${!birth.isLunar ? 'bg-jade-500/20 text-jade-300' : 'text-jade-100/40 hover:text-jade-100/60'}`}
+                >
+                  公历
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateBirth({ isLunar: true })}
+                  className={`rounded-full px-2.5 py-1 text-[10px] font-medium transition ${birth.isLunar ? 'bg-jade-500/20 text-jade-300' : 'text-jade-100/40 hover:text-jade-100/60'}`}
+                >
+                  农历
+                </button>
+              </div>
+            </div>
             <label className="flex items-center gap-2 text-xs text-jade-100/55">
               <input
                 type="checkbox"
@@ -146,7 +156,7 @@ export function BirthPanel() {
                 onChange={(e) => updateBirth({ useExactCalendar: e.target.checked })}
                 className="h-3.5 w-3.5 accent-jade-500"
               />
-              精确历法
+              精确节气
             </label>
           </div>
         </div>

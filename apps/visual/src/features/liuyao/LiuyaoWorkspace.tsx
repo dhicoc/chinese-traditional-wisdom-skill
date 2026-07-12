@@ -80,7 +80,7 @@ function isValidYaoValues(v: string) {
 }
 
 export function LiuyaoWorkspace() {
-  const { birth } = useBirth();
+  const { solarBirth } = useBirth();
   const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
   const [method, setMethod] = useState<CastMethod>('coin');
   const [question, setQuestion] = useState('');
@@ -129,40 +129,40 @@ export function LiuyaoWorkspace() {
       input.yaoValues = yaoValues.replace(/\s/g, '');
     }
     if (method === 'coin') {
-      input.seed = birth.year * 10000 + birth.month * 100 + birth.day + birth.hour + castCount * 7919;
+      input.seed = solarBirth.year * 10000 + solarBirth.month * 100 + solarBirth.day + solarBirth.hour + castCount * 7919;
     }
     const calculated = (() => {
       // 优先用纯 TS 引擎（架构重构后推荐路径），传入浏览器 lunar-javascript Solar 走精确日干支/空亡
       try {
         const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
-        return calculateLiuyaoPure({ birth, ...input, solar: solarEntry ?? null }) as unknown as LiuyaoResult;
+        return calculateLiuyaoPure({ birth: solarBirth, ...input, solar: solarEntry ?? null }) as unknown as LiuyaoResult;
       } catch {
         // 回退旧 adapter
       }
       return calculateWithLegacyAdapter<
-        { birth: typeof birth; method: string; question?: string; yaoValues?: string; seed?: number },
+        { birth: typeof solarBirth; method: string; question?: string; yaoValues?: string; seed?: number },
         LiuyaoResult
-      >('liuyao', { birth, ...input });
+      >('liuyao', { birth: solarBirth, ...input });
     })();
     return calculated ?? DEFAULT_FALLBACK;
-  }, [ready, birth, method, question, yaoValues, castCount]);
+  }, [ready,, solarBirth, method, question, yaoValues, castCount]);
 
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!ready) return null;
     try {
       const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
-      const input: { birth: typeof birth; method: typeof method; question?: string; yaoValues?: string; seed?: number; solar: unknown } = {
-        birth, method, solar: solarEntry ?? null,
+      const input: { birth: typeof solarBirth; method: typeof method; question?: string; yaoValues?: string; seed?: number; solar: unknown } = {
+        solarBirth, method, solar: solarEntry ?? null,
       };
       if (question) input.question = question;
       if (method === 'manual' && yaoValues) input.yaoValues = yaoValues.replace(/\s/g, '');
-      if (method === 'coin') input.seed = birth.year * 10000 + birth.month * 100 + birth.day + birth.hour + castCount * 7919;
+      if (method === 'coin') input.seed = solarBirth.year * 10000 + solarBirth.month * 100 + solarBirth.day + solarBirth.hour + castCount * 7919;
       const env = calcLiuyaoEnveloped(input);
       return toFourLayer(env.data.export_snapshot as ReadingLike);
     } catch {
       return null;
     }
-  }, [ready, birth, method, question, yaoValues, castCount]);
+  }, [ready,, solarBirth, method, question, yaoValues, castCount]);
 
   const changedLines = useMemo<LiuyaoData | null>(() => {
     if (!result.changingYao || result.changingYao.length === 0) return null;
@@ -179,7 +179,7 @@ export function LiuyaoWorkspace() {
       mode: result.mode ?? 'unknown',
       engineName: result.engineName,
       method,
-      birth,
+      solarBirth,
       question: question || '(未填写)',
       hexagram: result.hexagramName,
       changingHexagram: result.changingHexagramName,
@@ -192,7 +192,7 @@ export function LiuyaoWorkspace() {
       lines: result.lines,
       source: 'visual/js/engines/liuyao-engine.js + visual/js/divination.js (renderLiuyao)',
     }),
-    [result, method, birth, question],
+    [result, method,, solarBirth, question],
   );
 
   return (

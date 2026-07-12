@@ -30,7 +30,7 @@ const SCORE_OPTIONS = [
 ];
 
 export function ConstitutionWorkspace() {
-  const { birth } = useBirth();
+  const { solarBirth } = useBirth();
   const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
   const [scores, setScores] = useState<ConstitutionScores>(DEFAULT_SCORES);
   const [questionMode, setQuestionMode] = useState(true);
@@ -50,10 +50,10 @@ export function ConstitutionWorkspace() {
   // 五运六气体质倾向参考
   const yunqiTendency = useMemo(() => {
     if (!ready) return null;
-    const yunqiResult = calculateWithLegacyAdapter<{ birth: typeof birth }, any>('yunqi', { birth });
+    const yunqiResult = calculateWithLegacyAdapter<{ birth: typeof solarBirth }, any>('yunqi', { birth: solarBirth });
     if (!yunqiResult) return null;
     return getConstitutionTendency(yunqiResult);
-  }, [ready, birth]);
+  }, [ready, solarBirth]);
 
   const dominant = useMemo(() => deriveDominantConstitution(scores), [scores]);
   const radarAxes = useMemo<RadarAxis[]>(() => {

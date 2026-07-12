@@ -44,7 +44,7 @@ const USAGE_LABEL_COLOR: Record<string, string> = {
 };
 
 export function FeixingWorkspace() {
-  const { birth } = useBirth();
+  const { solarBirth } = useBirth();
   const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
   const [year, setYear] = useState(() => readPendingCommandYear('feixing'));
 
@@ -103,12 +103,12 @@ export function FeixingWorkspace() {
   // Step 4: 命卦合参
   const mingGuaResult = useMemo(() => {
     if (!ready) return null;
-    const result = calculateWithLegacyAdapter<{ birth: typeof birth }, any>('bazhai', { birth });
+    const result = calculateWithLegacyAdapter<{ birth: typeof solarBirth }, any>('bazhai', { birth: solarBirth });
     if (!result) return null;
     const guaNum = result.mingGua?.trigram ? trigramToGuaNum(result.mingGua.trigram) : null;
     if (!guaNum) return null;
     return MING_GUA_DIRECTIONS[guaNum] ?? null;
-  }, [ready, birth]);
+  }, [ready, solarBirth]);
 
   const starLegend = useMemo<LegendItem[]>(
     () => [

@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { DEFAULT_BIRTH, type BirthData, readFortuneBirth, writeFortuneBirth } from '@/legacy/birthBridge';
+import { DEFAULT_BIRTH, type BirthData, readFortuneBirth, writeFortuneBirth, toSolarBirth } from '@/legacy/birthBridge';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import {
   BIRTH_INTENT_EVENT,
@@ -11,7 +11,10 @@ import {
 /* ── Context 类型 ─────────────────────────────────────── */
 
 interface BirthContextValue {
+  /** 用户输入的生辰（可能是农历或公历） */
   birth: BirthData;
+  /** 转换后的公历生辰（所有引擎统一用这个） */
+  solarBirth: { year: number; month: number; day: number; hour: number; minute: number; gender: string; useExactCalendar: boolean };
   legacyReady: boolean;
   updateBirth: (patch: Partial<BirthData>) => void;
   resetBirth: () => void;
@@ -97,7 +100,7 @@ export function BirthProvider({ children }: { children: ReactNode }) {
   }, [legacyReady]);
 
   const value = useMemo<BirthContextValue>(
-    () => ({ birth, legacyReady, updateBirth, resetBirth }),
+    () => ({ birth, solarBirth: toSolarBirth(birth), legacyReady, updateBirth, resetBirth }),
     [birth, legacyReady, updateBirth, resetBirth],
   );
 

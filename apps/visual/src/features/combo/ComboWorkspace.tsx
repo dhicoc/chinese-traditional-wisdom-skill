@@ -45,16 +45,16 @@ function getSolarEntry(): unknown {
 }
 
 export function ComboWorkspace() {
-  const { birth } = useBirth();
+  const { solarBirth } = useBirth();
   const [comboType, setComboType] = useState<ComboType>('annual');
   const [question, setQuestion] = useState('今年整体运势如何？');
-  const [targetYear, setTargetYear] = useState<number>(birth.year);
+  const [targetYear, setTargetYear] = useState<number>(solarBirth.year);
 
   const result = useMemo<{ envelope: ToolEnvelope<ComboResult> | null; loading: boolean }>(() => {
     const solar = getSolarEntry() ?? null;
     const birthInput = {
-      year: birth.year, month: birth.month, day: birth.day,
-      hour: birth.hour, minute: birth.minute, gender: birth.gender,
+      year: solarBirth.year, month: solarBirth.month, day: solarBirth.day,
+      hour: solarBirth.hour, minute: solarBirth.minute, gender: solarBirth.gender,
     };
     try {
       if (comboType === 'annual') {
@@ -70,7 +70,7 @@ export function ComboWorkspace() {
     } catch {
       return { envelope: null, loading: false };
     }
-  }, [comboType, birth, question, targetYear]);
+  }, [comboType,, solarBirth, question, targetYear]);
 
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!result.envelope) return null;
@@ -78,7 +78,7 @@ export function ComboWorkspace() {
   }, [result.envelope]);
 
   const data = result.envelope?.data;
-  const birthSummary = `${birth.year}-${String(birth.month).padStart(2, '0')}-${String(birth.day).padStart(2, '0')} ${String(birth.hour).padStart(2, '0')}:00 ${birth.gender}`;
+  const birthSummary = `${solarBirth.year}-${String(solarBirth.month).padStart(2, '0')}-${String(solarBirth.day).padStart(2, '0')} ${String(solarBirth.hour).padStart(2, '0')}:00 ${solarBirth.gender}`;
 
   return (
     <div className="space-y-4">
@@ -141,7 +141,7 @@ export function ComboWorkspace() {
                 min={1900}
                 max={2100}
                 value={targetYear}
-                onChange={(e) => setTargetYear(Number(e.target.value) || birth.year)}
+                onChange={(e) => setTargetYear(Number(e.target.value) || solarBirth.year)}
                 className="w-24 rounded-lg border border-jade-500/20 bg-ink-900/80 px-2 py-1 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
               />
             </label>
@@ -213,7 +213,7 @@ export function ComboWorkspace() {
               payload={{
                 comboName: data.comboName,
                 comboType,
-                birth: { year: birth.year, gender: birth.gender },
+                birth: { year: solarBirth.year, gender: solarBirth.gender },
                 targetYear: comboType !== 'decision' ? targetYear : undefined,
                 question: comboType === 'decision' ? question : undefined,
                 synthesis: data.synthesis,

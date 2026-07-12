@@ -24,18 +24,18 @@ const XIANG_COLOR: Record<string, string> = {
 };
 
 export function XingXiuWorkspace() {
-  const { birth } = useBirth();
+  const { solarBirth } = useBirth();
 
   const [method, setMethod] = useState<XiuMethod>('rotational');
 
   const result = useMemo<{ envelope: ToolEnvelope<XingXiuResult> | null }>(() => {
     try {
       const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
-      return { envelope: calcXingXiuEnveloped({ birth, solar: solarEntry ?? null, method }) };
+      return { envelope: calcXingXiuEnveloped({ birth: solarBirth, solar: solarEntry ?? null, method }) };
     } catch {
       return { envelope: null };
     }
-  }, [birth, method]);
+  }, [solarBirth, method]);
 
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!result.envelope) return null;
@@ -66,11 +66,11 @@ export function XingXiuWorkspace() {
   const contextPayload = useMemo(() => ({
     module: 'xingxiu',
     mode: data.mode,
-    date: `${birth.year}-${birth.month}-${birth.day}`,
+    date: `${solarBirth.year}-${solarBirth.month}-${solarBirth.day}`,
     zhiXiu: data.zhiXiuFull,
     xiang: data.xiang,
     luck: data.luck,
-  }), [data, birth]);
+  }), [data, solarBirth]);
 
   return (
     <section className="space-y-4">

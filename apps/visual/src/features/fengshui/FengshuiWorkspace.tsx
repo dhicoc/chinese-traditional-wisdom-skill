@@ -31,7 +31,7 @@ function trigramToGuaNum(trigram: string): number | null {
 }
 
 export function FengshuiWorkspace() {
-  const { birth } = useBirth();
+  const { solarBirth } = useBirth();
   const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
   const [facing, setFacing] = useState('');
   const [year, setYear] = useState(new Date().getFullYear());
@@ -49,7 +49,7 @@ export function FengshuiWorkspace() {
   // 飞星九宫数据
   const feixingGrid = useMemo(() => (ready ? getFeixingGrid(year) : null), [ready, year]);
   // 八宅命盘数据（读全局生辰）
-  const bazhaiGrid = useMemo(() => (ready ? getBazhaiGrid(birth.year, birth.gender) : null), [ready, birth]);
+  const bazhaiGrid = useMemo(() => (ready ? getBazhaiGrid(solarBirth.year, solarBirth.gender) : null), [ready, solarBirth]);
 
   // 组合罗盘叠加数据：飞星 + 八宅游年星
   const overlay = useMemo(() => {

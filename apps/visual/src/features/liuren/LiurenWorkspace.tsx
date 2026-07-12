@@ -31,18 +31,18 @@ const RELATION_TEXT: Record<string, string> = {
 };
 
 export function LiurenWorkspace() {
-  const { birth } = useBirth();
+  const { solarBirth } = useBirth();
   const [legacyReady] = useState(true); // 大六壬是纯 TS，不依赖 legacy 脚本加载
 
   const result = useMemo<{ envelope: ToolEnvelope<DaliurenResult> | null; loading: boolean }>(() => {
     try {
       const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
-      const env = calcDaliurenEnveloped({ birth, solar: solarEntry ?? null });
+      const env = calcDaliurenEnveloped({ birth: solarBirth, solar: solarEntry ?? null });
       return { envelope: env, loading: false };
     } catch {
       return { envelope: null, loading: false };
     }
-  }, [birth]);
+  }, [solarBirth]);
 
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!result.envelope) return null;
@@ -70,17 +70,17 @@ export function LiurenWorkspace() {
   }
 
   const { basicInfo, tianDiPan, siKe, sanChuan, shenSha } = data;
-  const birthSummary = `${birth.year}-${String(birth.month).padStart(2, '0')}-${String(birth.day).padStart(2, '0')} ${String(birth.hour).padStart(2, '0')}:00`;
+  const birthSummary = `${solarBirth.year}-${String(solarBirth.month).padStart(2, '0')}-${String(solarBirth.day).padStart(2, '0')} ${String(solarBirth.hour).padStart(2, '0')}:00`;
 
   const contextPayload = useMemo(() => ({
     module: 'liuren',
     mode: data.mode,
-    birth: { year: birth.year, gender: birth.gender },
+    birth: { year: solarBirth.year, gender: solarBirth.gender },
     dayGanZhi: basicInfo.dayGanZhi,
     hourGanZhi: basicInfo.hourGanZhi,
     geJu: `${sanChuan.geJu}·${sanChuan.geJuDetail}`,
     sanChuan: `${sanChuan.chuChuan.diZhi}→${sanChuan.zhongChuan.diZhi}→${sanChuan.moChuan.diZhi}`,
-  }), [data, birth, basicInfo, sanChuan]);
+  }), [data,, solarBirth, basicInfo, sanChuan]);
 
   return (
     <section className="space-y-4">

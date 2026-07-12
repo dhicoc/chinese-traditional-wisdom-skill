@@ -1,5 +1,10 @@
 /**
  * 全局出生资料类型 — 与旧 data-bridge.js 的 FORTUNE.getBirth() 对齐。
+ *
+ * 历法设计：
+ * - isLunar: 用户输入的是农历还是公历（二选一）
+ * - useExactCalendar: 计算精度开关（用不用 lunar-javascript 精确节气），和历法类型正交
+ * - 内部统一用公历计算：如果 isLunar=true，用 toSolarBirth() 转公历后所有引擎统一用公历
  */
 export interface BirthData {
   year: number;
@@ -8,7 +13,9 @@ export interface BirthData {
   hour: number;
   minute: number;
   gender: '男' | '女';
+  /** true=用户输入的是农历日期，false=公历 */
   isLunar: boolean;
+  /** true=用 lunar-javascript 精确节气干支，false=本地近似 */
   useExactCalendar: boolean;
 }
 
@@ -22,6 +29,44 @@ export const DEFAULT_BIRTH: BirthData = {
   isLunar: false,
   useExactCalendar: true,
 };
+
+/**
+ * 把 BirthData 转成公历日期。
+ * 如果 isLunar=true，用 lunar-javascript Lunar.fromYmd 转公历；
+ * 如果 isLunar=false，直接返回原值。
+ * 所有引擎统一用这个函数拿公历日期，确保农历输入时结果正确。
+ */
+export function toSolarBirth(birth: BirthData): { year: number; month: number; day: number; hour: number; minute: number; gender: string; useExactCalendar: boolean } {
+  if (!birth.isLunar) {
+    return { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, minute: birth.minute, gender: birth.gender, useExactCalendar: birth.useExactCalendar };
+  }
+  // 农历转公历
+  try {
+    const w = (typeof window !== 'undefined' ? window : globalThis) as unknown as {
+      Lunar?: {
+        fromYmd: (y: number, m: number, d: number) => {
+          getSolar: () => { getYear: () => number; getMonth: () => number; getDay: () => number };
+        };
+      };
+    };
+    if (w.Lunar) {
+      const solar = w.Lunar.fromYmd(birth.year, birth.month, birth.day).getSolar();
+      return {
+        year: solar.getYear(),
+        month: solar.getMonth(),
+        day: solar.getDay(),
+        hour: birth.hour,
+        minute: birth.minute,
+        gender: birth.gender,
+        useExactCalendar: birth.useExactCalendar,
+      };
+    }
+  } catch {
+    /* lunar-javascript 未加载，用原始值 */
+  }
+  // 兜底：lunar-javascript 不可用时用原始值（可能不准但不崩溃）
+  return { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, minute: birth.minute, gender: birth.gender, useExactCalendar: birth.useExactCalendar };
+}
 
 /**
  * 旧 FORTUNE 全局对象的类型声明（data-bridge.js 桥接后存在）。

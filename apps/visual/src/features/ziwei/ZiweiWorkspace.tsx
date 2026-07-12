@@ -70,9 +70,9 @@ function createSeededGenerator(seedValue: number) {
   };
 }
 
-function buildFallbackZiweiData(birth: BirthData, mingGua: ZiweiMingGua): ZiweiData {
+function buildFallbackZiweiData(solarBirth: BirthData, mingGua: ZiweiMingGua): ZiweiData {
   const next = createSeededGenerator(
-    birth.year * 1000000 + birth.month * 10000 + birth.day * 100 + birth.hour + (birth.gender === '女' ? 7 : 3),
+    solarBirth.year * 1000000 + solarBirth.month * 10000 + solarBirth.day * 100 + solarBirth.hour + (solarBirth.gender === '女' ? 7 : 3),
   );
 
   const palaces = PALACE_NAMES.reduce<Record<string, ZiweiPalace>>((acc, palaceName, index) => {
@@ -83,14 +83,14 @@ function buildFallbackZiweiData(birth: BirthData, mingGua: ZiweiMingGua): ZiweiD
     }
     acc[palaceName] = {
       stars: Array.from(starSet),
-      position: POSITIONS[(index + birth.month - 1) % POSITIONS.length],
+      position: POSITIONS[(index + solarBirth.month - 1) % POSITIONS.length],
       miaoxian: BRIGHTNESS[Math.floor(next() * BRIGHTNESS.length)],
     };
     return acc;
   }, {});
 
   return {
-    birthInfo: { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, gender: birth.gender },
+    birthInfo: { year: solarBirth.year, month: solarBirth.month, day: solarBirth.day, hour: solarBirth.hour, gender: solarBirth.gender },
     mingGua,
     palaces,
     sihua: { 廉贞: '禄', 破军: '权', 武曲: '科', 太阳: '忌' },
@@ -101,27 +101,27 @@ function buildFallbackZiweiData(birth: BirthData, mingGua: ZiweiMingGua): ZiweiD
   };
 }
 
-function calculateZiweiData(birth: BirthData, ready: boolean): ZiweiData {
-  const mingGua = calcMingGua(birth.year, birth.gender);
+function calculateZiweiData(solarBirth: BirthData, ready: boolean): ZiweiData {
+  const mingGua = calcMingGua(solarBirth.year, solarBirth.gender);
   if (ready) {
     // 优先用纯 TS 引擎（ESM iztro，架构重构后推荐路径）
     try {
-      return calculateZiweiPure({ birth, mingGua }) as ZiweiData;
+      return calculateZiweiPure({ birth: solarBirth, mingGua }) as ZiweiData;
     } catch {
       // 回退旧 adapter
     }
     const adapterData = calculateWithLegacyAdapter<{ birth: BirthData; mingGua: ZiweiMingGua }, ZiweiData>('ziwei', {
-      birth,
+      solarBirth,
       mingGua,
     });
     if (adapterData) return adapterData;
   }
-  return buildFallbackZiweiData(birth, mingGua);
+  return buildFallbackZiweiData(solarBirth, mingGua);
 }
 
 
 export function ZiweiWorkspace() {
-  const { birth } = useBirth();
+  const { solarBirth } = useBirth();
   const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
 
   useEffect(() => {
@@ -135,16 +135,16 @@ export function ZiweiWorkspace() {
   }, []);
 
   const ready = legacyState.mode === 'ready';
-  const data = useMemo(() => calculateZiweiData(birth, ready), [birth, ready]);
+  const data = useMemo(() => calculateZiweiData(solarBirth, ready), [solarBirth, ready]);
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!ready) return null;
     try {
-      const env = calcZiweiEnveloped({ birth, mingGua: { trigram: '?', group: '?' } });
+      const env = calcZiweiEnveloped({ birth: solarBirth, mingGua: { trigram: '?', group: '?' } });
       return toFourLayer(env.data.export_snapshot as ReadingLike);
     } catch {
       return null;
     }
-  }, [birth, ready]);
+  }, [solarBirth, ready]);
   const palaceCount = Object.keys(data.palaces || {}).length;
   const transformedByIztro = data.engineName === 'ZiweiIztroAdapter';
   const contextPayload = useMemo(

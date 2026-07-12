@@ -74,7 +74,7 @@ const LUCK_COLOR: Record<string, string> = {
 };
 
 export function QimenWorkspace() {
-  const { birth } = useBirth();
+  const { solarBirth } = useBirth();
   const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
 
   useEffect(() => {
@@ -92,28 +92,28 @@ export function QimenWorkspace() {
     if (!ready) return null;
     // 优先用纯 TS 引擎（ESM 3meta，架构重构后推荐路径），失败回退旧 adapter
     try {
-      return calculateQimenPure({ birth }) as unknown as QimenResult;
+      return calculateQimenPure({ birth: solarBirth }) as unknown as QimenResult;
     } catch {
-      return calculateWithLegacyAdapter<{ birth: typeof birth }, QimenResult>('qimen', { birth });
+      return calculateWithLegacyAdapter<{ birth: typeof solarBirth }, QimenResult>('qimen', { birth: solarBirth });
     }
-  }, [ready, birth]);
+  }, [ready, solarBirth]);
 
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!ready || !result) return null;
     try {
-      const env = calcQimenEnveloped({ birth });
+      const env = calcQimenEnveloped({ birth: solarBirth });
       return toFourLayer(env.data.export_snapshot as ReadingLike);
     } catch {
       return null;
     }
-  }, [ready, birth, result]);
+  }, [ready,, solarBirth, result]);
 
   const contextPayload = useMemo(
     () => ({
       module: 'qimen',
       mode: result?.mode ?? 'loading',
       engineName: result?.engineName,
-      birth,
+      solarBirth,
       dun: result?.dun,
       ju: result?.ju,
       zhiFu: result?.zhiFu,
@@ -122,7 +122,7 @@ export function QimenWorkspace() {
       inauspiciousPatterns: result?.inauspiciousPatterns,
       source: '3meta v2.6.0 + visual/js/engines/qimen-engine.js',
     }),
-    [result, birth],
+    [result, solarBirth],
   );
 
   return (
