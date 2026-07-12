@@ -181,7 +181,7 @@ export function ZiweiWorkspace() {
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
-            旧引擎加载失败：{legacyState.error}
+            旧加载失败：{legacyState.error}
           </p>
         )}
       </div>
@@ -238,7 +238,7 @@ export function ZiweiWorkspace() {
           </div>
           <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
             {!ready ? (
-              <LoadingSkeleton label="正在加载 iztro 排盘引擎" />
+              <LoadingSkeleton label="正在排盘" />
             ) : (
               <ZoomableSvg title="紫微斗数十二宫命盘">
                 <ZiweiPalaceGrid data={data} />

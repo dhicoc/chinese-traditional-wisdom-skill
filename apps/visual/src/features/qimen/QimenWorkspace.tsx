@@ -142,14 +142,14 @@ export function QimenWorkspace() {
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
-            引擎加载失败：{legacyState.error}
+            加载失败：{legacyState.error}
           </p>
         )}
       </div>
 
       {!ready && (
         <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-4 text-sm text-jade-100/55">
-          <LoadingSkeleton label="正在加载奇门引擎" />
+          <LoadingSkeleton label="正在排盘" />
         </p>
       )}
 

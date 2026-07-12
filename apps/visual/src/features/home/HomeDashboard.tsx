@@ -196,7 +196,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
               </div>
             ) : (
               <div className="mx-auto max-w-[460px]">
-                <LoadingSkeleton label="正在加载八字引擎" />
+                <LoadingSkeleton label="正在排盘" />
               </div>
             )}
             <p className="mt-2 text-center text-[11px] text-jade-100/45">

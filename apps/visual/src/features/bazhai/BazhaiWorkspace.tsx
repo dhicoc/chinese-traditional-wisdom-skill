@@ -107,7 +107,7 @@ export function BazhaiWorkspace() {
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
-            旧引擎加载失败：{legacyState.error}
+            旧加载失败：{legacyState.error}
           </p>
         )}
       </div>
@@ -344,7 +344,7 @@ export function BazhaiWorkspace() {
                 <EightMansionsChart grid={grid} year={year} gender={gender} />
               </ZoomableSvg>
             ) : (
-              <LoadingSkeleton label="正在加载八宅引擎" />
+              <LoadingSkeleton label="正在排盘" />
             )}
           </div>
         </section>

@@ -213,7 +213,7 @@ export function LiuyaoWorkspace() {
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
-            引擎加载失败：{legacyState.error}
+            加载失败：{legacyState.error}
           </p>
         )}
         <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
@@ -338,7 +338,7 @@ export function LiuyaoWorkspace() {
                     <HexagramChart data={result as LiuyaoData} />
                   </ZoomableSvg>
                 ) : (
-                  <LoadingSkeleton label="正在加载六爻引擎" />
+                  <LoadingSkeleton label="正在排盘" />
                 )}
               </div>
             </section>

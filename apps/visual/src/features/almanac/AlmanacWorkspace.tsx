@@ -52,7 +52,7 @@ export function AlmanacWorkspace() {
           </div>
           <div className="flex items-center gap-2">
             <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-              lunar-javascript
+              真实历法
             </span>
             <ExportReportButton module="每日黄历" />
           </div>
@@ -74,12 +74,12 @@ export function AlmanacWorkspace() {
       {/* 加载中 / 错误 */}
       {legacyState.mode === 'loading' && (
         <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-4 text-sm text-jade-100/55">
-          <LoadingSkeleton label="正在加载历法引擎" />
+          <LoadingSkeleton label="正在排盘" />
         </p>
       )}
       {loadError && (
         <p className="rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-4 text-sm text-red-200">
-          历法引擎加载失败，无法生成真实黄历数据。
+          历法加载失败，无法生成真实黄历数据。
         </p>
       )}
 
@@ -247,7 +247,7 @@ export function AlmanacWorkspace() {
               ))}
             </div>
             <p className="mt-3 text-[11px] text-jade-100/55">
-              吉时 {jiHours.length} 辰 · 凶时 {xiongHours.length} 辰；时辰宜忌详见 lunar-javascript 推算。
+              吉时 {jiHours.length} 辰 · 凶时 {xiongHours.length} 辰；时辰宜忌按真实历法推算。
             </p>
           </div>
         </div>

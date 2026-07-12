@@ -83,12 +83,12 @@ export function ComboWorkspace() {
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-jade-50">联合分析</h2>
-            <p className="text-sm text-jade-100/55">跨系统多引擎聚合 · 一致性检验 · 四层报告</p>
+            <p className="text-sm text-jade-100/55">跨系统综合分析 · 一致性检验 · 四层报告</p>
           </div>
           <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs text-purple-400">多系统联合</span>
         </div>
         <p className="mt-3 text-xs leading-5 text-jade-100/45">
-          把多个排盘引擎的结果聚合为联合分析，输出整合结论 + 各子系统依据 + 一致性检验。三系统同向→置信度高，有分歧→标注权衡。复用纯 TS 引擎，combo 层只聚合不重算。
+          把多个排盘结果聚合为联合分析，输出整合结论 + 各系统依据 + 一致性检验。三系统同向→置信度高，有分歧→标注权衡。
         </p>
       </div>
 
