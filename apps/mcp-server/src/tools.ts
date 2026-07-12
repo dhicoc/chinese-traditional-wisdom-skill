@@ -20,6 +20,7 @@ import { calcBaziEnveloped } from '../../visual/src/legacy/baziEngine';
 import { calcZiweiEnveloped } from '../../visual/src/legacy/ziweiEngine';
 import { calcQimenEnveloped } from '../../visual/src/legacy/qimenEngine';
 import { calcDaliurenEnveloped } from '../../visual/src/legacy/daliurenEngine';
+import { calcXingXiuEnveloped } from '../../visual/src/legacy/xingxiuEngine';
 import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo, calcSanshiCombo } from '../../visual/src/legacy/comboEngine';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
@@ -92,6 +93,14 @@ export const TOOLS: ToolDef[] = [
       birth: birthSchema,
     }),
     handler: (i) => calcDaliurenEnveloped({ birth: (i as { birth: unknown }).birth as never, solar: solarEntry }),
+  },
+  {
+    name: 'xingxiu_daily',
+    description: '二十八星宿每日值宿查询：当日值宿、禽星全称、四象分组、五行七曜、吉凶宜忌、歌诀。传统择吉与天文历法基础。',
+    schema: z.object({
+      birth: birthSchema,
+    }),
+    handler: (i) => calcXingXiuEnveloped({ birth: (i as { birth: unknown }).birth as never, solar: solarEntry }),
   },
   {
     name: 'cast_meihua',

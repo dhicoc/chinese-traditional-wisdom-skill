@@ -23,7 +23,8 @@ export type ModuleId =
   | 'reader'
   | 'history'
   | 'combo'
-  | 'liuren';
+  | 'liuren'
+  | 'xingxiu';
 
 export interface WisdomModule {
   id: ModuleId;
@@ -122,6 +123,18 @@ export const MODULES: WisdomModule[] = [
     questionTypes: ['事件占断', '应期推算', '三传四课', '神煞格局'],
     accent: '#5b7c99',
     description: '大六壬（六壬神课）：天地盘、四课、三传（九宗门贼克/比用/涉害/遥克/昴星/八专/伏吟/返吟）、神煞、格局。传统三式之一，擅长事件细节与应期推算。',
+  },
+  {
+    id: 'xingxiu',
+    group: '术数排盘',
+    title: '二十八星宿',
+    shortTitle: '星宿',
+    status: 'local-exact',
+    statusLabel: '本地精确历法',
+    privacyLevel: '仅本地计算',
+    questionTypes: ['值日星宿', '吉凶宜忌', '四象禽星', '择日参考'],
+    accent: '#4a6fa5',
+    description: '二十八星宿：每日值宿查询、吉凶宜忌、四象（青龙/朱雀/白虎/玄武）分组、禽星全称、七曜五行。传统择吉与天文历法基础。',
   },
   {
     id: 'fengshui',

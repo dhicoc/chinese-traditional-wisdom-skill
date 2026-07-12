@@ -42,6 +42,7 @@ const ROUTE_RULES: RouteRule[] = [
   { tool: 'ziwei_chart', keywords: ['紫微', '紫微斗数', '命盘', '主星', '十二宫', '斗数'], priority: 80 },
   { tool: 'arrange_qimen', keywords: ['奇门', '奇门遁甲', '起局', '排局', '八门', '九星'], priority: 80 },
   { tool: 'liuren_calculate', keywords: ['大六壬', '六壬', '六壬神课', '三传', '四课', '天地盘'], priority: 80 },
+  { tool: 'xingxiu_daily', keywords: ['二十八宿', '二十八星宿', '星宿', '值宿', '禽星', '四象'], priority: 78 },
   { tool: 'cast_liuyao', keywords: ['六爻', '起卦', '纳甲', '卜卦', '占卦', '铜钱', '摇卦'], priority: 75 },
   { tool: 'cast_meihua', keywords: ['梅花', '梅花易数', '体用', '数字起卦'], priority: 75 },
   { tool: 'calc_yunqi', keywords: ['五运六气', '岁运', '司天', '在泉', '运气', '六气'], priority: 70 },
@@ -146,6 +147,7 @@ export function dispatchIntent(text: string): DispatchResult {
     case 'ziwei_chart':
     case 'arrange_qimen':
     case 'liuren_calculate':
+    case 'xingxiu_daily':
       if (birth.birth) args.birth = birth.birth;
       break;
     case 'combo_annual_fortune':

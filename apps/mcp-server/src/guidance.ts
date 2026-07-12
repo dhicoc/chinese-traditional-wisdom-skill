@@ -104,6 +104,14 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour'],
     workflow: '先确认占时（测事的当前时间或指定时间）→ 调 liuren_calculate → 看三传四课与格局断吉凶。',
   },
+  xingxiu_daily: {
+    tool: 'xingxiu_daily',
+    purpose: '二十八星宿每日值宿查询：需日期。返回值宿、禽星、四象、吉凶宜忌。',
+    requiredParams: BIRTH_PARAMS,
+    safeDefaults: { birth: { minute: 0, gender: '男' } },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day'],
+    workflow: '确认日期 → 调 xingxiu_daily → 看当日值宿吉凶宜忌。',
+  },
   cast_meihua: {
     tool: 'cast_meihua',
     purpose: '梅花易数：时间起卦需生辰，数字起卦需两个数字。',

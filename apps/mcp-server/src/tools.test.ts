@@ -42,7 +42,7 @@ function findTool(name: string) {
 
 describe('MCP TOOLS 注册完整性', () => {
   it('注册了 10 个工具', () => {
-    expect(TOOLS.length).toBe(15);
+    expect(TOOLS.length).toBe(16);
   });
 
   it('所有工具有 name/description/schema/handler', () => {

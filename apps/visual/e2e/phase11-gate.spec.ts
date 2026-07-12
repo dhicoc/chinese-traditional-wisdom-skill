@@ -26,6 +26,7 @@ const TOOL_TABS = [
   { nav: '每日黄历', workspace: 'workspace-almanac' },
   { nav: '姓名五行', workspace: 'workspace-namewuxing' },
   { nav: '大六壬', workspace: 'workspace-liuren' },
+  { nav: '二十八星宿', workspace: 'workspace-xingxiu' },
 ] as const;
 
 test.describe('Phase 11 Gate - 所有工具 tab 可打开并渲染', () => {

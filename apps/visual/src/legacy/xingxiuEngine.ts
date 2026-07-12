@@ -1,0 +1,240 @@
+/**
+ * xingxiuEngine — 二十八星宿引擎
+ *
+ * 用 lunar-javascript 的 getXiu()/getXiuLuck()/getXiuSong() 取当日值宿，
+ * 查二十八宿数据表补全禽星/四象/五行/曜/象征/宜忌。
+ *
+ * 数据来源：中国传统天文学二十八宿体系（《史记·天官书》《通胜》），属公知传统知识。
+ * 禽星全称格式：动物 + 曜 + 宿名（如"角木蛟"=蛟+木+角）。
+ */
+
+import type { ToolEnvelope, ExportSnapshot } from './baseTypes';
+
+// ─── 二十八宿数据表 ───
+
+export type XiangType = '东方青龙' | '南方朱雀' | '西方白虎' | '北方玄武';
+
+export interface XingXiuEntry {
+  /** 宿名（单字） */
+  name: string;
+  /** 禽星全称（如"角木蛟"） */
+  fullName: string;
+  /** 四象 */
+  xiang: XiangType;
+  /** 五行 */
+  wuxing: string;
+  /** 七曜（日月火水木金土） */
+  yao: string;
+  /** 禽星动物 */
+  animal: string;
+  /** 象征含义 */
+  symbol: string;
+  /** 西方对应（主要恒星/星座） */
+  western: string;
+  /** 传统值日宜 */
+  yi: string;
+  /** 传统值日忌 */
+  ji: string;
+}
+
+/** 二十八宿完整数据（按传统顺序：东方七宿→南方→西方→北方） */
+const XINGXIU_DATA: Record<string, XingXiuEntry> = {
+  // 东方青龙七宿（春，木）
+  '角': { name: '角', fullName: '角木蛟', xiang: '东方青龙', wuxing: '木', yao: '木', animal: '蛟', symbol: '龙角，起始、决策', western: '室女座α', yi: '祭祀、祈福', ji: '嫁娶、动土' },
+  '亢': { name: '亢', fullName: '亢金龙', xiang: '东方青龙', wuxing: '金', yao: '金', animal: '龙', symbol: '龙咽喉，精明但反复', western: '室女座κ', yi: '婚姻、祭祀', ji: '出行' },
+  '氐': { name: '氐', fullName: '氐土貉', xiang: '东方青龙', wuxing: '土', yao: '土', animal: '貉', symbol: '龙根基，谋略八面玲珑', western: '天秤座α', yi: '交易、安床', ji: '嫁娶' },
+  '房': { name: '房', fullName: '房日兔', xiang: '东方青龙', wuxing: '日', yao: '日', animal: '兔', symbol: '龙腹天驷，幸运但需低调', western: '天蝎座π', yi: '祭祀、嫁娶', ji: '动土' },
+  '心': { name: '心', fullName: '心月狐', xiang: '东方青龙', wuxing: '月', yao: '月', animal: '狐', symbol: '龙心，坚毅正义但疑心重', western: '天蝎座σ', yi: '祭祀', ji: '嫁娶、出行、动土' },
+  '尾': { name: '尾', fullName: '尾火虎', xiang: '东方青龙', wuxing: '火', yao: '火', animal: '虎', symbol: '龙尾，谨慎竞争', western: '天蝎座μ', yi: '造作、嫁娶', ji: '出行' },
+  '箕': { name: '箕', fullName: '箕水豹', xiang: '东方青龙', wuxing: '水', yao: '水', animal: '豹', symbol: '簸箕形，智慧开放但家庭易淡薄', western: '人马座γ', yi: '造仓、掘井', ji: '嫁娶、祭祀' },
+  // 南方朱雀七宿（夏，火）
+  '井': { name: '井', fullName: '井木犴', xiang: '南方朱雀', wuxing: '木', yao: '木', animal: '犴', symbol: '井，廉正', western: '双子座μ', yi: '祭祀、祈福', ji: '开市' },
+  '鬼': { name: '鬼', fullName: '鬼金羊', xiang: '南方朱雀', wuxing: '金', yao: '金', animal: '羊', symbol: '鬼，主丧祠', western: '巨蟹座θ', yi: '祭祀', ji: '嫁娶、出行' },
+  '柳': { name: '柳', fullName: '柳土獐', xiang: '南方朱雀', wuxing: '土', yao: '土', animal: '獐', symbol: '垂柳', western: '长蛇座δ', yi: '修造、作灶', ji: '嫁娶' },
+  '星': { name: '星', fullName: '星日马', xiang: '南方朱雀', wuxing: '日', yao: '日', animal: '马', symbol: '星宿核心', western: '长蛇座α', yi: '祭祀、祈福', ji: '嫁娶、动土' },
+  '张': { name: '张', fullName: '张月鹿', xiang: '南方朱雀', wuxing: '月', yao: '月', animal: '鹿', symbol: '张弓', western: '长蛇座υ¹', yi: '嫁娶、开市', ji: '安葬' },
+  '翼': { name: '翼', fullName: '翼火蛇', xiang: '南方朱雀', wuxing: '火', yao: '火', animal: '蛇', symbol: '鸟翼', western: '巨爵座α', yi: '祭祀、祈福', ji: '嫁娶、出行' },
+  '轸': { name: '轸', fullName: '轸水蚓', xiang: '南方朱雀', wuxing: '水', yao: '水', animal: '蚓', symbol: '车辕', western: '乌鸦座γ', yi: '嫁娶、入宅', ji: '安葬' },
+  // 西方白虎七宿（秋，金）
+  '奎': { name: '奎', fullName: '奎木狼', xiang: '西方白虎', wuxing: '木', yao: '木', animal: '狼', symbol: '骨盆鞋底形，耿直热情', western: '仙女座ζ', yi: '嫁娶、安床', ji: '出行' },
+  '娄': { name: '娄', fullName: '娄金狗', xiang: '西方白虎', wuxing: '金', yao: '金', animal: '狗', symbol: '聚众', western: '白羊座β', yi: '嫁娶、祭祀', ji: '动土' },
+  '胃': { name: '胃', fullName: '胃土雉', xiang: '西方白虎', wuxing: '土', yao: '土', animal: '雉', symbol: '天仓仓库', western: '白羊座35', yi: '祭祀、造仓', ji: '嫁娶' },
+  '昴': { name: '昴', fullName: '昴日鸡', xiang: '西方白虎', wuxing: '日', yao: '日', animal: '鸡', symbol: '髦头，宽厚勤奋', western: '金牛座昴星团', yi: '祭祀', ji: '嫁娶、动土' },
+  '毕': { name: '毕', fullName: '毕月乌', xiang: '西方白虎', wuxing: '月', yao: '月', animal: '乌', symbol: '网', western: '金牛座ε', yi: '祭祀、祈福', ji: '嫁娶' },
+  '觜': { name: '觜', fullName: '觜火猴', xiang: '西方白虎', wuxing: '火', yao: '火', animal: '猴', symbol: '嘴形', western: '猎户座附近', yi: '祭祀', ji: '嫁娶、出行' },
+  '参': { name: '参', fullName: '参水猿', xiang: '西方白虎', wuxing: '水', yao: '水', animal: '猿', symbol: '参宿核心', western: '猎户座δ', yi: '祭祀、祈福', ji: '嫁娶' },
+  // 北方玄武七宿（冬，水）
+  '斗': { name: '斗', fullName: '斗木獬', xiang: '北方玄武', wuxing: '木', yao: '木', animal: '獬', symbol: '南斗，生死天庙', western: '人马座φ', yi: '祭祀、祈福', ji: '嫁娶' },
+  '牛': { name: '牛', fullName: '牛金牛', xiang: '北方玄武', wuxing: '金', yao: '金', animal: '牛', symbol: '牵牛星', western: '摩羯座β', yi: '祭祀', ji: '嫁娶、动土、出行' },
+  '女': { name: '女', fullName: '女土蝠', xiang: '北方玄武', wuxing: '土', yao: '土', animal: '蝠', symbol: '织女相关', western: '宝瓶座ε', yi: '祭祀、祈福', ji: '嫁娶' },
+  '虚': { name: '虚', fullName: '虚日鼠', xiang: '北方玄武', wuxing: '日', yao: '日', animal: '鼠', symbol: '虚墟，主肃杀但值日多吉', western: '宝瓶座β', yi: '祭祀、嫁娶', ji: '安葬' },
+  '危': { name: '危', fullName: '危月燕', xiang: '北方玄武', wuxing: '月', yao: '月', animal: '燕', symbol: '高屋顶，急躁但善良', western: '宝瓶座α', yi: '祭祀', ji: '嫁娶、造作' },
+  '室': { name: '室', fullName: '室火猪', xiang: '北方玄武', wuxing: '火', yao: '火', animal: '猪', symbol: '房屋营室', western: '飞马座α', yi: '祭祀、祈福', ji: '嫁娶' },
+  '壁': { name: '壁', fullName: '壁水貐', xiang: '北方玄武', wuxing: '水', yao: '水', animal: '貐', symbol: '墙壁屏障，修造安门吉', western: '飞马座γ', yi: '修造、安门', ji: '嫁娶' },
+};
+
+/** 二十八宿顺序（用于轮转/排序） */
+const XIU_ORDER = ['角', '亢', '氐', '房', '心', '尾', '箕', '井', '鬼', '柳', '星', '张', '翼', '轸', '奎', '娄', '胃', '昴', '毕', '觜', '参', '斗', '牛', '女', '虚', '危', '室', '壁'];
+
+// ─── lunar-javascript Solar 入口 ───
+
+interface LunarLike {
+  getXiu?: () => string;
+  getXiuLuck?: () => string;
+  getXiuSong?: () => string;
+  getDayInGanZhiExact?: () => string;
+  getDayInGanZhi?: () => string;
+  getDayGanZhi?: () => string;
+}
+interface SolarLike {
+  fromYmd?(y: number, mo: number, d: number): { getLunar(): LunarLike };
+  fromYmdHms?(y: number, mo: number, d: number, h: number, mi: number, s: number): { getLunar(): LunarLike };
+}
+
+// ─── 结果类型 ───
+
+export interface XingXiuResult {
+  /** 值日宿名（单字） */
+  zhiXiu: string;
+  /** 禽星全称 */
+  zhiXiuFull: string;
+  /** 四象 */
+  xiang: string;
+  /** 五行 */
+  wuxing: string;
+  /** 七曜 */
+  yao: string;
+  /** 禽星动物 */
+  animal: string;
+  /** 象征含义 */
+  symbol: string;
+  /** 西方对应 */
+  western: string;
+  /** 吉凶 */
+  luck: string;
+  /** 歌诀 */
+  song: string;
+  /** 宜 */
+  yi: string;
+  /** 忌 */
+  ji: string;
+  /** 日干支 */
+  dayGanZhi: string;
+  /** 二十八宿全表（供可视化） */
+  allXiu: XingXiuEntry[];
+  engineName: string;
+  mode: string;
+  confidenceNote: string;
+}
+
+export interface XingXiuBirth {
+  year: number;
+  month: number;
+  day: number;
+}
+
+export interface XingXiuInput {
+  birth: XingXiuBirth;
+  solar?: SolarLike | null;
+}
+
+// ─── 主入口 ───
+
+export function calculateXingXiu(input: XingXiuInput): XingXiuResult {
+  const { birth, solar } = input;
+  let zhiXiu = '';
+  let luck = '';
+  let song = '';
+  let dayGanZhi = '';
+  let mode: 'local-exact' | 'local-approx' = 'local-approx';
+
+  if (solar) {
+    try {
+      const s = solar.fromYmdHms
+        ? solar.fromYmdHms(birth.year, birth.month, birth.day, 12, 0, 0)
+        : solar.fromYmd(birth.year, birth.month, birth.day);
+      const lunar = s && typeof s.getLunar === 'function' ? s.getLunar() : null;
+      if (lunar) {
+        zhiXiu = typeof lunar.getXiu === 'function' ? lunar.getXiu() : '';
+        luck = typeof lunar.getXiuLuck === 'function' ? lunar.getXiuLuck() : '';
+        song = typeof lunar.getXiuSong === 'function' ? lunar.getXiuSong() : '';
+        const callFirst = (obj: LunarLike, names: string[]): string => {
+          for (const n of names) {
+            const v = (obj as Record<string, unknown>)[n];
+            if (typeof v === 'function') return (v as () => unknown).call(obj) as string;
+          }
+          return '';
+        };
+        dayGanZhi = callFirst(lunar, ['getDayInGanZhiExact', 'getDayInGanZhi', 'getDayGanZhi']);
+        if (zhiXiu) mode = 'local-exact';
+      }
+    } catch {
+      /* 降级近似 */
+    }
+  }
+
+  // 近似：用日序模28轮转（不精确但保证有结果）
+  if (!zhiXiu) {
+    const base = new Date(1900, 0, 31);
+    const tgt = new Date(birth.year, birth.month - 1, birth.day);
+    const diff = Math.round((tgt.getTime() - base.getTime()) / 86400000);
+    zhiXiu = XIU_ORDER[((diff % 28) + 28) % 28];
+    luck = '—';
+    song = '';
+    dayGanZhi = '';
+  }
+
+  const entry = XINGXIU_DATA[zhiXiu] ?? XINGXIU_DATA['角'];
+
+  return {
+    zhiXiu,
+    zhiXiuFull: entry.fullName,
+    xiang: entry.xiang,
+    wuxing: entry.wuxing,
+    yao: entry.yao,
+    animal: entry.animal,
+    symbol: entry.symbol,
+    western: entry.western,
+    luck,
+    song,
+    yi: entry.yi,
+    ji: entry.ji,
+    dayGanZhi,
+    allXiu: XIU_ORDER.map((n) => XINGXIU_DATA[n]).filter(Boolean),
+    engineName: 'XingXiuEngine',
+    mode,
+    confidenceNote: '二十八宿值日由 lunar-javascript 推算（精确）或日序近似轮转。',
+  };
+}
+
+// ─── ToolEnvelope 适配 ───
+
+export interface XingXiuData extends XingXiuResult {
+  export_snapshot: ExportSnapshot;
+}
+
+export function calcXingXiuEnveloped(input: XingXiuInput): ToolEnvelope<XingXiuData> {
+  const result = calculateXingXiu(input);
+  const { zhiXiuFull, xiang, luck, yi, ji, symbol } = result;
+
+  const snapshot: ExportSnapshot = {
+    summary: `${zhiXiuFull}（${xiang}）值日，${luck}。宜${yi}；忌${ji}。${symbol}。`,
+    tags: ['二十八星宿', zhiXiuFull, xiang, result.wuxing + '宿', luck],
+    sections: [
+      { heading: '值日宿', body: `${zhiXiuFull}（${xiang}），五行${result.wuxing}，七曜${result.yao}，禽星${result.animal}。${symbol}。` },
+      { heading: '吉凶宜忌', body: `${luck}。宜：${yi}。忌：${ji}。` },
+      { heading: '西方对应', body: result.western },
+      ...(result.song ? [{ heading: '歌诀', body: result.song }] : []),
+    ],
+    sourceNotes: result.confidenceNote,
+  };
+
+  return {
+    ok: true,
+    tool: result.engineName,
+    version: result.mode,
+    input_normalized: input as unknown as Record<string, unknown>,
+    data: { ...result, export_snapshot: snapshot },
+    warnings: [result.confidenceNote],
+  };
+}

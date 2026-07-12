@@ -25,7 +25,7 @@ describe('agent_guidance 参数引导', () => {
 
   it('listToolGuidance 返回 10 个工具摘要', () => {
     const list = listToolGuidance();
-    expect(list.length).toBe(15);
+    expect(list.length).toBe(16);
     list.forEach((g) => {
       expect(g.tool).toMatch(/^[a-z_]+$/);
       expect(g.purpose).toBeTruthy();
