@@ -67,5 +67,5 @@ export function searchDreamEnveloped(keyword: string, useFull = false): ToolEnve
     env.warnings = [...(env.warnings ?? []), `未命中关键词「${keyword}」，可尝试更通用的表述`];
   }
 
-  return env as ToolEnvelope<DreamSearchData>;
+  return env as unknown as ToolEnvelope<DreamSearchData>;
 }

@@ -9,7 +9,7 @@ import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { renderDataWithLegacyAdapter, calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { type BaziPillars } from '@/legacy/canvasRenderers';
 import { getCapabilityForTool, getLegacyTools, getToolModeLabel, type LegacyTool } from '@/legacy/toolRegistry';
-import type { BirthData } from '@/legacy/birthBridge';
+import type { SolarBirth } from '@/legacy/birthBridge';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
 
@@ -32,10 +32,10 @@ interface BaziResult {
 }
 
 /** 用真实八字引擎算四柱；引擎未就绪时回退占位四柱（仅展示，不宣称真实）。 */
-function resolvePillars(solarBirth: BirthData, ready: boolean): { pillars: BaziPillars; engineName?: string } {
+function resolvePillars(solarBirth: SolarBirth, ready: boolean): { pillars: BaziPillars; engineName?: string } {
   if (!ready) return { pillars: { ...FALLBACK_PILLARS, gender: solarBirth.gender } };
-  const result = calculateWithLegacyAdapter<BirthData, BaziResult>('bazi', solarBirth);
-  const pillars = result ? renderDataWithLegacyAdapter<BirthData, BaziResult, BaziPillars>('bazi', result, solarBirth) : null;
+  const result = calculateWithLegacyAdapter<SolarBirth, BaziResult>('bazi', solarBirth);
+  const pillars = result ? renderDataWithLegacyAdapter<SolarBirth, BaziResult, BaziPillars>('bazi', result, solarBirth) : null;
   return { pillars: pillars ?? { ...FALLBACK_PILLARS, gender: solarBirth.gender }, engineName: result?.engineName };
 }
 
@@ -82,7 +82,7 @@ function birthSummary(year: number, month: number, day: number, hour: number) {
 }
 
 export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardProps) {
-  const { solarBirth } = useBirth();
+  const { birth, solarBirth } = useBirth();
   const [tools, setTools] = useState<LegacyTool[]>(() => fallbackTools());
   const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
 
@@ -159,7 +159,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
             </div>
             <div>
               <dt className="text-xs text-jade-100/45">历法 / 性别</dt>
-              <dd className="mt-1 text-jade-100">{solarBirth.isLunar ? '农历' : '公历'} · {solarBirth.gender} · {solarBirth.useExactCalendar ? '精确历法' : '近似历法'}</dd>
+              <dd className="mt-1 text-jade-100">{birth.isLunar ? '农历' : '公历'} · {solarBirth.gender} · {solarBirth.useExactCalendar ? '精确历法' : '近似历法'}</dd>
             </div>
             <div>
               <dt className="text-xs text-jade-100/45">隐私边界</dt>

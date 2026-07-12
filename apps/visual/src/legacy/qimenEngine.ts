@@ -82,6 +82,8 @@ export interface QimenResult {
   auspiciousPatterns: string[];
   inauspiciousPatterns: string[];
   summary: string;
+  /** 求测事项（透传，供报告引用） */
+  question?: string;
   _is3meta: boolean;
 }
 

@@ -122,11 +122,12 @@ function extractSihuaFromChart(palaces: IztroPalace[]): Record<string, string> {
   if (!Array.isArray(palaces)) return result;
   palaces.forEach((p) => {
     (['majorStars', 'minorStars', 'adjectiveStars'] as const).forEach((k) => {
-      const stars = (p as Record<string, IztroStar[] | undefined>)[k];
+      const stars = (p as unknown as Record<string, IztroStar[] | undefined>)[k];
       if (Array.isArray(stars)) {
         stars.forEach((s) => {
-          if (s && s.name && (s as Record<string, unknown>).mutagen) {
-            result[s.name] = String((s as Record<string, unknown>).mutagen);
+          const sr = s as unknown as Record<string, unknown>;
+          if (s && s.name && sr.mutagen) {
+            result[s.name] = String(sr.mutagen);
           }
         });
       }
@@ -169,7 +170,7 @@ export function calculateZiwei(input: ZiweiInput): ZiweiResult {
   const genderKey = birth.gender === '男' ? '男' : '女';
   const solarDateStr = `${birth.year}-${birth.month}-${birth.day}`;
 
-  const chart = astro.bySolar(solarDateStr, timeIndex, genderKey) as { palaces: IztroPalace[]; sihua: Record<string, string> };
+  const chart = astro.bySolar(solarDateStr, timeIndex, genderKey) as unknown as { palaces: IztroPalace[]; sihua: Record<string, string> };
   if (!chart || !chart.palaces || !Array.isArray(chart.palaces)) {
     return {
       engineName: 'ZiweiIztroAdapter',

@@ -13,6 +13,7 @@ import {
   calcSanshiCombo,
   type ComboResult,
 } from '@/legacy/comboEngine';
+import { DALIUREN_SCHOOLS, type DaliurenSchool } from '@/legacy/daliurenEngine';
 import type { ToolEnvelope } from '@/legacy/baseTypes';
 
 /**
@@ -49,6 +50,7 @@ export function ComboWorkspace() {
   const [comboType, setComboType] = useState<ComboType>('annual');
   const [question, setQuestion] = useState('今年整体运势如何？');
   const [targetYear, setTargetYear] = useState<number>(solarBirth.year);
+  const [liurenSchool, setLiurenSchool] = useState<DaliurenSchool>('classic');
 
   const result = useMemo<{ envelope: ToolEnvelope<ComboResult> | null; loading: boolean }>(() => {
     const solar = getSolarEntry() ?? null;
@@ -64,13 +66,13 @@ export function ComboWorkspace() {
         return { envelope: calcDecisionCombo({ birth: birthInput, question, solar }), loading: false };
       }
       if (comboType === 'sanshi') {
-        return { envelope: calcSanshiCombo({ birth: birthInput, question, solar }), loading: false };
+        return { envelope: calcSanshiCombo({ birth: birthInput, question, solar, liurenSchool: liurenSchool }), loading: false };
       }
       return { envelope: calcSpaceTimeCombo({ birth: birthInput, targetYear, solar }), loading: false };
     } catch {
       return { envelope: null, loading: false };
     }
-  }, [comboType,, solarBirth, question, targetYear]);
+  }, [comboType, solarBirth, question, targetYear, liurenSchool]);
 
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!result.envelope) return null;
@@ -156,6 +158,21 @@ export function ComboWorkspace() {
                 placeholder="如：今年适合换工作吗"
                 className="rounded-lg border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
               />
+            </label>
+          )}
+          {comboType === 'sanshi' && (
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="text-jade-100/55">大六壬天将流派</span>
+              <select
+                value={liurenSchool}
+                onChange={(e) => setLiurenSchool(e.target.value as DaliurenSchool)}
+                className="rounded-lg border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
+              >
+                {(Object.keys(DALIUREN_SCHOOLS) as DaliurenSchool[]).map((s) => (
+                  <option key={s} value={s}>{DALIUREN_SCHOOLS[s].name}</option>
+                ))}
+              </select>
+              <span className="text-[10px] text-jade-100/35">{DALIUREN_SCHOOLS[liurenSchool].note}</span>
             </label>
           )}
         </div>

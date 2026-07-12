@@ -146,12 +146,20 @@ export function DaliurenChart({
             >
               {dz}
             </text>
-            {/* 三传标记 */}
-            {isChuan && (
-              <text x={x} y={y - CELL / 2 + 4} textAnchor="middle" fill="#e8c547" fontSize="9" fontWeight="700">
-                {sanChuan.chuChuan.diZhi === dz ? '★ 初传' : sanChuan.zhongChuan.diZhi === dz ? '★ 中传' : '★ 末传'}
-              </text>
-            )}
+            {/* 三传标记（贴顶边内侧，带背景药丸，避免与边框/天将全称重叠） */}
+            {isChuan && (() => {
+              const label = sanChuan.chuChuan.diZhi === dz ? '★ 初传' : sanChuan.zhongChuan.diZhi === dz ? '★ 中传' : '★ 末传';
+              const lx = x - 20;
+              const ly = y - CELL / 2 + 3;
+              return (
+                <g>
+                  <rect x={lx} y={ly} width="40" height="12" rx="6" fill="rgba(10,18,15,0.85)" stroke="rgba(212,175,55,0.5)" strokeWidth="0.5" />
+                  <text x={x} y={ly + 2} textAnchor="middle" dominantBaseline="hanging" fill="#e8c547" fontSize="8" fontWeight="700">
+                    {label}
+                  </text>
+                </g>
+              );
+            })()}
           </g>
         );
       })}

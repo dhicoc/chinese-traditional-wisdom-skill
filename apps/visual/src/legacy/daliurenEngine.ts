@@ -73,6 +73,29 @@ const GAN_JI_GONG: Record<string, DiZhi> = {
   '己': '未', '庚': '申', '辛': '戌', '壬': '亥', '癸': '丑',
 };
 
+// ─── 流派 ───
+// 大六壬天将推算在历代文献中存在三处主要分歧：贵人顺逆的判定、四课天将所承之位、
+// 以及日干寄宫表。本项目以 school 字段切换，默认 classic 与历史排盘完全一致。
+export type DaliurenSchool = 'classic' | 'gufa' | 'daxquan';
+
+export const DALIUREN_SCHOOLS: Record<DaliurenSchool, { name: string; note: string }> = {
+  classic: {
+    name: '通行（天盘临方定顺逆）',
+    note: '贵人起例依日干昼夜；顺逆以贵人天盘落支临阳方（巳午未申酉戌）则逆、临阴方则顺；四课天将查下神所在宫，日干经寄宫转地支。',
+  },
+  gufa: {
+    name: '古法（昼顺夜逆·上神承将）',
+    note: '贵人起例依日干昼夜；顺逆径以昼顺夜逆，不依天盘临方；四课天将查上神所临之宫。',
+  },
+  daxquan: {
+    name: '《大全》（地盘落宫定顺逆）',
+    note: '贵人起例依日干昼夜；顺逆以贵人地盘落宫居阳方则逆、居阴方则顺；四课天将查下神所在宫，日干经寄宫转地支。',
+  },
+};
+
+/** 阳方地支（用于顺逆判定） */
+const YANG_POS = ['巳', '午', '未', '申', '酉', '戌'];
+
 // ─── 节气 → 月将 ───
 const JIEQI_YUE_JIANG: Record<string, DiZhi> = {
   '雨水': '亥', '惊蛰': '亥', '春分': '戌', '清明': '戌',
@@ -212,12 +235,13 @@ export interface DaliurenResult {
   shenSha: ShenShaInfo;
   engineName: string;
   mode: string;
+  school: DaliurenSchool;
   confidenceNote: string;
 }
 
 // ─── 天地盘 ───
 
-function calcTianDiPan(jieqi: string, hourZhi: string, dayGan: string): TianDiPanInfo {
+function calcTianDiPan(jieqi: string, hourZhi: string, dayGan: string, school: DaliurenSchool = 'classic'): TianDiPanInfo {
   const yueJiang = JIEQI_YUE_JIANG[jieqi] ?? '子';
   const yueJiangName = YUE_JIANG_NAME[yueJiang] ?? '神后';
   const hourIndex = DI_ZHI.indexOf(hourZhi as DiZhi);
@@ -233,14 +257,27 @@ function calcTianDiPan(jieqi: string, hourZhi: string, dayGan: string): TianDiPa
   const diPan = [...DI_ZHI];
   const dayNight = DAY_NIGHT_MAP[hourZhi] ?? '昼';
 
-  // 天将：贵人起点 + 顺逆
+  // 天将：贵人起点 + 顺逆（流派分歧在此）
   const guirenCfg = GUIREN_START[dayGan];
   const guirenStart = dayNight === '昼' ? guirenCfg.day : guirenCfg.night;
   const guirenIndex = DI_ZHI.indexOf(guirenStart);
-  // 贵人在天盘的落宫
+  // 贵人在天盘的落支
   const guirenTianZhi = tianPan[guirenIndex];
-  const yangPos = ['巳', '午', '未', '申', '酉', '戌'];
-  const isReverse = yangPos.includes(guirenTianZhi);
+  // 贵人在地盘的落支（即 guirenStart 本身）
+  const guirenDiZhi = guirenStart;
+
+  // 顺逆判定随流派：
+  // classic —— 贵人天盘落支临阳方则逆、阴方则顺
+  // daxquan —— 贵人地盘落宫居阳方则逆、阴方则顺
+  // gufa    —— 径以昼顺夜逆，不依临方
+  let isReverse: boolean;
+  if (school === 'gufa') {
+    isReverse = dayNight === '夜';
+  } else if (school === 'daxquan') {
+    isReverse = YANG_POS.includes(guirenDiZhi);
+  } else {
+    isReverse = YANG_POS.includes(guirenTianZhi);
+  }
 
   const tianJiang: string[] = new Array(12);
   if (isReverse) {
@@ -262,7 +299,7 @@ function calcTianDiPan(jieqi: string, hourZhi: string, dayGan: string): TianDiPa
 
 // ─── 四课 ───
 
-function calcSiKe(dayGan: string, dayZhi: string, tdp: TianDiPanInfo): SiKeInfo {
+function calcSiKe(dayGan: string, dayZhi: string, tdp: TianDiPanInfo, school: DaliurenSchool = 'classic'): SiKeInfo {
   const { diToTian, diToJiang } = tdp;
   const dayGanJiGong = GAN_JI_GONG[dayGan];
 
@@ -271,13 +308,21 @@ function calcSiKe(dayGan: string, dayZhi: string, tdp: TianDiPanInfo): SiKeInfo 
   const sanShang = diToTian[dayZhi];
   const siShang = diToTian[sanShang];
 
-  const buildKe = (pos: 1 | 2 | 3 | 4, shang: string, xia: string): SiKeItem => ({
-    position: pos,
-    shangShen: shang,
-    xiaShen: xia,
-    tianJiang: diToJiang[xia] ?? '',
-    relation: keRelation(shang, xia),
-  });
+  // 承将之位随流派：
+  // classic / daxquan —— 查下神所在宫（日干须经寄宫转地支，"干寄宫以知将"）
+  // gufa              —— 查上神所临之宫
+  const buildKe = (pos: 1 | 2 | 3 | 4, shang: string, xia: string): SiKeItem => {
+    const lookupZhi = school === 'gufa'
+      ? (shang)                                       // 上神所临之宫
+      : (GAN_JI_GONG[xia] ?? xia);                    // 下神所在宫（天干转寄宫）
+    return {
+      position: pos,
+      shangShen: shang,
+      xiaShen: xia,
+      tianJiang: diToJiang[lookupZhi] ?? '',
+      relation: keRelation(shang, xia),
+    };
+  };
 
   return {
     list: [
@@ -326,7 +371,7 @@ function yinYang(s: string): '阳' | '阴' {
 
 // ─── 三传（九宗门）───
 
-function calcSanChuan(siKe: SiKeInfo, tdp: TianDiPanInfo, dayGanZhi: string, hourZhi: string): SanChuanInfo {
+function calcSanChuan(siKe: SiKeInfo, tdp: TianDiPanInfo, dayGanZhi: string, hourZhi: string, _school: DaliurenSchool = 'classic'): SanChuanInfo {
   const { diToTian, diToJiang, yueJiang } = tdp;
   const dayGan = dayGanZhi[0];
   const dayZhi = dayGanZhi[1];
@@ -533,7 +578,7 @@ function resolveDaliurenInput(birth: DaliurenBirth, solar?: SolarLike | null): {
     try {
       const s = solar.fromYmdHms
         ? solar.fromYmdHms(birth.year, birth.month, birth.day, birth.hour, birth.minute || 0, 0)
-        : solar.fromYmd(birth.year, birth.month, birth.day);
+        : solar.fromYmd?.(birth.year, birth.month, birth.day);
       const lunar = s && typeof s.getLunar === 'function' ? s.getLunar() : null;
       if (lunar) {
         const dayGz = callFirst(lunar, ['getDayInGanZhiExact', 'getDayInGanZhi', 'getDayGanZhi']);
@@ -643,10 +688,13 @@ export interface DaliurenBirth {
 export interface DaliurenInput {
   birth: DaliurenBirth;
   solar?: SolarLike | null;
+  /** 天将推算流派，默认 classic（与历史排盘一致） */
+  school?: DaliurenSchool;
 }
 
 export function calculateDaliuren(input: DaliurenInput): DaliurenResult {
   const { birth, solar } = input;
+  const school = input.school ?? 'classic';
   const { jieqi, dayGanZhi, hourGanZhi, mode } = resolveDaliurenInput(birth, solar);
 
   const dayGan = dayGanZhi[0];
@@ -654,11 +702,12 @@ export function calculateDaliuren(input: DaliurenInput): DaliurenResult {
   const hourZhi = hourGanZhi[1];
   const dayNight = DAY_NIGHT_MAP[hourZhi] ?? '昼';
 
-  const tianDiPan = calcTianDiPan(jieqi, hourZhi, dayGan);
-  const siKe = calcSiKe(dayGan, dayZhi, tianDiPan);
-  const sanChuan = calcSanChuan(siKe, tianDiPan, dayGanZhi, hourZhi);
+  const tianDiPan = calcTianDiPan(jieqi, hourZhi, dayGan, school);
+  const siKe = calcSiKe(dayGan, dayZhi, tianDiPan, school);
+  const sanChuan = calcSanChuan(siKe, tianDiPan, dayGanZhi, hourZhi, school);
   const shenSha = calcShenSha(dayGanZhi);
 
+  const schoolName = DALIUREN_SCHOOLS[school].name;
   return {
     basicInfo: { jieqi, dayGanZhi, hourGanZhi, dayNight, yueJiang: tianDiPan.yueJiang, yueJiangName: tianDiPan.yueJiangName },
     tianDiPan,
@@ -667,7 +716,8 @@ export function calculateDaliuren(input: DaliurenInput): DaliurenResult {
     shenSha,
     engineName: 'DaliurenEngine',
     mode,
-    confidenceNote: '大六壬天地盘/四课/三传/神煞/格局全规则推演；节气干支由 lunar-javascript 提供（精确）或公历近似。',
+    school,
+    confidenceNote: `大六壬天地盘/四课/三传/神煞/格局全规则推演；节气干支由 lunar-javascript 提供（精确）或公历近似。天将口径：${schoolName}——${DALIUREN_SCHOOLS[school].note}`,
   };
 }
 
@@ -679,7 +729,8 @@ export interface DaliurenData extends DaliurenResult {
 
 export function calcDaliurenEnveloped(input: DaliurenInput): ToolEnvelope<DaliurenData> {
   const result = calculateDaliuren(input);
-  const { basicInfo, sanChuan, siKe, tianDiPan, shenSha } = result;
+  const { basicInfo, sanChuan, siKe, tianDiPan, shenSha, school } = result;
+  const schoolName = DALIUREN_SCHOOLS[school].name;
 
   const gejuStr = `${sanChuan.geJu}·${sanChuan.geJuDetail}`;
   const chuanStr = `初传${sanChuan.chuChuan.diZhi}(${sanChuan.chuChuan.tianJiang}/${sanChuan.chuChuan.liuQin}) → 中传${sanChuan.zhongChuan.diZhi}(${sanChuan.zhongChuan.tianJiang}) → 末传${sanChuan.moChuan.diZhi}(${sanChuan.moChuan.tianJiang})`;
@@ -688,13 +739,16 @@ export function calcDaliurenEnveloped(input: DaliurenInput): ToolEnvelope<Daliur
 
   const snapshot: ExportSnapshot = {
     summary: `${basicInfo.dayGanZhi}日${basicInfo.hourGanZhi}时${basicInfo.dayNight}占，月将${tianDiPan.yueJiangName}（${tianDiPan.yueJiang}），${gejuStr}。${chuanStr}。`,
-    tags: ['大六壬', gejuStr, `月将${tianDiPan.yueJiangName}`, basicInfo.dayNight + '占', result.mode === 'local-exact' ? '精确历法' : '近似历法'],
+    tags: ['大六壬', gejuStr, `月将${tianDiPan.yueJiangName}`, basicInfo.dayNight + '占', result.mode === 'local-exact' ? '精确历法' : '近似历法', `天将·${schoolName}`],
     sections: [
       { heading: '格局', body: `${gejuStr}。${basicInfo.dayGanZhi}日${basicInfo.hourGanZhi}时${basicInfo.dayNight}占，节气${basicInfo.jieqi}，月将${tianDiPan.yueJiangName}。` },
       { heading: '三传', body: chuanStr + '。' },
       { heading: '四课', body: keStr + '。' },
       { heading: '天地盘', body: `月将${tianDiPan.yueJiangName}加${basicInfo.hourGanZhi[1]}时：${panStr}。` },
       { heading: '神煞', body: `日马${shenSha.riMa}、月马${shenSha.yueMa}、丁马${shenSha.dingMa}、华盖${shenSha.huaGai}、闪电${shenSha.shanDian}。` },
+      // 口径说明单独成段：heading 含"口径"会被 reportLayers 归为技术细节剔除出用户视图，
+      // 但保留在 sourceNotes 与 snapshot 内，供导出/溯源。
+      { heading: '天将口径', body: `${schoolName}：${DALIUREN_SCHOOLS[school].note}` },
     ],
     sourceNotes: result.confidenceNote,
   };

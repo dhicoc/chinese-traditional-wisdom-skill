@@ -20,7 +20,7 @@ import { calcYunqiEnveloped } from './yunqiEngine';
 import { calcQimenEnveloped } from './qimenEngine';
 import { calcLiuyaoEnveloped } from './liuyaoEngine';
 import { calcMeihuaEnveloped } from './meihuaEngine';
-import { calcDaliurenEnveloped } from './daliurenEngine';
+import { calcDaliurenEnveloped, type DaliurenSchool } from './daliurenEngine';
 import { calcMingGua, getPersonalDirections, combineBazhaiFeixing, type MingGua } from './bazhaiHouse';
 import { getYuanYun, MING_GUA_DIRECTIONS } from './flyingStarRemedies';
 
@@ -141,8 +141,9 @@ export function calcAnnualFortuneCombo(input: AnnualFortuneComboInput): ToolEnve
   const { birth, solar } = input;
   const targetYear = input.targetYear ?? birth.year;
 
-  const baziEnv = calcBaziEnveloped({ birth, solar: solar ?? null });
-  const yunqiEnv = calcYunqiEnveloped({ year: targetYear, birthMonth: birth.month, birthDay: birth.day, solar: solar ?? null, currentMonth: input.currentMonth });
+  // solar 为各引擎本地 SolarLike（结构因 LunarLike 而异），combo 作聚合层统一以 never 透传，运行时不变
+  const baziEnv = calcBaziEnveloped({ birth, solar: (solar ?? null) as never });
+  const yunqiEnv = calcYunqiEnveloped({ year: targetYear, birthMonth: birth.month, birthDay: birth.day, solar: (solar ?? null) as never, currentMonth: input.currentMonth });
   const qimenEnv = calcQimenEnveloped({ birth: { year: targetYear, month: birth.month, day: birth.day, hour: birth.hour, minute: birth.minute } });
   const mingGua = calcMingGua(birth.year, birth.gender);
   const personalDirs = getPersonalDirections(mingGua.trigram);
@@ -227,8 +228,9 @@ export interface DecisionComboInput {
 export function calcDecisionCombo(input: DecisionComboInput): ToolEnvelope<ComboResult> {
   const { birth, question, solar, seed } = input;
 
-  const liuyaoEnv = calcLiuyaoEnveloped({ birth, method: 'coin', question, seed, solar: solar ?? null });
-  const meihuaEnv = calcMeihuaEnveloped({ birth, method: 'time', solar: solar ?? null });
+  const liuyaoEnv = calcLiuyaoEnveloped({ birth, method: 'coin', question, seed, solar: (solar ?? null) as never });
+  // calcMeihuaEnveloped 为 (input, solar?) 两参签名，solar 不在 MeihuaInput 内
+  const meihuaEnv = calcMeihuaEnveloped({ birth, method: 'time' }, (solar ?? null) as never);
   const qimenEnv = calcQimenEnveloped({ birth, question });
 
   const subsystems: SubsystemResult[] = [
@@ -389,6 +391,8 @@ export interface SanshiComboInput {
   /** 求测事项 */
   question: string;
   solar?: SolarLike | null;
+  /** 大六壬天将流派，透传至 calcDaliurenEnveloped；默认 classic */
+  liurenSchool?: DaliurenSchool;
 }
 
 /**
@@ -397,11 +401,12 @@ export interface SanshiComboInput {
  * 三式各有所长，交叉验证：同向→高置信，分歧→权衡。
  */
 export function calcSanshiCombo(input: SanshiComboInput): ToolEnvelope<ComboResult> {
-  const { birth, question, solar } = input;
+  const { birth, question, solar, liurenSchool } = input;
 
-  const liurenEnv = calcDaliurenEnveloped({ birth, solar: solar ?? null });
+  const liurenEnv = calcDaliurenEnveloped({ birth, solar: (solar ?? null) as never, school: liurenSchool ?? 'classic' });
   const qimenEnv = calcQimenEnveloped({ birth, question });
-  const meihuaEnv = calcMeihuaEnveloped({ birth, method: 'time', solar: solar ?? null });
+  // calcMeihuaEnveloped 为 (input, solar?) 两参签名，solar 不在 MeihuaInput 内
+  const meihuaEnv = calcMeihuaEnveloped({ birth, method: 'time' }, (solar ?? null) as never);
 
   const subsystems: SubsystemResult[] = [
     { name: '大六壬', tone: toneFromEnvelope(liurenEnv), summary: summaryFromEnvelope(liurenEnv), envelope: liurenEnv },

@@ -147,7 +147,7 @@ function getMeihuaDateNumbers(birth: MeihuaBirth, solar?: SolarLike | null) {
     try {
       const s = solar.fromYmdHms
         ? solar.fromYmdHms(birth.year, birth.month, birth.day, birth.hour, birth.minute || 0, 0)
-        : solar.fromYmd(birth.year, birth.month, birth.day);
+        : solar.fromYmd?.(birth.year, birth.month, birth.day);
       const lunar = s && typeof s.getLunar === 'function' ? s.getLunar() : null;
       if (lunar) {
         const call = (obj: LunarLike, names: string[]): unknown => {

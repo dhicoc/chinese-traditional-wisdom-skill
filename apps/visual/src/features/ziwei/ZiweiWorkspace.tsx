@@ -12,7 +12,7 @@ import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/report
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
-import type { BirthData } from '@/legacy/birthBridge';
+import type { SolarBirth } from '@/legacy/birthBridge';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
 
@@ -28,7 +28,7 @@ interface ZiweiPalace {
 }
 
 interface ZiweiData {
-  birthInfo: Pick<BirthData, 'year' | 'month' | 'day' | 'hour' | 'gender'>;
+  birthInfo: Pick<SolarBirth, 'year' | 'month' | 'day' | 'hour' | 'gender'>;
   mingGua: ZiweiMingGua;
   palaces: Record<string, ZiweiPalace>;
   sihua: Record<string, string>;
@@ -70,7 +70,7 @@ function createSeededGenerator(seedValue: number) {
   };
 }
 
-function buildFallbackZiweiData(solarBirth: BirthData, mingGua: ZiweiMingGua): ZiweiData {
+function buildFallbackZiweiData(solarBirth: SolarBirth, mingGua: ZiweiMingGua): ZiweiData {
   const next = createSeededGenerator(
     solarBirth.year * 1000000 + solarBirth.month * 10000 + solarBirth.day * 100 + solarBirth.hour + (solarBirth.gender === '女' ? 7 : 3),
   );
@@ -101,7 +101,7 @@ function buildFallbackZiweiData(solarBirth: BirthData, mingGua: ZiweiMingGua): Z
   };
 }
 
-function calculateZiweiData(solarBirth: BirthData, ready: boolean): ZiweiData {
+function calculateZiweiData(solarBirth: SolarBirth, ready: boolean): ZiweiData {
   const mingGua = calcMingGua(solarBirth.year, solarBirth.gender);
   if (ready) {
     // 优先用纯 TS 引擎（ESM iztro，架构重构后推荐路径）
@@ -110,8 +110,8 @@ function calculateZiweiData(solarBirth: BirthData, ready: boolean): ZiweiData {
     } catch {
       // 回退旧 adapter
     }
-    const adapterData = calculateWithLegacyAdapter<{ birth: BirthData; mingGua: ZiweiMingGua }, ZiweiData>('ziwei', {
-      solarBirth,
+    const adapterData = calculateWithLegacyAdapter<{ birth: SolarBirth; mingGua: ZiweiMingGua }, ZiweiData>('ziwei', {
+      birth: solarBirth,
       mingGua,
     });
     if (adapterData) return adapterData;

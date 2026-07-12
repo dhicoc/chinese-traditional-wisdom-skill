@@ -15,7 +15,7 @@ import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/report
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { type BaziPillars, type WuxingStats } from '@/legacy/canvasRenderers';
 import { calcXiYong } from '@/legacy/xiyong';
-import type { BirthData } from '@/legacy/birthBridge';
+import type { SolarBirth } from '@/legacy/birthBridge';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
 
@@ -47,7 +47,7 @@ interface BaziResult {
   confidenceNote?: string;
 }
 
-function calculateBazi(solarBirth: BirthData, ready: boolean) {
+function calculateBazi(solarBirth: SolarBirth, ready: boolean) {
   if (!ready) {
     return { result: null, pillars: { ...DEFAULT_PILLARS, gender: solarBirth.gender }, wuxing: DEFAULT_WUXING, envelope: null };
   }
@@ -68,8 +68,8 @@ function calculateBazi(solarBirth: BirthData, ready: boolean) {
   } catch {
     // 回退旧 adapter（legacy window 引擎）
   }
-  const result = calculateWithLegacyAdapter<BirthData, BaziResult>('bazi', birth);
-  const renderData = result ? renderDataWithLegacyAdapter<BirthData, BaziResult, BaziPillars>('bazi', result, birth) : null;
+  const result = calculateWithLegacyAdapter<SolarBirth, BaziResult>('bazi', solarBirth);
+  const renderData = result ? renderDataWithLegacyAdapter<SolarBirth, BaziResult, BaziPillars>('bazi', result, solarBirth) : null;
   return {
     result,
     pillars: renderData ?? { ...DEFAULT_PILLARS, gender: solarBirth.gender },
@@ -78,12 +78,12 @@ function calculateBazi(solarBirth: BirthData, ready: boolean) {
   };
 }
 
-function birthSummary(solarBirth: BirthData) {
+function birthSummary(solarBirth: SolarBirth) {
   return solarBirth.year + '-' + String(solarBirth.month).padStart(2, '0') + '-' + String(solarBirth.day).padStart(2, '0') + ' ' + String(solarBirth.hour).padStart(2, '0') + ':00';
 }
 
 export function BaziWorkspace() {
-  const { solarBirth } = useBirth();
+  const { birth, solarBirth } = useBirth();
   const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
 
   useEffect(() => {
@@ -157,7 +157,7 @@ export function BaziWorkspace() {
             badge={ready ? '已接入' : '加载中'}
             items={[
               { label: '生辰', value: birthSummary(solarBirth) },
-              { label: '历法', value: (solarBirth.isLunar ? '农历' : '公历') + ' · ' + (solarBirth.useExactCalendar ? '精确' : '近似') },
+              { label: '历法', value: (birth.isLunar ? '农历' : '公历') + ' · ' + (solarBirth.useExactCalendar ? '精确' : '近似') },
               { label: '性别', value: solarBirth.gender },
             ]}
           />

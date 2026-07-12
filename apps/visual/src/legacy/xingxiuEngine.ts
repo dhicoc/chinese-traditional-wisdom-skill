@@ -187,7 +187,7 @@ export function calculateXingXiu(input: XingXiuInput): XingXiuResult {
     try {
       const s = solar.fromYmdHms
         ? solar.fromYmdHms(todayY, todayM, todayD, 12, 0, 0)
-        : solar.fromYmd(todayY, todayM, todayD);
+        : solar.fromYmd?.(todayY, todayM, todayD);
       const lunar = s && typeof s.getLunar === 'function' ? s.getLunar() : null;
       if (lunar) {
         zhiXiu = typeof lunar.getXiu === 'function' ? lunar.getXiu() : '';

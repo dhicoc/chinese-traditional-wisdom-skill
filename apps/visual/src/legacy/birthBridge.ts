@@ -19,6 +19,17 @@ export interface BirthData {
   useExactCalendar: boolean;
 }
 
+/** 公历生辰（已转历，不含 isLunar）；供所有引擎统一消费 */
+export interface SolarBirth {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  gender: '男' | '女';
+  useExactCalendar: boolean;
+}
+
 export const DEFAULT_BIRTH: BirthData = {
   year: 1990,
   month: 6,
@@ -36,7 +47,7 @@ export const DEFAULT_BIRTH: BirthData = {
  * 如果 isLunar=false，直接返回原值。
  * 所有引擎统一用这个函数拿公历日期，确保农历输入时结果正确。
  */
-export function toSolarBirth(birth: BirthData): { year: number; month: number; day: number; hour: number; minute: number; gender: string; useExactCalendar: boolean } {
+export function toSolarBirth(birth: BirthData): SolarBirth {
   if (!birth.isLunar) {
     return { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, minute: birth.minute, gender: birth.gender, useExactCalendar: birth.useExactCalendar };
   }

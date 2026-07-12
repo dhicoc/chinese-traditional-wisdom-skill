@@ -287,7 +287,7 @@ function pillarFromText(text: string): { stem: string; branch: string; stemIndex
 function calcPillarsWithLunar(birth: BaziBirth, solar: SolarLike): BaziPillars | null {
   const s = solar.fromYmdHms
     ? solar.fromYmdHms(birth.year, birth.month, birth.day, birth.hour, birth.minute || 0, 0)
-    : solar.fromYmd(birth.year, birth.month, birth.day);
+    : solar.fromYmd?.(birth.year, birth.month, birth.day);
   const lunar = s && typeof s.getLunar === 'function' ? s.getLunar() : null;
   const eightChar = lunar && typeof lunar.getEightChar === 'function' ? lunar.getEightChar() : null;
   if (!eightChar) return null;

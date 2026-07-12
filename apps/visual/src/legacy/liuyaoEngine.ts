@@ -165,7 +165,7 @@ interface SolarLike {
 
 // ─── 爻/卦类型 ───
 interface CastedLine { yin: boolean; changing: boolean }
-interface NajiaLine { stem: string; branch: string; branchElement: string; relation: string }
+interface NajiaLine { stem: string; branch: string; branchElement: string; relation: string; god?: string }
 interface HexagramInfo {
   name: string; upper: string; lower: string;
   upperElement: string; lowerElement: string;
@@ -351,8 +351,9 @@ function castLines(input: LiuyaoInput): CastedLine[] {
 let _hexOrder: string[] | null = null;
 function hexagramIndex(name: string): number {
   if (!_hexOrder) {
-    _hexOrder = [];
-    Object.keys(HEXAGRAM_NAMES).forEach((k) => _hexOrder.push(HEXAGRAM_NAMES[k]));
+    const order: string[] = [];
+    Object.keys(HEXAGRAM_NAMES).forEach((k) => order.push(HEXAGRAM_NAMES[k]));
+    _hexOrder = order;
   }
   const idx = _hexOrder.indexOf(name) + 1;
   return idx || 0;
@@ -426,12 +427,12 @@ function getHiddenStars(hex: HexagramInfo, currentRelations: string[]): HiddenSt
 }
 
 // ─── 日干/日干支（Solar 参数化）───
-function resolveDayStem(birth: LiuyaoBirth, solar?: SolarLike | null): string {
+function resolveDayStem(birth: Partial<LiuyaoBirth>, solar?: SolarLike | null): string {
   if (birth && birth.useExactCalendar !== false && solar) {
     try {
       const s = solar.fromYmdHms
-        ? solar.fromYmdHms(birth.year, birth.month, birth.day, birth.hour || 12, birth.minute || 0, 0)
-        : solar.fromYmd(birth.year, birth.month, birth.day);
+        ? solar.fromYmdHms(birth.year ?? 0, birth.month ?? 0, birth.day ?? 0, birth.hour || 12, birth.minute || 0, 0)
+        : solar.fromYmd?.(birth.year ?? 0, birth.month ?? 0, birth.day ?? 0);
       const lunar = s && typeof s.getLunar === 'function' ? s.getLunar() : null;
       if (lunar) {
         let dayStem = '';
@@ -464,12 +465,12 @@ interface DayGanZhiInfo {
   monthStem: string; monthBranch: string; monthGanZhi: string;
   xunkong?: string;
 }
-function resolveDayGanZhi(birth: LiuyaoBirth, solar?: SolarLike | null): DayGanZhiInfo {
+function resolveDayGanZhi(birth: Partial<LiuyaoBirth>, solar?: SolarLike | null): DayGanZhiInfo {
   if (birth && birth.useExactCalendar !== false && solar) {
     try {
       const s = solar.fromYmdHms
-        ? solar.fromYmdHms(birth.year, birth.month, birth.day, birth.hour || 12, birth.minute || 0, 0)
-        : solar.fromYmd(birth.year, birth.month, birth.day);
+        ? solar.fromYmdHms(birth.year ?? 0, birth.month ?? 0, birth.day ?? 0, birth.hour || 12, birth.minute || 0, 0)
+        : solar.fromYmd?.(birth.year ?? 0, birth.month ?? 0, birth.day ?? 0);
       const lunar = s && typeof s.getLunar === 'function' ? s.getLunar() : null;
       if (lunar) {
         let dayGz = '';
@@ -545,7 +546,8 @@ export interface LiuyaoResult {
 
 // ─── 主入口 ───
 export function calculateLiuyao(input: LiuyaoInput): LiuyaoResult {
-  const birth = input.birth || {};
+  // birth 缺省时用空对象兜底，字段均为可选；以 Partial 显式标注，避免 {} 丢失属性类型
+  const birth: Partial<LiuyaoBirth> = input.birth ?? {};
   const solar = input.solar;
   const dayStem = resolveDayStem(birth, solar);
   const casted = castLines(input);
