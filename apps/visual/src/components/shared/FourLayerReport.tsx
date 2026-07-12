@@ -150,10 +150,8 @@ export function FourLayerReport({ report, title, defaultDetailsOpen = false }: F
         </div>
       )}
 
-      {/* 来源说明 */}
-      {report.sourceNotes && (
-        <p className="text-[11px] leading-4 text-jade-100/35">{report.sourceNotes}</p>
-      )}
+      {/* sourceNotes 不渲染给用户（属技术来源说明，如 lunar-javascript/口径差异）。
+          disclaimer 由各工作区自己的使用说明卡负责。sourceNotes 字段保留供 AI contextPayload 使用。 */}
     </section>
   );
 }

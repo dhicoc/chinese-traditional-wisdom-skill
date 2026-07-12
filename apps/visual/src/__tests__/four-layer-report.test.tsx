@@ -96,13 +96,14 @@ describe('FourLayerReport 渲染', () => {
     expect(screen.getByText('· 主动出击把握机会')).toBeInTheDocument();
   });
 
-  it('sourceNotes 渲染', () => {
+  it('sourceNotes 不渲染给用户（属技术来源说明）', () => {
     const report: LayerReport = {
       tldr: 't', overallTone: '中', highlights: [], details: [], actions: [],
-      sourceNotes: '某来源说明',
+      sourceNotes: '已通过 lunar-javascript/Solar 读取节气干支',
     };
     render(<FourLayerReport report={report} />);
-    expect(screen.getByText('某来源说明')).toBeInTheDocument();
+    // sourceNotes 不应显示给用户（技术 confidenceNote）
+    expect(screen.queryByText('已通过 lunar-javascript/Solar 读取节气干支')).not.toBeInTheDocument();
   });
 
   it('highlight 含 strength 时渲染「身强/身弱」小标', () => {
