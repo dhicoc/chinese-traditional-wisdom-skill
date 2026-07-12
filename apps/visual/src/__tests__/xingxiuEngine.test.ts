@@ -68,11 +68,20 @@ describe('Solar 参数化', () => {
     expect(r.zhiXiu).toHaveLength(1);
   });
 
-  it('轮转法 2004-7-30 = 斗木獬（对齐 bmcx）', () => {
+  it('轮转法 2004-7-30 本命星宿 = 斗木獬（对齐 bmcx）', () => {
     const r = calculateXingXiu({ birth: { year: 2004, month: 7, day: 30 }, method: 'rotational' });
-    expect(r.zhiXiu).toBe('斗');
-    expect(r.zhiXiuFull).toBe('斗木獬');
-    expect(r.xiang).toBe('北方玄武');
+    expect(r.benMingXiu).toBe('斗');
+    expect(r.benMingXiuFull).toBe('斗木獬');
+    expect(r.benMingXiang).toBe('北方玄武');
+  });
+
+  it('当日值宿用今天日期（非出生日）', () => {
+    const r = calculateXingXiu({ birth: { year: 2004, month: 7, day: 30 }, method: 'rotational' });
+    // 当日值宿应该和本命星宿不同（除非今天恰好是2004-7-30）
+    const today = new Date();
+    if (today.getFullYear() !== 2004 || today.getMonth() !== 6 || today.getDate() !== 30) {
+      expect(r.zhiXiu).not.toBe(r.benMingXiu);
+    }
   });
 
   it('查表法 2004-7-30 = 牛金牛（lunar-javascript默认）', () => {

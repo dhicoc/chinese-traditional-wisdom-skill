@@ -94,11 +94,11 @@ interface SolarLike {
 // ─── 结果类型 ───
 
 export interface XingXiuResult {
-  /** 值日宿名（单字） */
+  /** 当日值宿名（单字）—— 查询日/今天的值宿 */
   zhiXiu: string;
-  /** 禽星全称 */
+  /** 当日值宿禽星全称 */
   zhiXiuFull: string;
-  /** 四象 */
+  /** 当日值宿四象 */
   xiang: string;
   /** 五行 */
   wuxing: string;
@@ -110,7 +110,7 @@ export interface XingXiuResult {
   symbol: string;
   /** 西方对应 */
   western: string;
-  /** 吉凶 */
+  /** 当日值宿吉凶 */
   luck: string;
   /** 歌诀 */
   song: string;
@@ -126,6 +126,10 @@ export interface XingXiuResult {
   benMingXiang: string;
   benMingSymbol: string;
   benMingLuck: string;
+  /** 本命星宿宜 */
+  benMingYi: string;
+  /** 本命星宿忌 */
+  benMingJi: string;
   /** 二十八宿全表（供可视化） */
   allXiu: XingXiuEntry[];
   /** 使用的算法 */
@@ -171,11 +175,17 @@ export function calculateXingXiu(input: XingXiuInput): XingXiuResult {
   let dayGanZhi = '';
   let mode: 'local-exact' | 'local-approx' = 'local-approx';
 
+  // 当日值宿用"今天"的日期算（不是出生日）
+  const today = new Date();
+  const todayY = today.getFullYear();
+  const todayM = today.getMonth() + 1;
+  const todayD = today.getDate();
+
   if (solar && method === 'lookup') {
     try {
       const s = solar.fromYmdHms
-        ? solar.fromYmdHms(birth.year, birth.month, birth.day, 12, 0, 0)
-        : solar.fromYmd(birth.year, birth.month, birth.day);
+        ? solar.fromYmdHms(todayY, todayM, todayD, 12, 0, 0)
+        : solar.fromYmd(todayY, todayM, todayD);
       const lunar = s && typeof s.getLunar === 'function' ? s.getLunar() : null;
       if (lunar) {
         zhiXiu = typeof lunar.getXiu === 'function' ? lunar.getXiu() : '';
@@ -198,26 +208,17 @@ export function calculateXingXiu(input: XingXiuInput): XingXiuResult {
 
   // 连续轮转法：直接算（不需要 lunar-javascript）
   if (method === 'rotational' || !zhiXiu) {
-    zhiXiu = calcXiuByRotation(birth.year, birth.month, birth.day);
-    // 吉凶和歌诀仍从 lunar-javascript 取（如果可用）
-    if (solar && !luck) {
-      try {
-        const s = solar.fromYmdHms
-          ? solar.fromYmdHms(birth.year, birth.month, birth.day, 12, 0, 0)
-          : solar.fromYmd(birth.year, birth.month, birth.day);
-        const lunar = s && typeof s.getLunar === 'function' ? s.getLunar() : null;
-        if (lunar) {
-          // 取吉凶歌诀——但这些是按 lunar-javascript 的查表宿算的，
-          // 和轮转法宿可能不同。这里用轮转法宿查我们自己的数据表。
-        }
-      } catch { /* ignore */ }
-    }
+    zhiXiu = calcXiuByRotation(todayY, todayM, todayD);
     if (!luck) luck = '—';
     if (!song) song = '';
     if (method === 'rotational') mode = 'local-exact';
   }
 
   const entry = XINGXIU_DATA[zhiXiu] ?? XINGXIU_DATA['角'];
+
+  // 本命星宿 = 出生日的值宿（用 birth 日期算，和当日值宿分开）
+  const benMingXiuName = calcXiuByRotation(birth.year, birth.month, birth.day);
+  const benMingEntry = XINGXIU_DATA[benMingXiuName] ?? XINGXIU_DATA['角'];
 
   return {
     zhiXiu,
@@ -233,12 +234,14 @@ export function calculateXingXiu(input: XingXiuInput): XingXiuResult {
     yi: entry.yi,
     ji: entry.ji,
     dayGanZhi,
-    // 本命星宿 = 出生日值宿（同一天）
-    benMingXiu: zhiXiu,
-    benMingXiuFull: entry.fullName,
-    benMingXiang: entry.xiang,
-    benMingSymbol: entry.symbol,
-    benMingLuck: luck,
+    // 本命星宿 = 出生日的值宿（独立计算，和当日值宿分开）
+    benMingXiu: benMingXiuName,
+    benMingXiuFull: benMingEntry.fullName,
+    benMingXiang: benMingEntry.xiang,
+    benMingSymbol: benMingEntry.symbol,
+    benMingLuck: '—',
+    benMingYi: benMingEntry.yi,
+    benMingJi: benMingEntry.ji,
     allXiu: XIU_ORDER.map((n) => XINGXIU_DATA[n]).filter(Boolean),
     method: method === 'rotational' ? '连续轮转法' : '日支星期查表法',
     engineName: 'XingXiuEngine',
