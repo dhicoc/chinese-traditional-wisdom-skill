@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
-import { DataModeBadge } from '@/components/shared/DataModeBadge';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
@@ -129,7 +128,6 @@ export function ComboWorkspace() {
       <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-3">
           <p className="text-sm font-semibold text-jade-100">输入参数</p>
-          <DataModeBadge mode={result.envelope?.data.mode ?? 'loading'} ready={!!result.envelope} />
         </div>
         <div className="mt-3 space-y-3">
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">

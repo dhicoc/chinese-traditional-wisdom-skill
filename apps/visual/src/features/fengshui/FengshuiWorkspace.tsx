@@ -6,7 +6,6 @@ import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferenceP
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
-import { DataModeBadge } from '@/components/shared/DataModeBadge';
 import { getFeixingGrid, getBazhaiGrid } from '@/legacy/canvasRenderers';
 import { NINE_STAR_REMEDIES, MING_GUA_DIRECTIONS, PALACE_TO_DIR, getYuanYun } from '@/legacy/flyingStarRemedies';
 import { useBirth } from '@/lib/birthContext';
@@ -271,7 +270,6 @@ export function FengshuiWorkspace() {
                 {facing && ` 当前坐${facing.charAt(0)}向${facing.charAt(1)}，罗盘已旋转对准。`}
               </p>
             </div>
-            <DataModeBadge mode={facing ? 'local-exact' : 'knowledge'} ready={ready} />
           </div>
           <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
             {ready ? (

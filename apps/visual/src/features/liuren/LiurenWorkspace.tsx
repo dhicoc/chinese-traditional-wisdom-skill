@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { ControlField } from '@/components/shared/ControlField';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
-import { DataModeBadge } from '@/components/shared/DataModeBadge';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
@@ -104,9 +103,6 @@ export function LiurenWorkspace() {
       <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
         {/* 左侧：基本信息 + 排盘状态 */}
         <aside className="space-y-4">
-          <div className="mb-2">
-            <DataModeBadge mode={data.mode} ready={legacyReady} />
-          </div>
           <InterpretationCard
             title="排盘信息"
             badge={data.mode === 'local-exact' ? '真实排盘' : '近似排盘'}

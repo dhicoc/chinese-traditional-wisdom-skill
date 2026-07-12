@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { ControlField } from '@/components/shared/ControlField';
-import { DataModeBadge } from '@/components/shared/DataModeBadge';
 import { RadarChart, type RadarAxis } from '@/components/shared/RadarChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import {
@@ -266,7 +265,6 @@ export function ConstitutionWorkspace() {
           <div className="rounded-panel border border-ink-700 bg-ink-850/60 p-4">
             <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
               <h3 className="font-serif text-sm font-semibold text-jade-100/70">九种体质雷达图</h3>
-              <DataModeBadge mode="derived" ready={ready} />
             </div>
             <ZoomableSvg title="九种体质雷达图">
               <RadarChart axes={radarAxes} highlightIndex={highlightIndex} title="九种体质雷达图" />

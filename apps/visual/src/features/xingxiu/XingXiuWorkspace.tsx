@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
-import { DataModeBadge } from '@/components/shared/DataModeBadge';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { useBirth } from '@/lib/birthContext';
@@ -90,9 +89,6 @@ export function XingXiuWorkspace() {
       <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
         {/* 左侧：当日值宿 + 四层报告 */}
         <aside className="space-y-4">
-          <div className="mb-2">
-            <DataModeBadge mode={data.mode} ready />
-          </div>
           <div className="rounded-card border border-gold-500/25 bg-gold-500/8 p-4 text-center">
             <p className="text-xs text-gold-400/60">当日值宿</p>
             <p className="mt-2 font-serif text-3xl text-gold-200">{data.zhiXiuFull}</p>

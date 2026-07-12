@@ -7,7 +7,6 @@ import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { MEIHUA_TRIGRAMS, type MeihuaData } from '@/legacy/canvasRenderers';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
-import { DataModeBadge } from '@/components/shared/DataModeBadge';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 import { MEIHUA_INTENT_EVENT, type MeihuaIntentDetail } from '@/lib/commandIntents';
 
@@ -188,11 +187,6 @@ export function MeihuaWorkspace() {
               <p className="mt-1 text-sm leading-6 text-jade-100/55">
                 本卦·互卦·变卦：上下卦爻象、动爻标记、体用生克关系。
               </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-              </span>
-              <DataModeBadge mode="local-approx" ready={ready} />
             </div>
           </div>
           <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">

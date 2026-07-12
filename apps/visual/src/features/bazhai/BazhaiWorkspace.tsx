@@ -22,7 +22,6 @@ import {
 } from '@/legacy/bazhaiHouse';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
-import { DataModeBadge } from '@/components/shared/DataModeBadge';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 
 export function BazhaiWorkspace() {
@@ -331,11 +330,6 @@ export function BazhaiWorkspace() {
               <p className="mt-1 text-sm leading-6 text-jade-100/55">
                 八宅命盘：八方向扇区，每扇区显示游年星、吉凶与含义，中心为命卦。
               </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-              </span>
-              <DataModeBadge mode="local-approx" ready={ready} />
             </div>
           </div>
           <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">

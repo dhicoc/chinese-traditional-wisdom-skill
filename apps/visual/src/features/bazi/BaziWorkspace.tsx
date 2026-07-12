@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BaziPillarsChart } from '@/components/shared/BaziPillarsChart';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
-import { DataModeBadge } from '@/components/shared/DataModeBadge';
+
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { FiveElementsChart } from '@/components/shared/FiveElementsChart';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
@@ -152,9 +152,6 @@ export function BaziWorkspace() {
 
       <div className="bazi-console-grid grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)_320px]">
         <aside className="space-y-4">
-          <div className="mb-2">
-            <DataModeBadge mode={result?.mode} ready={ready} />
-          </div>
           <InterpretationCard
             title="排盘信息"
             badge={ready ? '已接入' : '加载中'}
@@ -198,8 +195,6 @@ export function BaziWorkspace() {
                   四柱主盘：年/月/日/时天干地支，按五行配色，日柱高亮。
                 </p>
               </div>
-              <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-              </span>
             </div>
             <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
               {ready ? (
@@ -261,8 +256,6 @@ export function BaziWorkspace() {
                   五行相生相克图，统计姓名各字五行分布。
                 </p>
               </div>
-              <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-              </span>
             </div>
             <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
               {ready ? (

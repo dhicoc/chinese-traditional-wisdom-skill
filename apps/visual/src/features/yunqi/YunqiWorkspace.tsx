@@ -10,7 +10,6 @@ import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/report
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
-import { DataModeBadge } from '@/components/shared/DataModeBadge';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 import {
@@ -139,11 +138,6 @@ export function YunqiWorkspace() {
               <p className="mt-1 text-sm leading-6 text-jade-100/55">
                 岁运·司天·在泉·客气六步·病势倾向·五行图例综合展示。
               </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-              </span>
-              <DataModeBadge mode="local-exact" ready={ready} />
             </div>
           </div>
           <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">

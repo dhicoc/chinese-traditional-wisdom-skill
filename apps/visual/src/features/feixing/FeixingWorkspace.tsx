@@ -13,7 +13,6 @@ import {
 } from '@/legacy/canvasRenderers';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
-import { DataModeBadge } from '@/components/shared/DataModeBadge';
 import {
   NINE_STAR_REMEDIES,
   getYuanYun,
@@ -284,7 +283,6 @@ export function FeixingWorkspace() {
                 3×3 洛书九宫，每格宫位名+飞星编号星名+方位用途标签，中心格高亮。
               </p>
             </div>
-            <DataModeBadge mode="local-approx" ready={ready} />
           </div>
           <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
             {grid ? (
