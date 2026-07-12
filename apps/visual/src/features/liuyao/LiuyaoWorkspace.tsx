@@ -202,7 +202,7 @@ export function LiuyaoWorkspace() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">六爻占卜</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              本地京房八宫纳甲引擎：起卦后输出纳甲(天干地支)、六亲、六神、世应、用神与变卦。
+              周易六爻占卜：起卦后排出纳甲、六亲、六神、世应、用神与变卦，据用神旺衰与动爻断吉凶。
               支持铜钱法、时间起卦、手动爻值三种方式；用神依问题事项自动选取。
             </p>
           </div>
@@ -213,11 +213,11 @@ export function LiuyaoWorkspace() {
         </div>
         {legacyState.mode === 'error' && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
-            旧引擎加载失败：{legacyState.error}
+            引擎加载失败：{legacyState.error}
           </p>
         )}
         <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
-          {result.confidenceNote ?? '六爻为传统文化占问参考，非绝对预测；同一事不宜反复起卦。'}
+          六爻为传统文化占问参考，非绝对预测；同一事不宜反复起卦。
         </p>
       </div>
 

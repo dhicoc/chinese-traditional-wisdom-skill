@@ -196,8 +196,7 @@ export function ZiweiWorkspace() {
           <InterpretationCard
             title="排盘状态"
             items={[
-              { label: '引擎', value: data.engineName ?? '未就绪'},
-              { label: '模式', value: getModeLabel(data)},
+              { label: '状态', value: data.mode === 'local-exact' ? '真实排盘' : '演示数据'},
               { label: '宫位', value: String(palaceCount) + ' 宫'},
               { label: '命卦', value: data.mingGua.trigram + '卦 · ' + data.mingGua.group},
             ]}

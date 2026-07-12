@@ -76,6 +76,10 @@ const HIGHLIGHT_HEADINGS = [
 /** 可执行建议类 heading → 归 actions */
 const ACTION_HEADINGS = ['策略指导', '化解', '布局建议', '择日', '行动建议'];
 
+/** 技术细节类 heading → 直接剔除（不展示给用户，属内部实现/口径说明）
+ *  这些是给 AI/开发者的，非命理结论：起卦方式、边界说明、年份边界、口径差异等 */
+const TECHNICAL_HEADINGS = ['起卦方式', '边界说明', '年份边界', '说明', '口径', '引擎', '历法'];
+
 /** action 分类关键词（用于判定 category） */
 const ACTION_CATEGORY_KW: Array<{ kw: string[]; category: ActionCategory }> = [
   { kw: ['进', '退', '变', '守', '顺', '出击', '保守', '静观', '主动', '把握'], category: '决策' },
@@ -133,6 +137,8 @@ export function toFourLayer(reading: ReadingLike): LayerReport {
   const actions: Action[] = [];
 
   for (const section of reading.sections) {
+    // 技术细节段直接剔除（起卦方式/边界说明/口径等，不展示给用户）
+    if (TECHNICAL_HEADINGS.some((h) => section.heading.includes(h))) continue;
     const isHighlight = HIGHLIGHT_HEADINGS.some((h) => section.heading.includes(h));
     const isAction = ACTION_HEADINGS.some((h) => section.heading.includes(h));
 

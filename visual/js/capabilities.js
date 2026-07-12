@@ -201,10 +201,13 @@
    */
   var HIGHLIGHT_HEADINGS = ["命宫","四化","值符值使","世应用神","体用生克","喜用神","日主强弱","强弱判断","格局","遁局","综合评级","卦象"];
   var ACTION_HEADINGS = ["策略指导","化解","布局建议","择日","行动建议"];
+  // 技术细节段直接剔除（不展示给用户）
+  var TECHNICAL_HEADINGS = ["起卦方式","边界说明","年份边界","说明","口径","引擎","历法"];
   function toFourLayerJS(reading) {
     if (!reading || !reading.sections) return { tldr: "", highlights: [], details: [], actions: [] };
     var highlights = [], details = [], actions = [];
     reading.sections.forEach(function (section) {
+      if (TECHNICAL_HEADINGS.some(function (h) { return section.heading.indexOf(h) >= 0; })) return;
       var isH = HIGHLIGHT_HEADINGS.some(function (h) { return section.heading.indexOf(h) >= 0; });
       var isA = ACTION_HEADINGS.some(function (h) { return section.heading.indexOf(h) >= 0; });
       if (isH) {

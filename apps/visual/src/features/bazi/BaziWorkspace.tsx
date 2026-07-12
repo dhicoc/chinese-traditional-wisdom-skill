@@ -162,8 +162,6 @@ export function BaziWorkspace() {
               { label: '生辰', value: birthSummary(birth) },
               { label: '历法', value: (birth.isLunar ? '农历' : '公历') + ' · ' + (birth.useExactCalendar ? '精确' : '近似') },
               { label: '性别', value: birth.gender },
-              { label: '引擎', value: result?.engineName ?? '等待旧引擎' },
-              { label: '模式', value: result?.mode ?? '降级展示' },
             ]}
           />
           <InterpretationCard
@@ -176,7 +174,6 @@ export function BaziWorkspace() {
                 { label: '同类', value: xiyong.similar.join('、') },
                 { label: '异类', value: xiyong.heterogeneous.join('、') },
               ] : []),
-              { label: '说明', value: xiyong?.confidenceNote ?? result?.confidenceNote ?? '顶部“全局生辰”面板是所有工作区的唯一输入源。' },
             ]}
           />
           <TermExplanationPanel

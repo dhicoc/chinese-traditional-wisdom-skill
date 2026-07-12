@@ -253,9 +253,9 @@ export function AlmanacWorkspace() {
         </div>
       )}
 
-      {/* 边界说明 */}
+      {/* 使用说明（人话 disclaimer，不显示技术 confidenceNote） */}
       <InterpretationCard title="使用说明" subtitle="民俗参考">
-        {almanac?.confidenceNote || '数据由内置 lunar-javascript 真实历法推算；宜忌为民俗参考，不作为决策依据。'}
+        宜忌为传统民俗参考，不作为决策依据。
       </InterpretationCard>
     </div>
   );
