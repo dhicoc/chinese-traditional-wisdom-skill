@@ -43,6 +43,17 @@ describe('toFourLayer 八字归类', () => {
     expect(report.details.some((d) => d.heading.includes('日主强弱'))).toBe(false);
   });
 
+  it('十神段用中文柱名（年柱/月柱/日柱/时柱），不混英文 year/month/day/hour', () => {
+    const env = calcBaziEnveloped({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
+    const report = toFourLayer(snapshotOf(env));
+    const shishen = report.details.find((d) => d.heading === '十神');
+    expect(shishen).toBeDefined();
+    expect(shishen!.body).toContain('年柱');
+    expect(shishen!.body).toContain('时柱');
+    // 不应出现英文柱名
+    expect(shishen!.body).not.toMatch(/year柱|month柱|day柱|hour柱/);
+  });
+
   it('highlights 每项有 tone（吉/凶/中）', () => {
     const env = calcBaziEnveloped({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
     const report = toFourLayer(snapshotOf(env));

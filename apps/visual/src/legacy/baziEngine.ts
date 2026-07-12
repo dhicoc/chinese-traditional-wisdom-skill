@@ -14,6 +14,9 @@ import type { ToolEnvelope, ExportSnapshot } from './baseTypes';
 
 const TG = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
 const DZ = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+
+/** 柱 key → 中文名（避免 toReading/snapshot 输出「year柱」中英混合） */
+const PILLAR_CN: Record<string, string> = { year: '年', month: '月', day: '日', hour: '时' };
 const STEM_WX = ['木', '木', '火', '火', '土', '土', '金', '金', '水', '水'];
 const STEM_YY = ['阳', '阴', '阳', '阴', '阳', '阴', '阳', '阴', '阳', '阴'];
 const BRANCH_WX = ['水', '土', '木', '木', '土', '火', '火', '土', '金', '金', '土', '水'];
@@ -352,7 +355,7 @@ export function calcBaziEnveloped(input: BaziInput): ToolEnvelope<BaziData> {
     sections: [
       { heading: '四柱', body: `年柱 ${p.year.stem}${p.year.branch}、月柱 ${p.month.stem}${p.month.branch}、日柱 ${p.day.stem}${p.day.branch}、时柱 ${p.hour.stem}${p.hour.branch}。` },
       { heading: '五行分布', body: `${elSummary}。最旺：${maxEl}(${maxVal})，最弱：${minEl}(${minVal})。` },
-      { heading: '十神', body: (['year', 'month', 'day', 'hour'] as const).map((k) => `${k}柱${result.shishenList[k]}`).join('、') + '。' },
+      { heading: '十神', body: (['year', 'month', 'day', 'hour'] as const).map((k) => `${PILLAR_CN[k]}柱${result.shishenList[k]}`).join('、') + '。' },
       { heading: '日主强弱', body: `日主${dm}为${dmYy}${dmWx}，五行总量${Object.values(els).reduce((s, v) => s + v, 0)}，判断为${isStrong ? '偏强' : '偏弱'}。此判断基于五行计数近似，仅供参考。` },
       { heading: '大运', body: result.luck.map((l) => `${l.ageStart}岁起 ${l.stem}${l.branch}(${l.stemWuxing})`).join('；') + '。起运按3岁简化。' },
       { heading: '边界说明', body: result.confidenceNote },

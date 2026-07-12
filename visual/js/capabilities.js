@@ -322,9 +322,9 @@
       ["木", "火", "土", "金", "水"].map(function (k) {
         return "<div class=\"item\"><b>" + k + "</b><br>" + (wx[k] == null ? "-" : wx[k]) + "</div>";
       }).join("") + "</div></div>" +
-      "<div class=\"card\"><h2>完整 REPORT_DATA</h2><pre>" + escapeHtml(JSON.stringify(reportData, null, 2)) + "</pre></div>";
+      "<div class=\"card\"><details><summary style='cursor:pointer;color:#999;font-size:13px;'>完整 REPORT_DATA（供 AI 消费，点击展开）</summary><pre style='margin-top:8px;'>" + escapeHtml(JSON.stringify(reportData, null, 2)) + "</pre></details></div>";
     if (reportData.readings && Object.keys(reportData.readings).length) {
-      html += "<div class=\"card\"><h2>结构化阅读摘要 (readings)</h2>";
+      html += "<div class=\"card\"><details><summary style='cursor:pointer;color:#999;font-size:13px;'>结构化阅读摘要 (readings，供 AI 消费，点击展开)</summary>";
       Object.keys(reportData.readings).forEach(function (name) {
         var r = reportData.readings[name];
         html += "<div class='item' style='margin-bottom:10px;'><b>" + escapeHtml(r.title) + "</b><br>" +
@@ -343,7 +343,7 @@
         }
         html += "<p style='font-size:11px;color:#aaa;margin-top:4px;'>" + escapeHtml(r.sourceNotes) + "</p></div>";
       });
-      html += "</div>";
+      html += "</details></div>";
     }
     // 四层报告
     if (reportData.fourLayer && Object.keys(reportData.fourLayer).length) {

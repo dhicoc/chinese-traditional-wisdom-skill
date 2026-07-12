@@ -762,7 +762,7 @@
         sections: [
           { heading: "四柱", body: "年柱 " + (p.year ? p.year.stem + p.year.branch : "-") + "、月柱 " + (p.month ? p.month.stem + p.month.branch : "-") + "、日柱 " + (p.day ? p.day.stem + p.day.branch : "-") + "、时柱 " + (p.hour ? p.hour.stem + p.hour.branch : "-") + "。" },
           { heading: "五行分布", body: elSummary + "。最旺：" + maxEl + "(" + maxVal + ")，最弱：" + minEl + "(" + minVal + ")。" },
-          { heading: "十神", body: Object.keys(result.shishenList || {}).map(function (k) { return k + "柱" + result.shishenList[k]; }).join("、") + "。" },
+          { heading: "十神", body: Object.keys(result.shishenList || {}).map(function (k) { var cn = { year: "年", month: "月", day: "日", hour: "时" }[k] || k; return cn + "柱" + result.shishenList[k]; }).join("、") + "。" },
           { heading: "日主强弱", body: "日主" + dm + "为" + dmYy + dmWx + "，五行总量" + (Object.keys(els).reduce(function (s, k) { return s + els[k]; }, 0)) + "，判断为" + (isStrong ? "偏强" : "偏弱") + "。此判断基于五行计数近似，仅供参考。" }
         ],
         sourceNotes: result.confidenceNote || "本地近似八字引擎"
