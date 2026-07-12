@@ -22,7 +22,7 @@ test.describe('Application Smoke Tests', () => {
     await expect(page.locator('[data-testid="sidebar-nav"]')).toBeVisible();
     // Verify all module nav items exist (home + 18 tools + 联合分析 = 19)
     const navItems = page.locator('[data-testid="nav-item"]');
-    await expect(navItems).toHaveCount(19);
+    await expect(navItems).toHaveCount(20);
     // 联合分析标签应在侧边栏
     await expect(page.getByRole('button', { name: /联合分析/ })).toBeVisible();
   });

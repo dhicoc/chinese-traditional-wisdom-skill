@@ -22,7 +22,8 @@ export type ModuleId =
   | 'testing'
   | 'reader'
   | 'history'
-  | 'combo';
+  | 'combo'
+  | 'liuren';
 
 export interface WisdomModule {
   id: ModuleId;
@@ -266,6 +267,18 @@ export const MODULES: WisdomModule[] = [
     questionTypes: ['综合运势', '事件决策', '空间布局', '交叉验证'],
     accent: '#9d7ad6',
     description: '跨系统联合分析：年度综合运势（八字+五运六气+奇门+命卦方位）、事件决策（六爻+梅花+奇门三卜交叉验证）、空间+时间（飞星+八宅+奇门吉方）。多系统一致性检验。',
+  },
+  {
+    id: 'liuren',
+    group: '术数排盘',
+    title: '大六壬',
+    shortTitle: '六壬',
+    status: 'local-exact',
+    statusLabel: '本地精确历法',
+    privacyLevel: '仅本地计算',
+    questionTypes: ['事件占断', '应期推算', '三传四课', '神煞格局'],
+    accent: '#5b7c99',
+    description: '大六壬（六壬神课）：天地盘、四课、三传（九宗门贼克/比用/涉害/遥克/昴星/八专/伏吟/返吟）、神煞、格局。传统三式之一，擅长事件细节与应期推算。',
   },
 ];
 

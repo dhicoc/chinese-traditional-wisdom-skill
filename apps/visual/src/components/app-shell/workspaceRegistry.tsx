@@ -20,6 +20,7 @@ import { NamewuxingWorkspace } from '@/features/namewuxing/NamewuxingWorkspace';
 import { DreamWorkspace } from '@/features/dream/DreamWorkspace';
 import { RhythmWorkspace } from '@/features/rhythm/RhythmWorkspace';
 import { ComboWorkspace } from '@/features/combo/ComboWorkspace';
+import { LiurenWorkspace } from '@/features/liuren/LiurenWorkspace';
 import type { ModuleId } from '@/lib/modules';
 
 interface WorkspaceProps {
@@ -48,6 +49,7 @@ export const WORKSPACE_COMPONENTS: Partial<Record<ModuleId, ComponentType<Worksp
   dream: DreamWorkspace,
   rhythm: RhythmWorkspace,
   combo: ComboWorkspace,
+  liuren: LiurenWorkspace,
 };
 
 export function resolveWorkspace(moduleId: ModuleId): ComponentType<WorkspaceProps> {
