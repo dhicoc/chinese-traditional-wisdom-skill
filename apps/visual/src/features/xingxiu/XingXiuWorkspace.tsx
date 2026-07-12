@@ -3,6 +3,8 @@ import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
+import { XingXiuChart } from '@/components/shared/XingXiuChart';
+import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
 import { calcXingXiuEnveloped, type XingXiuResult, type XingXiuEntry } from '@/legacy/xingxiuEngine';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
@@ -125,8 +127,18 @@ export function XingXiuWorkspace() {
           )}
         </aside>
 
-        {/* 右侧：四象分组二十八宿全表 */}
+        {/* 右侧：四象方位图 + 四象分组 */}
         <div className="space-y-3">
+          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+            <h3 className="mb-2 text-sm font-semibold text-jade-50">四象方位图</h3>
+            <ZoomableSvg title="二十八星宿四象方位图">
+              <XingXiuChart allXiu={data.allXiu} zhiXiu={data.zhiXiu} benMingXiu={data.benMingXiu} />
+            </ZoomableSvg>
+            <div className="mt-2 flex items-center justify-center gap-4 text-[10px] text-jade-100/40">
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-gold-500/60" />★ 当日值宿</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-purple-500/60" />◆ 本命星宿</span>
+            </div>
+          </div>
           {XIANG_ORDER.map((xiang) => (
             <div key={xiang} className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
               <div className="flex items-center gap-2 border-b border-white/8 pb-2">
