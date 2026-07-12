@@ -25,7 +25,7 @@ describe('agent_guidance 参数引导', () => {
 
   it('listToolGuidance 返回 10 个工具摘要', () => {
     const list = listToolGuidance();
-    expect(list.length).toBe(13);
+    expect(list.length).toBe(14);
     list.forEach((g) => {
       expect(g.tool).toMatch(/^[a-z_]+$/);
       expect(g.purpose).toBeTruthy();
@@ -122,6 +122,12 @@ describe('wisdom_dispatch 意图路由', () => {
     const r = dispatchIntent('帮我起个奇门局，2024年3月15日9时');
     expect(r.hit).toBe(true);
     expect(r.tool).toBe('arrange_qimen');
+  });
+
+  it('大六壬 → liuren_calculate', () => {
+    const r = dispatchIntent('用大六壬排个盘，2024年3月15日9时');
+    expect(r.hit).toBe(true);
+    expect(r.tool).toBe('liuren_calculate');
   });
 
   it('六爻问财运 → cast_liuyao + question 提取', () => {

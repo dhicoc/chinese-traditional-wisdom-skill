@@ -96,6 +96,14 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour'],
     workflow: '先确认起局时间（测事的当前时间或指定时间）→ 调 arrange_qimen → 看值符值使与格局断吉凶。',
   },
+  liuren_calculate: {
+    tool: 'liuren_calculate',
+    purpose: '大六壬排盘：需测当时的年月日时（占时）。传统三式之一，擅长事件细节与应期。',
+    requiredParams: BIRTH_PARAMS,
+    safeDefaults: { birth: { minute: 0, gender: '男' } },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour'],
+    workflow: '先确认占时（测事的当前时间或指定时间）→ 调 liuren_calculate → 看三传四课与格局断吉凶。',
+  },
   cast_meihua: {
     tool: 'cast_meihua',
     purpose: '梅花易数：时间起卦需生辰，数字起卦需两个数字。',

@@ -19,6 +19,7 @@ import { calcLiuyaoEnveloped } from '../../visual/src/legacy/liuyaoEngine';
 import { calcBaziEnveloped } from '../../visual/src/legacy/baziEngine';
 import { calcZiweiEnveloped } from '../../visual/src/legacy/ziweiEngine';
 import { calcQimenEnveloped } from '../../visual/src/legacy/qimenEngine';
+import { calcDaliurenEnveloped } from '../../visual/src/legacy/daliurenEngine';
 import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo } from '../../visual/src/legacy/comboEngine';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
@@ -83,6 +84,14 @@ export const TOOLS: ToolDef[] = [
       question: z.string().optional().describe('求测事项'),
     }),
     handler: (i) => calcQimenEnveloped({ ...(i as Record<string, unknown>) } as never),
+  },
+  {
+    name: 'liuren_calculate',
+    description: '大六壬排盘：天地盘、四课、三传（九宗门贼克/比用/涉害/遥克/昴星/八专/伏吟/返吟）、神煞、格局。传统三式之一，擅长事件细节与应期推算。',
+    schema: z.object({
+      birth: birthSchema,
+    }),
+    handler: (i) => calcDaliurenEnveloped({ birth: (i as { birth: unknown }).birth as never, solar: solarEntry }),
   },
   {
     name: 'cast_meihua',

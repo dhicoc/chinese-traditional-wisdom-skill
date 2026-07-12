@@ -42,7 +42,7 @@ function findTool(name: string) {
 
 describe('MCP TOOLS 注册完整性', () => {
   it('注册了 10 个工具', () => {
-    expect(TOOLS.length).toBe(13);
+    expect(TOOLS.length).toBe(14);
   });
 
   it('所有工具有 name/description/schema/handler', () => {
@@ -127,6 +127,21 @@ describe('arrange_qimen', () => {
     expect(data.palaces.length).toBe(9);
     expect(data.zhiFu.star).toBe('天英');
     expect(data.zhiShi.gate).toBe('景门');
+    expectExportSnapshot(e);
+  });
+});
+
+describe('liuren_calculate', () => {
+  it('返回含天地盘/四课/三传的大六壬 envelope', () => {
+    const t = findTool('liuren_calculate');
+    const env = t.handler({ birth: { year: 2024, month: 3, day: 15, hour: 9, gender: '男' } });
+    const e = expectValidEnvelope(env);
+    expect(e.tool).toBe('DaliurenEngine');
+    const data = e.data as { sanChuan: { geJu: string; geJuDetail: string }; siKe: { list: unknown[] }; tianDiPan: { tianPan: unknown[] }; export_snapshot: { summary: string } };
+    expect(data.sanChuan.geJu).toBeTruthy();
+    expect(data.siKe.list.length).toBe(4);
+    expect(data.tianDiPan.tianPan.length).toBe(12);
+    expect(data.export_snapshot.summary).toContain('月将');
     expectExportSnapshot(e);
   });
 });
