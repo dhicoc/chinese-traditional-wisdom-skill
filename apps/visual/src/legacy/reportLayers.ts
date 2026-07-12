@@ -28,7 +28,8 @@ export interface ReadingLike {
   sourceNotes?: string;
 }
 
-export type Tone = '吉' | '凶' | '中';
+// Tone 已收口到 baseTypes，此处 re-export 保持既有导入路径兼容
+export type Tone = import('./baseTypes').Tone;
 
 /** 强弱维度（用于日主强弱等中性但需醒目的 highlight，独立于吉凶 tone） */
 export type Strength = '强' | '弱' | null;

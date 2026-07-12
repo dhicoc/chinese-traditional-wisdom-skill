@@ -8,7 +8,7 @@ import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { DaliurenChart } from '@/components/shared/DaliurenChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
-import { calcDaliurenEnveloped, type DaliurenResult } from '@/legacy/daliurenEngine';
+import { calcDaliurenEnveloped, DALIUREN_SCHOOLS, type DaliurenData, type DaliurenSchool } from '@/legacy/daliurenEngine';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import type { ToolEnvelope } from '@/legacy/baseTypes';
 
@@ -35,16 +35,17 @@ const RELATION_TEXT: Record<string, string> = {
 export function LiurenWorkspace() {
   const { solarBirth } = useBirth();
   const [legacyReady] = useState(true); // 大六壬是纯 TS，不依赖 legacy 脚本加载
+  const [school, setSchool] = useState<DaliurenSchool>('classic');
 
-  const result = useMemo<{ envelope: ToolEnvelope<DaliurenResult> | null; loading: boolean }>(() => {
+  const result = useMemo<{ envelope: ToolEnvelope<DaliurenData> | null; loading: boolean }>(() => {
     try {
       const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
-      const env = calcDaliurenEnveloped({ birth: solarBirth, solar: solarEntry ?? null });
+      const env = calcDaliurenEnveloped({ birth: solarBirth, solar: solarEntry ?? null, school });
       return { envelope: env, loading: false };
     } catch {
       return { envelope: null, loading: false };
     }
-  }, [solarBirth]);
+  }, [solarBirth, school]);
 
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!result.envelope) return null;
@@ -77,12 +78,13 @@ export function LiurenWorkspace() {
   const contextPayload = useMemo(() => ({
     module: 'liuren',
     mode: data.mode,
+    school: data.school,
     birth: { year: solarBirth.year, gender: solarBirth.gender },
     dayGanZhi: basicInfo.dayGanZhi,
     hourGanZhi: basicInfo.hourGanZhi,
     geJu: `${sanChuan.geJu}·${sanChuan.geJuDetail}`,
     sanChuan: `${sanChuan.chuChuan.diZhi}→${sanChuan.zhongChuan.diZhi}→${sanChuan.moChuan.diZhi}`,
-  }), [data,, solarBirth, basicInfo, sanChuan]);
+  }), [data, solarBirth, basicInfo, sanChuan]);
 
   return (
     <section className="space-y-4">
@@ -117,6 +119,27 @@ export function LiurenWorkspace() {
               { label: '月将', value: `${tianDiPan.yueJiangName}（${tianDiPan.yueJiang}）` },
             ]}
           />
+          {/* 流派选择：天将顺逆/承将之位在历代文献中存在分歧，按需切换 */}
+          <InterpretationCard
+            title="天将流派"
+            subtitle={DALIUREN_SCHOOLS[school].name}
+            items={[]}
+          >
+            <div className="space-y-2">
+              <ControlField label="流派" hint="顺逆/承将之位分歧">
+                <select
+                  value={school}
+                  onChange={(e) => setSchool(e.target.value as DaliurenSchool)}
+                  className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+                >
+                  {(Object.keys(DALIUREN_SCHOOLS) as DaliurenSchool[]).map((s) => (
+                    <option key={s} value={s}>{DALIUREN_SCHOOLS[s].name}</option>
+                  ))}
+                </select>
+              </ControlField>
+              <p className="text-[11px] leading-5 text-jade-100/45">{DALIUREN_SCHOOLS[school].note}</p>
+            </div>
+          </InterpretationCard>
           <InterpretationCard
             title="神煞"
             items={[

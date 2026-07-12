@@ -153,12 +153,12 @@ function getDaHanDate(year: number, solar?: SolarLike | null): { year: number; m
   try {
     const s = solar.fromYmdHms
       ? solar.fromYmdHms(year, 1, 15, 0, 0, 0)
-      : solar.fromYmd(year, 1, 15);
+      : solar.fromYmd?.(year, 1, 15);
     const lunar = s && typeof s.getLunar === 'function' ? s.getLunar() : null;
     const table = lunar && typeof lunar.getJieQiTable === 'function' ? lunar.getJieQiTable() : null;
     if (!table) return null;
     const dahan = table['大寒'] || table.DA_HAN || table['Dahan'] || table['daHan'];
-    if (!dahan) return null;
+    if (!dahan || typeof dahan === 'string') return null;
     const dy = typeof dahan.getYear === 'function' ? dahan.getYear() : null;
     const dm = typeof dahan.getMonth === 'function' ? dahan.getMonth() : null;
     const dd = typeof dahan.getDay === 'function' ? dahan.getDay() : null;

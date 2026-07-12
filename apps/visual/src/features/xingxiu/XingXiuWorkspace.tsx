@@ -6,7 +6,7 @@ import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { XingXiuChart } from '@/components/shared/XingXiuChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
-import { calcXingXiuEnveloped, type XingXiuResult, type XingXiuEntry, type XiuMethod } from '@/legacy/xingxiuEngine';
+import { calcXingXiuEnveloped, type XingXiuData, type XingXiuEntry, type XiuMethod } from '@/legacy/xingxiuEngine';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import type { ToolEnvelope } from '@/legacy/baseTypes';
 
@@ -28,7 +28,7 @@ export function XingXiuWorkspace() {
 
   const [method, setMethod] = useState<XiuMethod>('rotational');
 
-  const result = useMemo<{ envelope: ToolEnvelope<XingXiuResult> | null }>(() => {
+  const result = useMemo<{ envelope: ToolEnvelope<XingXiuData> | null }>(() => {
     try {
       const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
       return { envelope: calcXingXiuEnveloped({ birth: solarBirth, solar: solarEntry ?? null, method }) };

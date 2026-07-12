@@ -9,7 +9,7 @@ import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import type { LiuyaoData } from '@/legacy/canvasRenderers';
 import type { LiuyaoLine } from '@/legacy/divinationTypes';
 import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
-import { calculateLiuyao as calculateLiuyaoPure, calcLiuyaoEnveloped } from '@/legacy/liuyaoEngine';
+import { calculateLiuyao as calculateLiuyaoPure, calcLiuyaoEnveloped, type LiuyaoInput } from '@/legacy/liuyaoEngine';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
@@ -151,8 +151,8 @@ export function LiuyaoWorkspace() {
     if (!ready) return null;
     try {
       const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
-      const input: { birth: typeof solarBirth; method: typeof method; question?: string; yaoValues?: string; seed?: number; solar: unknown } = {
-        solarBirth, method, solar: solarEntry ?? null,
+      const input: LiuyaoInput = {
+        birth: solarBirth, method, solar: (solarEntry ?? null) as never,
       };
       if (question) input.question = question;
       if (method === 'manual' && yaoValues) input.yaoValues = yaoValues.replace(/\s/g, '');

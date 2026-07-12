@@ -1,5 +1,8 @@
 export type WuxingStats = Record<'木' | '火' | '土' | '金' | '水', number>;
 
+/** 命理通用吉凶定调（吉/中/凶），供 combo 一致性检验与四层报告共用 */
+export type Tone = '吉' | '凶' | '中';
+
 // ──────────────────────────────────────────────────────────────────────
 //  ToolEnvelope —— 统一工具输出信封（借鉴 horosa-skill ToolEnvelope）
 //

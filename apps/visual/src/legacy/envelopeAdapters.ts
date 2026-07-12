@@ -63,7 +63,7 @@ export function calcXiYongEnveloped(
     { ...result, engineName: 'XiYongAdapter', mode: 'local', confidenceNote: result.confidenceNote },
     input,
     snapshot,
-  ) as ToolEnvelope<XiYongData>;
+  ) as unknown as ToolEnvelope<XiYongData>;
 }
 
 // ──────────────────────────────────────────────────────────────────────
@@ -105,7 +105,7 @@ export function calcNameRatingEnveloped(
     { ...result, engineName: 'NameRatingAdapter', mode: 'local', confidenceNote: result.confidenceNote },
     input,
     snapshot,
-  ) as ToolEnvelope<NameRatingData>;
+  ) as unknown as ToolEnvelope<NameRatingData>;
   if (analysis.hasUnrecorded) {
     env.warnings = [...(env.warnings ?? []), '姓名含未收录字，笔画为估算，评分仅供参考'];
   }
@@ -162,5 +162,5 @@ export function getConstitutionTendencyEnveloped(
     { ...result, engineName: 'ConstitutionTendencyAdapter', mode: 'local', confidenceNote: result.note },
     input,
     snapshot,
-  ) as ToolEnvelope<ConstitutionTendencyData>;
+  ) as unknown as ToolEnvelope<ConstitutionTendencyData>;
 }

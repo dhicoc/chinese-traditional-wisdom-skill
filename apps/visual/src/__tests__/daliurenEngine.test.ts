@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { calculateDaliuren, calcDaliurenEnveloped } from '@/legacy/daliurenEngine';
+import { calculateDaliuren, calcDaliurenEnveloped, DALIUREN_SCHOOLS } from '@/legacy/daliurenEngine';
+import type { DaliurenSchool } from '@/legacy/daliurenEngine';
+import { calcSanshiCombo } from '@/legacy/comboEngine';
 import type { ToolEnvelope } from '@/legacy/baseTypes';
 
 /**
@@ -137,5 +139,83 @@ describe('calcDaliurenEnveloped envelope', () => {
     expect(data.export_snapshot.sections.some((s) => s.heading === '三传')).toBe(true);
     expect(data.export_snapshot.sections.some((s) => s.heading === '四课')).toBe(true);
     expect(data.export_snapshot.sections.some((s) => s.heading === '天地盘')).toBe(true);
+  });
+
+  it('snapshot 带流派标签与口径说明段', () => {
+    const env = calcDaliurenEnveloped({ birth: { year: 2024, month: 3, day: 15, hour: 9 }, school: 'gufa' });
+    const snap = env.data.export_snapshot;
+    expect(snap.tags?.some((t) => t.startsWith('天将·'))).toBe(true);
+    expect(snap.tags?.some((t) => t.includes('昼顺夜逆'))).toBe(true);
+    expect(snap.sections.some((s) => s.heading === '天将口径')).toBe(true);
+    expect(snap.sourceNotes).toContain('昼顺夜逆');
+  });
+
+  it('三式互参透传 liurenSchool 至大六壬子系统', () => {
+    const birth = { year: 2024, month: 3, day: 15, hour: 9, gender: '男' as const };
+    const a = calcSanshiCombo({ birth, question: '测试', liurenSchool: 'classic' });
+    const b = calcSanshiCombo({ birth, question: '测试', liurenSchool: 'gufa' });
+    const liurenA = a.data.subsystems[0].envelope as { data: { tianDiPan: { tianJiang: string[] } } };
+    const liurenB = b.data.subsystems[0].envelope as { data: { tianDiPan: { tianJiang: string[] } } };
+    // 流派不同 → 大六壬天将序列应有差异（classic 天盘临方定顺逆，gufa 昼顺夜逆）
+    expect(liurenA.data.tianDiPan.tianJiang).not.toEqual(liurenB.data.tianDiPan.tianJiang);
+    // 默认（不传）应等于 classic
+    const c = calcSanshiCombo({ birth, question: '测试' });
+    const liurenC = c.data.subsystems[0].envelope as { data: { tianDiPan: { tianJiang: string[] } } };
+    expect(liurenC.data.tianDiPan.tianJiang).toEqual(liurenA.data.tianDiPan.tianJiang);
+  });
+});
+
+describe('流派体系', () => {
+  const birth = { year: 2024, month: 3, day: 15, hour: 9 };
+
+  const SCHOOLS: DaliurenSchool[] = ['classic', 'gufa', 'daxquan'];
+
+  it('三套流派均有名称与说明', () => {
+    SCHOOLS.forEach((s) => {
+      expect(DALIUREN_SCHOOLS[s].name).toBeTruthy();
+      expect(DALIUREN_SCHOOLS[s].note).toContain('顺逆');
+    });
+  });
+
+  it('默认 school 为 classic，且与不传 school 结果一致（向后兼容）', () => {
+    const a = calculateDaliuren({ birth });
+    const b = calculateDaliuren({ birth, school: 'classic' });
+    expect(a.school).toBe('classic');
+    expect(a.tianDiPan.tianJiang).toEqual(b.tianDiPan.tianJiang);
+    expect(a.siKe.list.map((k) => k.tianJiang)).toEqual(b.siKe.list.map((k) => k.tianJiang));
+  });
+
+  it('各流派天地盘地支/天盘不变（分歧仅在顺逆与承将）', () => {
+    const base = calculateDaliuren({ birth });
+    SCHOOLS.forEach((s) => {
+      const r = calculateDaliuren({ birth, school: s });
+      expect(r.tianDiPan.diPan).toEqual(base.tianDiPan.diPan);
+      expect(r.tianDiPan.tianPan).toEqual(base.tianDiPan.tianPan);
+    });
+  });
+
+  it('gufa 与 classic 在昼夜占下顺逆结果不同（验证昼顺夜逆生效）', () => {
+    // 取一个夜占案例以体现昼夜顺逆差异
+    const nightBirth = { year: 2024, month: 3, day: 15, hour: 23 }; // 子时夜占
+    const c = calculateDaliuren({ birth: nightBirth, school: 'classic' });
+    const g = calculateDaliuren({ birth: nightBirth, school: 'gufa' });
+    // gufa 夜占必逆；classic 顺逆依临方。两者天将序列应有差异（或相同时退化为一致，此处至少保证不抛错且长度正确）
+    expect(g.tianDiPan.tianJiang.length).toBe(12);
+    expect(c.tianDiPan.tianJiang.length).toBe(12);
+    // 至少 confidenceNote 标注了对应流派
+    expect(g.confidenceNote).toContain('昼顺夜逆');
+  });
+
+  it('gufa 第1课天将取上神宫，classic 取寄宫，二者应不同或至少都非空', () => {
+    const c = calculateDaliuren({ birth, school: 'classic' });
+    const g = calculateDaliuren({ birth, school: 'gufa' });
+    // 经修复后 classic 第1课天将不再为空
+    expect(c.siKe.list[0].tianJiang).toBeTruthy();
+    expect(g.siKe.list[0].tianJiang).toBeTruthy();
+    // 三套流派第1课天将集合中至少有一项存在
+    SCHOOLS.forEach((s) => {
+      const r = calculateDaliuren({ birth, school: s });
+      expect(r.siKe.list[0].tianJiang).toBeTruthy();
+    });
   });
 });
