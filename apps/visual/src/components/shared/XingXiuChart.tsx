@@ -42,27 +42,30 @@ const XIANG_SIDE: Record<string, 'top' | 'left' | 'right' | 'bottom'> = {
 export function XingXiuChart({ allXiu, zhiXiu, benMingXiu }: XingXiuChartProps) {
   const SIZE = 560;
   const CENTER = SIZE / 2;
-  // 每个宿格尺寸（56px：保证7格横排不与左右列重叠）
-  const CELL = 56;
+  // 每个宿格尺寸（52px：保证四边以CENTER对称且不与相邻边重叠）
+  const CELL = 52;
   const CELL_GAP = 4;
-  const TOTAL = 7 * CELL + 6 * CELL_GAP; // 416
-  // top/bottom 行起始位置 = 左列右边缘 + gap（避免四角重叠）
-  const SIDE_EDGE = CELL / 2 + 28; // 左右列中心 x/y
-  const ROW_START = SIDE_EDGE + CELL / 2 + CELL_GAP; // top/bottom 行起始中心
+  const TOTAL = 7 * CELL + 6 * CELL_GAP; // 388
+  const HALF = TOTAL / 2; // 194
+  const SIDE_EDGE = CELL / 2 + 28; // 左右列中心 = 54
+  // 四边都以 CENTER 为中心对称分布
+  const LINE_START = CENTER - HALF + CELL / 2; // 280-194+26 = 112... 不对
+  // 修正：起始中心 = CENTER - HALF + CELL/2
+  // top行7格中心: CENTER-HALF+CELL/2, ..., CENTER+HALF-CELL/2
+  // = 280-194+26=112 到 280+194-26=448, 中心=(112+448)/2=280 ✓
 
   // 按四象分组
   const groups: Record<string, XingXiuEntry[]> = {};
   for (const x of allXiu) (groups[x.xiang] ??= []).push(x);
 
-  // 每宿位置（格中心）
+  // 每宿位置（格中心）——四边都以CENTER对称
   function getCellCenter(xiang: string, i: number): { x: number; y: number } {
-    const rowOffset = ROW_START + i * (CELL + CELL_GAP);
-    const colOffset = CENTER - TOTAL / 2 + i * (CELL + CELL_GAP) + CELL / 2;
+    const offset = CENTER - HALF + CELL / 2 + i * (CELL + CELL_GAP);
     switch (XIANG_SIDE[xiang]) {
-      case 'top': return { x: rowOffset, y: SIDE_EDGE };
-      case 'bottom': return { x: rowOffset, y: SIZE - SIDE_EDGE };
-      case 'left': return { x: SIDE_EDGE, y: colOffset };
-      case 'right': return { x: SIZE - SIDE_EDGE, y: colOffset };
+      case 'top': return { x: offset, y: SIDE_EDGE };
+      case 'bottom': return { x: offset, y: SIZE - SIDE_EDGE };
+      case 'left': return { x: SIDE_EDGE, y: offset };
+      case 'right': return { x: SIZE - SIDE_EDGE, y: offset };
     }
   }
 
