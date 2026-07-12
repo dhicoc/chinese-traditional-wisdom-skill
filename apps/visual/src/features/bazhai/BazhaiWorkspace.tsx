@@ -148,8 +148,6 @@ export function BazhaiWorkspace() {
             </select>
           </ControlField>
 
-          <ControlField label="流年" hint="八宅+飞星合参年份" type="number" min={1900} max={2100} inputMode="numeric" value={flowYear} onChange={(event) => setFlowYear(Number.parseInt(event.target.value, 10) || 2026)} />
-
           <div className="rounded-card border border-white/8 bg-white/[0.035] p-4">
             <p className="text-sm font-semibold text-jade-100">命卦</p>
             {summary ? (
@@ -245,11 +243,22 @@ export function BazhaiWorkspace() {
 
           {combo && (
             <div className="rounded-card border border-gold-500/25 bg-gold-500/6 p-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <p className="text-sm font-semibold text-jade-100">八宅 + 飞星合参</p>
-                <span className="text-[10px] text-gold-400">{flowYear}流年</span>
+                <label className="flex items-center gap-1 text-[11px] text-gold-400">
+                  流年
+                  <input
+                    type="number"
+                    min={1900}
+                    max={2100}
+                    inputMode="numeric"
+                    value={flowYear}
+                    onChange={(event) => setFlowYear(Number.parseInt(event.target.value, 10) || 2026)}
+                    className="w-20 rounded border border-gold-500/25 bg-ink-900/70 px-2 py-0.5 text-xs text-gold-200 outline-none focus:border-gold-500/50"
+                  />
+                </label>
               </div>
-              <p className="mt-1 text-[11px] text-jade-100/45">个人命卦方位（静态）与流年飞星方位（动态）交叉分析</p>
+              <p className="mt-1 text-[11px] text-jade-100/45">个人命卦方位（静态）与流年飞星方位（动态）交叉分析 · 流年仅影响本卡片，不改命卦命盘</p>
               <div className="mt-2 grid grid-cols-2 gap-1.5 text-xs">
                 <div className="flex justify-between rounded bg-jade-500/8 px-2 py-1"><span className="text-jade-300">个人生气位</span><span className="text-jade-100/80">{combo.shengqiDirection}方</span></div>
                 <div className="flex justify-between rounded bg-jade-500/8 px-2 py-1"><span className="text-jade-300">流年财位</span><span className="text-jade-100/80">{combo.caiweiDirection}方</span></div>
