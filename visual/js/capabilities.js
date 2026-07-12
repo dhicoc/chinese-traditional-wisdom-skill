@@ -316,7 +316,11 @@
       "h1{font-size:24px}h2{font-size:17px;color:#5D4037}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}.item{background:#FAFAF7;border-left:3px solid #D4A017;padding:10px;border-radius:4px}pre{white-space:pre-wrap;background:#2C1810;color:#F5F0EB;padding:12px;border-radius:6px;overflow:auto}" +
       "</style></head><body><div class=\"wrap\">" +
       "<h1>" + title + "</h1><p>生成时间：" + reportData.generatedAt + "；脱敏标识：" + reportData.subject.label + "</p>" +
-      "<div class=\"card\"><h2>能力说明</h2><ul>" + renderSourceNotes(notes) + "</ul></div>" +
+      "<div class=\"card\"><h2>使用说明</h2><ul>" +
+      "<li>本报告为传统文化视角的参考分析，非绝对预测，请理性看待。</li>" +
+      "<li>命理建议为参考维度，不替代理性决策；健康问题请咨询专业医师。</li>" +
+      "<li>导出数据已脱敏，不包含完整出生日期、姓名或地点。</li>" +
+      "</ul></div>" +
       "<div class=\"card\"><h2>八字四柱</h2><div class=\"grid\">" +
       ["年柱", "月柱", "日柱", "时柱"].map(function (name, i) {
         return "<div class=\"item\"><b>" + name + "</b><br>" + pillars[i] + "</div>";
