@@ -53,7 +53,7 @@ describe('Solar 参数化', () => {
         }),
       }),
     };
-    const r = calculateXingXiu({ birth: { year: 2024, month: 3, day: 15 }, solar: fakeSolar as never });
+    const r = calculateXingXiu({ birth: { year: 2024, month: 3, day: 15 }, solar: fakeSolar as never, method: 'lookup' });
     expect(r.mode).toBe('local-exact');
     expect(r.zhiXiu).toBe('牛');
     expect(r.zhiXiuFull).toBe('牛金牛');
@@ -62,9 +62,9 @@ describe('Solar 参数化', () => {
     expect(r.song).toContain('牛星造作');
   });
 
-  it('不传 solar 走近似路径', () => {
+  it('默认轮转法不传 solar 也走 local-exact', () => {
     const r = calculateXingXiu({ birth: { year: 2024, month: 3, day: 15 } });
-    expect(r.mode).toBe('local-approx');
+    expect(r.mode).toBe('local-exact');
     expect(r.zhiXiu).toHaveLength(1);
   });
 

@@ -164,7 +164,7 @@ function calcXiuByRotation(year: number, month: number, day: number): string {
 // ─── 主入口 ───
 
 export function calculateXingXiu(input: XingXiuInput): XingXiuResult {
-  const { birth, solar, method = 'lookup' } = input;
+  const { birth, solar, method = 'rotational' } = input;
   let zhiXiu = '';
   let luck = '';
   let song = '';

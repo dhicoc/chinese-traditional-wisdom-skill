@@ -26,7 +26,7 @@ const XIANG_COLOR: Record<string, string> = {
 export function XingXiuWorkspace() {
   const { birth } = useBirth();
 
-  const [method, setMethod] = useState<XiuMethod>('lookup');
+  const [method, setMethod] = useState<XiuMethod>('rotational');
 
   const result = useMemo<{ envelope: ToolEnvelope<XingXiuResult> | null }>(() => {
     try {
