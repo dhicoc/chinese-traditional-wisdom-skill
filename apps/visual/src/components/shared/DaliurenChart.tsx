@@ -227,7 +227,7 @@ export function DaliurenChart({
         { label: '中传', chuan: sanChuan.zhongChuan },
         { label: '末传', chuan: sanChuan.moChuan },
       ].map(({ label, chuan }, i) => {
-        const chW = 120;
+        const chW = 130;
         const chGap = 12;
         const chTotalW = 3 * chW + 2 * chGap;
         const cx = PAN_CENTER - chTotalW / 2 + i * (chW + chGap) + chW / 2;
@@ -239,18 +239,20 @@ export function DaliurenChart({
               x={cx - chW / 2}
               y={cy}
               width={chW}
-              height={56}
+              height={60}
               rx="6"
               fill="rgba(212,175,55,0.08)"
               stroke="rgba(212,175,55,0.25)"
               strokeWidth="0.8"
             />
             <text x={cx} y={cy + 14} textAnchor="middle" fill="rgba(212,175,55,0.5)" fontSize="10">{label}</text>
-            <text x={cx - 20} y={cy + 34} textAnchor="middle" fill="#e8c547" fontSize="16" fontWeight="700" fontFamily={SERIF}>{chuan.diZhi}</text>
-            <text x={cx + 8} y={cy + 30} textAnchor="middle" fill="rgba(60,140,120,0.5)" fontSize="9">{JIANG_FULL[chuan.tianJiang] ?? chuan.tianJiang}</text>
-            <text x={cx + 8} y={cy + 42} textAnchor="middle" fill="rgba(200,216,208,0.4)" fontSize="9">{chuan.liuQin}</text>
+            {/* 地支居中大字 */}
+            <text x={cx} y={cy + 36} textAnchor="middle" fill="#e8c547" fontSize="16" fontWeight="700" fontFamily={SERIF}>{chuan.diZhi}</text>
+            {/* 天将+六亲 在地支下方 */}
+            <text x={cx - 18} y={cy + 50} textAnchor="middle" fill="rgba(60,140,120,0.5)" fontSize="9">{JIANG_FULL[chuan.tianJiang] ?? chuan.tianJiang}</text>
+            <text x={cx + 18} y={cy + 50} textAnchor="middle" fill="rgba(200,216,208,0.4)" fontSize="9">{chuan.liuQin}</text>
             {chuan.xunKong && (
-              <text x={cx + 28} y={cy + 34} textAnchor="middle" fill="#e0504a" fontSize="9">空</text>
+              <text x={cx + chW / 2 - 8} y={cy + 14} textAnchor="middle" fill="#e0504a" fontSize="8">空</text>
             )}
           </g>
         );
