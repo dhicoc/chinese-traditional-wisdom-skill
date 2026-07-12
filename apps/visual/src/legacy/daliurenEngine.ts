@@ -538,9 +538,12 @@ function resolveDaliurenInput(birth: DaliurenBirth, solar?: SolarLike | null): {
       if (lunar) {
         const dayGz = callFirst(lunar, ['getDayInGanZhiExact', 'getDayInGanZhi', 'getDayGanZhi']);
         const hourGz = callFirst(lunar, ['getTimeInGanZhiExact', 'getTimeInGanZhi', 'getTimeGanZhi']);
-        // 节气：lunar-javascript 提供 getJieQiPre（当前节气）或 getJieQiTable
+        // 节气：lunar-javascript 没有 getJieQiPre，getJieQi 只返回当日节气点（非当天则空）
+        // 用 getJieQiTable + 日期比较找当前所处节气
         let jieqi = '';
-        if (typeof lunar.getJieQiPre === 'function') jieqi = lunar.getJieQiPre();
+        if (typeof lunar.getJieQiTable === 'function') {
+          jieqi = jieqiFromTable(lunar.getJieQiTable(), birth);
+        }
         if (!jieqi && typeof lunar.getJieQi === 'function') jieqi = lunar.getJieQi();
         if (dayGz && hourGz) return { jieqi, dayGanZhi: dayGz, hourGanZhi: hourGz, mode: 'local-exact' };
       }
@@ -554,6 +557,30 @@ function resolveDaliurenInput(birth: DaliurenBirth, solar?: SolarLike | null): {
   const hourGz = approxHourGanZhi(dayGz, hourIdx);
   const jieqi = approxJieqi(birth.month, birth.day);
   return { jieqi, dayGanZhi: dayGz, hourGanZhi: hourGz, mode: 'local-approx' };
+}
+
+/** 从 lunar-javascript getJieQiTable() 结果找当前日期所处节气。
+ *  jieQiTable 含中文名节气（如"芒种"）和英文名（如"MANG_ZHONG"），只取中文节气名。
+ */
+function jieqiFromTable(table: Record<string, unknown>, birth: { year: number; month: number; day: number }): string {
+  if (!table) return '';
+  const today = new Date(birth.year, birth.month - 1, birth.day);
+  const entries: Array<{ name: string; date: Date }> = [];
+  for (const [name, value] of Object.entries(table)) {
+    // 只取中文节气名（含中文字符的 key）
+    if (!/[一-鿿]/.test(name)) continue;
+    let d: Date | null = null;
+    if (value instanceof Date) d = value;
+    else if (typeof value === 'string') d = new Date(value);
+    else if (value && typeof value === 'object' && 'getFullYear' in (value as object)) d = value as unknown as Date;
+    if (d) entries.push({ name, date: d });
+  }
+  entries.sort((a, b) => a.date.getTime() - b.date.getTime());
+  let current = '';
+  for (const e of entries) {
+    if (e.date <= today) current = e.name;
+  }
+  return current;
 }
 
 function approxDayGanZhi(year: number, month: number, day: number): string {

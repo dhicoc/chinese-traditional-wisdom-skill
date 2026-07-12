@@ -109,7 +109,12 @@ describe('确定性 + Solar 参数化', () => {
         getLunar: () => ({
           getDayInGanZhiExact: () => '丁酉',
           getTimeInGanZhiExact: () => '甲辰',
-          getJieQiPre: () => '惊蛰',
+          getJieQiTable: () => ({
+            '立春': new Date(2024, 1, 4),
+            '雨水': new Date(2024, 1, 19),
+            '惊蛰': new Date(2024, 2, 5),
+            '春分': new Date(2024, 2, 20),
+          }),
         }),
       }),
     };
