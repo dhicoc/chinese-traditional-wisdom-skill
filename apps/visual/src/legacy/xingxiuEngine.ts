@@ -143,6 +143,8 @@ export interface XingXiuBirth {
   year: number;
   month: number;
   day: number;
+  /** 是否农历（true=农历输入需转公历，false/undefined=公历） */
+  isLunar?: boolean;
 }
 
 /** 值宿算法：日支星期查表法（lunar-javascript默认）或连续轮转法（部分网站用） */
@@ -217,7 +219,18 @@ export function calculateXingXiu(input: XingXiuInput): XingXiuResult {
   const entry = XINGXIU_DATA[zhiXiu] ?? XINGXIU_DATA['角'];
 
   // 本命星宿 = 出生日的值宿（用 birth 日期算，和当日值宿分开）
-  const benMingXiuName = calcXiuByRotation(birth.year, birth.month, birth.day);
+  // 如果 birth 是农历，先转公历再算轮转法
+  let birthY = birth.year, birthM = birth.month, birthD = birth.day;
+  if (birth.isLunar) {
+    try {
+      const w = (typeof window !== 'undefined' ? window : globalThis) as unknown as { Lunar?: { fromYmd: (y: number, m: number, d: number) => { getSolar: () => { getYear: () => number; getMonth: () => number; getDay: () => number } } } };
+      if (w.Lunar) {
+        const s = w.Lunar.fromYmd(birth.year, birth.month, birth.day).getSolar();
+        birthY = s.getYear(); birthM = s.getMonth(); birthD = s.getDay();
+      }
+    } catch { /* 用原始日期 */ }
+  }
+  const benMingXiuName = calcXiuByRotation(birthY, birthM, birthD);
   const benMingEntry = XINGXIU_DATA[benMingXiuName] ?? XINGXIU_DATA['角'];
 
   return {
