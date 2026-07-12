@@ -120,10 +120,6 @@ function calculateZiweiData(birth: BirthData, ready: boolean): ZiweiData {
   return buildFallbackZiweiData(birth, mingGua);
 }
 
-function getModeLabel(data: ZiweiData) {
-  if (data.mode === 'local-exact') return '真实排盘 · iztro v2.5.8';
-  return '降级演示 · 等待 adapter';
-}
 
 export function ZiweiWorkspace() {
   const { birth } = useBirth();
@@ -175,8 +171,7 @@ export function ZiweiWorkspace() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">紫微斗数</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              React 侧不再自造紫微结论：页面读取顶部全局生辰，优先通过旧 EngineAdapterRegistry 调用
-              基于 SylarLong/iztro v2.5.8 真实十二宫排盘。
+              紫微斗数排盘：读取顶部全局生辰，排出十二宫、十四主星、四化与庙旺利得，据命宫主星与四化解读命局。
             </p>
           </div>
           <div className="flex gap-2">

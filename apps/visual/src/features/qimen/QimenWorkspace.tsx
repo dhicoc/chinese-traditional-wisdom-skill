@@ -132,7 +132,7 @@ export function QimenWorkspace() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">奇门遁甲</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              3meta v2.6.0 时家奇门排盘（拆补法）：三奇六仪、九星、八门、八神、值符值使、空亡马星、旺相休囚、十二长生、吉凶格局自动检测。文化学习参考。
+              时家奇门排盘：三奇六仪、九星、八门、八神、值符值使、空亡马星、旺相休囚、十二长生、吉凶格局自动检测。文化学习参考。
             </p>
           </div>
           <div className="flex gap-2">
@@ -159,7 +159,7 @@ export function QimenWorkspace() {
           <div className="grid gap-4 md:grid-cols-2">
             <InterpretationCard
               title="排盘概要"
-              badge={result.mode === 'local-exact' ? '3meta 真实排盘' : '简化排盘'}
+              badge={result.mode === 'local-exact' ? '真实排盘' : '简化排盘'}
               items={[
                 { label: '阴阳遁', value: result.dun },
                 { label: '局数', value: result.ju },
@@ -187,7 +187,6 @@ export function QimenWorkspace() {
                 ...(result.inauspiciousPatterns.length > 0
                   ? [{ label: '凶格', value: result.inauspiciousPatterns.join('、') }]
                   : [{ label: '凶格', value: '无' }]),
-                { label: '说明', value: result.confidenceNote },
               ]}
             />
           </div>

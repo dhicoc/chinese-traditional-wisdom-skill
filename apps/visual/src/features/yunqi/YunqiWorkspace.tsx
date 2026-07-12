@@ -85,7 +85,7 @@ export function YunqiWorkspace() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">五运六气</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              基于内置 lunar-javascript 精确历法推算岁运、司天在泉与客气六步。
+              按大寒定年推算岁运、司天在泉与客气六步，结合客主加临看气候与疾病倾向。
             </p>
           </div>
           <div className="flex gap-2">
