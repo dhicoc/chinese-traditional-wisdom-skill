@@ -67,6 +67,29 @@ describe('Solar 参数化', () => {
     expect(r.mode).toBe('local-approx');
     expect(r.zhiXiu).toHaveLength(1);
   });
+
+  it('轮转法 2004-7-30 = 斗木獬（对齐 bmcx）', () => {
+    const r = calculateXingXiu({ birth: { year: 2004, month: 7, day: 30 }, method: 'rotational' });
+    expect(r.zhiXiu).toBe('斗');
+    expect(r.zhiXiuFull).toBe('斗木獬');
+    expect(r.xiang).toBe('北方玄武');
+  });
+
+  it('查表法 2004-7-30 = 牛金牛（lunar-javascript默认）', () => {
+    const fakeSolar = {
+      fromYmdHms: () => ({
+        getLunar: () => ({
+          getXiu: () => '牛',
+          getXiuLuck: () => '凶',
+          getXiuSong: () => '牛星造作主灾危',
+          getDayInGanZhiExact: () => '庚戌',
+        }),
+      }),
+    };
+    const r = calculateXingXiu({ birth: { year: 2004, month: 7, day: 30 }, solar: fakeSolar as never, method: 'lookup' });
+    expect(r.zhiXiu).toBe('牛');
+    expect(r.zhiXiuFull).toBe('牛金牛');
+  });
 });
 
 describe('calcXingXiuEnveloped envelope', () => {

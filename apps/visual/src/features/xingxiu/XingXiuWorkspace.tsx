@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
@@ -6,7 +6,7 @@ import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { XingXiuChart } from '@/components/shared/XingXiuChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
-import { calcXingXiuEnveloped, type XingXiuResult, type XingXiuEntry } from '@/legacy/xingxiuEngine';
+import { calcXingXiuEnveloped, type XingXiuResult, type XingXiuEntry, type XiuMethod } from '@/legacy/xingxiuEngine';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import type { ToolEnvelope } from '@/legacy/baseTypes';
 
@@ -26,14 +26,16 @@ const XIANG_COLOR: Record<string, string> = {
 export function XingXiuWorkspace() {
   const { birth } = useBirth();
 
+  const [method, setMethod] = useState<XiuMethod>('lookup');
+
   const result = useMemo<{ envelope: ToolEnvelope<XingXiuResult> | null }>(() => {
     try {
       const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
-      return { envelope: calcXingXiuEnveloped({ birth, solar: solarEntry ?? null }) };
+      return { envelope: calcXingXiuEnveloped({ birth, solar: solarEntry ?? null, method }) };
     } catch {
       return { envelope: null };
     }
-  }, [birth]);
+  }, [birth, method]);
 
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!result.envelope) return null;
@@ -81,9 +83,27 @@ export function XingXiuWorkspace() {
               中国古代天文学二十八宿体系：按四象分组，每日值宿轮转，主吉凶宜忌与择日参考。
             </p>
           </div>
-          <div className="flex gap-2">
-            <CopyContextButton commandScope="xingxiu" title="二十八星宿上下文" payload={contextPayload} />
-            <ExportReportButton module="二十八星宿" />
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex gap-2">
+              <CopyContextButton commandScope="xingxiu" title="二十八星宿上下文" payload={contextPayload} />
+              <ExportReportButton module="二十八星宿" />
+            </div>
+            <div className="flex items-center gap-1 rounded-full border border-white/10 bg-black/30 p-0.5">
+              <button
+                type="button"
+                onClick={() => setMethod('lookup')}
+                className={`rounded-full px-2.5 py-1 text-[10px] font-medium transition ${method === 'lookup' ? 'bg-jade-500/20 text-jade-300' : 'text-jade-100/40 hover:text-jade-100/60'}`}
+              >
+                查表法
+              </button>
+              <button
+                type="button"
+                onClick={() => setMethod('rotational')}
+                className={`rounded-full px-2.5 py-1 text-[10px] font-medium transition ${method === 'rotational' ? 'bg-jade-500/20 text-jade-300' : 'text-jade-100/40 hover:text-jade-100/60'}`}
+              >
+                轮转法
+              </button>
+            </div>
           </div>
         </div>
       </div>
