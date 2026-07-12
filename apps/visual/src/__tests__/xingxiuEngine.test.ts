@@ -15,6 +15,11 @@ describe('calculateXingXiu 结构验证', () => {
     expect(['东方青龙', '南方朱雀', '西方白虎', '北方玄武']).toContain(r.xiang);
     expect(['吉', '凶', '—']).toContain(r.luck);
     expect(r.allXiu.length).toBe(28);
+    // 本命星宿
+    expect(r.benMingXiu).toHaveLength(1);
+    expect(r.benMingXiuFull).toBeTruthy();
+    expect(['东方青龙', '南方朱雀', '西方白虎', '北方玄武']).toContain(r.benMingXiang);
+    expect(r.benMingSymbol).toBeTruthy();
   });
 
   it('二十八宿全表含所有宿', () => {

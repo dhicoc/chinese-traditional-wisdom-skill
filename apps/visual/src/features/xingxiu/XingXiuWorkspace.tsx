@@ -99,6 +99,12 @@ export function XingXiuWorkspace() {
             </span>
             <p className="mt-2 text-xs text-jade-100/45">{data.symbol}</p>
           </div>
+          <div className="rounded-card border border-purple-500/25 bg-purple-500/8 p-4 text-center">
+            <p className="text-xs text-purple-400/60">本命星宿</p>
+            <p className="mt-2 font-serif text-2xl text-purple-200">{data.benMingXiuFull}</p>
+            <p className="mt-1 text-sm" style={{ color: XIANG_COLOR[data.benMingXiang] ?? '#888' }}>{data.benMingXiang}</p>
+            <p className="mt-2 text-xs text-jade-100/45">{data.benMingSymbol}</p>
+          </div>
           <InterpretationCard
             title="宜忌"
             items={[

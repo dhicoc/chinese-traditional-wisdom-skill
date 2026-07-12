@@ -120,6 +120,12 @@ export interface XingXiuResult {
   ji: string;
   /** 日干支 */
   dayGanZhi: string;
+  /** 本命星宿（出生日值宿，决定性格倾向） */
+  benMingXiu: string;
+  benMingXiuFull: string;
+  benMingXiang: string;
+  benMingSymbol: string;
+  benMingLuck: string;
   /** 二十八宿全表（供可视化） */
   allXiu: XingXiuEntry[];
   engineName: string;
@@ -200,6 +206,12 @@ export function calculateXingXiu(input: XingXiuInput): XingXiuResult {
     yi: entry.yi,
     ji: entry.ji,
     dayGanZhi,
+    // 本命星宿 = 出生日值宿（同一天）
+    benMingXiu: zhiXiu,
+    benMingXiuFull: entry.fullName,
+    benMingXiang: entry.xiang,
+    benMingSymbol: entry.symbol,
+    benMingLuck: luck,
     allXiu: XIU_ORDER.map((n) => XINGXIU_DATA[n]).filter(Boolean),
     engineName: 'XingXiuEngine',
     mode,
@@ -215,13 +227,14 @@ export interface XingXiuData extends XingXiuResult {
 
 export function calcXingXiuEnveloped(input: XingXiuInput): ToolEnvelope<XingXiuData> {
   const result = calculateXingXiu(input);
-  const { zhiXiuFull, xiang, luck, yi, ji, symbol } = result;
+  const { zhiXiuFull, xiang, luck, yi, ji, symbol, benMingXiuFull, benMingXiang, benMingSymbol } = result;
 
   const snapshot: ExportSnapshot = {
-    summary: `${zhiXiuFull}（${xiang}）值日，${luck}。宜${yi}；忌${ji}。${symbol}。`,
-    tags: ['二十八星宿', zhiXiuFull, xiang, result.wuxing + '宿', luck],
+    summary: `${zhiXiuFull}（${xiang}）值日，${luck}。宜${yi}；忌${ji}。本命星宿${benMingXiuFull}（${benMingXiang}）。${symbol}。`,
+    tags: ['二十八星宿', zhiXiuFull, xiang, result.wuxing + '宿', luck, '本命' + benMingXiuFull],
     sections: [
       { heading: '值日宿', body: `${zhiXiuFull}（${xiang}），五行${result.wuxing}，七曜${result.yao}，禽星${result.animal}。${symbol}。` },
+      { heading: '本命星宿', body: `${benMingXiuFull}（${benMingXiang}）。${benMingSymbol}。本命星宿由出生日值宿决定，影响性格倾向与人生主题。` },
       { heading: '吉凶宜忌', body: `${luck}。宜：${yi}。忌：${ji}。` },
       { heading: '西方对应', body: result.western },
       ...(result.song ? [{ heading: '歌诀', body: result.song }] : []),
