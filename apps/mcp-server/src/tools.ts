@@ -20,7 +20,7 @@ import { calcBaziEnveloped } from '../../visual/src/legacy/baziEngine';
 import { calcZiweiEnveloped } from '../../visual/src/legacy/ziweiEngine';
 import { calcQimenEnveloped } from '../../visual/src/legacy/qimenEngine';
 import { calcDaliurenEnveloped } from '../../visual/src/legacy/daliurenEngine';
-import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo } from '../../visual/src/legacy/comboEngine';
+import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo, calcSanshiCombo } from '../../visual/src/legacy/comboEngine';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
 const solarEntry: unknown = (() => {
@@ -207,6 +207,19 @@ export const TOOLS: ToolDef[] = [
       birth: (i as { birth: unknown }).birth as never,
       targetYear: (i as { targetYear?: number }).targetYear,
       facing: (i as { facing?: string }).facing,
+      solar: solarEntry,
+    }),
+  },
+  {
+    name: 'combo_sanshi',
+    description: '三式互参联合分析：大六壬 + 奇门遁甲 + 梅花易数。传统三式交叉验证——大六壬主三传四课（事态轨迹+应期），奇门主八门九星（方位时机），梅花主体用生克（快速判断）。需提供求测事项。',
+    schema: z.object({
+      birth: birthSchema,
+      question: z.string().min(1).describe('求测事项'),
+    }),
+    handler: (i) => calcSanshiCombo({
+      birth: (i as { birth: unknown }).birth as never,
+      question: (i as { question: string }).question,
       solar: solarEntry,
     }),
   },

@@ -11,6 +11,7 @@ import {
   calcAnnualFortuneCombo,
   calcDecisionCombo,
   calcSpaceTimeCombo,
+  calcSanshiCombo,
   type ComboResult,
 } from '@/legacy/comboEngine';
 import type { ToolEnvelope } from '@/legacy/baseTypes';
@@ -26,7 +27,7 @@ import type { ToolEnvelope } from '@/legacy/baseTypes';
  * 用全局生辰调对应 combo 函数，结果用 FourLayerReport 四层渲染 + 子系统卡片 + 一致性徽章。
  */
 
-type ComboType = 'annual' | 'decision' | 'space';
+type ComboType = 'annual' | 'decision' | 'space' | 'sanshi';
 
 const COMBO_OPTIONS: Array<{
   key: ComboType;
@@ -37,6 +38,7 @@ const COMBO_OPTIONS: Array<{
   { key: 'annual', label: '年度综合运势', desc: '八字 + 五运六气 + 奇门 + 命卦方位', icon: '运' },
   { key: 'decision', label: '事件决策', desc: '六爻 + 梅花 + 奇门 三卜交叉验证', icon: '决' },
   { key: 'space', label: '空间 + 时间', desc: '飞星 + 八宅命卦 + 奇门吉方布局', icon: '堪' },
+  { key: 'sanshi', label: '三式互参', desc: '大六壬 + 奇门 + 梅花 传统三式', icon: '式' },
 ];
 
 function getSolarEntry(): unknown {
@@ -61,6 +63,9 @@ export function ComboWorkspace() {
       }
       if (comboType === 'decision') {
         return { envelope: calcDecisionCombo({ birth: birthInput, question, solar }), loading: false };
+      }
+      if (comboType === 'sanshi') {
+        return { envelope: calcSanshiCombo({ birth: birthInput, question, solar }), loading: false };
       }
       return { envelope: calcSpaceTimeCombo({ birth: birthInput, targetYear, solar }), loading: false };
     } catch {
@@ -93,7 +98,7 @@ export function ComboWorkspace() {
       </div>
 
       {/* combo 类型选择 */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {COMBO_OPTIONS.map((opt) => (
           <button
             key={opt.key}
@@ -143,7 +148,7 @@ export function ComboWorkspace() {
               />
             </label>
           )}
-          {comboType === 'decision' && (
+          {(comboType === 'decision' || comboType === 'sanshi') && (
             <label className="flex flex-col gap-1 text-sm">
               <span className="text-jade-100/55">求测事项</span>
               <input

@@ -20,6 +20,7 @@ import { calcYunqiEnveloped } from './yunqiEngine';
 import { calcQimenEnveloped } from './qimenEngine';
 import { calcLiuyaoEnveloped } from './liuyaoEngine';
 import { calcMeihuaEnveloped } from './meihuaEngine';
+import { calcDaliurenEnveloped } from './daliurenEngine';
 import { calcMingGua, getPersonalDirections, combineBazhaiFeixing, type MingGua } from './bazhaiHouse';
 import { getYuanYun, MING_GUA_DIRECTIONS } from './flyingStarRemedies';
 
@@ -378,5 +379,96 @@ export function calcSpaceTimeCombo(input: SpaceTimeComboInput): ToolEnvelope<Com
     input_normalized: input as unknown as Record<string, unknown>,
     data: result,
     warnings: [result.confidenceNote],
+  };
+}
+
+// ─── Combo 4: 三式互参（大六壬 + 奇门 + 梅花）───
+
+export interface SanshiComboInput {
+  birth: BirthInput;
+  /** 求测事项 */
+  question: string;
+  solar?: SolarLike | null;
+}
+
+/**
+ * 三式互参 = 大六壬 + 奇门遁甲 + 梅花易数
+ * 大六壬重三传四课（事态轨迹+应期），奇门重八门九星（方位择吉），梅花重体用生克（快速判断）。
+ * 三式各有所长，交叉验证：同向→高置信，分歧→权衡。
+ */
+export function calcSanshiCombo(input: SanshiComboInput): ToolEnvelope<ComboResult> {
+  const { birth, question, solar } = input;
+
+  const liurenEnv = calcDaliurenEnveloped({ birth, solar: solar ?? null });
+  const qimenEnv = calcQimenEnveloped({ birth, question });
+  const meihuaEnv = calcMeihuaEnveloped({ birth, method: 'time', solar: solar ?? null });
+
+  const subsystems: SubsystemResult[] = [
+    { name: '大六壬', tone: toneFromEnvelope(liurenEnv), summary: summaryFromEnvelope(liurenEnv), envelope: liurenEnv },
+    { name: '奇门遁甲', tone: toneFromEnvelope(qimenEnv), summary: summaryFromEnvelope(qimenEnv), envelope: qimenEnv },
+    { name: '梅花易数', tone: toneFromEnvelope(meihuaEnv), summary: summaryFromEnvelope(meihuaEnv), envelope: meihuaEnv },
+  ];
+  const consistency = checkConsistency(subsystems);
+
+  // 三式各有所长：大六壬主断事态过程与应期
+  const liurenTone = subsystems[0].tone;
+  let synthesis = `针对「${question}」的三式互参：大六壬${toneWord(liurenTone)}（三传四课主事态轨迹）、奇门${toneWord(subsystems[1].tone)}（八门九星主方位时机）、梅花${toneWord(subsystems[2].tone)}（体用生克主快速判断）。`;
+  if (consistency.aligned) {
+    synthesis += `三式方向一致，结论可信度${consistency.confidence}。`;
+  } else {
+    synthesis += `三式有分歧，以大六壬三传为主、奇门梅花为辅参考。分歧：${consistency.conflicts.join('；')}。`;
+  }
+
+  const recommendations: ComboResult['recommendations'] = [];
+  if (liurenTone === '吉') {
+    recommendations.push({ label: '事态可成', value: '大六壬三传吉，事态发展有利，宜把握时机推进。', tone: '吉' });
+  } else if (liurenTone === '凶') {
+    recommendations.push({ label: '宜缓宜守', value: '大六壬三传凶，事态有阻，宜暂缓观望、避免强求。', tone: '凶' });
+  } else {
+    recommendations.push({ label: '平稳推进', value: '大六壬三传平稳，可按既定计划进行，无需强求。', tone: '中' });
+  }
+  // 奇门方位建议
+  const qimenData = qimenEnv.data as { palaces: Array<{ trigram: string; gate: string }> };
+  const auspiciousGates = qimenData.palaces?.filter((p) => ['开门', '生门', '休门'].includes(p.gate)) ?? [];
+  if (auspiciousGates.length > 0) {
+    recommendations.push({ label: '方位借力', value: `奇门吉门在${auspiciousGates.map((g) => g.trigram + '宫').join('、')}，可择吉方行事。`, tone: '吉' });
+  }
+  recommendations.push({ label: '心态', value: '三式为传统占断参考，决策仍需结合现实条件与理性判断。', tone: '中' });
+
+  const snapshot: ExportSnapshot = {
+    summary: synthesis,
+    tags: ['三式互参', '大六壬+奇门+梅花', `置信度${consistency.confidence}`],
+    sections: [
+      { heading: '整合结论', body: synthesis },
+      { heading: '大六壬', body: subsystems[0].summary },
+      { heading: '奇门遁甲', body: subsystems[1].summary },
+      { heading: '梅花易数', body: subsystems[2].summary },
+      { heading: '一致性检验', body: consistency.aligned ? `三式同向，置信度${consistency.confidence}。` : `有分歧：${consistency.conflicts.join('；')}。以大六壬为主。` },
+      { heading: '行动建议', body: recommendations.map((r) => `【${r.label}】${r.value}`).join('\n') },
+    ],
+    sourceNotes: '三式互参为传统占断参考，非绝对预言，决策请结合现实理性判断。',
+  };
+
+  const result: ComboResult = {
+    comboName: '三式互参',
+    purpose: '大六壬+奇门遁甲+梅花易数 三式交叉验证某事的吉凶、应期与方位',
+    inputs: { birth: { year: birth.year, gender: birth.gender }, question },
+    subsystems,
+    synthesis,
+    consistency,
+    recommendations,
+    export_snapshot: snapshot,
+    engineName: 'SanshiComboEngine',
+    mode: 'local-exact',
+    confidenceNote: snapshot.sourceNotes!,
+  };
+
+  return {
+    ok: true,
+    tool: result.engineName,
+    version: '0.1.0',
+    input_normalized: input as unknown as Record<string, unknown>,
+    data: result,
+    warnings: [result.confidenceNote, ...(consistency.aligned ? [] : ['三式有分歧，以大六壬为主'])],
   };
 }

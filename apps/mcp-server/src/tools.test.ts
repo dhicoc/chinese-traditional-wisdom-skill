@@ -42,7 +42,7 @@ function findTool(name: string) {
 
 describe('MCP TOOLS 注册完整性', () => {
   it('注册了 10 个工具', () => {
-    expect(TOOLS.length).toBe(14);
+    expect(TOOLS.length).toBe(15);
   });
 
   it('所有工具有 name/description/schema/handler', () => {
@@ -280,5 +280,17 @@ describe('combo_space_time', () => {
     expect(data.comboName).toBe('空间+时间');
     expect(data.export_snapshot.summary).toContain('命卦');
     expect(data.export_snapshot.summary).toContain('坎'); // 1990男坎命
+  });
+});
+
+describe('combo_sanshi', () => {
+  it('返回含大六壬+奇门+梅花的三式互参 envelope', () => {
+    const t = findTool('combo_sanshi');
+    const env = t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, question: '某事能否成功' });
+    const e = expectValidEnvelope(env);
+    const data = e.data as { comboName: string; subsystems: Array<{ name: string }>; export_snapshot: { summary: string } };
+    expect(data.comboName).toBe('三式互参');
+    expect(data.subsystems.map((s) => s.name)).toEqual(['大六壬', '奇门遁甲', '梅花易数']);
+    expect(data.export_snapshot.summary).toContain('三式');
   });
 });

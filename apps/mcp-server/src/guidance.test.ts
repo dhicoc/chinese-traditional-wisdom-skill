@@ -25,7 +25,7 @@ describe('agent_guidance 参数引导', () => {
 
   it('listToolGuidance 返回 10 个工具摘要', () => {
     const list = listToolGuidance();
-    expect(list.length).toBe(14);
+    expect(list.length).toBe(15);
     list.forEach((g) => {
       expect(g.tool).toMatch(/^[a-z_]+$/);
       expect(g.purpose).toBeTruthy();
@@ -177,5 +177,10 @@ describe('wisdom_dispatch 意图路由', () => {
   it('combo: "风水布局" → combo_space_time', () => {
     const r = dispatchIntent('帮我看1990年6月15日12时男的风水布局');
     expect(r.tool).toBe('combo_space_time');
+  });
+
+  it('combo: "三式互参" → combo_sanshi', () => {
+    const r = dispatchIntent('用三式互参看某事能否成功，1990年6月15日12时男');
+    expect(r.tool).toBe('combo_sanshi');
   });
 });

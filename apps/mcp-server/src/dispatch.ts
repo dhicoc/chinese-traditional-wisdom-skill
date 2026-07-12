@@ -35,6 +35,7 @@ interface RouteRule {
 const ROUTE_RULES: RouteRule[] = [
   { tool: 'combo_annual_fortune', keywords: ['综合运势', '年度运势', '今年运势', '全年运势', '运势总览', '综合看', '多角度'], priority: 95 },
   { tool: 'combo_decision', keywords: ['三卜', '交叉验证', '综合测算', '多法验证', '帮我决', '该不该', '能否成功'], priority: 95 },
+  { tool: 'combo_sanshi', keywords: ['三式', '三式互参', '大六壬+奇门', '六壬奇门梅花', '六壬+奇门'], priority: 96 },
   { tool: 'combo_space_time', keywords: ['风水布局', '布局建议', '空间布局', '综合布局', '主卧财位', '办公室布局'], priority: 95 },
   { tool: 'dream_interpret', keywords: ['梦见', '做梦', '梦境', '梦到', '解梦', '周公'], priority: 90 },
   { tool: 'analyze_name', keywords: ['姓名', '起名', '取名', '名字', '打分', '改名', '测名'], priority: 85 },
@@ -153,6 +154,7 @@ export function dispatchIntent(text: string): DispatchResult {
       // targetYear 不自动填（易与出生年混淆），由 AI 据 guidance 追问或用户明确年份时填
       break;
     case 'combo_decision':
+    case 'combo_sanshi':
       if (birth.birth) args.birth = birth.birth;
       if (question) args.question = question;
       break;

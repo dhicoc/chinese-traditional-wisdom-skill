@@ -196,6 +196,17 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
     workflow: '确认生辰 + 欲测年份 → 调 combo_space_time → 看主卧/财位/凶位布局建议。',
   },
+  combo_sanshi: {
+    tool: 'combo_sanshi',
+    purpose: '三式互参：大六壬+奇门+梅花 传统三式交叉验证。需完整生辰 + 求测事项。',
+    requiredParams: [
+      { name: 'question', required: true, description: '求测事项', promptToUser: '请说明想测什么事（如"某事能否成功""何时有成"）。' },
+      ...BIRTH_PARAMS,
+    ],
+    safeDefaults: { birth: { minute: 0 } },
+    doNotAssume: ['question', 'birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
+    workflow: '确认生辰 + 求测事项 → 调 combo_sanshi → 看三式一致性，以大六壬三传为主断事态。',
+  },
 };
 
 /** 取某工具的参数引导。未注册工具返回 null。 */
