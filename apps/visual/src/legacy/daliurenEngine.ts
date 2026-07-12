@@ -560,7 +560,8 @@ function resolveDaliurenInput(birth: DaliurenBirth, solar?: SolarLike | null): {
 }
 
 /** 从 lunar-javascript getJieQiTable() 结果找当前日期所处节气。
- *  jieQiTable 含中文名节气（如"芒种"）和英文名（如"MANG_ZHONG"），只取中文节气名。
+ *  jieQiTable 含中文名节气（如"芒种"）和英文名（如"DA_XUE"），只取中文节气名。
+ *  值可能是 Date / Solar 对象 / 日期字符串，统一用 toString() 解析。
  */
 function jieqiFromTable(table: Record<string, unknown>, birth: { year: number; month: number; day: number }): string {
   if (!table) return '';
@@ -570,9 +571,16 @@ function jieqiFromTable(table: Record<string, unknown>, birth: { year: number; m
     // 只取中文节气名（含中文字符的 key）
     if (!/[一-鿿]/.test(name)) continue;
     let d: Date | null = null;
-    if (value instanceof Date) d = value;
-    else if (typeof value === 'string') d = new Date(value);
-    else if (value && typeof value === 'object' && 'getFullYear' in (value as object)) d = value as unknown as Date;
+    if (value instanceof Date) {
+      d = value;
+    } else if (typeof value === 'string') {
+      d = new Date(value);
+    } else if (value && typeof value === 'object') {
+      // lunar-javascript vendor 版返回 Solar 对象，toString() 输出 "1989-12-07" 格式
+      const s = String(value);
+      const m = s.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+      if (m) d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    }
     if (d) entries.push({ name, date: d });
   }
   entries.sort((a, b) => a.date.getTime() - b.date.getTime());
