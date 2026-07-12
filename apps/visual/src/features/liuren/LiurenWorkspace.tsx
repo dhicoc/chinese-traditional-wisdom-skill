@@ -5,6 +5,8 @@ import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
+import { DaliurenChart } from '@/components/shared/DaliurenChart';
+import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
 import { calcDaliurenEnveloped, type DaliurenResult } from '@/legacy/daliurenEngine';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
@@ -132,46 +134,28 @@ export function LiurenWorkspace() {
           )}
         </aside>
 
-        {/* 右侧：天地盘 + 四课 + 三传 */}
+        {/* 右侧：天地盘 SVG 式盘 + 四课 + 三传 */}
         <div className="space-y-4">
-          {/* 天地盘 12 宫方阵 */}
+          {/* SVG 式盘 */}
           <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-            <h3 className="mb-3 text-lg font-semibold text-jade-50">天地盘</h3>
-            <p className="mb-3 text-xs text-jade-100/45">
-              月将{tianDiPan.yueJiangName}（{tianDiPan.yueJiang}）加{basicInfo.hourGanZhi[1]}时。每格：上为天盘地支+天将，下为地盘地支。
-            </p>
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
-              {DI_ZHI.map((dz) => {
-                const tp = tianDiPan.diToTian[dz] ?? '';
-                const jiang = tianDiPan.diToJiang[dz] ?? '';
-                const isChuan = [sanChuan.chuChuan.diZhi, sanChuan.zhongChuan.diZhi, sanChuan.moChuan.diZhi].includes(dz);
-                return (
-                  <div
-                    key={dz}
-                    className={`rounded-card border p-2 text-center ${isChuan ? 'border-gold-500/40 bg-gold-500/10' : 'border-white/8 bg-black/30'}`}
-                  >
-                    <div className="font-serif text-base text-jade-100">{tp}</div>
-                    <div className="text-[10px] text-jade-400/70">{JIANG_FULL[jiang] ?? jiang}</div>
-                    <div className="mt-1 text-[10px] text-jade-100/35">— {dz}</div>
-                  </div>
-                );
-              })}
-            </div>
-            {(() => {
-              const chuIdx = DI_ZHI.indexOf(sanChuan.chuChuan.diZhi);
-              const zhongIdx = DI_ZHI.indexOf(sanChuan.zhongChuan.diZhi);
-              const moIdx = DI_ZHI.indexOf(sanChuan.moChuan.diZhi);
-              return (
-                <p className="mt-2 text-[11px] text-gold-400/60">
-                  ★ 高亮格为三传：初传{sanChuan.chuChuan.diZhi}（{DI_ZHI[chuIdx]}宫）→ 中传{sanChuan.zhongChuan.diZhi}（{DI_ZHI[zhongIdx]}宫）→ 末传{sanChuan.moChuan.diZhi}（{DI_ZHI[moIdx]}宫）
-                </p>
-              );
-            })()}
+            <h3 className="mb-2 text-sm font-semibold text-jade-50">天地盘式盘</h3>
+            <ZoomableSvg title="大六壬天地盘">
+              <DaliurenChart
+                tianDiPan={tianDiPan}
+                siKe={siKe}
+                sanChuan={sanChuan}
+                hourZhi={basicInfo.hourGanZhi[1]}
+                yueJiangName={tianDiPan.yueJiangName}
+                geJu={sanChuan.geJu}
+                geJuDetail={sanChuan.geJuDetail}
+                dayNight={basicInfo.dayNight}
+              />
+            </ZoomableSvg>
           </div>
 
-          {/* 四课 */}
+          {/* 四课详情 */}
           <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-            <h3 className="mb-3 text-lg font-semibold text-jade-50">四课</h3>
+            <h3 className="mb-3 text-sm font-semibold text-jade-50">四课</h3>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {siKe.list.map((ke) => (
                 <div key={ke.position} className="rounded-card border border-white/8 bg-black/30 p-2 text-center">
@@ -179,7 +163,7 @@ export function LiurenWorkspace() {
                   <p className="mt-1 font-serif text-base text-jade-100">{ke.shangShen} <span className="text-[10px] text-jade-100/35">上</span></p>
                   <p className="font-serif text-base text-jade-100/70">{ke.xiaShen} <span className="text-[10px] text-jade-100/35">下</span></p>
                   <p className={`mt-1 text-[10px] ${ke.relation === '下贼上' ? 'text-cinnabar-400' : ke.relation === '上克下' ? 'text-cinnabar-300' : 'text-jade-100/40'}`}>
-                    {RELATION_TEXT[ke.relation] ?? ke.relation}
+                    {ke.relation}
                   </p>
                   <p className="text-[10px] text-jade-400/60">{JIANG_FULL[ke.tianJiang] ?? ke.tianJiang}</p>
                 </div>
@@ -187,10 +171,10 @@ export function LiurenWorkspace() {
             </div>
           </div>
 
-          {/* 三传 + 格局 */}
+          {/* 三传详情 */}
           <div className="console-panel rounded-[22px] border border-gold-500/20 bg-gold-500/6 p-4 shadow-instrument">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-jade-50">三传</h3>
+              <h3 className="text-sm font-semibold text-jade-50">三传</h3>
               <span className="rounded-full border border-gold-500/30 bg-gold-500/10 px-3 py-1 text-xs text-gold-400">
                 {sanChuan.geJu}·{sanChuan.geJuDetail}
               </span>
