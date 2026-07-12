@@ -799,9 +799,10 @@
       var y = result.effectiveYear || result.year || "?";
       var tg = result.tiangan || "?";
       var dz = result.dizhi || "?";
-      var dayun = result.dayun || "?";
-      var sitian = result.sitian || "?";
-      var zaiquan = result.zaiquan || "?";
+      // 岁运/司天/在泉在嵌套对象 wuyun.dayun / liuqi.sitian / liuqi.zaiquan（非顶层）
+      var dayun = (result.wuyun && result.wuyun.dayun) || result.dayun || "?";
+      var sitian = (result.liuqi && result.liuqi.sitian) || result.sitian || "?";
+      var zaiquan = (result.liuqi && result.liuqi.zaiquan) || result.zaiquan || "?";
       var tendency = result.disease_tendency || "";
       var tags = ["五运六气", tg + dz + "年", dayun, sitian];
       if (result.mode === "local-exact") tags.push("精确历法");

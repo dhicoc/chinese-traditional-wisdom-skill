@@ -352,17 +352,25 @@
         var fl = reportData.fourLayer[name];
         if (!fl || !fl.tldr) return;
         var toneColor = fl.overallTone === "吉" ? "#2e7d32" : fl.overallTone === "凶" ? "#c62828" : "#757575";
+        // overallTone=中时省略徽章（与 React FourLayerReport 对齐，中是默认态）
+        var overallBadge = fl.overallTone !== "中"
+          ? "<span style='display:inline-block;border:1px solid " + toneColor + ";color:" + toneColor + ";border-radius:3px;padding:1px 6px;font-size:11px;'>" + escapeHtml(fl.overallTone) + "</span> "
+          : "";
         html += "<div class='item' style='margin-bottom:14px;'><b>" + escapeHtml(name) + " · 四层报告</b> " +
-          "<span style='display:inline-block;border:1px solid " + toneColor + ";color:" + toneColor + ";border-radius:3px;padding:1px 6px;font-size:11px;'>" + escapeHtml(fl.overallTone) + "</span><br>" +
+          overallBadge + "<br>" +
           "<p style='font-size:14px;margin-top:6px;'>" + escapeHtml(fl.tldr) + "</p>";
         // highlights
         if (fl.highlights && fl.highlights.length) {
           html += "<div style='margin-top:8px;font-size:12px;color:#666;'>关键亮点 / 风险</div><div style='display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px;'>";
           fl.highlights.forEach(function (h) {
             var hc = h.tone === "吉" ? "#2e7d32" : h.tone === "凶" ? "#c62828" : "#999";
+            // tone=中时省略徽章（与 React 对齐，避免与身强/身弱标并排显示成「身强 中」混淆）
+            var toneBadge = h.tone !== "中"
+              ? "<span style='font-size:10px;color:" + hc + ";'>" + escapeHtml(h.tone) + "</span>"
+              : "";
             html += "<div style='border:1px solid " + hc + "33;background:" + hc + "0d;border-radius:4px;padding:6px;'><b style='font-size:12px;'>" + escapeHtml(h.label) + "</b> " +
               (h.strength ? "<span style='font-size:10px;color:#b8860b;border:1px solid #b8860b66;border-radius:2px;padding:0 4px;'>" + escapeHtml(h.strength === "强" ? "身强" : "身弱") + "</span>" : "") +
-              "<span style='font-size:10px;color:" + hc + ";'>" + escapeHtml(h.tone) + "</span><br>" +
+              toneBadge + "<br>" +
               "<span style='font-size:11px;color:#777;'>" + escapeHtml(h.value) + "</span></div>";
           });
           html += "</div>";
