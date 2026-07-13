@@ -19,7 +19,7 @@ export function AppShell({ activeModule, onSelectModule }: AppShellProps) {
   return (
     <div
       data-testid="app-shell"
-      className="instrument-grid relative min-h-[100dvh] overflow-hidden p-3 text-jade-100 md:p-5"
+      className="instrument-grid relative min-h-[100dvh] p-3 text-jade-100 md:p-5"
     >
       <DynamicTianPanBackground />
       <div className="relative z-10 mx-auto grid max-w-[1680px] gap-4 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
