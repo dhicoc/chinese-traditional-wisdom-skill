@@ -5,7 +5,7 @@ import type { ToolEnvelope } from '../../visual/src/legacy/baseTypes';
 /**
  * MCP 工具端到端测试（handler 层）。
  * 直接调每个 TOOLS handler，验证返回有效 ToolEnvelope。
- * 覆盖全部 10 个工具。
+ * 覆盖全部 19 个工具。
  */
 
 /** 校验 ToolEnvelope 必填字段 */
@@ -41,8 +41,8 @@ function findTool(name: string) {
 }
 
 describe('MCP TOOLS 注册完整性', () => {
-  it('注册了 10 个工具', () => {
-    expect(TOOLS.length).toBe(18);
+  it('注册了 19 个工具', () => {
+    expect(TOOLS.length).toBe(19);
   });
 
   it('所有工具有 name/description/schema/handler', () => {
@@ -320,5 +320,43 @@ describe('combo_sanshi_classic', () => {
     expect(data.comboName).toBe('三式合一');
     expect(data.subsystems.map((s) => s.name)).toEqual(['奇门遁甲', '太乙神数', '大六壬']);
     expect(data.export_snapshot.summary).toContain('三式合一');
+  });
+});
+
+describe('combo_daily_wellness', () => {
+  it('返回含体质+节气+时辰+方位的今日养生 envelope', () => {
+    const t = findTool('combo_daily_wellness');
+    const env = t.handler({
+      birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      constitution: '气虚质',
+      now: { year: 2026, month: 7, day: 13, hour: 14 },
+    });
+    const e = expectValidEnvelope(env);
+    const data = e.data as {
+      comboName: string;
+      context: { jieqi: string; meridian: string };
+      constitution: { type: string; source: string };
+      subsystems: Array<{ name: string }>;
+      export_snapshot: { summary: string; sections: Array<{ heading: string }> };
+    };
+    expect(data.comboName).toBe('今日养生建议');
+    expect(data.constitution.type).toBe('气虚质');
+    expect(data.constitution.source).toBe('问卷');
+    expect(data.context.jieqi).toBeTruthy();
+    expect(data.context.meridian).toContain('经');
+    expect(data.subsystems.map((s) => s.name)).toEqual(['体质', '节气', '时辰经络', '方位']);
+    expect(data.export_snapshot.summary).toContain('气虚质');
+    expect(data.export_snapshot.sections.some((s) => s.heading === '节气饮食')).toBe(true);
+  });
+
+  it('未传 constitution 时按五运六气倾向推断', () => {
+    const t = findTool('combo_daily_wellness');
+    const env = t.handler({
+      birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      now: { year: 2026, month: 7, day: 13, hour: 14 },
+    });
+    const e = expectValidEnvelope(env);
+    const data = e.data as { constitution: { source: string } };
+    expect(data.constitution.source).toBe('五运六气倾向参考');
   });
 });

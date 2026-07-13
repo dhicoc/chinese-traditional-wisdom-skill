@@ -24,6 +24,10 @@ import { calcDaliurenEnveloped, type DaliurenSchool } from './daliurenEngine';
 import { calcTaiyiEnveloped, type JiStyle as TaiyiJiStyle, type AcumYearMethod as TaiyiAcumYear } from './taiyiEngine';
 import { calcMingGua, getPersonalDirections, combineBazhaiFeixing, type MingGua } from './bazhaiHouse';
 import { getYuanYun, MING_GUA_DIRECTIONS } from './flyingStarRemedies';
+import { calcTaisui } from './taisuiEngine';
+import { queryJieqiWellness, type JieqiWellness } from './jieqiWellness';
+import { getMeridianByHour, type MeridianHour } from './meridianClock';
+import { getConstitutionTendency } from './constitutionTendency';
 
 // ─── 公共类型 ───
 
@@ -476,6 +480,194 @@ export function calcSanshiCombo(input: SanshiComboInput): ToolEnvelope<ComboResu
     input_normalized: input as unknown as Record<string, unknown>,
     data: result,
     warnings: [result.confidenceNote, ...(consistency.aligned ? [] : ['三式有分歧，以大六壬为主'])],
+  };
+}
+
+// ─── Combo 6: 今日养生建议（体质 + 节气 + 时辰经络 + 方位）───
+
+export interface DailyWellnessComboInput {
+  birth: BirthInput;
+  /** 当前日期（默认取系统当前）。MCP/测试可显式传入以保证确定性 */
+  now?: { year: number; month: number; day: number; hour: number };
+  /** 当前小时（0-23），now 未传时用系统小时 */
+  currentHour?: number;
+  /** 用户体质类型（若有问卷结果，如「气虚质」）；未传则用五运六气倾向参考 */
+  constitution?: string;
+  /** 欲测年份（飞星/太岁方位用，默认取 now 或当前年） */
+  targetYear?: number;
+  solar?: SolarLike | null;
+}
+
+/** 今日养生 子系统结果（节略版，不走 tone 检验——养生无吉凶对立，只有建议） */
+export interface WellnessSubsystem {
+  name: string;
+  summary: string;
+}
+
+export interface DailyWellnessResult {
+  comboName: string;
+  purpose: string;
+  inputs: Record<string, unknown>;
+  /** 当前日期 + 节气 + 时辰 */
+  context: { date: string; jieqi: string; season: string; shichen: string; meridian: string };
+  /** 体质（用户提供或五运六气倾向推断） */
+  constitution: { type: string; source: '问卷' | '五运六气倾向参考'; reason: string };
+  /** 节气调养 */
+  jieqiWellness: JieqiWellness;
+  /** 体质在节气下的针对性建议 */
+  constitutionAdvice: string;
+  /** 当前时辰经络养生 */
+  meridianHour: MeridianHour;
+  /** 方位养生提示（太岁五黄规避 + 个人吉方） */
+  directionTip: string;
+  /** 各维度子系统 */
+  subsystems: WellnessSubsystem[];
+  /** 整合结论 */
+  synthesis: string;
+  /** 综合建议条目 */
+  recommendations: { label: string; value: string; tone: Tone }[];
+  export_snapshot: ExportSnapshot;
+  engineName: string;
+  mode: string;
+  confidenceNote: string;
+}
+
+/**
+ * 今日养生建议 = 体质 + 24节气 + 子午流注时辰 + 太岁/飞星方位
+ * 把「命理排盘」延伸到「日常养生决策」，形成命理+体质+时空养生闭环。
+ * - 体质：优先用用户问卷结果（constitution 入参），否则用五运六气出生年倾向参考。
+ * - 节气：当前所处节气调养 + 体质针对性加减。
+ * - 时辰：当前当令经络 + 养生建议。
+ * - 方位：本年太岁/五黄凶方规避 + 个人吉方借力。
+ */
+export function calcDailyWellnessCombo(input: DailyWellnessComboInput): ToolEnvelope<DailyWellnessResult> {
+  const { birth, solar, constitution } = input;
+  const now = input.now ?? (() => {
+    const d = new Date();
+    return { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate(), hour: input.currentHour ?? d.getHours() };
+  })();
+  const targetYear = input.targetYear ?? now.year;
+
+  // 体质：优先用户问卷结果，否则五运六气倾向参考
+  let constitutionType = constitution || '';
+  let constitutionSource: '问卷' | '五运六气倾向参考' = '问卷';
+  let constitutionReason = '基于问卷自评的主要体质';
+  if (!constitutionType) {
+    const yunqiEnv = calcYunqiEnveloped({ year: birth.year, birthMonth: birth.month, birthDay: birth.day, solar: (solar ?? null) as never, currentMonth: now.month });
+    const tendency = getConstitutionTendency(yunqiEnv.data as never);
+    if (tendency && tendency.tendencies.length > 0) {
+      constitutionType = tendency.tendencies[0].type;
+      constitutionReason = tendency.tendencies[0].reason;
+      constitutionSource = '五运六气倾向参考';
+    } else {
+      constitutionType = '平和质';
+      constitutionReason = '未提供问卷且五运六气倾向不显著，暂按平和质处理';
+      constitutionSource = '五运六气倾向参考';
+    }
+  }
+
+  // 节气调养（传入 jieQiTable 走精确，否则近似）
+  const solarEntry = (solar ?? null) as { fromYmd?: (y: number, mo: number, d: number) => { getLunar(): { getJieQiTable?: () => Record<string, unknown> } } } | null;
+  let jieQiTable: Record<string, unknown> | undefined;
+  try {
+    if (solarEntry?.fromYmd) {
+      const lunar = solarEntry.fromYmd(now.year, now.month, now.day).getLunar();
+      if (typeof lunar.getJieQiTable === 'function') jieQiTable = lunar.getJieQiTable();
+    }
+  } catch {
+    /* 精确历法不可用，回退近似 */
+  }
+  const jieqiQuery = queryJieqiWellness({ year: now.year, month: now.month, day: now.day }, constitutionType, jieQiTable);
+  const constitutionAdviceText = jieqiQuery.constitutionAdvice.length > 0
+    ? jieqiQuery.constitutionAdvice.map((a) => `${a.advice}（注意：${a.caution}）`).join('；')
+    : '本节气暂无该体质的针对性加减，按通用节气调养 + 该体质日常调养方向执行即可。';
+
+  // 当前时辰经络
+  const meridianHour = getMeridianByHour(now.hour) ?? (getMeridianByHour(0) as MeridianHour);
+
+  // 方位：太岁/五黄 + 个人吉方
+  const taisui = calcTaisui(targetYear);
+  const mingGua = calcMingGua(birth.year, birth.gender);
+  const personalDirs = getPersonalDirections(mingGua.trigram);
+  const shengqiDir = personalDirs?.auspicious.find((d) => d.star === '生气')?.direction ?? '未知';
+  const directionTip = `本年五黄大煞在${taisui.fiveYellow.direction}、三煞在${taisui.sanSha.direction}，此二方忌动土、宜静；` +
+    `个人生气方${shengqiDir}（${mingGua.trigram}命），宜作主卧/办公位/养生活动方位。`;
+
+  const subsystems: WellnessSubsystem[] = [
+    { name: '体质', summary: `${constitutionType}（${constitutionSource}）：${constitutionReason}` },
+    { name: '节气', summary: `${jieqiQuery.jieqi}（${jieqiQuery.wellness.season}季）：${jieqiQuery.wellness.principle}` },
+    { name: '时辰经络', summary: `${meridianHour.name}（${meridianHour.time}）${meridianHour.meridian}当令：${meridianHour.advice}` },
+    { name: '方位', summary: directionTip },
+  ];
+
+  const synthesis = `今日（${now.year}年${now.month}月${now.day}日，${jieqiQuery.jieqi}）养生建议：` +
+    `您属${constitutionType}，当前${jieqiQuery.jieqi}节气宜「${jieqiQuery.wellness.principle}」；` +
+    `此刻${meridianHour.name}${meridianHour.meridian}当令，宜${meridianHour.advice}；` +
+    `方位上${directionTip}`;
+
+  const recommendations: DailyWellnessResult['recommendations'] = [
+    { label: '节气饮食', value: `${jieqiQuery.wellness.diet}`, tone: '中' },
+    { label: '节气起居', value: `${jieqiQuery.wellness.lifestyle}`, tone: '中' },
+    { label: '节气运动', value: `${jieqiQuery.wellness.exercise}`, tone: '中' },
+    { label: '穴位保健', value: `${jieqiQuery.wellness.acupoints}`, tone: '中' },
+    { label: '体质加减', value: constitutionAdviceText, tone: '中' },
+    { label: '当令时辰', value: `${meridianHour.name}${meridianHour.meridian}当令，宜${meridianHour.advice}。`, tone: '中' },
+    { label: '方位借力', value: `养生活动（按摩/运动/静坐）宜朝个人生气方${shengqiDir}；避本年五黄${taisui.fiveYellow.direction}、三煞${taisui.sanSha.direction}方久留动土。`, tone: '吉' },
+  ];
+
+  const snapshot: ExportSnapshot = {
+    summary: synthesis,
+    tags: ['今日养生', jieqiQuery.jieqi, constitutionType, meridianHour.name + meridianHour.meridian, `${mingGua.trigram}命`],
+    sections: [
+      { heading: '整合结论', body: synthesis },
+      { heading: '当前节气', body: `${jieqiQuery.jieqi}（${jieqiQuery.wellness.season}季），${jieqiQuery.wellness.feature}。调养总则：${jieqiQuery.wellness.principle}。` },
+      { heading: '节气饮食', body: jieqiQuery.wellness.diet },
+      { heading: '节气起居', body: jieqiQuery.wellness.lifestyle },
+      { heading: '节气运动', body: jieqiQuery.wellness.exercise },
+      { heading: '穴位保健', body: jieqiQuery.wellness.acupoints },
+      { heading: '体质针对性建议', body: constitutionAdviceText },
+      { heading: '当令时辰经络', body: `${meridianHour.name}（${meridianHour.time}）${meridianHour.meridian}当令，对应${meridianHour.organ}。生理：${meridianHour.function}。宜：${meridianHour.advice}。` },
+      { heading: '方位养生', body: directionTip },
+      { heading: '今日行动建议', body: recommendations.map((r) => `【${r.label}】${r.value}`).join('\n') },
+    ],
+    sourceNotes: '今日养生为体质+节气+时辰+方位的多维度养生参考，非医疗诊断。如有健康问题请咨询专业中医师。',
+  };
+
+  const result: DailyWellnessResult = {
+    comboName: '今日养生建议',
+    purpose: '体质+24节气+子午流注时辰+太岁/飞星方位 联合推算今日养生方案',
+    inputs: { birth: { year: birth.year, gender: birth.gender }, now, constitution: constitutionType, targetYear },
+    context: {
+      date: `${now.year}年${now.month}月${now.day}日`,
+      jieqi: jieqiQuery.jieqi,
+      season: jieqiQuery.wellness.season,
+      shichen: meridianHour.name,
+      meridian: meridianHour.meridian,
+    },
+    constitution: { type: constitutionType, source: constitutionSource, reason: constitutionReason },
+    jieqiWellness: jieqiQuery.wellness,
+    constitutionAdvice: constitutionAdviceText,
+    meridianHour,
+    directionTip,
+    subsystems,
+    synthesis,
+    recommendations,
+    export_snapshot: snapshot,
+    engineName: 'DailyWellnessComboEngine',
+    mode: jieqiQuery.mode,
+    confidenceNote: snapshot.sourceNotes!,
+  };
+
+  return {
+    ok: true,
+    tool: result.engineName,
+    version: '0.1.0',
+    input_normalized: input as unknown as Record<string, unknown>,
+    data: result,
+    warnings: [
+      result.confidenceNote,
+      ...(constitutionSource === '五运六气倾向参考' ? ['体质未提供问卷结果，按五运六气出生年倾向参考推断，建议完成体质问卷自评以获更精准建议'] : []),
+    ],
   };
 }
 

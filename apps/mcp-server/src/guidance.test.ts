@@ -23,9 +23,9 @@ describe('agent_guidance 参数引导', () => {
     expect(getToolGuidance('nonexistent')).toBeNull();
   });
 
-  it('listToolGuidance 返回 10 个工具摘要', () => {
+  it('listToolGuidance 返回 19 个工具摘要', () => {
     const list = listToolGuidance();
-    expect(list.length).toBe(18);
+    expect(list.length).toBe(19);
     list.forEach((g) => {
       expect(g.tool).toMatch(/^[a-z_]+$/);
       expect(g.purpose).toBeTruthy();
@@ -96,6 +96,15 @@ describe('wisdom_dispatch 意图路由', () => {
     expect(r.tool).toBe('dream_interpret');
     expect((r.arguments as { keyword: string }).keyword).toBe('蛇');
     expect(r.missingPrompts).toEqual([]);
+  });
+
+  it('今日养生 → combo_daily_wellness 提取体质', () => {
+    const r = dispatchIntent('我是气虚质，今日养生建议，1990年6月15日12时男');
+    expect(r.hit).toBe(true);
+    expect(r.tool).toBe('combo_daily_wellness');
+    const args = r.arguments as { birth: { year: number }; constitution: string };
+    expect(args.birth.year).toBe(1990);
+    expect(args.constitution).toBe('气虚质');
   });
 
   it('紫微排盘 → ziwei_chart', () => {

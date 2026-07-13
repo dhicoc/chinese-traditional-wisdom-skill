@@ -37,6 +37,7 @@ const ROUTE_RULES: RouteRule[] = [
   { tool: 'combo_decision', keywords: ['三卜', '交叉验证', '综合测算', '多法验证', '帮我决', '该不该', '能否成功'], priority: 95 },
   { tool: 'combo_sanshi', keywords: ['三式', '三式互参', '大六壬+奇门', '六壬奇门梅花', '六壬+奇门'], priority: 96 },
   { tool: 'combo_sanshi_classic', keywords: ['三式合一', '奇门+太乙+大六壬', '太乙+奇门+六壬', '传统三式', '奇门太乙六壬'], priority: 97 },
+  { tool: 'combo_daily_wellness', keywords: ['今日养生', '今天养生', '每日养生', '养生建议', '节气养生', '现在适合做什么', '当下养生', '今日调养', '一天养生'], priority: 96 },
   { tool: 'combo_space_time', keywords: ['风水布局', '布局建议', '空间布局', '综合布局', '主卧财位', '办公室布局'], priority: 95 },
   { tool: 'dream_interpret', keywords: ['梦见', '做梦', '梦境', '梦到', '解梦', '周公'], priority: 90 },
   { tool: 'analyze_name', keywords: ['姓名', '起名', '取名', '名字', '打分', '改名', '测名'], priority: 85 },
@@ -114,6 +115,15 @@ function extractQuestion(text: string): string | undefined {
   return cleaned.length > 0 ? cleaned.slice(0, 50) : undefined;
 }
 
+/** 从文本提取体质类型（九种体质） */
+function extractConstitution(text: string): string | undefined {
+  const types = ['平和质', '气虚质', '阳虚质', '阴虚质', '痰湿质', '湿热质', '血瘀质', '气郁质', '特禀质'];
+  for (const t of types) {
+    if (text.includes(t)) return t;
+  }
+  return undefined;
+}
+
 /**
  * 自然语言意图路由。
  * @param text 用户自然语言输入
@@ -164,6 +174,12 @@ export function dispatchIntent(text: string): DispatchResult {
       if (birth.birth) args.birth = birth.birth;
       if (question) args.question = question;
       break;
+    case 'combo_daily_wellness': {
+      if (birth.birth) args.birth = birth.birth;
+      const constitution = extractConstitution(text);
+      if (constitution) args.constitution = constitution;
+      break;
+    }
     case 'cast_meihua':
       if (birth.birth) args.birth = birth.birth;
       if (method) args.method = method === 'manual' ? 'time' : method; // meihua 只支持 time/number

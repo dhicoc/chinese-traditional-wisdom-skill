@@ -59,6 +59,8 @@ ToolEnvelope<TData> = { ok, tool, version, input_normalized, data: TData & { exp
 | 太岁流年神煞 | `legacy/taisuiEngine.ts` | `calcTaisui` | 纯查表(年支) |
 | 门主灶三要 | `legacy/menZhuZaoEngine.ts` | `calcMenZhuZao` | 纯查表(五行生克) |
 | 64 卦古典文本 | `legacy/ichingTexts.ts` + `ichingTexts.json` | `getHexagramText` | 纯查表(卦辞/爻辞/彖传) |
+| 24 节气养生 | `legacy/jieqiWellness.ts` | `queryJieqiWellness` | 纯查表(节气×体质) |
+| 子午流注经络 | `legacy/meridianClock.ts` | `getMeridianByHour` | 纯查表(12时辰×12经络) |
 
 **Solar 参数化模式**：lunar-javascript 的 Solar 入口作为可选入参，传入走精确（local-exact），未传走本地近似（local-approx）。MCP 端 `import { Solar } from 'lunar-javascript'` 传入；Dashboard 端用 `window.Solar`（vendor）传入。
 
@@ -68,9 +70,9 @@ ToolEnvelope<TData> = { ok, tool, version, input_normalized, data: TData & { exp
 
 > `apps/mcp-server/`：薄壳包装上述 enveloped 引擎为 MCP 工具，供 Claude Code/Desktop/Cursor/Cline 调用。无计算逻辑，import 纯 TS 引擎。
 
-**20 个 MCP 工具**（18 计算 + 2 元工具）：
+**21 个 MCP 工具**（19 计算 + 2 元工具）：
 - 排盘计算（13）：`bazi_calculate` / `ziwei_chart` / `cast_liuyao` / `arrange_qimen` / `liuren_calculate` / `xingxiu_daily` / `taiyi_calculate` / `cast_meihua` / `calc_yunqi` / `analyze_name` / `calc_xiyong` / `get_constitution_tendency` / `dream_interpret`
-- 跨系统联合分析（5）：`combo_annual_fortune` / `combo_decision` / `combo_space_time` / `combo_sanshi` / `combo_sanshi_classic`
+- 跨系统联合分析（6）：`combo_annual_fortune` / `combo_decision` / `combo_space_time` / `combo_sanshi` / `combo_sanshi_classic` / `combo_daily_wellness`
 - 元工具（2）：`agent_guidance`（参数引导防瞎猜）+ `wisdom_dispatch`（自然语言意图路由）
 
 **一键自动配置**（无需手动编辑 JSON）：
@@ -99,7 +101,7 @@ node scripts/setup-mcp.mjs --check    # 仅检查
 | 联合分析 | 多系统聚合（`local-exact`） | 跨系统联合：年度运势/事件决策/空间时间/三式互参/三式合一。 |
 | 风水罗盘 / 飞星 / 八宅 | 本地规则计算 | 基于 JSON 映射表离线运行；八宅已增强太岁/门主灶/飞星合参，飞星已增强化煞颜色+物品。 |
 | 姓名五行 | 民俗体验（fate 数据） | 康熙笔画/五格/三才/五维评分/字义/生肖喜忌。 |
-| 黄历 / 解梦 / 节律 | 民俗体验 | 纯本地规则，不做吉凶预测。 |
+| 黄历 / 解梦 / 节律 | 民俗体验 | 纯本地规则，不做吉凶预测；节律工作区含子午流注经络钟 SVG + 24 节气调养条带。 |
 
 能力状态统一由 `visual/js/capabilities.js` 管理旧入口、`apps/visual/src/lib/modules.ts` 管理 React Shell，Dashboard 通过 `FORTUNE.getCapabilities()` 暴露只读查询。
 ---

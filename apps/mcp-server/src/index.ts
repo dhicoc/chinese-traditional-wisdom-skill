@@ -3,7 +3,7 @@
  * index.ts — 中国传统玄学 MCP Server 主入口
  *
  * 用 @modelcontextprotocol/sdk 的 McpServer + StdioServerTransport，
- * 把 apps/visual/src/legacy 的 18 个 enveloped 引擎暴露为 MCP 工具。
+ * 把 apps/visual/src/legacy 的 19 个 enveloped 引擎暴露为 MCP 工具。
  *
  * 这是三层架构 Layer 2 的薄壳：不实现计算逻辑，只 import enveloped 函数注册成工具。
  * 所有计算引擎都是纯 TS、零 DOM 依赖，Node 可直接运行。
@@ -25,7 +25,7 @@ const server = new McpServer({
 
 const META_TOOLS_COUNT = 2;
 
-// ─── 注册 18 个计算工具（带缺参软引导）───
+// ─── 注册 19 个计算工具（带缺参软引导）───
 for (const tool of TOOLS) {
   // McpServer.tool 接受 ZodRawShape（z.object 的 .shape 属性）
   const shape = tool.schema.shape;

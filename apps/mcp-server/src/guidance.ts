@@ -131,6 +131,16 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'question'],
     workflow: '确认生辰 + 求测事项 → 调 combo_sanshi_classic → 看三式一致性，以大六壬三传为主、太乙格局次之、奇门方位为辅。',
   },
+  combo_daily_wellness: {
+    tool: 'combo_daily_wellness',
+    purpose: '今日养生建议：体质+24节气+子午流注时辰+太岁/飞星方位。体质优先问卷结果，否则按五运六气倾向推断。',
+    requiredParams: [
+      ...BIRTH_PARAMS,
+    ],
+    safeDefaults: { birth: { minute: 0, gender: '男' } },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour'],
+    workflow: '确认生辰 → （可选）问用户体质问卷结果（气虚质等），有则传 constitution；不传按五运六气倾向推断 → 调 combo_daily_wellness → 看节气饮食/起居/运动/穴位 + 体质针对性加减 + 当令时辰养生 + 方位借力。',
+  },
   cast_meihua: {
     tool: 'cast_meihua',
     purpose: '梅花易数：时间起卦需生辰，数字起卦需两个数字。',

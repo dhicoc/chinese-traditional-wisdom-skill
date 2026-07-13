@@ -17,18 +17,28 @@
 6. **四层报告**：新增 `FourLayerReport` 组件（tldr/highlights/details/actions 四层显式分层），各引擎 `export_snapshot` 产出段表。落地 ROADMAP「功能层增强 Step 2」。
 7. **风水增强（3 项）**：`taisuiEngine.ts`（太岁/岁破/三煞/五黄，12 地支化解文案）+ `menZhuZaoEngine.ts`（门主灶三要五行生克 + 通关化解）+ `flyingStarRemedies.ts` 每星增加具体颜色 + 摆设物品。八宅工作区接入太岁/门主灶区域；飞星工作区显示颜色+物品。
 8. **奇门状态修正**：`modules.ts` 奇门从 `local-approx` 升为 `local-exact`（对齐 EVOLUTION 2026-07-08 已落地的 3meta 真实排盘）。
-9. **MCP 工具池扩充至 20**：13 排盘 + 5 联合分析 + 2 元工具。`tools.ts`/`index.ts` 注释从「10 个」更新为「18 个」。
+9. **MCP 工具池扩充至 21**：13 排盘 + 6 联合分析 + 2 元工具。`tools.ts`/`index.ts` 注释从「10 个」更新为「19 个」。
 10. **文档对齐**：SKILL/README/README_AI/tool-index/EVOLUTION/ROADMAP 全面修订——MCP 工具数 12→20、能力边界表（紫微/六爻/奇门演示→local-exact、补奇门/六壬/星宿/太乙/联合/姓名/解梦/节律/黄历行）、「11 标签页」→多工作区、六引擎→18 引擎、SKILL §0 安装主路径从 Python 改为纯 TS+MCP、README 技术栈/仓库结构/英文版 Canvas→SVG、ROADMAP 流年/八宅/horosa 计划打勾、补三式补全节、致谢统一。
 
 ### 引擎/工具池最终状态
 
-- **纯 TS 引擎**：18 个 enveloped（13 排盘 + 5 联合）+ `taisuiEngine`/`menZhuZaoEngine`/`ichingTexts` 辅助。
-- **MCP 工具**：20 个（18 计算 + `agent_guidance` + `wisdom_dispatch`）。
+- **纯 TS 引擎**：19 个 enveloped（13 排盘 + 6 联合）+ `taisuiEngine`/`menZhuZaoEngine`/`ichingTexts`/`jieqiWellness`/`meridianClock` 辅助。
+- **MCP 工具**：21 个（19 计算 + `agent_guidance` + `wisdom_dispatch`）。
 - **React Dashboard 模块**：23 个 `ModuleId`（术数排盘/堪舆风水/医道运气/日用工具/知识检索/开发者六组）。
+
+### 2026-07-13 续：今日养生建议（命理+体质+时空养生闭环）
+
+补齐用户反馈的三个养生缺口：
+- 新增 `jieqiWellness.ts`：24 节气通用调养（饮食/起居/运动/穴位/总则）+ 9 体质×节气针对性加减，节气查表（近似表 + lunar-javascript `getJieQiTable` 精确回退）。
+- 新增 `meridianClock.ts`：子午流注 12 时辰×12 经络共享数据（从 RhythmWorkspace 提取，供 combo 与 SVG 复用）。
+- 新增 `comboEngine.calcDailyWellnessCombo` + MCP `combo_daily_wellness`：聚合 体质（问卷或五运六气倾向）+ 当前节气调养 + 当令时辰经络 + 太岁/五黄方位 + 个人吉方 → 四层报告。落地「命理+体质+时空养生」闭环。
+- 新增 `MeridianClock.tsx` 圆形经络钟 SVG（12 扇区，当前时辰金色高亮，指针线，点击切换），`RhythmWorkspace` 重构：钟面 + 节气调养条带 + 选中详情。
+- `ComboWorkspace` 新增「今日养生建议」入口（默认选项）+ 体质选择器。
+- MCP `dispatch.ts` 加 `combo_daily_wellness` 路由（今日养生/节气养生等关键词）+ `extractConstitution` 体质提取。
 
 ### 验证
 
-- visual 单元 + e2e + mcp-server 测试全过（visual 229 + mcp-server 67 ≈ 296 项）。
+- visual 单元 + e2e + mcp-server 测试全过（visual 229 + mcp-server 70 ≈ 299 项）。
 - 三式互参/三式合一端到端可用。
 
 ---
@@ -61,7 +71,7 @@ ROADMAP 原计划"待整个项目全部做完后再启动 MCP"，但担心后期
 
 `bazi_calculate` / `ziwei_chart` / `cast_liuyao` / `arrange_qimen` / `liuren_calculate` / `xingxiu_daily` / `taiyi_calculate` / `cast_meihua` / `calc_yunqi` / `analyze_name` / `calc_xiyong` / `get_constitution_tendency` / `dream_interpret` + 5 联合分析（`combo_annual_fortune` / `combo_decision` / `combo_space_time` / `combo_sanshi` / `combo_sanshi_classic`）+ `agent_guidance` + `wisdom_dispatch`。统一返回 `ToolEnvelope`，`data.export_snapshot` 是稳定段表供 LLM 消费。
 
-> 工具池随引擎扩充而增长：2026-07-10 初始 10 计算 + 2 元 = 12；2026-07-13 前陆续新增大六壬/二十八星宿/太乙/5 联合分析，达 18 计算 + 2 元 = 20。
+> 工具池随引擎扩充而增长：2026-07-10 初始 10 计算 + 2 元 = 12；2026-07-13 前陆续新增大六壬/二十八星宿/太乙/5 联合分析，达 18 计算 + 2 元 = 20；同日再增今日养生建议，达 19 计算 + 2 元 = 21。
 
 ### 关键取舍
 
@@ -71,7 +81,7 @@ ROADMAP 原计划"待整个项目全部做完后再启动 MCP"，但担心后期
 
 ### 验证
 
-- visual 150 单元 + e2e 全过；mcp-server 53 项（tools 17 + server 7 + guidance 17 + setup-mcp 12）全过。合计 203 项。（2026-07-13 后随引擎扩充，visual 单元增至 229 + mcp-server 67 ≈ 296 项。）
+- visual 150 单元 + e2e 全过；mcp-server 53 项（tools 17 + server 7 + guidance 17 + setup-mcp 12）全过。合计 203 项。（2026-07-13 后随引擎扩充，visual 单元增至 229 + mcp-server 70 ≈ 299 项。）
 - MCP 端到端：`claude mcp list` 显示 `chinese-wisdom ✔ Connected`；`wisdom_dispatch` 路由「紫微排盘 1988年10月5日8时女」→ `ziwei_chart` + 自动填充参数。
 - 构建：bundle 4955→5809KB（iztro+3meta ESM 进主 bundle，gzip 2108KB，可接受）。
 
@@ -546,7 +556,7 @@ ROADMAP 原计划"待整个项目全部做完后再启动 MCP"，但担心后期
 
 ### 测试基线
 
-- `pnpm test`: 162 项通过（2026-07-13 后增至 visual 229 + mcp-server 67 ≈ 296 项）
+- `pnpm test`: 162 项通过（2026-07-13 后增至 visual 229 + mcp-server 70 ≈ 299 项）
 - `node apps/visual/scripts/smoke-react-shell.mjs`: 166 项通过
 - `node visual/js/tests/check-react-migration.mjs`: 58 项通过
 - `node visual/js/tests/test-liuyao-engine.js`: 17 项纳甲规则 oracle 通过

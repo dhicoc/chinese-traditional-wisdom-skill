@@ -1,7 +1,7 @@
 /**
  * tools.ts — MCP 工具定义
  *
- * 把 apps/visual/src/legacy 的 18 个 enveloped 引擎各包成一个 MCP 工具。
+ * 把 apps/visual/src/legacy 的 19 个 enveloped 引擎各包成一个 MCP 工具。
  * 每个工具：name + description + zod input schema + handler 返回 ToolEnvelope。
  *
  * 需要精确历法的工具（bazi/yunqi/liuyao/meihua）传入 lunar-javascript 的 Solar 入口；
@@ -22,7 +22,7 @@ import { calcQimenEnveloped } from '../../visual/src/legacy/qimenEngine';
 import { calcDaliurenEnveloped } from '../../visual/src/legacy/daliurenEngine';
 import { calcXingXiuEnveloped } from '../../visual/src/legacy/xingxiuEngine';
 import { calcTaiyiEnveloped } from '../../visual/src/legacy/taiyiEngine';
-import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo, calcSanshiCombo, calcSanshiClassicCombo } from '../../visual/src/legacy/comboEngine';
+import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo, calcSanshiCombo, calcSanshiClassicCombo, calcDailyWellnessCombo } from '../../visual/src/legacy/comboEngine';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
 const solarEntry: unknown = (() => {
@@ -258,6 +258,28 @@ export const TOOLS: ToolDef[] = [
     handler: (i) => calcSanshiClassicCombo({
       birth: (i as { birth: unknown }).birth as never,
       question: (i as { question: string }).question,
+      solar: solarEntry,
+    }),
+  },
+  {
+    name: 'combo_daily_wellness',
+    description: '今日养生建议联合分析：体质 + 24节气 + 子午流注时辰经络 + 太岁/飞星方位。把命理排盘延伸到日常养生决策，形成命理+体质+时空养生闭环。体质优先用问卷结果（constitution 入参，如「气虚质」），否则按出生年五运六气倾向推断。输出节气饮食/起居/运动/穴位 + 体质针对性加减 + 当令时辰养生 + 方位借力。可传入 now 指定日期时辰。',
+    schema: z.object({
+      birth: birthSchema,
+      constitution: z.string().optional().describe('体质类型（气虚质/阳虚质/阴虚质/痰湿质/湿热质/血瘀质/气郁质/特禀质/平和质，来自体质问卷；不传则按五运六气倾向推断）'),
+      now: z.object({
+        year: z.number().int(),
+        month: z.number().int().min(1).max(12),
+        day: z.number().int().min(1).max(31),
+        hour: z.number().int().min(0).max(23),
+      }).optional().describe('当前日期时辰（不传用系统当前时间）'),
+      targetYear: z.number().int().min(1900).max(2100).optional().describe('方位推算年份（太岁/飞星，默认取 now 或当前年）'),
+    }),
+    handler: (i) => calcDailyWellnessCombo({
+      birth: (i as { birth: unknown }).birth as never,
+      constitution: (i as { constitution?: string }).constitution,
+      now: (i as { now?: { year: number; month: number; day: number; hour: number } }).now,
+      targetYear: (i as { targetYear?: number }).targetYear,
       solar: solarEntry,
     }),
   },
