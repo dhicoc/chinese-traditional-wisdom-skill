@@ -7,6 +7,8 @@ import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { calculateQimen as calculateQimenPure, calcQimenEnveloped } from '@/legacy/qimenEngine';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
+import { QimenChart } from '@/components/shared/QimenChart';
+import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import type { LegacyState } from '@/legacy/legacyGlobals';
@@ -65,13 +67,6 @@ interface QimenResult {
   _is3meta: boolean;
 }
 
-const LUCK_COLOR: Record<string, string> = {
-  大吉: 'text-jade-300',
-  吉: 'text-jade-400',
-  中平: 'text-jade-100/55',
-  凶: 'text-cinnabar-400',
-  大凶: 'text-cinnabar-300',
-};
 
 export function QimenWorkspace() {
   const { solarBirth } = useBirth();
@@ -191,90 +186,44 @@ export function QimenWorkspace() {
             />
           </div>
 
-          {/* 九宫排盘 */}
+          {/* 九宫排盘 SVG 式盘 */}
           <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-            <h3 className="mb-3 text-base font-semibold text-jade-50">九宫排盘</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {result.palaces.map((p) => (
-                <div
-                  key={p.position}
-                  className={`rounded-card border p-3 ${
-                    p.isZhiFu
-                      ? 'border-jade-500/40 bg-jade-500/8'
-                      : p.isZhiShi
-                        ? 'border-gold-500/30 bg-gold-500/6'
-                        : 'border-white/8 bg-white/[0.02]'
-                  }`}
-                >
-                  <div className="mb-1.5 flex items-center justify-between">
-                    <span className="font-serif text-sm text-jade-100/70">{p.trigram}({p.position})</span>
-                    <div className="flex gap-1">
-                      {p.isZhiFu && <span className="rounded-full border border-jade-500/30 px-1.5 py-0.5 text-[9px] text-jade-400">符</span>}
-                      {p.isZhiShi && <span className="rounded-full border border-gold-500/30 px-1.5 py-0.5 text-[9px] text-gold-400">使</span>}
-                      {p.horse && <span className="rounded-full border border-cinnabar-500/30 px-1.5 py-0.5 text-[9px] text-cinnabar-400">马</span>}
-                      {p.voidness?.hasVoidness && <span className="rounded-full border border-white/20 px-1.5 py-0.5 text-[9px] text-jade-100/55">空</span>}
-                    </div>
+            <h3 className="mb-2 text-base font-semibold text-jade-50">九宫式盘</h3>
+            <ZoomableSvg title="奇门九宫式盘">
+              <QimenChart
+                palaces={result.palaces}
+                dunJu={`${result.dun}${result.ju}`}
+              />
+            </ZoomableSvg>
+          </div>
+
+          {/* 各宫格局详情（式盘只显示计数，具体格局名列在此） */}
+          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+            <h3 className="mb-3 text-sm font-semibold text-jade-50">各宫格局详情</h3>
+            <div className="space-y-2">
+              {result.palaces.filter((p) => p.auspiciousPatterns.length > 0 || p.inauspiciousPatterns.length > 0 || p.tenStemResponse?.heavenlyToEarthly || p.tenStemResponse?.timeToDay).map((p) => (
+                <div key={p.position} className={`rounded-card border p-2.5 ${p.isZhiFu ? 'border-jade-500/30 bg-jade-500/6' : p.isZhiShi ? 'border-gold-500/25 bg-gold-500/5' : 'border-white/8 bg-black/30'}`}>
+                  <p className="text-xs font-semibold text-jade-100/80">{p.trigram}宫（{p.position}）· {p.gate}门 {p.star}星 {p.deity}神</p>
+                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px]">
+                    {p.auspiciousPatterns.map((pat, i) => (
+                      <span key={`a${i}`} className="text-jade-400">★{pat}</span>
+                    ))}
+                    {p.inauspiciousPatterns.map((pat, i) => (
+                      <span key={`i${i}`} className="text-cinnabar-400">✗{pat}</span>
+                    ))}
                   </div>
-                  <div className="space-y-1 text-xs">
-                    <div>
-                      <span className="text-jade-100/45">门：</span>
-                      <span className={LUCK_COLOR[p.gateLuck] ?? 'text-jade-100/70'}>{p.gate}</span>
+                  {(p.tenStemResponse?.heavenlyToEarthly || p.tenStemResponse?.timeToDay) && (
+                    <div className="mt-1 text-[10px] leading-4 text-jade-100/55">
+                      {p.tenStemResponse.heavenlyToEarthly && <div>{p.tenStemResponse.heavenlyToEarthly}</div>}
+                      {p.tenStemResponse.timeToDay && <div>{p.tenStemResponse.timeToDay}</div>}
                     </div>
-                    <div>
-                      <span className="text-jade-100/45">星：</span>
-                      <span className={LUCK_COLOR[p.starLuck] ?? 'text-jade-100/70'}>{p.star}</span>
-                    </div>
-                    <div>
-                      <span className="text-jade-100/45">神：</span>
-                      <span className={LUCK_COLOR[p.godLuck] ?? 'text-jade-100/70'}>{p.deity}</span>
-                    </div>
-                    {p.heavenlyStem && (
-                      <div>
-                        <span className="text-jade-100/45">天盘：</span>
-                        <span className="text-jade-300/70">{p.heavenlyStem}</span>
-                      </div>
-                    )}
-                    {p.earthlyStem && (
-                      <div>
-                        <span className="text-jade-100/45">地盘：</span>
-                        <span className="text-jade-100/55">{p.earthlyStem}</span>
-                      </div>
-                    )}
-                    {p.fiveElements && (
-                      <div className="text-[10px] text-jade-100/55">
-                        {p.fiveElements}
-                        {p.status ? ` · 星${p.status.star} 门${p.status.gate}` : ''}
-                        {p.innerOuter ? ` · ${p.innerOuter}` : ''}
-                      </div>
-                    )}
-                    {p.tenStemResponse && (p.tenStemResponse.heavenlyToEarthly || p.tenStemResponse.timeToDay) && (
-                      <div className="mt-1 border-t border-white/5 pt-1 text-[10px] leading-4 text-jade-100/55">
-                        {p.tenStemResponse.heavenlyToEarthly && <div>{p.tenStemResponse.heavenlyToEarthly}</div>}
-                        {p.tenStemResponse.timeToDay && <div>{p.tenStemResponse.timeToDay}</div>}
-                      </div>
-                    )}
-                    {(p.auspiciousPatterns.length > 0 || p.inauspiciousPatterns.length > 0) && (
-                      <div className="mt-1 border-t border-white/5 pt-1">
-                        {p.auspiciousPatterns.map((pat, i) => (
-                          <span key={`a${i}`} className="mr-1 text-[10px] text-jade-400">★{pat}</span>
-                        ))}
-                        {p.inauspiciousPatterns.map((pat, i) => (
-                          <span key={`i${i}`} className="mr-1 text-[10px] text-cinnabar-400">✗{pat}</span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
               ))}
+              {result.palaces.every((p) => p.auspiciousPatterns.length === 0 && p.inauspiciousPatterns.length === 0 && !p.tenStemResponse?.heavenlyToEarthly && !p.tenStemResponse?.timeToDay) && (
+                <p className="text-[11px] text-jade-100/45">本局各宫无明显格局与十干应期。</p>
+              )}
             </div>
-            <p className="mt-3 text-[11px] leading-5 text-jade-100/55">
-              九宫按洛书序排布（坎1/坤2/震3/巽4/中5/乾6/兑7/艮8/离9）。
-              <span className="text-jade-400"> 符</span>=值符所在宫，
-              <span className="text-gold-400"> 使</span>=值使所在宫，
-              <span className="text-cinnabar-400"> 马</span>=马星，
-              <span className="text-jade-100/55"> 空</span>=空亡。
-              天盘/地盘为三奇六仪天干；★吉格 ✗凶格为本宫检测到的格局。
-            </p>
           </div>
         </div>
       )}
