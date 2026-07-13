@@ -83,58 +83,63 @@ export function BirthPanel() {
       )}
 
       {expanded && (
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <ControlField
-            label="年"
-            type="number"
-            min={1900}
-            max={2100}
-            inputMode="numeric"
-            value={birth.year}
-            onChange={(e) => updateBirth({ year: Number.parseInt(e.target.value, 10) || 1990 })}
-          />
-          <ControlField
-            label="月"
-            type="number"
-            min={1}
-            max={12}
-            inputMode="numeric"
-            value={birth.month}
-            onChange={(e) => updateBirth({ month: Number.parseInt(e.target.value, 10) || 1 })}
-          />
-          <ControlField
-            label="日"
-            type="number"
-            min={1}
-            max={31}
-            inputMode="numeric"
-            value={birth.day}
-            onChange={(e) => updateBirth({ day: Number.parseInt(e.target.value, 10) || 1 })}
-          />
-          <ControlField
-            label="时"
-            type="number"
-            min={0}
-            max={23}
-            inputMode="numeric"
-            value={birth.hour}
-            onChange={(e) => updateBirth({ hour: Number.parseInt(e.target.value, 10) || 0 })}
-          />
-          <label className="grid gap-1 text-xs text-jade-100/45">
-            <span>性别</span>
-            <select
-              value={birth.gender}
-              onChange={(e) => updateBirth({ gender: e.target.value as '男' | '女' })}
-              className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
-            >
-              <option value="男">男</option>
-              <option value="女">女</option>
-            </select>
-          </label>
-          <div className="col-span-2 flex flex-col gap-2">
-            <div className="flex items-center gap-1">
+        <div className="mt-3 space-y-3">
+          {/* 年月日时：2×2 网格，数字字段宽够清晰 */}
+          <div className="grid grid-cols-2 gap-2">
+            <ControlField
+              label="年"
+              type="number"
+              min={1900}
+              max={2100}
+              inputMode="numeric"
+              value={birth.year}
+              onChange={(e) => updateBirth({ year: Number.parseInt(e.target.value, 10) || 1990 })}
+            />
+            <ControlField
+              label="月"
+              type="number"
+              min={1}
+              max={12}
+              inputMode="numeric"
+              value={birth.month}
+              onChange={(e) => updateBirth({ month: Number.parseInt(e.target.value, 10) || 1 })}
+            />
+            <ControlField
+              label="日"
+              type="number"
+              min={1}
+              max={31}
+              inputMode="numeric"
+              value={birth.day}
+              onChange={(e) => updateBirth({ day: Number.parseInt(e.target.value, 10) || 1 })}
+            />
+            <ControlField
+              label="时"
+              type="number"
+              min={0}
+              max={23}
+              inputMode="numeric"
+              value={birth.hour}
+              onChange={(e) => updateBirth({ hour: Number.parseInt(e.target.value, 10) || 0 })}
+            />
+          </div>
+
+          {/* 性别 + 历法：同一行，左右各半 */}
+          <div className="grid grid-cols-2 gap-2">
+            <label className="grid gap-1 text-xs text-jade-100/45">
+              <span>性别</span>
+              <select
+                value={birth.gender}
+                onChange={(e) => updateBirth({ gender: e.target.value as '男' | '女' })}
+                className="rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+              >
+                <option value="男">男</option>
+                <option value="女">女</option>
+              </select>
+            </label>
+            <div className="flex flex-col gap-1">
               <span className="text-xs text-jade-100/45">历法</span>
-              <div className="flex items-center gap-0.5 rounded-full border border-white/10 bg-black/30 p-0.5">
+              <div className="flex items-center gap-0.5 rounded-full border border-white/10 bg-black/30 p-0.5 self-start">
                 <button
                   type="button"
                   onClick={() => updateBirth({ isLunar: false })}
@@ -151,16 +156,18 @@ export function BirthPanel() {
                 </button>
               </div>
             </div>
-            <label className="flex items-center gap-2 text-xs text-jade-100/55">
-              <input
-                type="checkbox"
-                checked={birth.useExactCalendar}
-                onChange={(e) => updateBirth({ useExactCalendar: e.target.checked })}
-                className="h-3.5 w-3.5 accent-jade-500"
-              />
-              精确节气
-            </label>
           </div>
+
+          {/* 精确节气：单独一行 */}
+          <label className="flex items-center gap-2 text-xs text-jade-100/55">
+            <input
+              type="checkbox"
+              checked={birth.useExactCalendar}
+              onChange={(e) => updateBirth({ useExactCalendar: e.target.checked })}
+              className="h-3.5 w-3.5 accent-jade-500"
+            />
+            精确节气
+          </label>
         </div>
       )}
     </div>
