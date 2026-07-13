@@ -75,11 +75,11 @@ export function FourLayerReport({ report, title, defaultDetailsOpen = false }: F
         </div>
       </div>
 
-      {/* 第二层：highlights 亮点/风险 */}
+      {/* 第二层：highlights 亮点/风险（单列全宽，与 tldr 对齐） */}
       {report.highlights.length > 0 && (
         <div>
           <p className="mb-1.5 text-xs font-medium text-jade-100/55">关键亮点 / 风险</p>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="space-y-2">
             {report.highlights.map((h, i) => {
               const hs = TONE_STYLE[h.tone];
               const ss = h.strength ? STRENGTH_STYLE[h.strength] : null;
