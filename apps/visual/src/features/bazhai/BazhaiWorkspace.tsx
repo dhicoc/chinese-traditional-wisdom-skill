@@ -218,8 +218,8 @@ export function BazhaiWorkspace() {
           {sectorAnalysis && (
             <div className="rounded-card border border-white/8 bg-white/[0.035] p-4">
               <p className="text-sm font-semibold text-jade-100">方位用途宜忌</p>
-              <p className="mt-1 text-[11px] text-jade-100/45">八星古典主象 + 房间布局建议（《八宅明镜》《阳宅三要》）</p>
-              <div className="mt-2.5 space-y-2">
+              <p className="mt-1 text-[11px] text-jade-100/45">八星古典主象 + 房间布局建议</p>
+              <div className="mt-2.5 grid gap-2 sm:grid-cols-2">
                 {sectorAnalysis.map((s) => {
                   const isJi = s.use.quality === '大吉' || s.use.quality === '吉';
                   const isXiong = s.use.quality === '大凶' || s.use.quality === '凶' || s.use.quality === '次凶';
@@ -244,6 +244,29 @@ export function BazhaiWorkspace() {
               </div>
             </div>
           )}
+        </aside>
+
+        {/* 右侧：命盘 + 合参 + 太岁 + 门主灶 */}
+        <section className="space-y-4">
+        <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-jade-50">八宅命盘</h3>
+              <p className="mt-1 text-sm leading-6 text-jade-100/55">
+                八方向游年星吉凶，中心为命卦。
+              </p>
+            </div>
+          </div>
+          <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
+            {grid ? (
+              <ZoomableSvg title="八宅命盘">
+                <EightMansionsChart grid={grid} year={year} gender={gender} />
+              </ZoomableSvg>
+            ) : (
+              <LoadingSkeleton label="正在排盘" />
+            )}
+          </div>
+        </div>
 
           {combo && (
             <div className="rounded-card border border-gold-500/25 bg-gold-500/6 p-4">
@@ -262,7 +285,6 @@ export function BazhaiWorkspace() {
                   />
                 </label>
               </div>
-              <p className="mt-1 text-[11px] text-jade-100/45">个人命卦方位（静态）与流年飞星方位（动态）交叉分析 · 流年仅影响本卡片，不改命卦命盘</p>
               <div className="mt-2 grid grid-cols-2 gap-1.5 text-xs">
                 <div className="flex justify-between rounded bg-jade-500/8 px-2 py-1"><span className="text-jade-300">个人生气位</span><span className="text-jade-100/80">{combo.shengqiDirection}方</span></div>
                 <div className="flex justify-between rounded bg-jade-500/8 px-2 py-1"><span className="text-jade-300">流年财位</span><span className="text-jade-100/80">{combo.caiweiDirection}方</span></div>
@@ -322,7 +344,6 @@ export function BazhaiWorkspace() {
                     {mzz.overall.tone === '吉' ? '格局优良' : mzz.overall.tone === '凶' ? '需化解' : '格局一般'}
                   </span>
                 </div>
-                {/* 输入：门/主/灶方位 */}
                 <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
                   {[
                     { label: '大门', value: mzzDoor, set: setMzzDoor, info: mzz.door },
@@ -344,7 +365,6 @@ export function BazhaiWorkspace() {
                     </div>
                   ))}
                 </div>
-                {/* 三组关系 */}
                 <div className="mt-2.5 space-y-1.5">
                   {[
                     { label: '门↔主', r: mzz.doorBedroomRelation },
@@ -357,7 +377,6 @@ export function BazhaiWorkspace() {
                     </div>
                   ))}
                 </div>
-                {/* 化解建议 */}
                 {mzz.remedies.length > 0 && (
                   <div className="mt-2 rounded border border-gold-500/20 bg-gold-500/6 px-2.5 py-1.5">
                     <p className="text-[10px] font-semibold text-gold-400">化解建议</p>
@@ -373,8 +392,8 @@ export function BazhaiWorkspace() {
           {SHAPE_SHA.length > 0 && (
             <div className="rounded-card border border-white/8 bg-white/[0.035] p-4">
               <p className="text-sm font-semibold text-jade-100">形煞化解参考</p>
-              <p className="mt-1 text-[11px] text-jade-100/45">常见外部形煞与内部形煞的形成、影响与化解法（综合各典）</p>
-              <div className="mt-2.5 space-y-2">
+              <p className="mt-1 text-[11px] text-jade-100/45">常见外部形煞与内部形煞</p>
+              <div className="mt-2.5 grid gap-2 sm:grid-cols-2">
                 {SHAPE_SHA.map((sha) => (
                   <div key={sha.name} className="rounded border border-white/5 bg-black/30 p-2.5">
                     <div className="flex items-center justify-between">
@@ -412,26 +431,6 @@ export function BazhaiWorkspace() {
             ]}
             description="点击术语查看八宅、九星古典名、形煞与典籍的通俗解释。"
           />
-        </aside>
-
-        <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-          <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-jade-50">八宅命盘</h3>
-              <p className="mt-1 text-sm leading-6 text-jade-100/55">
-                八宅命盘：八方向扇区，每扇区显示游年星、吉凶与含义，中心为命卦。
-              </p>
-            </div>
-          </div>
-          <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
-            {grid ? (
-              <ZoomableSvg title="八宅命盘">
-                <EightMansionsChart grid={grid} year={year} gender={gender} />
-              </ZoomableSvg>
-            ) : (
-              <LoadingSkeleton label="正在排盘" />
-            )}
-          </div>
         </section>
       </div>
     </section>
