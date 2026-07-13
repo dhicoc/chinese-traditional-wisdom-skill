@@ -21,6 +21,7 @@ import {
   FACING_OPTIONS,
 } from '@/legacy/bazhaiHouse';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
+import { calcTaisui } from '@/legacy/taisuiEngine';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 
@@ -278,6 +279,32 @@ export function BazhaiWorkspace() {
               </div>
             </div>
           )}
+
+          {/* 太岁流年神煞 */}
+          {(() => {
+            const taisui = calcTaisui(flowYear);
+            return (
+              <div className="rounded-card border border-cinnabar-500/20 bg-cinnabar-500/5 p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-jade-100">太岁流年神煞</p>
+                  <span className="text-[10px] text-cinnabar-400">{flowYear}年 · {taisui.yearZhi}年</span>
+                </div>
+                <div className="mt-2 grid grid-cols-2 gap-1.5 text-xs">
+                  <div className="flex justify-between rounded bg-cinnabar-500/8 px-2 py-1"><span className="text-cinnabar-300">太岁</span><span className="text-jade-100/80">{taisui.taisui.direction}</span></div>
+                  <div className="flex justify-between rounded bg-cinnabar-500/8 px-2 py-1"><span className="text-cinnabar-300">岁破</span><span className="text-jade-100/80">{taisui.suiPo.direction}</span></div>
+                  <div className="flex justify-between rounded bg-cinnabar-500/8 px-2 py-1"><span className="text-cinnabar-300">三煞</span><span className="text-jade-100/80">{taisui.sanSha.zhiList.join('、')}</span></div>
+                  <div className="flex justify-between rounded bg-cinnabar-500/8 px-2 py-1"><span className="text-cinnabar-300">五黄</span><span className="text-jade-100/80">{taisui.fiveYellow.direction}</span></div>
+                </div>
+                <div className="mt-2 space-y-1.5">
+                  {taisui.recommendations.map((r, i) => (
+                    <div key={i} className="rounded border border-cinnabar-500/15 bg-black/20 px-2.5 py-1.5 text-[11px] leading-4 text-jade-100/70">
+                      <span className="font-semibold text-cinnabar-400">{r.label}：</span>{r.value}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           {SHAPE_SHA.length > 0 && (
             <div className="rounded-card border border-white/8 bg-white/[0.035] p-4">
