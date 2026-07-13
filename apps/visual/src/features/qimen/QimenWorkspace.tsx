@@ -172,33 +172,24 @@ export function QimenWorkspace() {
                 { label: '概要', value: result.summary },
               ]}
             />
-            <InterpretationCard
-              title="吉凶格局"
-              badge={`${result.auspiciousPatterns.length + result.inauspiciousPatterns.length} 格局`}
-            >
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-start gap-1.5">
-                  <span className="mt-0.5 shrink-0 rounded-full border border-jade-500/30 bg-jade-500/10 px-2 py-0.5 text-[10px] font-semibold text-jade-400">吉格</span>
-                  {result.auspiciousPatterns.length > 0 ? (
-                    result.auspiciousPatterns.map((pat, i) => (
-                      <span key={i} className="rounded-full border border-jade-500/20 bg-jade-500/8 px-2 py-0.5 text-[11px] text-jade-300">{pat}</span>
-                    ))
-                  ) : (
-                    <span className="text-[11px] text-jade-100/40">无</span>
-                  )}
+            <div className="rounded-card border border-white/10 bg-ink-950/90 p-2.5">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                <span className="text-xs font-semibold text-jade-100/70">格局</span>
+                <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2 py-0.5 text-[10px] text-jade-400">{result.auspiciousPatterns.length + result.inauspiciousPatterns.length}</span>
+                <div className="flex flex-wrap items-center gap-1">
+                  <span className="shrink-0 rounded-full border border-jade-500/30 bg-jade-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-jade-400">吉</span>
+                  {result.auspiciousPatterns.length > 0 ? result.auspiciousPatterns.map((pat, i) => (
+                    <span key={`a${i}`} className="rounded-full border border-jade-500/20 bg-jade-500/8 px-1.5 py-0.5 text-[10px] text-jade-300">{pat}</span>
+                  )) : <span className="text-[10px] text-jade-100/40">无</span>}
                 </div>
-                <div className="flex flex-wrap items-start gap-1.5">
-                  <span className="mt-0.5 shrink-0 rounded-full border border-cinnabar-500/30 bg-cinnabar-500/10 px-2 py-0.5 text-[10px] font-semibold text-cinnabar-400">凶格</span>
-                  {result.inauspiciousPatterns.length > 0 ? (
-                    result.inauspiciousPatterns.map((pat, i) => (
-                      <span key={i} className="rounded-full border border-cinnabar-500/20 bg-cinnabar-500/8 px-2 py-0.5 text-[11px] text-cinnabar-300">{pat}</span>
-                    ))
-                  ) : (
-                    <span className="text-[11px] text-jade-100/40">无</span>
-                  )}
+                <div className="flex flex-wrap items-center gap-1">
+                  <span className="shrink-0 rounded-full border border-cinnabar-500/30 bg-cinnabar-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-cinnabar-400">凶</span>
+                  {result.inauspiciousPatterns.length > 0 ? result.inauspiciousPatterns.map((pat, i) => (
+                    <span key={`i${i}`} className="rounded-full border border-cinnabar-500/20 bg-cinnabar-500/8 px-1.5 py-0.5 text-[10px] text-cinnabar-300">{pat}</span>
+                  )) : <span className="text-[10px] text-jade-100/40">无</span>}
                 </div>
               </div>
-            </InterpretationCard>
+            </div>
           </div>
 
           {/* 九宫排盘 SVG 式盘 */}
