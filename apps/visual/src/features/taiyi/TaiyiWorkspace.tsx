@@ -120,7 +120,7 @@ export function TaiyiWorkspace() {
                 <select
                   value={jiStyle}
                   onChange={(e) => setJiStyle(Number(e.target.value) as JiStyle)}
-                  className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+                  className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900/60 backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
                 >
                   {(Object.keys(JI_STYLE_NAMES) as unknown as JiStyle[]).map((s) => (
                     <option key={s} value={s}>{JI_STYLE_NAMES[s]}</option>
@@ -131,7 +131,7 @@ export function TaiyiWorkspace() {
                 <select
                   value={acumYear}
                   onChange={(e) => setAcumYear(Number(e.target.value) as AcumYearMethod)}
-                  className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+                  className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900/60 backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
                 >
                   {(Object.keys(ACUM_YEAR_NAMES) as unknown as AcumYearMethod[]).map((s) => (
                     <option key={s} value={s}>{ACUM_YEAR_NAMES[s]}</option>

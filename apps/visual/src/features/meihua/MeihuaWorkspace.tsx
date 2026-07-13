@@ -135,7 +135,7 @@ export function MeihuaWorkspace() {
             <select
               value={upper}
               onChange={(event) => setUpper(event.target.value)}
-              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900/60 backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
             >
               {MEIHUA_TRIGRAMS.map((item) => (
                 <option key={item.value} value={item.value}>{item.label}</option>
@@ -147,7 +147,7 @@ export function MeihuaWorkspace() {
             <select
               value={lower}
               onChange={(event) => setLower(event.target.value)}
-              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900/60 backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
             >
               {MEIHUA_TRIGRAMS.map((item) => (
                 <option key={item.value} value={item.value}>{item.label}</option>
@@ -159,7 +159,7 @@ export function MeihuaWorkspace() {
             <select
               value={movingLine}
               onChange={(event) => setMovingLine(Number.parseInt(event.target.value, 10) || 3)}
-              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900/60 backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
             >
               {[1, 2, 3, 4, 5, 6].map((value) => (
                 <option key={value} value={value}>{value}</option>
@@ -171,7 +171,7 @@ export function MeihuaWorkspace() {
             <select
               value={relation}
               onChange={(event) => setRelation(event.target.value as (typeof RELATION_OPTIONS)[number])}
-              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900/60 backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
             >
               {RELATION_OPTIONS.map((value) => (
                 <option key={value} value={value}>{value}</option>

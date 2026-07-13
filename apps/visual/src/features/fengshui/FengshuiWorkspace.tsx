@@ -170,7 +170,7 @@ export function FengshuiWorkspace() {
             <select
               value={facing}
               onChange={(e) => setFacing(e.target.value)}
-              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900/60 backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
             >
               {FACING_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -188,7 +188,7 @@ export function FengshuiWorkspace() {
               inputMode="numeric"
               value={year}
               onChange={(e) => setYear(Number.parseInt(e.target.value, 10) || year)}
-              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900/60 backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
             />
           </div>
 
