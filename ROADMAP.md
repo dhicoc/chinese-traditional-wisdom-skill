@@ -129,7 +129,7 @@
 ### Phase 0：冻结当前契约
 
 - 建立 `visual/MIGRATION_REACT.md`，记录旧系统与新系统并存方式、不可破坏的接口、已知风险和回滚方式。
-- 固定 11 个 tab id：`home`、`bazi`、`ziwei`、`liuyao`、`meihua`、`fengshui`、`feixing`、`bazhai`、`yunqi`、`tizhi`、`mermaid`。
+- 固定 tab id（初始 11 个）：`home`、`bazi`、`ziwei`、`liuyao`、`meihua`、`fengshui`、`feixing`、`bazhai`、`yunqi`、`tizhi`、`mermaid`。后续随模块扩充新增 `qimen`、`liuren`、`xingxiu`、`taiyi`、`combo`、`almanac`、`namewuxing`、`dream`、`rhythm`、`reader`、`history`、`testing`（见 `apps/visual/src/lib/modules.ts` 完整清单）。
 - 记录当前基线：截图、浏览器控制台状态、`visual/test-runner.html` 结果、`node visual/js/tests/check-doc-contracts.mjs` 结果。
 - 明确测试分类：Node contract tests、浏览器环境 tests、Canvas smoke tests、隐私测试。
 
@@ -282,7 +282,7 @@
 - 已边界收敛：六爻在 Dashboard 已升级为本地京房八宫纳甲引擎(`liuyao-engine.js`)，输出来自真实排盘而非演示；紫微已接入本地 `SylarLong/iztro` v2.5.8，梅花已内置时间/数字起卦规则。后续开发目标不是长期依赖外部服务，而是把可用开源引擎或自研规则内置到本地 Adapter。不同流派在纳甲地支顺逆与六神起例上可能存在口径差异，已在 `confidenceNote` 显式提示。
 - 已内置精确历法与本地排盘：Dashboard 默认加载 `visual/vendor/lunar-javascript-1.7.7.js` 与 `visual/vendor/iztro-2.5.8.min.js`，八字使用精确节气干支，五运六气使用大寒边界修正，紫微使用 iztro 真实十二宫排盘；用户可关闭“精确历法测算”回退近似模式。
 - v0.3 信息架构已开始落地：新增 `visual/js/tool-manifest.js`，工具目录可按 manifest 分组渲染；视觉方案重新设计，不再沿用 suanle-me 参考方向。
-- React Shell 迁移面已补齐：`apps/visual/` 已具备 App Shell、统一 `workspaceRegistry.tsx`、完整 legacy script loader（含 vendor / engine-adapters / data-bridge）、`CanvasPanel` / `ControlField` / `CopyContextButton` / `InterpretationCard` / `LegendPanel`、CommandBar 命令意图、年份跳转、Node 冒烟测试、React 迁移契约测试与 `verify.html` 人工回归页；已迁移工作区包括八字、五行、五运六气、体质辨识、风水罗盘、流年飞星、八宅大游年、梅花易数、六爻占卜、紫微斗数、知识图谱、古籍 Split Reader、测试控制台与本地历史。
+- React Shell 迁移面已补齐：`apps/visual/` 已具备 App Shell、统一 `workspaceRegistry.tsx`、完整 legacy script loader（含 vendor / engine-adapters / data-bridge）、`CanvasPanel` / `ControlField` / `CopyContextButton` / `InterpretationCard` / `LegendPanel`、CommandBar 命令意图、年份跳转、Node 冒烟测试、React 迁移契约测试与 `verify.html` 人工回归页；已迁移工作区包括八字、五行、五运六气、体质辨识、风水罗盘、流年飞星、八宅大游年、梅花易数、六爻占卜、紫微斗数、奇门遁甲、大六壬、二十八星宿、太乙神数、联合分析、每日黄历、姓名五行、周公解梦、每日节律、知识图谱、古籍 Split Reader、测试控制台与本地历史。
 - React Phase 5-11 已形成并行验证闭环：`pnpm test` 当前 162 项通过，`node visual/js/tests/check-react-migration.mjs` 当前 58 项通过；浏览器端新增 `test-liuyao-engine.js`（17 项六爻纳甲领域规则 oracle）；`pnpm build` 会生成标注紫微与六爻 `local-exact` 的 `apps/visual/dist/verify.html`。旧 `visual/index.html` 不替换，继续作为稳定主入口；`visual/react.html` 作为并行验证入口。
 - v0.3 结构化阅读与历史已落地：`EngineAdapterRegistry.toReading()` 契约已实现于八字/五运六气/梅花三个 Adapter；`HistoryStore` 本地历史与收藏已集成到旧 Dashboard 首页和 React Shell `history` 工作区；梅花数字起卦模式已内置。
 - v0.3 咨询向导已落地：旧 Dashboard 首页新增"打开咨询向导"按钮，提供六类问题入口，调用 `toReading()` 生成结构化摘要并保存到历史；报告导出 `exportReportData()` 已集成 `readings` 字段并在 HTML 报告中展示。
@@ -490,33 +490,60 @@
 - Dashboard 仍可独立使用（file:// 双击或 dev server）。
 - slash command 与自然语言路由均可触发。
 
-## 流年飞星增强计划
+## 三式补全：太乙神数 / 大六壬 / 二十八星宿（✅ 完成）
 
-> 2026-07-09 规划。基于 Sudo-Biao/suangua（MIT）、voidforall/fengshui.skill、funfwo/Fengshui 三个开源仓库源码调研，提炼数据与规则增强本项目流年飞星模块。不改动现有飞星计算逻辑（core.js `getFlyingStars`），仅增强数据层与展示层。
+> 2026-07-13 前落地。传统三式（奇门/太乙/大六壬）已齐备，并补二十八星宿择吉模块。均纯 TS 引擎 + lunar-javascript 精确历法，返回 `ToolEnvelope`，接入 MCP 与 React Dashboard。
 
-### Step 1：九星化煞建议数据表
+### 太乙神数（✅ 完成）
 
-- 新增 `apps/visual/src/legacy/flyingStarRemedies.ts`：九星化煞建议数据，提炼自 suangua `NINE_STARS` 的 `remedy`/`room_use`/`health` 字段。
-- 每星含：化煞物品、适宜房间用途、健康注意事项、事业提示。
-- 在 `NinePalaceGrid` 的每宫卡片中显示化煞建议（凶星显示化煞物品，吉星显示适宜用途）。
+- ✅ 新增 `taiyiEngine.ts`（约 1000 行）：参考 `kentang2017/kintaiyi`（MIT）。太乙积年（5 计式 × 4 积年法）、局数、落宫、文昌/始击/定目、主客算与四将、四神/天乙/地乙/直符、君基/臣基/民基、格局（掩迫关囚击格对提挟）、八门、十六宫。
+- ✅ `TaiyiChart.tsx`：太乙九宫 SVG（洛书方位 3×3），太乙宫金色高亮，主将玉色/客将朱砂色。
+- ✅ MCP 工具 `taiyi_calculate`，模块 id `taiyi`，状态 `local-exact`。
 
-### Step 2：方位用途标注
+### 大六壬（✅ 完成）
 
-- 在飞星计算结果中标注：财位（八白）、文昌位（四绿）、桃花位（一白）、病符位（二黑）、五黄凶位。
-- `NinePalaceGrid` 每宫根据飞星编号显示用途标签（如「财位」「文昌位」「病符」）。
-- 底部摘要增加方位用途一览（今年财位在X方、文昌位在Y方…）。
+- ✅ 新增 `daliurenEngine.ts`：参考 `kentang2017/kinliuren`（MIT）算法逻辑，纯 TS 重写。天地盘、四课、三传（九宗门贼克/比用/涉害/遥克/昴星/八专/伏吟/返吟）、神煞、格局。
+- ✅ `DaliurenChart.tsx`：大六壬天地盘 SVG 式盘（4×3 方阵 12 宫 + 中心格局/四课/三传分区，三传宫位金色高亮）。
+- ✅ MCP 工具 `liuren_calculate`，模块 id `liuren`，状态 `local-exact`。
 
-### Step 3：元运标识
+### 二十八星宿（✅ 完成）
 
-- 新增三元九运数据表（一运1864~九运2043），标注当前元运。
-- 飞星工作区顶部显示「当前九运（2024-2043）」标识。
-- 九星旺衰状态随元运变化（九运：9当令旺、1生气、8退气、7失令、5凶星、2病符）。
+- ✅ 新增 `xingxiuEngine.ts`：每日值宿查询、吉凶宜忌、四象（青龙/朱雀/白虎/玄武）分组、禽星全称、七曜五行。
+- ✅ `XingXiuChart.tsx`：二十八星宿 SVG 图。
+- ✅ MCP 工具 `xingxiu_daily`，模块 id `xingxiu`，状态 `local-exact`。
 
-### Step 4：飞星+命卦合参
+### 周易核心扩展（✅ 完成，计划外）
 
-- 读全局生辰算命卦（复用 `core.js calcMingGua`），标注个人四吉方（生气/天医/延年/伏位）与四凶方。
-- 飞星九宫格上叠加命卦吉凶方位标记（如「生气位+八白财星 = 双重旺财」）。
-- 底部合参建议：个人财位与年飞星财位重合时特别提示。
+- ✅ 揲蓍法起卦：六爻/梅花引擎新增 `method='yarrow'`（50 策三变算法，9 老阳/8 少阴/7 少阳/6 老阴）。
+- ✅ 64 卦古典文本：从 `kintaiyi` `data.pkl` 提取 → `ichingTexts.json`（64 卦 × 8 条：卦辞 + 6 爻辞 + 彖传），`ichingTexts.ts` 提供查询。六爻/梅花 `export_snapshot` 新增卦辞/动爻爻辞/彖传段。
+
+## 流年飞星增强计划（✅ 完成）
+
+> 2026-07-09 规划，2026-07-13 前全部落地。基于 Sudo-Biao/suangua（MIT）、voidforall/fengshui.skill、funfwo/Fengshui 三个开源仓库源码调研，提炼数据与规则增强本项目流年飞星模块。不改动现有飞星计算逻辑（core.js `getFlyingStars`），仅增强数据层与展示层。
+
+### Step 1：九星化煞建议数据表（✅ 完成）
+
+- ✅ 新增 `apps/visual/src/legacy/flyingStarRemedies.ts`：九星化煞建议数据，提炼自 suangua `NINE_STARS` 的 `remedy`/`room_use`/`health` 字段。
+- ✅ 每星含：化煞物品、适宜房间用途、健康注意事项、事业提示；2026-07-13 增强每星具体颜色 + 摆设物品。
+- ✅ 在 `NinePalaceGrid` 的每宫卡片中显示化煞建议（凶星显示化煞物品，吉星显示适宜用途）。
+
+### Step 2：方位用途标注（✅ 完成）
+
+- ✅ 在飞星计算结果中标注：财位（八白）、文昌位（四绿）、桃花位（一白）、病符位（二黑）、五黄凶位。
+- ✅ `NinePalaceGrid` 每宫根据飞星编号显示用途标签（如「财位」「文昌位」「病符」）。
+- ✅ 底部摘要增加方位用途一览（今年财位在X方、文昌位在Y方…）。
+
+### Step 3：元运标识（✅ 完成）
+
+- ✅ 新增三元九运数据表（一运1864~九运2043），标注当前元运。
+- ✅ 飞星工作区顶部显示「当前九运（2024-2043）」标识。
+- ✅ 九星旺衰状态随元运变化（九运：9当令旺、1生气、8退气、7失令、5凶星、2病符）。
+
+### Step 4：飞星+命卦合参（✅ 完成）
+
+- ✅ 读全局生辰算命卦（复用 `core.js calcMingGua`），标注个人四吉方（生气/天医/延年/伏位）与四凶方。
+- ✅ 飞星九宫格上叠加命卦吉凶方位标记（如「生气位+八白财星 = 双重旺财」）。
+- ✅ 底部合参建议：个人财位与年飞星财位重合时特别提示。
 
 ### 验收标准
 
@@ -527,9 +554,9 @@
 - 读取全局生辰后显示命卦吉方与飞星合参建议。
 - 不破坏现有飞星计算逻辑与测试。
 
-## 八宅大游年增强计划
+## 八宅大游年增强计划（✅ 完成）
 
-> 2026-07-09 规划。基于 Sudo-Biao/suangua、voidforall/fengshui.skill、vandh/yijing、Shine2099/fengshui-scanner 四个开源仓库源码调研，提炼数据与规则增强本项目八宅模块。已完成两项 bug 修复（见下"已修复"），后续分 5 步补齐与开源实现的差距。
+> 2026-07-09 规划，2026-07-13 前全部落地。基于 Sudo-Biao/suangua、voidforall/fengshui.skill、vandh/yijing、Shine2099/fengshui-scanner 四个开源仓库源码调研，提炼数据与规则增强本项目八宅模块。已完成两项 bug 修复（见下"已修复"），5 步补齐与开源实现的差距均已落地（含计划外的太岁/门主灶增强）。
 
 ### 调研结论（决定后续方向）
 
@@ -542,39 +569,44 @@
 - ✅ **乾卦方位表 4 处错位**：`fengshui.js EIGHT_MANSIONS_DATA` 乾卦行东北/东/南/西 四星错位循环（原东北=五鬼重复、南=五鬼重复），修正为 `东北:天医 / 东:五鬼 / 南:绝命 / 西:生气`。修正后 8 卦方位表全部 8 星齐全无重复。
 - ✅ **2000 年后命卦公式失效**：`core.js calcMingGua` 对 2000 年后女性返回负数 → `?`，男性 2000 年得坎(1) 与标准离(9) 不符。新增世纪调整分支：2000+ 男 `(9-y)%9`、女 `(y+6)%9`（y=年份后两位），归一化防负数，保留 rem==0→9、rem==5 男寄坤2/女寄艮8。1900-1999 公式不变（无回归）。验证：2000 男=离、女=乾。
 
-### Step 1：宅卦 + 命宅相配
+### Step 1：宅卦 + 命宅相配（✅ 完成）
 
-- 新增 `getHouseGua(facingDirection)`：按房屋坐向定宅卦（坐北朝南=坎宅等），返回宅卦 trigram + 东四宅/西四宅分组。
-- 新增 `checkMingZhaiCompatibility(mingGua, houseGua)`：判断"东四命住东四宅/西四命住西四宅"相配度（相生/比和/相克），含《八宅明镜》引文。
-- 八宅工作区新增"房屋坐向"输入（8 方位下拉），命盘旁显示命宅相配卡片（相配等级 + 引文 + 调整建议）。
-- 数据提炼自 suangua `core/fengshui/calculator.py` 的 `get_house_gua` / `check_compatibility`。
+- ✅ 新增 `getHouseGua(facingDirection)`：按房屋坐向定宅卦（坐北朝南=坎宅等），返回宅卦 trigram + 东四宅/西四宅分组。
+- ✅ 新增 `checkMingZhaiCompatibility(mingGua, houseGua)`：判断"东四命住东四宅/西四命住西四宅"相配度（相生/比和/相克），含《八宅明镜》引文。
+- ✅ 八宅工作区新增"房屋坐向"输入（8 方位下拉），命盘旁显示命宅相配卡片（相配等级 + 引文 + 调整建议）。
+- ✅ 数据提炼自 suangua `core/fengshui/calculator.py` 的 `get_house_gua` / `check_compatibility`。
 
-### Step 2：方位用途宜忌 + 个人吉凶方位速查
+### Step 2：方位用途宜忌 + 个人吉凶方位速查（✅ 完成）
 
-- 新增 `getPersonalDirections(mingGua)`：返回个人八方游年星 + 最佳床位朝向、书桌朝向、财位（生气方）、健康位（天医方）、桃花位（六煞方/天医方按流派）。
-- 新增方位用途宜忌表（`SECTOR_USE`）：每个游年星对应"宜置卧室/书房/厨房/厕所/储物"等具体布局建议。
-- 八宅工作区新增"个人吉凶方位速查"卡片：四吉位（生气/天医/延年/伏位）+ 四凶位（绝命/五鬼/六煞/祸害）分组展示，每方标注用途宜忌。
-- 数据提炼自 suangua `get_personal_directions` + `get_sector_analysis`。
+- ✅ 新增 `getPersonalDirections(mingGua)`：返回个人八方游年星 + 最佳床位朝向、书桌朝向、财位（生气方）、健康位（天医方）、桃花位（六煞方/天医方按流派）。
+- ✅ 新增方位用途宜忌表（`SECTOR_USE`）：每个游年星对应"宜置卧室/书房/厨房/厕所/储物"等具体布局建议。
+- ✅ 八宅工作区新增"个人吉凶方位速查"卡片：四吉位（生气/天医/延年/伏位）+ 四凶位（绝命/五鬼/六煞/祸害）分组展示，每方标注用途宜忌。
+- ✅ 数据提炼自 suangua `get_personal_directions` + `get_sector_analysis`。
 
-### Step 3：化解建议
+### Step 3：化解建议（✅ 完成）
 
-- 新增 `BAYUAN_REMEDIES` 数据表：四凶位（绝命/五鬼/六煞/祸害）化解法（绝命归厕、五鬼火化火、六煞植物化、祸害金属化等）+ 化解物品（六帝钱/铜葫芦/五帝钱/水晶等）。
-- 新增 `SHAQT_HUAJIE` 形煞表：路冲煞、天斩煞、壁刀煞、穿堂风、五黄煞等，含形态、影响、化解物。
-- 八宅工作区四凶位扇区点击/卡片显示化解建议；新增"形煞化解"参考卡片。
-- 数据提炼自 suangua `SECTOR_QUALITY` + `fengshui_classical.py` + `SHAQT_HUAJIE`。
+- ✅ 新增 `BAYUAN_REMEDIES` 数据表：四凶位（绝命/五鬼/六煞/祸害）化解法（绝命归厕、五鬼火化火、六煞植物化、祸害金属化等）+ 化解物品（六帝钱/铜葫芦/五帝钱/水晶等）。
+- ✅ 新增 `SHAQT_HUAJIE` 形煞表：路冲煞、天斩煞、壁刀煞、穿堂风、五黄煞等，含形态、影响、化解物。
+- ✅ 八宅工作区四凶位扇区点击/卡片显示化解建议；新增"形煞化解"参考卡片。
+- ✅ 数据提炼自 suangua `SECTOR_QUALITY` + `fengshui_classical.py` + `SHAQT_HUAJIE`。
 
-### Step 4：八宅 + 飞星合参
+### Step 4：八宅 + 飞星合参（✅ 完成）
 
-- 八宅工作区读取全局生辰 + 当前流年，同时算命卦方位吉凶（八宅静态）与年飞星方位吉凶（飞星动态）。
-- 新增 `combineBazhaiFeixing(mingGua, feixingGrid)`：交叉个人生气位与年飞星财位（八白），给出"双重旺财方位"提示；标注当年五黄煞方位与化煞建议。
-- 命盘 SVG 上叠加飞星编号（与 `NinePalaceGrid` 风格一致），底部合参建议卡片。
-- 复用现有 `getFeixingGrid` + `getBazhaiGrid`，不重复计算逻辑。
+- ✅ 八宅工作区读取全局生辰 + 当前流年，同时算命卦方位吉凶（八宅静态）与年飞星方位吉凶（飞星动态）。
+- ✅ 新增 `combineBazhaiFeixing(mingGua, feixingGrid)`：交叉个人生气位与年飞星财位（八白），给出"双重旺财方位"提示；标注当年五黄煞方位与化煞建议。
+- ✅ 命盘 SVG 上叠加飞星编号（与 `NinePalaceGrid` 风格一致），底部合参建议卡片。
+- ✅ 复用现有 `getFeixingGrid` + `getBazhaiGrid`，不重复计算逻辑。
 
-### Step 5：术语解释补齐 + 知识引用扩展
+### Step 5：术语解释补齐 + 知识引用扩展（✅ 完成）
 
-- `core.js termExplanations` 批量补齐八宅术语：宅卦、东四宅、西四宅、命宅相配、贪狼木星/巨门土星等九星古典名（`BAYUAN_JIUXING`）、形煞类（路冲煞/天斩煞/壁刀煞/穿堂风）。
-- 八宅工作区 `TermExplanationPanel` 覆盖新增术语。
-- `KnowledgeReferencePanel` 扩展八宅映射表条目（命卦→方位、游年星→化解）。
+- ✅ `core.js termExplanations` 批量补齐八宅术语：宅卦、东四宅、西四宅、命宅相配、贪狼木星/巨门土星等九星古典名（`BAYUAN_JIUXING`）、形煞类（路冲煞/天斩煞/壁刀煞/穿堂风）。
+- ✅ 八宅工作区 `TermExplanationPanel` 覆盖新增术语。
+- ✅ `KnowledgeReferencePanel` 扩展八宅映射表条目（命卦→方位、游年星→化解）。
+
+### Step 6：太岁/流年神煞 + 门主灶三要（✅ 完成，计划外增强）
+
+- ✅ 新增 `taisuiEngine.ts`：太岁方位/岁破/三煞/五黄（飞星推算），12 地支各有详细化解文案。八宅工作区随 `flowYear` 联动显示太岁流年神煞区域。
+- ✅ 新增 `menZhuZaoEngine.ts`：门（大门）/主（主卧）/灶（厨房）三方五行生克，三组关系各判相生/相克/比和，相克时自动给通关化解。八宅工作区新增门主灶三要区域（3 个下拉框选方位）。
 
 ### 验收标准
 
@@ -588,7 +620,7 @@
 
 ## 功能层增强计划（借鉴 horosa-skill）
 
-> 规划日期：2026-07-10。调研 `Horace-Maxwell/horosa-skill`（AGPL-3.0，v0.19.0）功能层后提炼。**仅借鉴设计思想，不复制其代码**（AGPL 传染性）。以下两点经与现有 ROADMAP 逐条对照后确认是真正未做的新功能；其余意图调度、参数引导、本地历史、进阶专项等 ROADMAP 已覆盖或已决策，不重复。**待系统开发完整后再启动此阶段。**
+> 规划日期：2026-07-10，2026-07-13 更新。调研 `Horace-Maxwell/horosa-skill`（AGPL-3.0，v0.19.0）功能层后提炼。**仅借鉴设计思想，不复制其代码**（AGPL 传染性）。以下两点经与现有 ROADMAP 逐条对照后确认是真正未做的新功能；其余意图调度、参数引导、本地历史、进阶专项等 ROADMAP 已覆盖或已决策，不重复。原计划「待系统开发完整后再启动此阶段」，实际已于 2026-07-13 前随三式/联合分析/四层报告一并落地，以下 Step 标注完成状态。
 
 ### 前置说明：已具备、不重复做的能力
 
@@ -600,31 +632,33 @@
 - **进阶专项功能**：紫微 iztro 真实排盘（含格局检测/四化）、奇门 3meta 完整时家奇门（含值符值使/格局自动检测/六仪击刑/十干生克）、八宅大游年 5 步增强、流年飞星 4 步增强、周公解梦方位联动提示——均已在其他计划中落地或规划。
 - **分层输出结构**：`toReading()` 契约（title/summary/tags/sections/chart/sourceNotes）+ 六场景 templates 的四维度建议（生活调整/养生/心性/哲学）已具备分层雏形。
 
-### Step 1：跨系统联合分析固化模块
+### Step 1：跨系统联合分析固化模块（✅ 完成）
 
 **现状差距**：SKILL.md 已定义跨系统"交叉点"，但靠 AI 临时组合，没有固化的命名联合模块。horosa 有「三式合一」（奇门+太乙+大六壬）这类聚合输出。
 
-**待落地**：
-- 新增几个命名的「联合分析」入口，一键聚合多系统结果，而非用户手动切换：
-  - **年度综合运势** = 八字大运 + 玄空飞星（年盘）+ 八宅游年（命卦方位）+ 奇门时盘
-  - **事件决策** = 梅花易数/六爻 + 奇门 + 择日
-  - **空间+时间** = 风水罗盘/飞星 + 奇门吉方 + 八宅吉位
-- 每个联合模块输出：整合结论 + 各子系统依据 + 一致性检验（多系统结论一致则置信度高，冲突则权衡标注）。
-- 复用现有各 Adapter 的 `calculate()/toReading()`，不重复计算逻辑；联合层只做聚合与交叉验证。
-- 可作为咨询向导的新入口类别，或 Dashboard 的新工作区。
+**已落地**：
+- ✅ 新增命名「联合分析」入口（`combo` 工作区 + `comboEngine.ts` + 5 个 MCP 工具），一键聚合多系统结果：
+  - **年度综合运势** `combo_annual_fortune` = 八字大运 + 五运六气 + 奇门年盘 + 命卦方位
+  - **事件决策** `combo_decision` = 六爻 + 梅花 + 奇门（三卜交叉验证）
+  - **空间+时间** `combo_space_time` = 飞星 + 八宅 + 奇门吉方
+  - **三式互参** `combo_sanshi` = 大六壬 + 奇门 + 梅花
+  - **三式合一** `combo_sanshi_classic` = 奇门 + 太乙 + 大六壬（传统三式）
+- ✅ 每个联合模块输出：整合结论 + 各子系统依据 + 一致性检验（多系统结论一致则置信度高，冲突则权衡标注）。
+- ✅ 复用现有各引擎的 enveloped 函数，不重复计算逻辑；联合层只做聚合与交叉验证。
+- ✅ 已作为 Dashboard 的 `combo` 工作区 + MCP 工具上线。
 
-### Step 2：报告四层显式分层渲染
+### Step 2：报告四层显式分层渲染（✅ 完成）
 
 **现状差距**：`toReading()` 的 sections 目前是平铺结构，没有"一句话总结→关键亮点/风险→详细分析→可执行建议"的显式层次。
 
-**待落地**：
-- 把平铺 sections 升级为四层显式分层渲染：
-  - **第一层**：一句话总结 + 总体吉凶定调
-  - **第二层**：关键亮点 / 风险点（用神、用星、吉位、凶位、应期）——提炼自各系统核心结论
-  - **第三层**：详细分析 + 古典依据（保留现有 sections 内容）
-  - **第四层**：具体可执行建议（布局、颜色、择日、化解方法）——复用现有四维度建议
-- 增加「针对问题」的专项解读模式：用户问"今年适合换工作吗？"，直接给针对性分析 + 时间窗口 + 注意事项，而非只甩完整盘。
-- 改造 `toReading()` 返回结构或渲染层，旧字段保持兼容（sections 平铺数据保留，分层在渲染时重组）。
+**已落地**：
+- ✅ 新增 `FourLayerReport` 组件，把 sections 升级为四层显式分层渲染：
+  - **第一层 `tldr`**：一句话总结 + 总体吉凶定调
+  - **第二层 `highlights`**：关键亮点 / 风险点（用神、用星、吉位、凶位、应期）——提炼自各系统核心结论
+  - **第三层 `details`**：详细分析 + 古典依据（保留现有 sections 内容）
+  - **第四层 `actions`**：具体可执行建议（布局、颜色、择日、化解方法）——复用现有四维度建议
+- ✅ 各引擎 `export_snapshot` 已产出四层段表，`FourLayerReport` 统一渲染。
+- ✅ 旧 sections 平铺数据兼容不丢（分层在渲染时重组）。
 
 ### 验收标准
 

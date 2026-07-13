@@ -1,10 +1,12 @@
 # chinese-wisdom-mcp-server
 
-中国传统玄学计算 MCP Server。把八字、紫微斗数、六爻纳甲、奇门遁甲、梅花易数、五运六气、姓名评分、喜用神、体质倾向、周公解梦 10 个计算引擎暴露为 [MCP](https://modelcontextprotocol.io) 工具，供 Claude Desktop、Cursor、Cline 等客户端直接调用。
+中国传统玄学计算 MCP Server。把 18 个计算引擎（八字/紫微/六爻/奇门/大六壬/二十八星宿/太乙/梅花/五运六气/姓名/喜用神/体质/周公解梦 + 5 个跨系统联合分析）暴露为 [MCP](https://modelcontextprotocol.io) 工具，供 Claude Desktop、Cursor、Cline 等客户端直接调用。
 
 > 三层架构 Layer 2：薄壳包装，不含计算逻辑。所有引擎都是纯 TypeScript、零 DOM 依赖，来自 `apps/visual/src/legacy/`，统一返回 `ToolEnvelope` 结构。
 
 ## 工具列表
+
+> 共 20 个工具：18 个计算工具（下表）+ 2 个元工具（`agent_guidance` 参数引导、`wisdom_dispatch` 自然语言意图路由）。
 
 | 工具 | 能力 | 引擎来源 |
 |------|------|---------|
@@ -12,12 +14,20 @@
 | `ziwei_chart` | 紫微斗数（十二宫、十四主星、四化、庙旺） | iztro v2.5.8 |
 | `cast_liuyao` | 六爻纳甲（六亲、六神、世应、用神、变卦、空亡） | 自研京房八宫 + lunar-javascript |
 | `arrange_qimen` | 奇门遁甲（三奇六仪、九星、八门、八神、值符值使、格局） | 3meta v2.6.0 |
+| `liuren_calculate` | 大六壬（天地盘、四课、三传、神煞、格局） | 自研 + lunar-javascript |
+| `xingxiu_daily` | 二十八星宿每日值宿（吉凶宜忌、四象禽星） | 自研 + lunar-javascript |
+| `taiyi_calculate` | 太乙神数（积年、局数、落宫、主客算、格局） | 自研 + lunar-javascript |
 | `cast_meihua` | 梅花易数（体用生克、吉凶分级、错综卦、策略） | 自研 + lunar-javascript |
 | `calc_yunqi` | 五运六气（岁运、司天在泉、客气六步、病势） | 自研 + lunar-javascript 大寒定年 |
 | `analyze_name` | 姓名五维评分（五格、三才、五行、字义、生肖） | fate 数据 + 自研 |
 | `calc_xiyong` | 喜用神（日主强弱、同类异类、喜用五行） | 自研 |
 | `get_constitution_tendency` | 五运六气体质倾向（九种体质） | 自研 |
 | `dream_interpret` | 周公解梦（9548 现代条目 + 952 古文断语） | 开源解梦库 |
+| `combo_annual_fortune` | 年度综合运势（八字+五运六气+奇门+命卦方位） | 聚合各引擎 |
+| `combo_decision` | 事件决策（六爻+梅花+奇门三卜交叉验证） | 聚合各引擎 |
+| `combo_space_time` | 空间+时间（飞星+八宅+奇门吉方） | 聚合各引擎 |
+| `combo_sanshi` | 三式互参（大六壬+奇门+梅花） | 聚合各引擎 |
+| `combo_sanshi_classic` | 三式合一（奇门+太乙+大六壬，传统三式） | 聚合各引擎 |
 
 每个工具返回统一 `ToolEnvelope`：
 ```json
@@ -88,7 +98,7 @@ VS Code settings.json，参考 `examples/cline-vscode-settings.json`。
 
 ### 验证
 
-配置后重启客户端，应能看到 `chinese-wisdom` server 已连接，工具列表含上述 10 个工具。
+配置后重启客户端，应能看到 `chinese-wisdom` server 已连接，工具列表含上述 18 个计算工具 + 2 个元工具（共 20 个）。
 
 ## 使用示例
 

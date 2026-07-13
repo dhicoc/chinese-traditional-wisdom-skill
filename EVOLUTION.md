@@ -5,6 +5,34 @@
 
 ---
 
+## 2026-07-13 三式补全 + 周易核心扩展 + 风水增强 + 文档对齐
+
+### 变更（按提交顺序）
+
+1. **太乙神数**：新增 `taiyiEngine.ts`（约 1000 行，参考 `kentang2017/kintaiyi` MIT）+ `TaiyiChart.tsx` 九宫 SVG + MCP `taiyi_calculate` + `taiyi` 模块（`local-exact`）。太乙积年（5 计式 × 4 积年法）、局数、落宫、文昌/始击/定目、主客算/四将、格局（掩迫关囚击格对提挟）、八门、十六宫。修复数据错误：`TAIYI_PAI`/`SF_LIST` 单字符索引（非 `/../g` 正则）、四神等 36 字符循环取模。
+2. **大六壬**：新增 `daliurenEngine.ts`（参考 `kentang2017/kinliuren` MIT 算法逻辑，纯 TS 重写）+ `DaliurenChart.tsx` 天地盘 SVG（4×3 方阵 12 宫 + 中心四课三传分区）+ MCP `liuren_calculate` + `liuren` 模块（`local-exact`）。天地盘/四课/三传（九宗门）/神煞/格局。
+3. **二十八星宿**：新增 `xingxiuEngine.ts` + `XingXiuChart.tsx` + MCP `xingxiu_daily` + `xingxiu` 模块（`local-exact`）。每日值宿/吉凶宜忌/四象禽星/七曜五行。
+4. **揲蓍法 + 64 卦古典文本**：六爻/梅花引擎新增 `method='yarrow'`（50 策三变算法）。从 `kintaiyi` `data.pkl` 提取 64 卦文本 → `ichingTexts.json`（64 卦 × 8 条：卦辞 + 6 爻辞 + 彖传）+ `ichingTexts.ts` 查询。六爻/梅花 `export_snapshot` 新增卦辞/动爻爻辞/彖传段。
+5. **联合分析固化**：新增 `comboEngine.ts` + `combo` 工作区 + 5 个 MCP 工具（`combo_annual_fortune`/`combo_decision`/`combo_space_time`/`combo_sanshi`/`combo_sanshi_classic`）。`combo` 模块（`local-exact`，多系统聚合 + 一致性检验）。落地 ROADMAP「功能层增强 Step 1」。
+6. **四层报告**：新增 `FourLayerReport` 组件（tldr/highlights/details/actions 四层显式分层），各引擎 `export_snapshot` 产出段表。落地 ROADMAP「功能层增强 Step 2」。
+7. **风水增强（3 项）**：`taisuiEngine.ts`（太岁/岁破/三煞/五黄，12 地支化解文案）+ `menZhuZaoEngine.ts`（门主灶三要五行生克 + 通关化解）+ `flyingStarRemedies.ts` 每星增加具体颜色 + 摆设物品。八宅工作区接入太岁/门主灶区域；飞星工作区显示颜色+物品。
+8. **奇门状态修正**：`modules.ts` 奇门从 `local-approx` 升为 `local-exact`（对齐 EVOLUTION 2026-07-08 已落地的 3meta 真实排盘）。
+9. **MCP 工具池扩充至 20**：13 排盘 + 5 联合分析 + 2 元工具。`tools.ts`/`index.ts` 注释从「10 个」更新为「18 个」。
+10. **文档对齐**：SKILL/README/README_AI/tool-index/EVOLUTION/ROADMAP 全面修订——MCP 工具数 12→20、能力边界表（紫微/六爻/奇门演示→local-exact、补奇门/六壬/星宿/太乙/联合/姓名/解梦/节律/黄历行）、「11 标签页」→多工作区、六引擎→18 引擎、SKILL §0 安装主路径从 Python 改为纯 TS+MCP、README 技术栈/仓库结构/英文版 Canvas→SVG、ROADMAP 流年/八宅/horosa 计划打勾、补三式补全节、致谢统一。
+
+### 引擎/工具池最终状态
+
+- **纯 TS 引擎**：18 个 enveloped（13 排盘 + 5 联合）+ `taisuiEngine`/`menZhuZaoEngine`/`ichingTexts` 辅助。
+- **MCP 工具**：20 个（18 计算 + `agent_guidance` + `wisdom_dispatch`）。
+- **React Dashboard 模块**：23 个 `ModuleId`（术数排盘/堪舆风水/医道运气/日用工具/知识检索/开发者六组）。
+
+### 验证
+
+- visual 单元 + e2e + mcp-server 测试全过（visual 229 + mcp-server 67 ≈ 296 项）。
+- 三式互参/三式合一端到端可用。
+
+---
+
 ## 2026-07-10 架构层重构 + MCP Server 落地（三层架构 Layer 2）
 
 ### 背景
@@ -17,7 +45,7 @@ ROADMAP 原计划"待整个项目全部做完后再启动 MCP"，但担心后期
 2. **B 类引擎参数化**（a42f405）：`bazhaiHouse.ts` 内嵌 `EIGHT_MANSIONS_DATA` + `mansionsData` 入参；`almanacData.ts` `solar` 入参。B 类清零升 A 类。
 3. **A 类批量 envelope**（7e838f4）：`envelopeAdapters.ts` 包 xiyong/nameRating/constitutionTendency 三个 envelope。
 4. **C 类迁移 6/6**（9259437→c8c2108）：meihua/yunqi/liuyao/bazi/ziwei/qimen 六个旧 JS Adapter 全部移植成纯 TS，`window.Solar` 参数化（传入精确 local-exact，未传近似 local-approx），iztro/3meta 用 ESM `import`。**关键 bug 修复**：`callFirst`/`call` 里 `obj[name]()` 裸调导致 lunar-javascript 方法 `this` 丢失 → 改 `.call(obj)`。
-5. **MCP Server 薄壳**（d37e266）：新建 `apps/mcp-server/`，`@modelcontextprotocol/sdk` + StdioServerTransport，注册 10 个计算工具（import 纯 TS enveloped 引擎，无计算逻辑）+ `agent_guidance`（参数引导防瞎猜）+ `wisdom_dispatch`（自然语言意图路由）两个元工具。借鉴 horosa agent_guidance + horosa_dispatch 设计（软引导而非硬闸门）。
+5. **MCP Server 薄壳**（d37e266）：新建 `apps/mcp-server/`，`@modelcontextprotocol/sdk` + StdioServerTransport，注册计算工具（import 纯 TS enveloped 引擎，无计算逻辑）+ `agent_guidance`（参数引导防瞎猜）+ `wisdom_dispatch`（自然语言意图路由）两个元工具。借鉴 horosa agent_guidance + horosa_dispatch 设计（软引导而非硬闸门）。初始 10 个计算工具，后续随引擎扩充至 18 个（见下方「MCP 工具池」）。
 6. **客户端配置 + 自动配置脚本**（f8f83e2→d695e30→9c0d11a）：`examples/` 三客户端配置 + README 挂载指南；`scripts/setup-mcp.mjs` 一键自动检测并配置 Claude Code/Desktop/Cursor/Cline（AI 自主激活，解决 MCP 便携性痛点）。
 7. **4 个 Workspace 切纯 TS 引擎**（7a2e8c4）：BaziWorkspace/ZiweiWorkspace/LiuyaoWorkspace/QimenWorkspace 优先用纯 TS 引擎，旧 adapter 留 fallback，零回归。
 
@@ -25,13 +53,15 @@ ROADMAP 原计划"待整个项目全部做完后再启动 MCP"，但担心后期
 
 | 类 | 之前 | 现在 |
 |----|------|------|
-| A 纯 TS 计算 | 5 个 | 10 个 envelope + bazhaiHouse + almanacData |
+| A 纯 TS 计算 | 5 个 | 10 个 envelope + bazhaiHouse + almanacData（2026-07-13 前再增 daliuren/xingxiu/taiyi/combo/taisui/menZhuZao/ichingTexts 等，envelope 总数达 18） |
 | B TS 读 window | 2 个 | 0（已清零） |
 | C 旧 JS+window | 6 个 Adapter | 6 个已迁纯 TS（旧 JS 留 fallback） |
 
-### MCP 工具池（12 个）
+### MCP 工具池（20 个 = 18 计算 + 2 元工具）
 
-`bazi_calculate` / `ziwei_chart` / `cast_liuyao` / `arrange_qimen` / `cast_meihua` / `calc_yunqi` / `analyze_name` / `calc_xiyong` / `get_constitution_tendency` / `dream_interpret` + `agent_guidance` + `wisdom_dispatch`。统一返回 `ToolEnvelope`，`data.export_snapshot` 是稳定段表供 LLM 消费。
+`bazi_calculate` / `ziwei_chart` / `cast_liuyao` / `arrange_qimen` / `liuren_calculate` / `xingxiu_daily` / `taiyi_calculate` / `cast_meihua` / `calc_yunqi` / `analyze_name` / `calc_xiyong` / `get_constitution_tendency` / `dream_interpret` + 5 联合分析（`combo_annual_fortune` / `combo_decision` / `combo_space_time` / `combo_sanshi` / `combo_sanshi_classic`）+ `agent_guidance` + `wisdom_dispatch`。统一返回 `ToolEnvelope`，`data.export_snapshot` 是稳定段表供 LLM 消费。
+
+> 工具池随引擎扩充而增长：2026-07-10 初始 10 计算 + 2 元 = 12；2026-07-13 前陆续新增大六壬/二十八星宿/太乙/5 联合分析，达 18 计算 + 2 元 = 20。
 
 ### 关键取舍
 
@@ -41,7 +71,7 @@ ROADMAP 原计划"待整个项目全部做完后再启动 MCP"，但担心后期
 
 ### 验证
 
-- visual 150 单元 + e2e 全过；mcp-server 53 项（tools 17 + server 7 + guidance 17 + setup-mcp 12）全过。合计 203 项。
+- visual 150 单元 + e2e 全过；mcp-server 53 项（tools 17 + server 7 + guidance 17 + setup-mcp 12）全过。合计 203 项。（2026-07-13 后随引擎扩充，visual 单元增至 229 + mcp-server 67 ≈ 296 项。）
 - MCP 端到端：`claude mcp list` 显示 `chinese-wisdom ✔ Connected`；`wisdom_dispatch` 路由「紫微排盘 1988年10月5日8时女」→ `ziwei_chart` + 自动填充参数。
 - 构建：bundle 4955→5809KB（iztro+3meta ESM 进主 bundle，gzip 2108KB，可接受）。
 
@@ -516,7 +546,7 @@ ROADMAP 原计划"待整个项目全部做完后再启动 MCP"，但担心后期
 
 ### 测试基线
 
-- `pnpm test`: 162 项通过
+- `pnpm test`: 162 项通过（2026-07-13 后增至 visual 229 + mcp-server 67 ≈ 296 项）
 - `node apps/visual/scripts/smoke-react-shell.mjs`: 166 项通过
 - `node visual/js/tests/check-react-migration.mjs`: 58 项通过
 - `node visual/js/tests/test-liuyao-engine.js`: 17 项纳甲规则 oracle 通过

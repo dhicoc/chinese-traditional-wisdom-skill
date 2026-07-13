@@ -1,7 +1,7 @@
 /**
  * tools.ts — MCP 工具定义
  *
- * 把 apps/visual/src/legacy 的 10 个 enveloped 引擎各包成一个 MCP 工具。
+ * 把 apps/visual/src/legacy 的 18 个 enveloped 引擎各包成一个 MCP 工具。
  * 每个工具：name + description + zod input schema + handler 返回 ToolEnvelope。
  *
  * 需要精确历法的工具（bazi/yunqi/liuyao/meihua）传入 lunar-javascript 的 Solar 入口；

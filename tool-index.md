@@ -52,6 +52,13 @@ ToolEnvelope<TData> = { ok, tool, version, input_normalized, data: TData & { exp
 | 八字排盘 | `legacy/baziEngine.ts` | `calcBaziEnveloped` | Solar 参数化(节气干支) |
 | 紫微斗数 | `legacy/ziweiEngine.ts` | `calcZiweiEnveloped` | ESM `import { astro } from 'iztro'` |
 | 奇门遁甲 | `legacy/qimenEngine.ts` | `calcQimenEnveloped` | ESM `import { QimenChart } from '3meta'` |
+| 大六壬 | `legacy/daliurenEngine.ts` | `calcDaliurenEnveloped` | Solar 参数化(天地盘/四课/三传) |
+| 二十八星宿 | `legacy/xingxiuEngine.ts` | `calcXingXiuEnveloped` | Solar 参数化(值宿推算) |
+| 太乙神数 | `legacy/taiyiEngine.ts` | `calcTaiyiEnveloped` | Solar 参数化(积年/局数/落宫) |
+| 联合分析 | `legacy/comboEngine.ts` | `calcAnnualFortuneCombo` / `calcDecisionCombo` / `calcSpaceTimeCombo` / `calcSanshiCombo` / `calcSanshiClassicCombo` | 聚合各引擎 |
+| 太岁流年神煞 | `legacy/taisuiEngine.ts` | `calcTaisui` | 纯查表(年支) |
+| 门主灶三要 | `legacy/menZhuZaoEngine.ts` | `calcMenZhuZao` | 纯查表(五行生克) |
+| 64 卦古典文本 | `legacy/ichingTexts.ts` + `ichingTexts.json` | `getHexagramText` | 纯查表(卦辞/爻辞/彖传) |
 
 **Solar 参数化模式**：lunar-javascript 的 Solar 入口作为可选入参，传入走精确（local-exact），未传走本地近似（local-approx）。MCP 端 `import { Solar } from 'lunar-javascript'` 传入；Dashboard 端用 `window.Solar`（vendor）传入。
 
@@ -59,9 +66,12 @@ ToolEnvelope<TData> = { ok, tool, version, input_normalized, data: TData & { exp
 
 ## MCP Server（三层架构 Layer 2）
 
-> `apps/mcp-server/`：薄壳包装上述 10 个 enveloped 引擎为 MCP 工具，供 Claude Code/Desktop/Cursor/Cline 调用。无计算逻辑，import 纯 TS 引擎。
+> `apps/mcp-server/`：薄壳包装上述 enveloped 引擎为 MCP 工具，供 Claude Code/Desktop/Cursor/Cline 调用。无计算逻辑，import 纯 TS 引擎。
 
-**12 个 MCP 工具**：上述 10 个计算工具（snake_case 命名，如 `bazi_calculate`）+ `agent_guidance`（参数引导防瞎猜）+ `wisdom_dispatch`（自然语言意图路由）。
+**20 个 MCP 工具**（18 计算 + 2 元工具）：
+- 排盘计算（13）：`bazi_calculate` / `ziwei_chart` / `cast_liuyao` / `arrange_qimen` / `liuren_calculate` / `xingxiu_daily` / `taiyi_calculate` / `cast_meihua` / `calc_yunqi` / `analyze_name` / `calc_xiyong` / `get_constitution_tendency` / `dream_interpret`
+- 跨系统联合分析（5）：`combo_annual_fortune` / `combo_decision` / `combo_space_time` / `combo_sanshi` / `combo_sanshi_classic`
+- 元工具（2）：`agent_guidance`（参数引导防瞎猜）+ `wisdom_dispatch`（自然语言意图路由）
 
 **一键自动配置**（无需手动编辑 JSON）：
 ```bash
@@ -77,14 +87,21 @@ node scripts/setup-mcp.mjs --check    # 仅检查
 
 | 模块 | Dashboard 状态 | 说明 |
 |------|----------------|------|
-| 八字 | 本地精确计算 / 本地近似计算 fallback | 默认加载 `visual/vendor/lunar-javascript-1.7.7.js` 读取精确节气干支；关闭精确历法或加载失败时回退 `visual/js/engines/bazi-engine.js`。 |
-| 五运六气 | 本地精确边界 / 本地近似计算 fallback | 默认加载 `visual/vendor/lunar-javascript-1.7.7.js` 按大寒边界修正运气年份；关闭精确历法或加载失败时回退公历年近似。 |
-| 紫微斗数 | 演示数据 / 需外部引擎 | 真实排盘需 `iztro-py` 或等价引擎。 |
-| 六爻 | 本地真实纳甲计算 / 演示数据 fallback | 默认加载 `visual/js/engines/liuyao-engine.js` 自研京房八宫纳甲引擎：铜钱法/时间起卦/手动爻值，输出纳甲、六亲、六神、世应、用神、变卦；引擎未加载时回退演示结构。 |
-| 梅花易数 | 本地规则计算 | 内置时间起卦 Adapter，按年月日时生成上下卦、动爻、互卦、变卦和体用生克；不同流派可能存在口径差异。 |
-| 风水罗盘 / 飞星 / 八宅 | 本地规则计算 | 基于 Canvas 和 JSON 映射表离线运行。 |
+| 八字 | 本地精确历法 / 本地近似 fallback | 内置 `lunar-javascript` 读取精确节气干支；关闭精确历法或加载失败时回退近似。 |
+| 五运六气 | 本地精确历法 / 本地近似 fallback | 内置 `lunar-javascript` 按大寒边界修正运气年份；关闭精确历法时回退公历年近似。 |
+| 紫微斗数 | 本地精确历法（`local-exact`） | 已接入 `iztro` v2.5.8 真实排盘；未加载时回退演示。 |
+| 六爻 | 本地真实纳甲（`local-exact`） | 自研京房八宫纳甲引擎：铜钱法/时间/手动/揲蓍法起卦，输出纳甲、六亲、六神、世应、用神、变卦、空亡。 |
+| 奇门遁甲 | 本地精确历法（`local-exact`） | 已接入 `3meta` v2.6.0 真实时家奇门排盘，含值符值使/格局自动检测/六仪击刑/十干生克。 |
+| 大六壬 | 本地精确历法（`local-exact`） | 纯 TS 引擎：天地盘/四课/三传(九宗门)/神煞/格局。 |
+| 二十八星宿 | 本地精确历法（`local-exact`） | 纯 TS 引擎：每日值宿/吉凶宜忌/四象禽星。 |
+| 太乙神数 | 本地精确历法（`local-exact`） | 纯 TS 引擎：积年/局数/落宫/主客算/格局。 |
+| 梅花易数 | 本地规则（`local-approx`） | 内置时间/数字/揲蓍法起卦，体用生克、互变错综；不同流派可能存在口径差异。 |
+| 联合分析 | 多系统聚合（`local-exact`） | 跨系统联合：年度运势/事件决策/空间时间/三式互参/三式合一。 |
+| 风水罗盘 / 飞星 / 八宅 | 本地规则计算 | 基于 JSON 映射表离线运行；八宅已增强太岁/门主灶/飞星合参，飞星已增强化煞颜色+物品。 |
+| 姓名五行 | 民俗体验（fate 数据） | 康熙笔画/五格/三才/五维评分/字义/生肖喜忌。 |
+| 黄历 / 解梦 / 节律 | 民俗体验 | 纯本地规则，不做吉凶预测。 |
 
-能力状态统一由 `visual/js/capabilities.js` 管理，Dashboard 通过 `FORTUNE.getCapabilities()` 暴露只读查询。
+能力状态统一由 `visual/js/capabilities.js` 管理旧入口、`apps/visual/src/lib/modules.ts` 管理 React Shell，Dashboard 通过 `FORTUNE.getCapabilities()` 暴露只读查询。
 ---
 
 ## 键值映射表（JSON）
@@ -172,6 +189,9 @@ flowchart TD
 | `babyname/fate` | MIT | 五维评分体系 | `apps/visual/src/legacy/nameRating.ts`（参考 `internal/rating/rating.go` 简化自建版：五格30%+三才15%+五行平衡25%+字义五行20%+生肖契合10%，等级对齐 fate scoreToGrade） |
 | `babyname/fate` | MIT | 字义出处 | `apps/visual/src/legacy/charMeanings.json`（从 `character.json` meaning 字段提取 19931 字字义，1.6MB） |
 | `babyname/fate` | MIT | 生肖喜忌用字 | `apps/visual/src/legacy/zodiacNameChars.json`（从 `zodiac.go` 提取 12 生肖 Xi/Ji 用字表，39KB） |
+| `kentang2017/kintaiyi` | MIT | 太乙神数算法逻辑 + 64 卦古典文本 | `apps/visual/src/legacy/taiyiEngine.ts`（纯 TS 重写，数据表移植）+ `ichingTexts.json`（从 `data.pkl` 提取 64 卦 × 8 条卦辞/爻辞/彖传） |
+| `kentang2017/kinliuren` | MIT | 大六壬算法逻辑 | `apps/visual/src/legacy/daliurenEngine.ts`（纯 TS 重写：天地盘/四课/三传九宗门/神煞/格局，不引 Python 依赖） |
+| `liuren-ts-lib` 等 TS 六壬库 | MIT | 三传查表法参考 | `daliurenEngine.ts` 三传推算参考其 `sanchuan.json` 查表思路 |
 
 ### 仅参考思路、未复用文案/词表
 
