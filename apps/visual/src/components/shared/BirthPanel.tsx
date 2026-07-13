@@ -83,7 +83,7 @@ export function BirthPanel() {
       )}
 
       {expanded && (
-        <div className="mt-3 grid gap-3 md:grid-cols-3 lg:grid-cols-6">
+        <div className="mt-3 grid grid-cols-2 gap-3">
           <ControlField
             label="年"
             type="number"
@@ -131,7 +131,7 @@ export function BirthPanel() {
               <option value="女">女</option>
             </select>
           </label>
-          <div className="flex flex-col gap-2">
+          <div className="col-span-2 flex flex-col gap-2">
             <div className="flex items-center gap-1">
               <span className="text-xs text-jade-100/45">历法</span>
               <div className="flex items-center gap-0.5 rounded-full border border-white/10 bg-black/30 p-0.5">
