@@ -27,6 +27,20 @@ export function SidebarNav(_props: SidebarNavProps) {
       <div className="mt-4 shrink-0">
         <BirthPanel />
       </div>
+
+      {/* 页脚：隐私说明，贴底填充留白 */}
+      <div className="mt-auto pt-4">
+        <div className="rounded-[20px] border border-jade-500/12 bg-black/20 p-3">
+          <div className="flex items-center justify-between text-[11px] text-jade-100/55">
+            <span>本地坛场</span>
+            <span className="flex items-center gap-1 text-jade-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-jade-400" />
+              Ready
+            </span>
+          </div>
+          <p className="mt-2 text-[11px] leading-5 text-jade-100/35">不上传完整生辰，所有排盘在本地完成。</p>
+        </div>
+      </div>
     </aside>
   );
 }
