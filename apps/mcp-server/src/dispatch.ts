@@ -36,12 +36,14 @@ const ROUTE_RULES: RouteRule[] = [
   { tool: 'combo_annual_fortune', keywords: ['综合运势', '年度运势', '今年运势', '全年运势', '运势总览', '综合看', '多角度'], priority: 95 },
   { tool: 'combo_decision', keywords: ['三卜', '交叉验证', '综合测算', '多法验证', '帮我决', '该不该', '能否成功'], priority: 95 },
   { tool: 'combo_sanshi', keywords: ['三式', '三式互参', '大六壬+奇门', '六壬奇门梅花', '六壬+奇门'], priority: 96 },
+  { tool: 'combo_sanshi_classic', keywords: ['三式合一', '奇门+太乙+大六壬', '太乙+奇门+六壬', '传统三式', '奇门太乙六壬'], priority: 97 },
   { tool: 'combo_space_time', keywords: ['风水布局', '布局建议', '空间布局', '综合布局', '主卧财位', '办公室布局'], priority: 95 },
   { tool: 'dream_interpret', keywords: ['梦见', '做梦', '梦境', '梦到', '解梦', '周公'], priority: 90 },
   { tool: 'analyze_name', keywords: ['姓名', '起名', '取名', '名字', '打分', '改名', '测名'], priority: 85 },
   { tool: 'ziwei_chart', keywords: ['紫微', '紫微斗数', '命盘', '主星', '十二宫', '斗数'], priority: 80 },
   { tool: 'arrange_qimen', keywords: ['奇门', '奇门遁甲', '起局', '排局', '八门', '九星'], priority: 80 },
   { tool: 'liuren_calculate', keywords: ['大六壬', '六壬', '六壬神课', '三传', '四课', '天地盘'], priority: 80 },
+  { tool: 'taiyi_calculate', keywords: ['太乙', '太乙神数', '太乙神數', '年计', '月计', '日计', '時計', '积年', '主客算', '太乙局'], priority: 80 },
   { tool: 'xingxiu_daily', keywords: ['二十八宿', '二十八星宿', '星宿', '值宿', '禽星', '四象'], priority: 78 },
   { tool: 'cast_liuyao', keywords: ['六爻', '起卦', '纳甲', '卜卦', '占卦', '铜钱', '摇卦'], priority: 75 },
   { tool: 'cast_meihua', keywords: ['梅花', '梅花易数', '体用', '数字起卦'], priority: 75 },
@@ -147,6 +149,7 @@ export function dispatchIntent(text: string): DispatchResult {
     case 'ziwei_chart':
     case 'arrange_qimen':
     case 'liuren_calculate':
+    case 'taiyi_calculate':
     case 'xingxiu_daily':
       if (birth.birth) args.birth = birth.birth;
       break;
@@ -157,6 +160,7 @@ export function dispatchIntent(text: string): DispatchResult {
       break;
     case 'combo_decision':
     case 'combo_sanshi':
+    case 'combo_sanshi_classic':
       if (birth.birth) args.birth = birth.birth;
       if (question) args.question = question;
       break;

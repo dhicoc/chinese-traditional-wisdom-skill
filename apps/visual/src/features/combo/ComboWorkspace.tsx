@@ -11,6 +11,7 @@ import {
   calcDecisionCombo,
   calcSpaceTimeCombo,
   calcSanshiCombo,
+  calcSanshiClassicCombo,
   type ComboResult,
 } from '@/legacy/comboEngine';
 import { DALIUREN_SCHOOLS, type DaliurenSchool } from '@/legacy/daliurenEngine';
@@ -27,7 +28,7 @@ import type { ToolEnvelope } from '@/legacy/baseTypes';
  * 用全局生辰调对应 combo 函数，结果用 FourLayerReport 四层渲染 + 子系统卡片 + 一致性徽章。
  */
 
-type ComboType = 'annual' | 'decision' | 'space' | 'sanshi';
+type ComboType = 'annual' | 'decision' | 'space' | 'sanshi' | 'sanshi-classic';
 
 const COMBO_OPTIONS: Array<{
   key: ComboType;
@@ -39,6 +40,7 @@ const COMBO_OPTIONS: Array<{
   { key: 'decision', label: '事件决策', desc: '六爻 + 梅花 + 奇门 三卜交叉验证', icon: '决' },
   { key: 'space', label: '空间 + 时间', desc: '飞星 + 八宅命卦 + 奇门吉方布局', icon: '堪' },
   { key: 'sanshi', label: '三式互参', desc: '大六壬 + 奇门 + 梅花 传统三式', icon: '式' },
+  { key: 'sanshi-classic', label: '三式合一', desc: '奇门 + 太乙 + 大六壬 真正传统三式', icon: '叁' },
 ];
 
 function getSolarEntry(): unknown {
@@ -67,6 +69,9 @@ export function ComboWorkspace() {
       }
       if (comboType === 'sanshi') {
         return { envelope: calcSanshiCombo({ birth: birthInput, question, solar, liurenSchool: liurenSchool }), loading: false };
+      }
+      if (comboType === 'sanshi-classic') {
+        return { envelope: calcSanshiClassicCombo({ birth: birthInput, question, solar, liurenSchool: liurenSchool }), loading: false };
       }
       return { envelope: calcSpaceTimeCombo({ birth: birthInput, targetYear, solar }), loading: false };
     } catch {
@@ -148,7 +153,7 @@ export function ComboWorkspace() {
               />
             </label>
           )}
-          {(comboType === 'decision' || comboType === 'sanshi') && (
+          {(comboType === 'decision' || comboType === 'sanshi' || comboType === 'sanshi-classic') && (
             <label className="flex flex-col gap-1 text-sm">
               <span className="text-jade-100/55">求测事项</span>
               <input
@@ -160,7 +165,7 @@ export function ComboWorkspace() {
               />
             </label>
           )}
-          {comboType === 'sanshi' && (
+          {(comboType === 'sanshi' || comboType === 'sanshi-classic') && (
             <label className="flex flex-col gap-1 text-sm">
               <span className="text-jade-100/55">大六壬天将流派</span>
               <select
@@ -232,7 +237,7 @@ export function ComboWorkspace() {
                 comboType,
                 birth: { year: solarBirth.year, gender: solarBirth.gender },
                 targetYear: comboType !== 'decision' ? targetYear : undefined,
-                question: comboType === 'decision' ? question : undefined,
+                question: (comboType === 'decision' || comboType === 'sanshi' || comboType === 'sanshi-classic') ? question : undefined,
                 synthesis: data.synthesis,
                 consistency: data.consistency,
                 subsystems: data.subsystems.map((s) => ({ name: s.name, tone: s.tone, summary: s.summary })),

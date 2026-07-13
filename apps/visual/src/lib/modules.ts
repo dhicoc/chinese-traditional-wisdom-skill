@@ -24,7 +24,8 @@ export type ModuleId =
   | 'history'
   | 'combo'
   | 'liuren'
-  | 'xingxiu';
+  | 'xingxiu'
+  | 'taiyi';
 
 export interface WisdomModule {
   id: ModuleId;
@@ -135,6 +136,18 @@ export const MODULES: WisdomModule[] = [
     questionTypes: ['值日星宿', '吉凶宜忌', '四象禽星', '择日参考'],
     accent: '#4a6fa5',
     description: '二十八星宿：每日值宿查询、吉凶宜忌、四象（青龙/朱雀/白虎/玄武）分组、禽星全称、七曜五行。传统择吉与天文历法基础。',
+  },
+  {
+    id: 'taiyi',
+    group: '术数排盘',
+    title: '太乙神数',
+    shortTitle: '太乙',
+    status: 'local-exact',
+    statusLabel: '本地精确历法',
+    privacyLevel: '仅本地计算',
+    questionTypes: ['事件占断', '主客胜负', '应期推算', '格局吉凶'],
+    accent: '#8a6db8',
+    description: '太乙神数：传统三式之首。太乙积年推局数，太乙落宫、文昌始击定目、主客算与四将，据掩迫关囚击格等格局断事件吉凶与主客胜负。',
   },
   {
     id: 'fengshui',

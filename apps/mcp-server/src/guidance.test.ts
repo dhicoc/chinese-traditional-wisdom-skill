@@ -25,7 +25,7 @@ describe('agent_guidance 参数引导', () => {
 
   it('listToolGuidance 返回 10 个工具摘要', () => {
     const list = listToolGuidance();
-    expect(list.length).toBe(16);
+    expect(list.length).toBe(18);
     list.forEach((g) => {
       expect(g.tool).toMatch(/^[a-z_]+$/);
       expect(g.purpose).toBeTruthy();
@@ -182,5 +182,15 @@ describe('wisdom_dispatch 意图路由', () => {
   it('combo: "三式互参" → combo_sanshi', () => {
     const r = dispatchIntent('用三式互参看某事能否成功，1990年6月15日12时男');
     expect(r.tool).toBe('combo_sanshi');
+  });
+
+  it('taiyi: "太乙神数" → taiyi_calculate', () => {
+    const r = dispatchIntent('用太乙神数排盘看2024年3月15日9时某事吉凶');
+    expect(r.tool).toBe('taiyi_calculate');
+  });
+
+  it('combo: "三式合一" → combo_sanshi_classic', () => {
+    const r = dispatchIntent('用奇门太乙大六壬三式合一看某事，1990年6月15日12时男');
+    expect(r.tool).toBe('combo_sanshi_classic');
   });
 });

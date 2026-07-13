@@ -42,7 +42,7 @@ function findTool(name: string) {
 
 describe('MCP TOOLS 注册完整性', () => {
   it('注册了 10 个工具', () => {
-    expect(TOOLS.length).toBe(16);
+    expect(TOOLS.length).toBe(18);
   });
 
   it('所有工具有 name/description/schema/handler', () => {
@@ -142,6 +142,22 @@ describe('liuren_calculate', () => {
     expect(data.siKe.list.length).toBe(4);
     expect(data.tianDiPan.tianPan.length).toBe(12);
     expect(data.export_snapshot.summary).toContain('月将');
+    expectExportSnapshot(e);
+  });
+});
+
+describe('taiyi_calculate', () => {
+  it('返回含太乙落宫/格局/主客算的太乙神数 envelope', () => {
+    const t = findTool('taiyi_calculate');
+    const env = t.handler({ birth: { year: 2024, month: 3, day: 15, hour: 9, gender: '男' } });
+    const e = expectValidEnvelope(env);
+    expect(e.tool).toBe('TaiyiEngine');
+    const data = e.data as { taiyi: { gong: string }; kook: { wen: string }; geju: Record<string, string>; home: { cal: number }; export_snapshot: { summary: string } };
+    expect(data.taiyi.gong).toBeTruthy();
+    expect(data.kook.wen).toContain('局');
+    expect(Object.keys(data.geju).length).toBeGreaterThan(0);
+    expect(typeof data.home.cal).toBe('number');
+    expect(data.export_snapshot.summary).toContain('太乙');
     expectExportSnapshot(e);
   });
 });
@@ -292,5 +308,17 @@ describe('combo_sanshi', () => {
     expect(data.comboName).toBe('三式互参');
     expect(data.subsystems.map((s) => s.name)).toEqual(['大六壬', '奇门遁甲', '梅花易数']);
     expect(data.export_snapshot.summary).toContain('三式');
+  });
+});
+
+describe('combo_sanshi_classic', () => {
+  it('返回含奇门+太乙+大六壬的三式合一 envelope', () => {
+    const t = findTool('combo_sanshi_classic');
+    const env = t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, question: '某事能否成功' });
+    const e = expectValidEnvelope(env);
+    const data = e.data as { comboName: string; subsystems: Array<{ name: string }>; export_snapshot: { summary: string } };
+    expect(data.comboName).toBe('三式合一');
+    expect(data.subsystems.map((s) => s.name)).toEqual(['奇门遁甲', '太乙神数', '大六壬']);
+    expect(data.export_snapshot.summary).toContain('三式合一');
   });
 });

@@ -21,7 +21,8 @@ import { calcZiweiEnveloped } from '../../visual/src/legacy/ziweiEngine';
 import { calcQimenEnveloped } from '../../visual/src/legacy/qimenEngine';
 import { calcDaliurenEnveloped } from '../../visual/src/legacy/daliurenEngine';
 import { calcXingXiuEnveloped } from '../../visual/src/legacy/xingxiuEngine';
-import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo, calcSanshiCombo } from '../../visual/src/legacy/comboEngine';
+import { calcTaiyiEnveloped } from '../../visual/src/legacy/taiyiEngine';
+import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo, calcSanshiCombo, calcSanshiClassicCombo } from '../../visual/src/legacy/comboEngine';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
 const solarEntry: unknown = (() => {
@@ -101,6 +102,21 @@ export const TOOLS: ToolDef[] = [
       birth: birthSchema,
     }),
     handler: (i) => calcXingXiuEnveloped({ birth: (i as { birth: unknown }).birth as never, solar: solarEntry }),
+  },
+  {
+    name: 'taiyi_calculate',
+    description: '太乙神数排盘：太乙积年、局数（年/月/日/时计）、太乙落宫、文昌始击定目、主客算与主客将、四神天乙地乙直符、君基臣基民基、五福大游小游、八门分布、格局（掩迫关囚击格对提挟）。传统三式之首，擅推天文异象、国运人事、事件吉凶与应期。',
+    schema: z.object({
+      birth: birthSchema,
+      jiStyle: z.enum(['0', '1', '2', '3', '4']).optional().describe('太乙计式：0年计/1月计/2日计/3時計/4分计，默认年计'),
+      acumYear: z.enum(['0', '1', '2', '3']).optional().describe('积年法：0统宗/1金镜/2淘金歌/3太乙局，默认统宗'),
+    }),
+    handler: (i) => calcTaiyiEnveloped({
+      birth: (i as { birth: unknown }).birth as never,
+      jiStyle: ((i as { jiStyle?: string }).jiStyle ?? '0') as never,
+      acumYear: ((i as { acumYear?: string }).acumYear ?? '0') as never,
+      solar: solarEntry,
+    }),
   },
   {
     name: 'cast_meihua',
@@ -227,6 +243,19 @@ export const TOOLS: ToolDef[] = [
       question: z.string().min(1).describe('求测事项'),
     }),
     handler: (i) => calcSanshiCombo({
+      birth: (i as { birth: unknown }).birth as never,
+      question: (i as { question: string }).question,
+      solar: solarEntry,
+    }),
+  },
+  {
+    name: 'combo_sanshi_classic',
+    description: '三式合一联合分析：奇门遁甲 + 太乙神数 + 大六壬（真正的传统三式）。奇门主八门九星（方位时机），太乙主主客算与格局（吉凶胜负），大六壬主三传四课（事态轨迹+应期）。三式交叉验证某事的吉凶、主客胜负、应期与方位。需提供求测事项。',
+    schema: z.object({
+      birth: birthSchema,
+      question: z.string().min(1).describe('求测事项'),
+    }),
+    handler: (i) => calcSanshiClassicCombo({
       birth: (i as { birth: unknown }).birth as never,
       question: (i as { question: string }).question,
       solar: solarEntry,

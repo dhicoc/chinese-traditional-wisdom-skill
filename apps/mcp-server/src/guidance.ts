@@ -112,6 +112,25 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     doNotAssume: ['birth.year', 'birth.month', 'birth.day'],
     workflow: '确认日期 → 调 xingxiu_daily → 看当日值宿吉凶宜忌。',
   },
+  taiyi_calculate: {
+    tool: 'taiyi_calculate',
+    purpose: '太乙神数排盘：需测当时的年月日时（占时）。传统三式之首，擅推事件吉凶、应期与主客胜负。',
+    requiredParams: BIRTH_PARAMS,
+    safeDefaults: { birth: { minute: 0, gender: '男' }, jiStyle: '0', acumYear: '0' },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour'],
+    workflow: '先确认占时（测事的当前时间或指定时间）→ 调 taiyi_calculate → 看太乙落宫、主客算与格局断吉凶。',
+  },
+  combo_sanshi_classic: {
+    tool: 'combo_sanshi_classic',
+    purpose: '三式合一：奇门+太乙+大六壬 真正传统三式交叉验证。需完整生辰 + 求测事项。',
+    requiredParams: [
+      ...BIRTH_PARAMS,
+      { name: 'question', required: true, description: '求测事项', promptToUser: '请描述要测算的具体事项（如：今年适合换工作吗）。' },
+    ],
+    safeDefaults: { birth: { minute: 0, gender: '男' } },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'question'],
+    workflow: '确认生辰 + 求测事项 → 调 combo_sanshi_classic → 看三式一致性，以大六壬三传为主、太乙格局次之、奇门方位为辅。',
+  },
   cast_meihua: {
     tool: 'cast_meihua',
     purpose: '梅花易数：时间起卦需生辰，数字起卦需两个数字。',
