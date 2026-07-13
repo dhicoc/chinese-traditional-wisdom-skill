@@ -13,7 +13,7 @@ export function SidebarNav(_props: SidebarNavProps) {
       <div className="sidebar-brand relative shrink-0 overflow-hidden rounded-[22px] border border-jade-500/18 bg-black/30 p-3.5">
         <div className="flex items-center gap-3">
           <div className="brand-seal grid h-11 w-11 shrink-0 place-items-center rounded-full border border-jade-500/30 bg-jade-500/10 text-jade-400">
-            <XuanOrbitLogo className="h-8 w-8 drop-shadow-[0_0_10px_rgba(44,159,132,0.72)]" />
+            <XuanOrbitLogo className="h-9 w-9 drop-shadow-[0_0_10px_rgba(44,159,132,0.72)]" />
           </div>
           <div className="min-w-0">
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-jade-400">XUANTAN LOCAL</p>

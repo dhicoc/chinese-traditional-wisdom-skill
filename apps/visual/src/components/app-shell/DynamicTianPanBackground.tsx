@@ -276,7 +276,11 @@ export function DynamicTianPanBackground() {
     if (!ctx) return;
 
     const motionOverride = new URLSearchParams(window.location.search).get('motion') || localStorage.getItem('tianpan-motion');
-    const reduced = motionOverride === 'off' || motionOverride === 'reduce';
+    // 尊重系统 prefers-reduced-motion 设置；URL/localStorage override 可显式开关
+    const prefersReduced = typeof window !== 'undefined'
+      && window.matchMedia
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduced = motionOverride === 'off' || motionOverride === 'reduce' || prefersReduced;
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
     let w = 0;
     let h = 0;

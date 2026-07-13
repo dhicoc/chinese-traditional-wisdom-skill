@@ -115,6 +115,20 @@ input:focus-visible,
   display: block;
 }
 
+/* 太极八卦层慢速旋转动画（Canvas 内部亦按 60s/圈驱动；此处声明供 CSS 层 fallback 与可访问性查询） */
+@keyframes tianpan-disc-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 尊重系统 reduced-motion 偏好：禁用动态天盘旋转动画 */
+@media (prefers-reduced-motion: reduce) {
+  .dynamic-tianpan-background,
+  .tianpan-canvas {
+    animation: none;
+  }
+}
+
 /* 参考图导向的玄学工具台结构 */
 .app-sidebar,
 .app-topbar,
