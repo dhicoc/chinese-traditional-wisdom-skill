@@ -239,6 +239,8 @@ export function FeixingWorkspace() {
                       </span>
                     </div>
                     {remedy!.remedy && <p className="mt-1 text-[11px] leading-4 text-cinnabar-400/70">化煞：{remedy!.remedy}</p>}
+                    {remedy!.colors && <p className="mt-0.5 text-[11px] leading-4 text-jade-100/55">色宜：{remedy!.colors}</p>}
+                    {remedy!.items && <p className="mt-0.5 text-[11px] leading-4 text-jade-100/55">摆设：{remedy!.items}</p>}
                     <p className="mt-0.5 text-[11px] leading-4 text-jade-100/45">{remedy!.health}</p>
                   </div>
                 ))}
@@ -251,6 +253,8 @@ export function FeixingWorkspace() {
                       </span>
                     </div>
                     <p className="mt-1 text-[11px] leading-4 text-jade-100/55">宜：{remedy!.roomUse.join('、')}</p>
+                    {remedy!.colors && <p className="mt-0.5 text-[11px] leading-4 text-jade-100/55">色宜：{remedy!.colors}</p>}
+                    {remedy!.items && <p className="mt-0.5 text-[11px] leading-4 text-jade-100/55">摆设：{remedy!.items}</p>}
                     <p className="mt-0.5 text-[11px] leading-4 text-jade-100/45">{remedy!.career}</p>
                   </div>
                 ))}

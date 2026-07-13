@@ -25,6 +25,10 @@ export interface NineStarRemedy {
   health: string;
   /** 化煞物品（凶星才有） */
   remedy?: string;
+  /** 建议颜色 */
+  colors?: string;
+  /** 具体摆设物品 */
+  items?: string;
   /** 含义简述 */
   meaning: string;
 }
@@ -36,6 +40,8 @@ export const NINE_STAR_REMEDIES: Record<number, NineStarRemedy> = {
     roomUse: ['书房', '主卧（单身或学生）'],
     career: '利文学、外交、贸易、演讲',
     health: '注意肾脏、泌尿系统',
+    colors: '黑色、蓝色、白色',
+    items: '水种植物、鱼缸、黑色水晶',
     meaning: '主桃花、文学、学业、贵人、口才',
   },
   2: {
@@ -45,6 +51,8 @@ export const NINE_STAR_REMEDIES: Record<number, NineStarRemedy> = {
     career: '此宫位不利工作，防官非',
     health: '脾胃、妇科、腹部疾病',
     remedy: '铜葫芦、六帝钱、铜钟化煞',
+    colors: '白色、金色（金泄土）',
+    items: '铜葫芦一对、六帝铜钱、铜钟、金属饰品',
     meaning: '主疾病、孕产风险、官非口舌',
   },
   3: {
@@ -54,6 +62,8 @@ export const NINE_STAR_REMEDIES: Record<number, NineStarRemedy> = {
     career: '防口舌纷争，合同纠纷',
     health: '肝胆、神经系统、肢体受伤',
     remedy: '红色物品化解（火克木）',
+    colors: '红色、紫色（火泄木）',
+    items: '红色中国结、九紫灯、红色地毯、紫水晶',
     meaning: '主口舌是非、争吵、官司',
   },
   4: {
@@ -62,6 +72,8 @@ export const NINE_STAR_REMEDIES: Record<number, NineStarRemedy> = {
     roomUse: ['书房', '儿童房', '办公室'],
     career: '利文职、学术、写作、教育',
     health: '注意肝胆，整体较平稳',
+    colors: '绿色、青色',
+    items: '文昌塔、毛笔架、绿色植物、书柜',
     meaning: '主文学、考试、桃花、聪明才智',
   },
   5: {
@@ -71,6 +83,8 @@ export const NINE_STAR_REMEDIES: Record<number, NineStarRemedy> = {
     career: '此方位开工动土必出大事',
     health: '五脏皆有风险，尤其重病',
     remedy: '六帝钱、铜风铃、葫芦化煞（最重要）',
+    colors: '白色、金色（金泄土，切勿用黄色红色）',
+    items: '六帝铜钱挂门、铜风铃、铜葫芦、金属钟',
     meaning: '主灾祸、疾病、死亡、破财，最凶之星',
   },
   6: {
@@ -79,6 +93,8 @@ export const NINE_STAR_REMEDIES: Record<number, NineStarRemedy> = {
     roomUse: ['主卧（当家者）', '书房', '客厅主位'],
     career: '利军警、管理、投资、武职',
     health: '头部、肺部注意',
+    colors: '白色、金色、黄色',
+    items: '金属摆件、铜马、水晶球、白色水晶',
     meaning: '主武职、权力、偏财、贵人',
   },
   7: {
@@ -88,6 +104,8 @@ export const NINE_STAR_REMEDIES: Record<number, NineStarRemedy> = {
     career: '防被骗、合同纠纷、口舌',
     health: '肺部、皮肤、手术',
     remedy: '蓝色水晶球、水种植物化解',
+    colors: '黑色、蓝色（水泄金）',
+    items: '蓝色水晶球、水种富贵竹、黑色曜石',
     meaning: '主口舌、血光、盗贼、破财',
   },
   8: {
@@ -96,6 +114,8 @@ export const NINE_STAR_REMEDIES: Record<number, NineStarRemedy> = {
     roomUse: ['主卧', '客厅', '财位（放招财物品）'],
     career: '最利置业、投资、经营',
     health: '脾胃平稳，整体健康',
+    colors: '黄色、棕色、红色',
+    items: '黄水晶球、貔貅、金蟾、聚宝盆、红色地毯',
     meaning: '主财帛、房产、旺丁旺财',
   },
   9: {
@@ -104,6 +124,8 @@ export const NINE_STAR_REMEDIES: Record<number, NineStarRemedy> = {
     roomUse: ['客厅', '主卧（夫妻）'],
     career: '利名声、喜庆、升迁、婚事',
     health: '心脑血管、眼睛注意',
+    colors: '红色、紫色、绿色',
+    items: '九紫灯、红色鲜花、紫水晶、红色中国结',
     meaning: '主喜庆、婚姻、名声、贵人',
   },
 };
