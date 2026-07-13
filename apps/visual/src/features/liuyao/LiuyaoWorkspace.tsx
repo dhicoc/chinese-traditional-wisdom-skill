@@ -227,7 +227,7 @@ export function LiuyaoWorkspace() {
             <select
               value={method}
               onChange={(e) => setMethod(e.target.value as CastMethod)}
-              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-transparent backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-black/30 backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
             >
               {METHOD_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -242,7 +242,7 @@ export function LiuyaoWorkspace() {
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               placeholder="如：今日财运、能否升职、考试、病情"
-              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-transparent backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-black/30 backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
             />
           </ControlField>
 

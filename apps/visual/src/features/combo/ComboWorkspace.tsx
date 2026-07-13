@@ -161,7 +161,7 @@ export function ComboWorkspace() {
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 placeholder="如：今年适合换工作吗"
-                className="w-full min-w-0 box-border rounded-card border border-white/10 bg-transparent backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+                className="w-full min-w-0 box-border rounded-card border border-white/10 bg-black/30 backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
               />
             </label>
           )}
@@ -171,7 +171,7 @@ export function ComboWorkspace() {
               <select
                 value={liurenSchool}
                 onChange={(e) => setLiurenSchool(e.target.value as DaliurenSchool)}
-                className="w-full min-w-0 box-border rounded-card border border-white/10 bg-transparent backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+                className="w-full min-w-0 box-border rounded-card border border-white/10 bg-black/30 backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
               >
                 {(Object.keys(DALIUREN_SCHOOLS) as DaliurenSchool[]).map((s) => (
                   <option key={s} value={s}>{DALIUREN_SCHOOLS[s].name}</option>
