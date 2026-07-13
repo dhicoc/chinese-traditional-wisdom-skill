@@ -123,11 +123,11 @@ export function QimenWorkspace() {
   return (
     <section className="space-y-4">
       <div className="rounded-panel border border-ink-700 bg-ink-850/78 p-4 shadow-instrument">
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">奇门遁甲</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              时家奇门排盘：三奇六仪、九星、八门、八神、值符值使、空亡马星、旺相休囚、十二长生、吉凶格局自动检测。文化学习参考。
+            <p className="mt-1 max-w-3xl text-sm leading-6 text-jade-100/55">
+              时家奇门排盘 · 文化学习参考
             </p>
           </div>
           <div className="flex gap-2">
@@ -150,59 +150,98 @@ export function QimenWorkspace() {
 
       {result && (
         <div className="space-y-4">
-          {/* 排盘概要 */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <InterpretationCard
-              title="排盘概要"
-              badge={result.mode === 'local-exact' ? '真实排盘' : '简化排盘'}
-              items={[
-                { label: '阴阳遁', value: result.dun },
-                { label: '局数', value: result.ju },
-                ...(result.yuan ? [{ label: '元', value: result.yuan }] : []),
-                ...(result.season ? [{ label: '季节', value: result.season }] : []),
-                ...(result.monthElement ? [{ label: '月令五行', value: result.monthElement }] : []),
-                ...(result.timeInfo ? [
-                  { label: '年柱', value: result.timeInfo.yearGZ },
-                  { label: '月柱', value: result.timeInfo.monthGZ },
-                  { label: '日柱', value: result.timeInfo.dayGZ },
-                  { label: '时柱', value: result.timeInfo.hourGZ },
-                ] : []),
-                { label: '值符', value: result.zhiFu ? `${result.zhiFu.star}（落${result.zhiFu.position}宫）` : '—' },
-                { label: '值使', value: result.zhiShi ? `${result.zhiShi.gate}（落${result.zhiShi.position}宫）` : '—' },
-                { label: '概要', value: result.summary },
-              ]}
-            />
-            <InterpretationCard
-              title="吉凶格局"
-              badge={`${result.auspiciousPatterns.length + result.inauspiciousPatterns.length} 格局`}
-              className="p-2.5"
-            >
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-start gap-1.5">
-                  <span className="mt-0.5 shrink-0 rounded-full border border-jade-500/30 bg-jade-500/10 px-2 py-0.5 text-[10px] font-semibold text-jade-400">吉格</span>
-                  {result.auspiciousPatterns.length > 0 ? (
-                    result.auspiciousPatterns.map((pat, i) => (
-                      <span key={i} className="rounded-full border border-jade-500/20 bg-jade-500/8 px-2 py-0.5 text-[11px] text-jade-300">{pat}</span>
-                    ))
-                  ) : (
-                    <span className="text-[11px] text-jade-100/40">无</span>
-                  )}
+          {/* 排盘概要：局式信息 + 四柱 + 值符值使 + 吉凶格局，紧凑单卡 */}
+          <InterpretationCard
+            title="排盘概要"
+            badge={result.mode === 'local-exact' ? '真实排盘' : '简化排盘'}
+          >
+            {/* 局式 + 四柱：两列 */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <dl className="space-y-1.5 text-xs">
+                <div className="flex justify-between gap-2 rounded-card bg-black/40 px-3 py-1.5">
+                  <dt className="text-jade-100/55">阴阳遁</dt>
+                  <dd className="text-jade-100">{result.dun}</dd>
                 </div>
-                <div className="flex flex-wrap items-start gap-1.5">
-                  <span className="mt-0.5 shrink-0 rounded-full border border-cinnabar-500/30 bg-cinnabar-500/10 px-2 py-0.5 text-[10px] font-semibold text-cinnabar-400">凶格</span>
-                  {result.inauspiciousPatterns.length > 0 ? (
-                    result.inauspiciousPatterns.map((pat, i) => (
-                      <span key={i} className="rounded-full border border-cinnabar-500/20 bg-cinnabar-500/8 px-2 py-0.5 text-[11px] text-cinnabar-300">{pat}</span>
-                    ))
-                  ) : (
-                    <span className="text-[11px] text-jade-100/40">无</span>
-                  )}
+                <div className="flex justify-between gap-2 rounded-card bg-black/40 px-3 py-1.5">
+                  <dt className="text-jade-100/55">局数</dt>
+                  <dd className="text-jade-100">{result.ju}</dd>
                 </div>
+                {result.yuan && (
+                  <div className="flex justify-between gap-2 rounded-card bg-black/40 px-3 py-1.5">
+                    <dt className="text-jade-100/55">元</dt>
+                    <dd className="text-jade-100">{result.yuan}</dd>
+                  </div>
+                )}
+                {result.season && (
+                  <div className="flex justify-between gap-2 rounded-card bg-black/40 px-3 py-1.5">
+                    <dt className="text-jade-100/55">季节</dt>
+                    <dd className="text-jade-100">{result.season}</dd>
+                  </div>
+                )}
+                {result.monthElement && (
+                  <div className="flex justify-between gap-2 rounded-card bg-black/40 px-3 py-1.5">
+                    <dt className="text-jade-100/55">月令五行</dt>
+                    <dd className="text-jade-100">{result.monthElement}</dd>
+                  </div>
+                )}
+              </dl>
+              <dl className="space-y-1.5 text-xs">
+                {result.timeInfo && (
+                  <>
+                    <div className="flex justify-between gap-2 rounded-card bg-black/40 px-3 py-1.5">
+                      <dt className="text-jade-100/55">年柱</dt>
+                      <dd className="text-jade-100">{result.timeInfo.yearGZ}</dd>
+                    </div>
+                    <div className="flex justify-between gap-2 rounded-card bg-black/40 px-3 py-1.5">
+                      <dt className="text-jade-100/55">月柱</dt>
+                      <dd className="text-jade-100">{result.timeInfo.monthGZ}</dd>
+                    </div>
+                    <div className="flex justify-between gap-2 rounded-card bg-black/40 px-3 py-1.5">
+                      <dt className="text-jade-100/55">日柱</dt>
+                      <dd className="text-jade-100">{result.timeInfo.dayGZ}</dd>
+                    </div>
+                    <div className="flex justify-between gap-2 rounded-card bg-black/40 px-3 py-1.5">
+                      <dt className="text-jade-100/55">时柱</dt>
+                      <dd className="text-jade-100">{result.timeInfo.hourGZ}</dd>
+                    </div>
+                  </>
+                )}
+                <div className="flex justify-between gap-2 rounded-card bg-black/40 px-3 py-1.5">
+                  <dt className="text-jade-100/55">值符</dt>
+                  <dd className="text-jade-100">{result.zhiFu ? `${result.zhiFu.star}（${result.zhiFu.position}宫）` : '—'}</dd>
+                </div>
+                <div className="flex justify-between gap-2 rounded-card bg-black/40 px-3 py-1.5">
+                  <dt className="text-jade-100/55">值使</dt>
+                  <dd className="text-jade-100">{result.zhiShi ? `${result.zhiShi.gate}（${result.zhiShi.position}宫）` : '—'}</dd>
+                </div>
+              </dl>
+            </div>
+            {/* 吉凶格局：单行紧凑 */}
+            <div className="mt-3 space-y-1.5">
+              <div className="flex flex-wrap items-start gap-1.5">
+                <span className="mt-0.5 shrink-0 rounded-full border border-jade-500/30 bg-jade-500/10 px-2 py-0.5 text-[10px] font-semibold text-jade-400">吉格</span>
+                {result.auspiciousPatterns.length > 0 ? (
+                  result.auspiciousPatterns.map((pat, i) => (
+                    <span key={i} className="rounded-full border border-jade-500/20 bg-jade-500/8 px-2 py-0.5 text-[11px] text-jade-300">{pat}</span>
+                  ))
+                ) : (
+                  <span className="text-[11px] text-jade-100/40">无</span>
+                )}
               </div>
-            </InterpretationCard>
-          </div>
+              <div className="flex flex-wrap items-start gap-1.5">
+                <span className="mt-0.5 shrink-0 rounded-full border border-cinnabar-500/30 bg-cinnabar-500/10 px-2 py-0.5 text-[10px] font-semibold text-cinnabar-400">凶格</span>
+                {result.inauspiciousPatterns.length > 0 ? (
+                  result.inauspiciousPatterns.map((pat, i) => (
+                    <span key={i} className="rounded-full border border-cinnabar-500/20 bg-cinnabar-500/8 px-2 py-0.5 text-[11px] text-cinnabar-300">{pat}</span>
+                  ))
+                ) : (
+                  <span className="text-[11px] text-jade-100/40">无</span>
+                )}
+              </div>
+            </div>
+          </InterpretationCard>
 
-          {/* 九宫排盘 SVG 式盘 */}
+          {/* 九宫式盘 */}
           <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <h3 className="mb-2 text-base font-semibold text-jade-50">九宫式盘</h3>
             <ZoomableSvg title="奇门九宫式盘">
@@ -213,13 +252,13 @@ export function QimenWorkspace() {
             </ZoomableSvg>
           </div>
 
-          {/* 各宫格局详情（式盘只显示计数，具体格局名列在此） */}
+          {/* 各宫格局详情 */}
           <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <h3 className="mb-3 text-sm font-semibold text-jade-50">各宫格局详情</h3>
-            <div className="space-y-2">
+            <div className="grid gap-2 sm:grid-cols-2">
               {result.palaces.filter((p) => p.auspiciousPatterns.length > 0 || p.inauspiciousPatterns.length > 0 || p.tenStemResponse?.heavenlyToEarthly || p.tenStemResponse?.timeToDay).map((p) => (
                 <div key={p.position} className={`rounded-card border p-2.5 ${p.isZhiFu ? 'border-jade-500/30 bg-jade-500/6' : p.isZhiShi ? 'border-gold-500/25 bg-gold-500/5' : 'border-white/8 bg-black/30'}`}>
-                  <p className="text-xs font-semibold text-jade-100/80">{p.trigram}宫（{p.position}）· {p.gate}门 {p.star}星 {p.deity}神</p>
+                  <p className="text-xs font-semibold text-jade-100/80">{p.trigram}宫（{p.position}）· {p.gate} {p.star} {p.deity}</p>
                   <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px]">
                     {p.auspiciousPatterns.map((pat, i) => (
                       <span key={`a${i}`} className="text-jade-400">★{pat}</span>
@@ -248,7 +287,7 @@ export function QimenWorkspace() {
         <TermExplanationPanel
           ready={ready}
           initialTerm="值符"
-          terms={["值符","值使","八门","九星","八神","三奇六仪","休门","生门","伤门","杜门","景门","死门","惊门","开门","天蓬","天任","天冲","天辅","天英","天芮","天柱","天心","天禽","直符","腾蛇","太阴","六合","白虎","玄武","九地","九天","阳遁","阴遁","局数","空亡","马星"]}
+          terms={["值符","值使","八门","九星","八神","三奇六仪","阳遁","阴遁","局数","空亡","马星"]}
           description="点击术语查看奇门遁甲通俗解释。"
         />
       )}
