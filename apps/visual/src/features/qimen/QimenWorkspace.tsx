@@ -175,8 +175,9 @@ export function QimenWorkspace() {
             <InterpretationCard
               title="吉凶格局"
               badge={`${result.auspiciousPatterns.length + result.inauspiciousPatterns.length} 格局`}
+              className="p-2.5"
             >
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <div className="flex flex-wrap items-start gap-1.5">
                   <span className="mt-0.5 shrink-0 rounded-full border border-jade-500/30 bg-jade-500/10 px-2 py-0.5 text-[10px] font-semibold text-jade-400">吉格</span>
                   {result.auspiciousPatterns.length > 0 ? (

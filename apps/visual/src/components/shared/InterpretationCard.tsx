@@ -12,11 +12,13 @@ interface InterpretationCardProps {
   subtitle?: ReactNode;
   items?: InterpretationItem[];
   children?: ReactNode;
+  /** 自定义卡片内边距等（如紧凑模式 p-2.5） */
+  className?: string;
 }
 
-export function InterpretationCard({ title, badge, subtitle, items = [], children }: InterpretationCardProps) {
+export function InterpretationCard({ title, badge, subtitle, items = [], children, className }: InterpretationCardProps) {
   return (
-    <section className="rounded-card border border-white/10 bg-ink-950/90 p-4 shadow-instrument">
+    <section className={`rounded-card border border-white/10 bg-ink-950/90 p-4 shadow-instrument ${className ?? ''}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-jade-100">{title}</p>
