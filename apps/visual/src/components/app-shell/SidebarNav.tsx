@@ -1,6 +1,7 @@
 import type { ModuleGroup, ModuleId, WisdomModule } from '@/lib/modules';
 import { MODULE_GROUPS, MODULES } from '@/lib/modules';
 import { XuanOrbitLogo } from './XuanOrbitLogo';
+import { BirthPanel } from '@/components/shared/BirthPanel';
 
 interface SidebarNavProps {
   activeModule: ModuleId;
@@ -82,15 +83,9 @@ export function SidebarNav({ activeModule, onSelectModule }: SidebarNavProps) {
         })}
       </nav>
 
-      <div className="mt-4 rounded-[20px] border border-jade-500/18 bg-black/30 p-4">
-        <div className="flex items-center justify-between text-xs text-jade-100/60">
-          <span>本地坛场</span>
-          <span className="text-jade-400">Ready</span>
-        </div>
-        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/8">
-          <div className="h-full w-[72%] rounded-full bg-gradient-to-r from-jade-500 via-gold-500 to-cinnabar-500" />
-        </div>
-        <p className="mt-3 text-xs leading-5 text-jade-100/35">不上传完整生辰。演示、近似、真实排盘在模块内分别标注。</p>
+      {/* 全局生辰控制台（替代原"本地坛场"装饰区） */}
+      <div className="mt-4 shrink-0">
+        <BirthPanel />
       </div>
     </aside>
   );
