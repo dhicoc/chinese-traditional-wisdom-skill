@@ -175,15 +175,30 @@ export function QimenWorkspace() {
             <InterpretationCard
               title="吉凶格局"
               badge={`${result.auspiciousPatterns.length + result.inauspiciousPatterns.length} 格局`}
-              items={[
-                ...(result.auspiciousPatterns.length > 0
-                  ? [{ label: '吉格', value: result.auspiciousPatterns.join('、') }]
-                  : [{ label: '吉格', value: '无' }]),
-                ...(result.inauspiciousPatterns.length > 0
-                  ? [{ label: '凶格', value: result.inauspiciousPatterns.join('、') }]
-                  : [{ label: '凶格', value: '无' }]),
-              ]}
-            />
+            >
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-start gap-1.5">
+                  <span className="mt-0.5 shrink-0 rounded-full border border-jade-500/30 bg-jade-500/10 px-2 py-0.5 text-[10px] font-semibold text-jade-400">吉格</span>
+                  {result.auspiciousPatterns.length > 0 ? (
+                    result.auspiciousPatterns.map((pat, i) => (
+                      <span key={i} className="rounded-full border border-jade-500/20 bg-jade-500/8 px-2 py-0.5 text-[11px] text-jade-300">{pat}</span>
+                    ))
+                  ) : (
+                    <span className="text-[11px] text-jade-100/40">无</span>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-start gap-1.5">
+                  <span className="mt-0.5 shrink-0 rounded-full border border-cinnabar-500/30 bg-cinnabar-500/10 px-2 py-0.5 text-[10px] font-semibold text-cinnabar-400">凶格</span>
+                  {result.inauspiciousPatterns.length > 0 ? (
+                    result.inauspiciousPatterns.map((pat, i) => (
+                      <span key={i} className="rounded-full border border-cinnabar-500/20 bg-cinnabar-500/8 px-2 py-0.5 text-[11px] text-cinnabar-300">{pat}</span>
+                    ))
+                  ) : (
+                    <span className="text-[11px] text-jade-100/40">无</span>
+                  )}
+                </div>
+              </div>
+            </InterpretationCard>
           </div>
 
           {/* 九宫排盘 SVG 式盘 */}
