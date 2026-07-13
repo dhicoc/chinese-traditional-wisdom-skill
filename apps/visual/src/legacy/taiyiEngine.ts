@@ -25,17 +25,17 @@ const JIAZI: string[] = Array.from({ length: 60 }, (_, i) => TIAN_GAN[i % 10] + 
 
 // ─── 太乙核心数据表（从 kintaiyi config.py 内联，MIT）───
 
-/** 72 局太乙落宫（每局3字符，共72局） */
+/** 72 局太乙落宫（72 单字符，每3局一个宫名：1-3乾/4-6午/7-9艮...） */
 const TAIYI_PAI = '乾乾乾午午午艮艮艮卯卯卯酉酉酉坤坤坤子子子巽巽巽乾乾乾午午午艮艮艮卯卯卯酉酉酉坤坤坤子子子巽巽巽乾乾乾午午午艮艮艮卯卯卯酉酉酉坤坤坤子子子巽巽巽';
-/** 72 局始击 */
+/** 72 局始击（72 单字符序列） */
 const SF_LIST = '坤戌亥丑寅辰巳坤酉乾丑寅辰午坤酉亥子艮辰巳未申戌亥艮卯巽未丑戌子艮卯巳午坤戌亥丑寅辰巳坤酉乾丑寅辰午坤酉亥子艮辰巳未申戌亥艮卯巽未丑戌子艮卯巳午';
-/** 四神 */
+/** 四神（36 字符，cycle 到 72：每3字符一组×12宫×2轮） */
 const FOUR_GOD = '乾乾乾午午午艮艮艮卯卯卯中中中酉酉酉坤坤坤子子子巽巽巽巳巳巳申申申寅寅寅';
-/** 天乙 */
+/** 天乙（36 字符，cycle 到 72） */
 const SKY_YI = '酉酉酉坤坤坤子子子巽巽巽巳巳巳申申申寅寅寅乾乾乾午午午艮艮艮卯卯卯中中中';
-/** 地乙 */
+/** 地乙（36 字符，cycle 到 72） */
 const EARTH_YI = '巽巽巽巳巳巳申申申寅寅寅乾乾乾午午午艮艮艮卯卯卯中中中酉酉酉坤坤坤子子子';
-/** 直符 */
+/** 直符（36 字符，cycle 到 72） */
 const ZHI_FU = '中中中酉酉酉坤坤坤子子子巽巽巽巳巳巳申申申寅寅寅乾乾乾午午午艮艮艮卯卯卯';
 /** 72 局文昌（阳遁/阴遁各72） */
 const SKYEYES_DICT: Record<string, string[]> = {
@@ -476,7 +476,7 @@ class TaiyiCore {
   /** 太乙落宫名 */
   tyGong(jiStyle: JiStyle, acumYear: AcumYearMethod): string {
     const kook = this.kook(jiStyle, acumYear);
-    return (TAIYI_PAI.match(/../g) as string[])[kook.num - 1] ?? '中';
+    return TAIYI_PAI[kook.num - 1] ?? '中';
   }
 
   /** 文昌（天目） */
@@ -495,7 +495,7 @@ class TaiyiCore {
   /** 始击 */
   sf(jiStyle: JiStyle, acumYear: AcumYearMethod): string {
     const kook = this.kook(jiStyle, acumYear);
-    return (SF_LIST.match(/../g) as string[])[kook.num - 1] ?? '中';
+    return SF_LIST[kook.num - 1] ?? '中';
   }
 
   /** 合神 */
@@ -605,25 +605,25 @@ class TaiyiCore {
     return vg === 0 ? 5 : vg;
   }
 
-  /** 四神 */
+  /** 四神（36 字符 cycle 到 72） */
   fgd(jiStyle: JiStyle, acumYear: AcumYearMethod): string {
     const kook = this.kook(jiStyle, acumYear);
-    return (FOUR_GOD.match(/../g) as string[])[kook.num - 1] ?? '中';
+    return FOUR_GOD[(kook.num - 1) % 36] ?? '中';
   }
-  /** 天乙 */
+  /** 天乙（36 字符 cycle 到 72） */
   skyyi(jiStyle: JiStyle, acumYear: AcumYearMethod): string {
     const kook = this.kook(jiStyle, acumYear);
-    return (SKY_YI.match(/../g) as string[])[kook.num - 1] ?? '中';
+    return SKY_YI[(kook.num - 1) % 36] ?? '中';
   }
-  /** 地乙 */
+  /** 地乙（36 字符 cycle 到 72） */
   earthyi(jiStyle: JiStyle, acumYear: AcumYearMethod): string {
     const kook = this.kook(jiStyle, acumYear);
-    return (EARTH_YI.match(/../g) as string[])[kook.num - 1] ?? '中';
+    return EARTH_YI[(kook.num - 1) % 36] ?? '中';
   }
-  /** 直符 */
+  /** 直符（36 字符 cycle 到 72） */
   zhifu(jiStyle: JiStyle, acumYear: AcumYearMethod): string {
     const kook = this.kook(jiStyle, acumYear);
-    return (ZHI_FU.match(/../g) as string[])[kook.num - 1] ?? '中';
+    return ZHI_FU[(kook.num - 1) % 36] ?? '中';
   }
   /** 飞符 */
   flyfu(jiStyle: JiStyle, acumYear: AcumYearMethod): string {
@@ -634,26 +634,23 @@ class TaiyiCore {
     return map[fly] ?? '中';
   }
 
-  /** 君基 */
+  /** 君基：(accnum+250) % 360 // 30 映射到 1-12，查 new_list(di_zhi, "寅") */
   kingbase(jiStyle: JiStyle, acumYear: AcumYearMethod): string {
     const acc = this.accnum(jiStyle, acumYear);
-    const kb = acc % 240;
-    const idx = Math.floor(kb / 36) + 1;
-    return GONG1[(idx - 1) % 16] ?? '子';
+    const kingBase = Math.floor(((acc + 250) % 360) / 30) || 1;
+    const order = newList(DI_ZHI_ARR, '寅');
+    return order[kingBase - 1] ?? '寅';
   }
-  /** 臣基 */
+  /** 臣基：cycle(officer_base) 按 kook.num 查（36 字符 cycle 到 72） */
   officerbase(jiStyle: JiStyle, acumYear: AcumYearMethod): string {
-    const acc = this.accnum(jiStyle, acumYear);
-    const ob = acc % 120;
-    const idx = Math.floor(ob / 12) + 1;
-    return (OFFICER_BASE.match(/../g) as string[])[(idx - 1) % 48] ?? '巳';
+    const kook = this.kook(jiStyle, acumYear);
+    return OFFICER_BASE[(kook.num - 1) % 36] ?? '巳';
   }
-  /** 民基 */
+  /** 民基：cycle(new_list(di_zhi, "丑")) 按 kook.num 查 */
   pplbase(jiStyle: JiStyle, acumYear: AcumYearMethod): string {
-    const acc = this.accnum(jiStyle, acumYear);
-    const pb = acc % 60;
-    const idx = Math.floor(pb / 5) + 1;
-    return GONG1[(idx - 1) % 16] ?? '子';
+    const kook = this.kook(jiStyle, acumYear);
+    const order = newList(DI_ZHI_ARR, '丑');
+    return order[(kook.num - 1) % 12] ?? '丑';
   }
 
   /** 五福（取宫名） */

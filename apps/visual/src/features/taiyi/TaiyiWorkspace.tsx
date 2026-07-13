@@ -153,11 +153,6 @@ export function TaiyiWorkspace() {
               { label: '百六', value: shenSha.baliu },
             ]}
           />
-          {fourLayer && (
-            <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-              <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
-            </div>
-          )}
         </aside>
 
         {/* 右侧：太乙落宫 + 主客算 + 格局 */}
@@ -251,6 +246,13 @@ export function TaiyiWorkspace() {
           </div>
         </div>
       </div>
+
+      {/* 四层报告（整页全宽，避免 highlights 两列在窄栏挤压导致宽度不齐） */}
+      {fourLayer && (
+        <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
+        </div>
+      )}
     </section>
   );
 }
