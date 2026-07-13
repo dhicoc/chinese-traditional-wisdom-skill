@@ -18,7 +18,7 @@ interface InterpretationCardProps {
 
 export function InterpretationCard({ title, badge, subtitle, items = [], children, className }: InterpretationCardProps) {
   return (
-    <section className={`rounded-card border border-white/10 bg-ink-950/90 p-4 shadow-instrument ${className ?? ''}`}>
+    <section className={`rounded-card border border-white/10 bg-ink-950/90 shadow-instrument ${className ?? 'p-4'}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-jade-100">{title}</p>
