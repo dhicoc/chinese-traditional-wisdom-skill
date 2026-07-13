@@ -130,7 +130,7 @@ export function LiurenWorkspace() {
                 <select
                   value={school}
                   onChange={(e) => setSchool(e.target.value as DaliurenSchool)}
-                  className="w-full min-w-0 box-border rounded-card border border-white/10 bg-black/30 backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+                  className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
                 >
                   {(Object.keys(DALIUREN_SCHOOLS) as DaliurenSchool[]).map((s) => (
                     <option key={s} value={s}>{DALIUREN_SCHOOLS[s].name}</option>
