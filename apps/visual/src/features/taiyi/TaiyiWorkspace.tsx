@@ -247,9 +247,9 @@ export function TaiyiWorkspace() {
         </div>
       </div>
 
-      {/* 四层报告（整页全宽，避免 highlights 两列在窄栏挤压导致宽度不齐） */}
+      {/* 四层报告（限宽，避免整页过宽阅读不便） */}
       {fourLayer && (
-        <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+        <div className="console-panel mx-auto max-w-3xl rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
           <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
         </div>
       )}
