@@ -478,8 +478,8 @@ check(workspaceRegistry.includes("yunqi: YunqiWorkspace"), 'workspaceRegistry �
 check(workspaceRegistry.includes("tizhi: ConstitutionWorkspace"), 'workspaceRegistry 应注册 tizhi 工作区');
 check(workspaceRegistry.includes("resolveWorkspace"), 'workspaceRegistry 应导出 resolveWorkspace');
 
-// ── 3k. AppShell 接入 BirthPanel ────────────────────────
-check(appShell.includes('BirthPanel'), 'AppShell 应接入 BirthPanel');
+// ── 3k. BirthPanel 接入（侧边栏） ────────────────────────
+check(sidebarNav.includes('BirthPanel'), 'SidebarNav 应接入 BirthPanel（全局生辰控制台移至侧边栏）');
 
 // ── 5. legacy registry 桥接已建立 ────────────────────────
 const loadLegacy = read(path.join(srcRoot, 'legacy/loadLegacyScripts.ts'));
