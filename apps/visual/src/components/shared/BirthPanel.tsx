@@ -131,7 +131,7 @@ export function BirthPanel() {
               <select
                 value={birth.gender}
                 onChange={(e) => updateBirth({ gender: e.target.value as '男' | '女' })}
-                className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900/60 backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+                className="w-full min-w-0 box-border rounded-card border border-white/10 bg-transparent backdrop-blur-md px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
               >
                 <option value="男">男</option>
                 <option value="女">女</option>
