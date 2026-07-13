@@ -5,10 +5,15 @@ import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
+import { TaiyiChart } from '@/components/shared/TaiyiChart';
+import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
 import { calcTaiyiEnveloped, JI_STYLE_NAMES, ACUM_YEAR_NAMES, type TaiyiData, type JiStyle, type AcumYearMethod } from '@/legacy/taiyiEngine';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import type { ToolEnvelope } from '@/legacy/baseTypes';
+
+/** 宫数→宫名（太乙九宫：1乾/2午/3艮/4卯/5中/6酉/7坤/8子/9巽） */
+const NUM2GONG: Record<number, string> = { 1: '乾', 2: '午', 3: '艮', 4: '卯', 5: '中', 6: '酉', 7: '坤', 8: '子', 9: '巽' };
 
 /**
  * 太乙神数工作区。
@@ -160,8 +165,25 @@ export function TaiyiWorkspace() {
           )}
         </aside>
 
-        {/* 右侧：太乙落宫 + 主客算 + 格局 */}
+        {/* 右侧：太乙式盘 + 落宫 + 主客算 + 格局 */}
         <div className="space-y-4">
+          {/* 太乙九宫落宫 SVG 式盘 */}
+          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+            <h3 className="mb-2 text-sm font-semibold text-jade-50">太乙九宫式盘</h3>
+            <ZoomableSvg title="太乙九宫落宫">
+              <TaiyiChart
+                taiyiGong={taiyi.gong}
+                wenchangGong={wenchang.gong}
+                shijiGong={shiji.gong}
+                dingmuGong={dingmu.gong}
+                homeGeneralGong={NUM2GONG[home.general] ?? '中'}
+                awayGeneralGong={NUM2GONG[away.general] ?? '中'}
+                eightDoors={data.eightDoors}
+                kookWen={kook.wen}
+              />
+            </ZoomableSvg>
+          </div>
+
           {/* 太乙落宫 + 文昌始击定目 */}
           <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <h3 className="mb-3 text-sm font-semibold text-jade-50">太乙落宫与二目</h3>
