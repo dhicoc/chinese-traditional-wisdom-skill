@@ -19,15 +19,17 @@ export function BirthPanel() {
     birth.hour === DEFAULT_BIRTH.hour &&
     birth.gender === DEFAULT_BIRTH.gender;
 
-  // 默认生辰时自动展开，引导用户修改
+  // 默认生辰时自动展开，引导用户修改。
+  // expandedOnce：默认即展开过，避免修改生辰数据（如+1年）使 isDefaultBirth 变 false 时意外折叠。
   const [userToggled, setUserToggled] = useState(false);
   const [userToggledHidden, setUserToggledHidden] = useState(false);
-  const expanded = userToggledHidden ? false : (userToggled || isDefaultBirth);
+  const [expandedOnce] = useState(true);
+  const expanded = userToggledHidden ? false : (userToggled || isDefaultBirth || expandedOnce);
 
   const summary = `${birth.year}-${String(birth.month).padStart(2, '0')}-${String(birth.day).padStart(2, '0')} ${birth.gender} ${birth.isLunar ? '农历' : '公历'} ${birth.useExactCalendar ? '精确' : '近似'}`;
 
   const handleToggle = () => {
-    if (isDefaultBirth && !userToggledHidden) {
+    if (isDefaultBirth && !userToggledHidden && !userToggled) {
       // 首次点击（默认展开状态）→ 收起
       setUserToggledHidden(true);
     } else {
