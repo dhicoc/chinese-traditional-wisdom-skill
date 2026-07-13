@@ -71,11 +71,11 @@ export const MODULES: WisdomModule[] = [
     title: '紫微斗数',
     shortTitle: '紫微',
     status: 'local-exact',
-    statusLabel: '本地 iztro 排盘',
+    statusLabel: '本地精确历法',
     privacyLevel: '仅本地计算',
     questionTypes: ['十二宫', '星曜', '四化'],
     accent: '#9f2418',
-    description: 'React Shell 已通过 Legacy EngineAdapterRegistry 接入 SylarLong/iztro v2.5.8 本地真实排盘，并复用十二宫 Canvas renderer。',
+    description: '紫微斗数：按生辰排十二宫命盘，显示十四主星、辅星、四化，分析性格与运势走向。',
   },
   {
     id: 'liuyao',
@@ -99,7 +99,7 @@ export const MODULES: WisdomModule[] = [
     privacyLevel: '仅本地计算',
     questionTypes: ['时间起卦', '数字起卦', '体用'],
     accent: '#c9b27a',
-    description: '内置时间起卦与数字起卦 Adapter，输出体用生克、互卦与变卦结构。',
+    description: '梅花易数：时间起卦或数字起卦，输出上下卦、动爻、体用生克、互卦变卦、错综卦与吉凶分级。',
   },
   {
     id: 'qimen',
