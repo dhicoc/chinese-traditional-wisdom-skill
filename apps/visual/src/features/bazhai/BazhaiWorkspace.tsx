@@ -22,6 +22,7 @@ import {
 } from '@/legacy/bazhaiHouse';
 import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { calcTaisui } from '@/legacy/taisuiEngine';
+import { calcMenZhuZao } from '@/legacy/menZhuZaoEngine';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import type { LegacyState } from '@/legacy/legacyGlobals';
 
@@ -31,6 +32,9 @@ export function BazhaiWorkspace() {
   const [gender, setGender] = useState<'男' | '女'>('男');
   const [facing, setFacing] = useState<string>('南');
   const [flowYear, setFlowYear] = useState(2026);
+  const [mzzDoor, setMzzDoor] = useState('南');
+  const [mzzBedroom, setMzzBedroom] = useState('北');
+  const [mzzKitchen, setMzzKitchen] = useState('东');
 
   useEffect(() => {
     let mounted = true;
@@ -302,6 +306,66 @@ export function BazhaiWorkspace() {
                     </div>
                   ))}
                 </div>
+              </div>
+            );
+          })()}
+
+          {/* 门主灶三要 */}
+          {(() => {
+            const mzz = calcMenZhuZao({ door: mzzDoor, bedroom: mzzBedroom, kitchen: mzzKitchen });
+            const dirOpts = ['北', '东北', '东', '东南', '南', '西南', '西', '西北'];
+            return (
+              <div className={`rounded-card border p-4 ${mzz.overall.tone === '吉' ? 'border-jade-500/25 bg-jade-500/5' : mzz.overall.tone === '凶' ? 'border-cinnabar-500/20 bg-cinnabar-500/5' : 'border-white/8 bg-white/[0.025]'}`}>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-jade-100">门主灶三要</p>
+                  <span className={`text-[10px] font-semibold ${mzz.overall.tone === '吉' ? 'text-jade-400' : mzz.overall.tone === '凶' ? 'text-cinnabar-400' : 'text-jade-100/55'}`}>
+                    {mzz.overall.tone === '吉' ? '格局优良' : mzz.overall.tone === '凶' ? '需化解' : '格局一般'}
+                  </span>
+                </div>
+                {/* 输入：门/主/灶方位 */}
+                <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
+                  {[
+                    { label: '大门', value: mzzDoor, set: setMzzDoor, info: mzz.door },
+                    { label: '主卧', value: mzzBedroom, set: setMzzBedroom, info: mzz.bedroom },
+                    { label: '厨房', value: mzzKitchen, set: setMzzKitchen, info: mzz.kitchen },
+                  ].map(item => (
+                    <div key={item.label}>
+                      <label className="flex flex-col gap-1">
+                        <span className="text-jade-100/45">{item.label}</span>
+                        <select
+                          value={item.value}
+                          onChange={(e) => item.set(e.target.value)}
+                          className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-2 py-1.5 text-xs text-jade-100 outline-none transition focus:border-jade-500/45"
+                        >
+                          {dirOpts.map(d => <option key={d} value={d}>{d}方</option>)}
+                        </select>
+                        <span className="text-[10px] text-jade-100/40">{item.info.bagua}宫·{item.info.wuxing}</span>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                {/* 三组关系 */}
+                <div className="mt-2.5 space-y-1.5">
+                  {[
+                    { label: '门↔主', r: mzz.doorBedroomRelation },
+                    { label: '门↔灶', r: mzz.doorKitchenRelation },
+                    { label: '主↔灶', r: mzz.bedroomKitchenRelation },
+                  ].map(item => (
+                    <div key={item.label} className={`rounded border px-2.5 py-1.5 text-[11px] leading-4 ${item.r.tone === '吉' ? 'border-jade-500/20 bg-jade-500/6' : item.r.tone === '凶' ? 'border-cinnabar-500/15 bg-cinnabar-500/6' : 'border-white/8 bg-black/20'}`}>
+                      <span className={`font-semibold ${item.r.tone === '吉' ? 'text-jade-400' : item.r.tone === '凶' ? 'text-cinnabar-400' : 'text-jade-100/55'}`}>{item.label}（{item.r.type}）：</span>
+                      <span className="text-jade-100/70">{item.r.detail}</span>
+                    </div>
+                  ))}
+                </div>
+                {/* 化解建议 */}
+                {mzz.remedies.length > 0 && (
+                  <div className="mt-2 rounded border border-gold-500/20 bg-gold-500/6 px-2.5 py-1.5">
+                    <p className="text-[10px] font-semibold text-gold-400">化解建议</p>
+                    {mzz.remedies.map((r, i) => (
+                      <p key={i} className="mt-0.5 text-[11px] leading-4 text-jade-100/65">{r}</p>
+                    ))}
+                  </div>
+                )}
               </div>
             );
           })()}
