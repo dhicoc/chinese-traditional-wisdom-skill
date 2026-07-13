@@ -73,9 +73,9 @@ export function AlmanacWorkspace() {
 
       {/* 加载中 / 错误 */}
       {legacyState.mode === 'loading' && (
-        <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-4 text-sm text-jade-100/55">
+        <div className="rounded-card border border-jade-500/20 bg-jade-500/10 p-4 text-sm text-jade-100/55">
           <LoadingSkeleton label="正在排盘" />
-        </p>
+        </div>
       )}
       {loadError && (
         <p className="rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-4 text-sm text-red-200">

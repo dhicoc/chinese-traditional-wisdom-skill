@@ -143,9 +143,9 @@ export function QimenWorkspace() {
       </div>
 
       {!ready && (
-        <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-4 text-sm text-jade-100/55">
+        <div className="rounded-card border border-jade-500/20 bg-jade-500/10 p-4 text-sm text-jade-100/55">
           <LoadingSkeleton label="正在排盘" />
-        </p>
+        </div>
       )}
 
       {result && (
