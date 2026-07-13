@@ -14,6 +14,7 @@
  */
 
 import type { ToolEnvelope, ExportSnapshot } from './baseTypes';
+import { getHexagramText } from './ichingTexts';
 
 // ── 八卦基础 ──────────────────────────────────────────────
 
@@ -274,8 +275,8 @@ function buildMeihuaResult(
 
 export interface MeihuaInput {
   birth: MeihuaBirth;
-  /** time = 时间起卦（默认），number = 数字起卦 */
-  method?: 'time' | 'number';
+  /** time = 时间起卦（默认），number = 数字起卦，yarrow = 揲蓍法起卦 */
+  method?: 'time' | 'number' | 'yarrow';
   /** method=number 时的两个数字 */
   numberA?: number;
   numberB?: number;
@@ -289,6 +290,44 @@ export interface MeihuaInput {
 export function calculateMeihua(input: MeihuaInput, solar?: SolarLike | null): MeihuaResult {
   const birth = input.birth;
   const method = input.method || 'time';
+
+  if (method === 'yarrow') {
+    // 揲蓍法：大衍50策三变一爻，六爻成卦，动爻由老阳/老阴决定
+    const seed = birth.year * 10000 + birth.month * 100 + birth.day + (birth.hour || 0) + 3;
+    const numbers = { year: 0, month: 0, day: 0, hourNumber: 0, source: '揲蓍法：大衍五十策三变一爻' };
+    let s = Math.abs(seed) % 233280;
+    const rng = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+    const trigramOrder = ['乾', '兑', '离', '震', '巽', '坎', '艮', '坤'];
+    const lines: number[] = []; // 每爻 6/7/8/9
+    for (let yao = 0; yao < 6; yao++) {
+      let sticks = 49;
+      let remSum = 0;
+      for (let change = 0; change < 3; change++) {
+        const left = 1 + Math.floor(rng() * (sticks - 1));
+        const right = sticks - left;
+        const leftRem = ((left - 1) % 4) || 4;
+        const rightRem = ((right % 4) || 4);
+        remSum += leftRem + rightRem + 1;
+        sticks = 48 - leftRem - rightRem;
+      }
+      lines.push(remSum <= 9 ? 9 : remSum === 10 ? 7 : remSum === 11 ? 8 : 6);
+    }
+    // 从6爻恢复上下卦+动爻
+    const lowerLines = lines.slice(0, 3).map(v => v === 7 || v === 9); // true=阳
+    const upperLines = lines.slice(3).map(v => v === 7 || v === 9);
+    const changingIdx = lines.findIndex(v => v === 6 || v === 9); // 第一个动爻
+    const movingLine = changingIdx >= 0 ? changingIdx + 1 : 1;
+    // 八卦序：乾1兑2离3震4巽5坎6艮7坤8
+    const lowerBits = lowerLines.map(b => b ? '1' : '0').join('');
+    const upperBits = upperLines.map(b => b ? '1' : '0').join('');
+    const lowerIdx = parseInt(lowerBits, 2) || 8; // 000=坤=8
+    const upperIdx = parseInt(upperBits, 2) || 8;
+    return buildMeihuaResult(
+      upperIdx === 0 ? 7 : upperIdx - 1,
+      lowerIdx === 0 ? 7 : lowerIdx - 1,
+      movingLine, birth, '揲蓍法', numbers, 'local',
+    );
+  }
 
   if (method === 'number' && input.numberA != null && input.numberB != null) {
     const na = Math.abs(Number(input.numberA) || 0);
@@ -323,17 +362,28 @@ export function calcMeihuaEnveloped(input: MeihuaInput, solar?: SolarLike | null
   const result = calculateMeihua(input, solar);
   const upper = result.upperTrigram;
   const lower = result.lowerTrigram;
+  // 查古典文本
+  const classicalText = getHexagramText(result.hexagramName);
+  const sections: Array<{ heading: string; body: string }> = [
+    { heading: '本卦', body: `上卦${upper.name}(${upper.nature}/${upper.element})、下卦${lower.name}(${lower.nature}/${lower.element})，成卦${result.hexagramName}。` },
+    { heading: '动爻与变卦', body: `${result.changingLine}爻动，变卦${result.changingHexagramName}。动爻在上卦则下卦为体、上卦为用；动爻在下卦则上卦为体、下卦为用。` },
+    { heading: '体用生克', body: `体卦${result.bodyTrigram}（${result.bodyGuaDe}），用卦${result.useTrigram}（${result.useGuaDe}），关系${result.bodyUseRelation}。${result.fortuneDetail}` },
+    { heading: '策略指导', body: result.strategy || '—' },
+    { heading: '互卦/错综', body: `互卦${result.mutualUpper.name}${result.mutualLower.name}（中间过程）；错卦${result.cuoTrigram.name}、综卦${result.zongTrigram.name}（反观参考）。` },
+  ];
+  if (classicalText) {
+    sections.push({ heading: '卦辞', body: classicalText.guaCi });
+    const movingYao = result.changingLine;
+    if (classicalText.yaoCi[movingYao - 1]) {
+      sections.push({ heading: `${movingYao}爻辞`, body: classicalText.yaoCi[movingYao - 1] });
+    }
+    sections.push({ heading: '彖传', body: classicalText.tuanZhuan });
+  }
+  sections.push({ heading: '起卦方式', body: `${result.sourceMethod}。${result.confidenceNote}` });
   const snapshot: ExportSnapshot = {
     summary: `上卦${upper.name}(${upper.nature})、下卦${lower.name}(${lower.nature})，${result.changingLine}爻动。体卦${result.bodyTrigram}、用卦${result.useTrigram}，体用${result.bodyUseRelation}，${result.fortuneLevel}。`,
     tags: ['梅花易数', result.hexagramName, '动爻' + result.changingLine, result.bodyUseRelation, result.fortuneLevel],
-    sections: [
-      { heading: '本卦', body: `上卦${upper.name}(${upper.nature}/${upper.element})、下卦${lower.name}(${lower.nature}/${lower.element})，成卦${result.hexagramName}。` },
-      { heading: '动爻与变卦', body: `${result.changingLine}爻动，变卦${result.changingHexagramName}。动爻在上卦则下卦为体、上卦为用；动爻在下卦则上卦为体、下卦为用。` },
-      { heading: '体用生克', body: `体卦${result.bodyTrigram}（${result.bodyGuaDe}），用卦${result.useTrigram}（${result.useGuaDe}），关系${result.bodyUseRelation}。${result.fortuneDetail}` },
-      { heading: '策略指导', body: result.strategy || '—' },
-      { heading: '互卦/错综', body: `互卦${result.mutualUpper.name}${result.mutualLower.name}（中间过程）；错卦${result.cuoTrigram.name}、综卦${result.zongTrigram.name}（反观参考）。` },
-      { heading: '起卦方式', body: `${result.sourceMethod}。${result.confidenceNote}` },
-    ],
+    sections,
     sourceNotes: result.confidenceNote,
   };
 

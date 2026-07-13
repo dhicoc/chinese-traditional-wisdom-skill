@@ -71,7 +71,7 @@ export const TOOLS: ToolDef[] = [
     description: '六爻起卦（京房八宫纳甲）：纳甲、六亲、六神、世应、用神、变卦、空亡、旺衰、伏神、身爻。支持铜钱法/时间起卦/手动爻值。',
     schema: z.object({
       birth: birthSchema,
-      method: z.enum(['coin', 'time', 'manual']).optional().describe('起卦方式，默认 coin'),
+      method: z.enum(['coin', 'time', 'manual', 'yarrow']).optional().describe('起卦方式：coin铜钱/time时间/manual手动/yarrow揲蓍法，默认 coin'),
       yaoValues: z.string().regex(/^[6-9]{6}$/).optional().describe('method=manual 时传 6 位 6-9 字符串（初爻到上爻）'),
       question: z.string().optional().describe('求测事项（用于自动选取用神）'),
       seed: z.number().int().optional().describe('铜钱法随机种子（同 seed 同结果）'),
@@ -123,7 +123,7 @@ export const TOOLS: ToolDef[] = [
     description: '梅花易数起卦：上下卦、动爻、互卦、变卦、体用生克、吉凶分级、策略指导、错卦综卦、卦德。支持时间起卦与数字起卦。',
     schema: z.object({
       birth: birthSchema,
-      method: z.enum(['time', 'number']).optional().describe('起卦方式，默认 time'),
+      method: z.enum(['time', 'number', 'yarrow']).optional().describe('起卦方式：time时间/number数字/yarrow揲蓍法，默认 time'),
       numberA: z.number().int().optional().describe('method=number 时的第一个数字'),
       numberB: z.number().int().optional().describe('method=number 时的第二个数字'),
     }),

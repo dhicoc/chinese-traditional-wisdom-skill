@@ -14,6 +14,7 @@
  */
 
 import type { ToolEnvelope, ExportSnapshot } from './baseTypes';
+import { getHexagramText } from './ichingTexts';
 
 // ─── 八卦爻线（初/中/上，true=阴）───
 const TRIGRAM_LINES: Record<string, [boolean, boolean, boolean]> = {
@@ -266,7 +267,7 @@ export interface LiuyaoBirth {
 
 export interface LiuyaoInput {
   birth?: LiuyaoBirth;
-  method?: 'coin' | 'time' | 'manual';
+  method?: 'coin' | 'time' | 'manual' | 'yarrow';
   /** method=manual: 6 位 6-9 字符串（初爻到上爻） */
   yaoValues?: string;
   question?: string;
@@ -311,6 +312,47 @@ function castFromTime(birth: LiuyaoBirth): CastedLine[] {
   return allLines.map((y, idx) => ({ yin: y, changing: idx + 1 === movingLine }));
 }
 
+/**
+ * 揲蓍法（大衍之数）起卦 —— 模拟传统 50 策三变一爻。
+ *
+ * 算法：50 策取 1 不用（太极），余 49 策。
+ * 每变：分二 → 挂一 → 揲四 → 归奇，三变得一爻。
+ * 三变结果：9（老阳·动）、8（少阴·不动）、7（少阳·不动）、6（老阴·动）。
+ * 概率：老阳 1/16，少阴 5/16，少阳 3/16，老阴 7/16（传统蓍草概率）。
+ */
+function castYarrow(input: LiuyaoInput): CastedLine[] {
+  const rng = makeRng(input);
+  const lines: CastedLine[] = [];
+  for (let yao = 0; yao < 6; yao++) {
+    let sticks = 49; // 大衍五十，其用四十九
+    let remainderSum = 0;
+    for (let change = 0; change < 3; change++) {
+      // 分二：随机分成左右两堆
+      const left = 1 + Math.floor(rng() * (sticks - 1));
+      const right = sticks - left;
+      // 挂一：从右堆取1（第一变取右，后两变取左也可，简化统一取右堆1）
+      const takeFrom = right > 1 ? right : left;
+      const afterGua = sticks - 1;
+      // 揲四：分别对左右堆（去掉挂1后）除以4取余
+      const leftRemainder = ((left - (takeFrom === right ? 0 : 1)) % 4) || 4;
+      const rightRemainder = ((right - (takeFrom === right ? 1 : 0)) % 4) || 4;
+      // 归奇：余数之和
+      remainderSum += leftRemainder + rightRemainder + 1; // +1 为挂一
+      sticks = afterGua - leftRemainder - rightRemainder;
+    }
+    // 三变后 remainderSum 为 9/10/11/12（含3次挂一）
+    // 9=老阳(动) 10=少阳(不动) 11=少阴(不动) 12=老阴(动)
+    // 简化映射：奇数为阳，偶数为阴；9/12为动爻
+    let val: number;
+    if (remainderSum <= 9) val = 9;      // 老阳
+    else if (remainderSum === 10) val = 7; // 少阳
+    else if (remainderSum === 11) val = 8; // 少阴
+    else val = 6;                          // 老阴
+    lines.push(yaoValueToLine(val));
+  }
+  return lines;
+}
+
 function makeRng(input: LiuyaoInput): () => number {
   let seed: number;
   if (input.seed != null) {
@@ -332,6 +374,7 @@ function castLines(input: LiuyaoInput): CastedLine[] {
   const method = input.method || 'coin';
   if (method === 'manual' && input.yaoValues) return parseYaoValues(String(input.yaoValues));
   if (method === 'time' && input.birth) return castFromTime(input.birth);
+  if (method === 'yarrow') return castYarrow(input);
   const rng = makeRng(input);
   const lines: CastedLine[] = [];
   for (let i = 0; i < 6; i++) {
@@ -641,18 +684,32 @@ export function calcLiuyaoEnveloped(input: LiuyaoInput): ToolEnvelope<LiuyaoData
   const palaceEl = result.palaceElement;
   const linesDesc = result.lines.map((l, i) => `${i + 1}爻 ${l.stem}${l.branch} ${l.relation} ${l.god} ${l.yin ? '阴' : '阳'}${l.changing ? '【动】' : ''}`).join('；');
 
+  // 查古典文本
+  const classicalText = getHexagramText(hexName);
+  const sections: Array<{ heading: string; body: string }> = [
+    { heading: '卦象', body: `本卦${hexName}${changedHex !== hexName ? '，动爻变出' + changedHex : '，无动爻'}。属${palace}(五行${palaceEl})。` },
+    { heading: '世应用神', body: `世爻第${result.shiYao}爻(求测人)，应爻第${result.yingYao}爻(对方/所测之事)。用神${yong}。` },
+    { heading: '纳甲六亲六神', body: linesDesc + '。' },
+    { heading: '动爻与变卦', body: `动爻：${moveYao}${changedHex !== hexName ? '，变卦' + changedHex : '。'}` },
+    { heading: '空亡/月建/日建', body: `空亡：${result.xunkong.join('、') || '未知'}；月建${result.monthJian || '未知'}，日建${result.dayJian || '未知'}${result.dayGanZhi ? '（' + result.dayGanZhi + '）' : ''}。` },
+    { heading: '旺衰/伏神/身爻', body: `身爻第${result.shenYao || '无'}爻；伏神：${result.hiddenStars.map((h) => h.relation + '(' + h.hiddenBranch + ')').join('、') || '无'}。` },
+  ];
+  if (classicalText) {
+    sections.push({ heading: '卦辞', body: classicalText.guaCi });
+    // 加动爻对应的爻辞
+    for (const yaoNum of result.changingYao) {
+      if (classicalText.yaoCi[yaoNum - 1]) {
+        sections.push({ heading: `${yaoNum}爻辞`, body: classicalText.yaoCi[yaoNum - 1] });
+      }
+    }
+    sections.push({ heading: '彖传', body: classicalText.tuanZhuan });
+  }
+  sections.push({ heading: '边界说明', body: result.confidenceNote });
+
   const snapshot: ExportSnapshot = {
     summary: `${hexName}${changedHex !== hexName ? ' → ' + changedHex : ''}，属${palace}(五行${palaceEl})，世${result.shiYao}应${result.yingYao}，用神${yong}。动爻：${moveYao}。`,
     tags: ['六爻纳甲', hexName, '宫' + palace, '用神' + yong, '动爻' + moveYao, ...(changedHex !== hexName ? ['变' + changedHex] : [])],
-    sections: [
-      { heading: '卦象', body: `本卦${hexName}${changedHex !== hexName ? '，动爻变出' + changedHex : '，无动爻'}。属${palace}(五行${palaceEl})。` },
-      { heading: '世应用神', body: `世爻第${result.shiYao}爻(求测人)，应爻第${result.yingYao}爻(对方/所测之事)。用神${yong}。` },
-      { heading: '纳甲六亲六神', body: linesDesc + '。' },
-      { heading: '动爻与变卦', body: `动爻：${moveYao}${changedHex !== hexName ? '，变卦' + changedHex : '。'}` },
-      { heading: '空亡/月建/日建', body: `空亡：${result.xunkong.join('、') || '未知'}；月建${result.monthJian || '未知'}，日建${result.dayJian || '未知'}${result.dayGanZhi ? '（' + result.dayGanZhi + '）' : ''}。` },
-      { heading: '旺衰/伏神/身爻', body: `身爻第${result.shenYao || '无'}爻；伏神：${result.hiddenStars.map((h) => h.relation + '(' + h.hiddenBranch + ')').join('、') || '无'}。` },
-      { heading: '边界说明', body: result.confidenceNote },
-    ],
+    sections,
     sourceNotes: result.confidenceNote,
   };
 

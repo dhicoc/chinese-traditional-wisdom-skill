@@ -18,7 +18,7 @@ import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
 import { LIUYAO_INTENT_EVENT, type LiuyaoIntentDetail } from '@/lib/commandIntents';
 
-type CastMethod = 'coin' | 'time' | 'manual';
+type CastMethod = 'coin' | 'time' | 'manual' | 'yarrow';
 
 interface LiuyaoResult extends LiuyaoData {
   palace?: string;
@@ -47,6 +47,7 @@ interface LiuyaoResult extends LiuyaoData {
 const METHOD_OPTIONS: { value: CastMethod; label: string; hint: string }[] = [
   { value: 'coin', label: '铜钱法', hint: '三枚铜钱摇六次，确定性 RNG' },
   { value: 'time', label: '时间起卦', hint: '按年月日时取数定卦与动爻' },
+  { value: 'yarrow', label: '揲蓍法', hint: '大衍五十策三变一爻，传统蓍草' },
   { value: 'manual', label: '手动爻值', hint: '6 位 6-9 字符串(初→上)' },
 ];
 
@@ -128,7 +129,7 @@ export function LiuyaoWorkspace() {
     if (method === 'manual' && isValidYaoValues(yaoValues)) {
       input.yaoValues = yaoValues.replace(/\s/g, '');
     }
-    if (method === 'coin') {
+    if (method === 'coin' || method === 'yarrow') {
       input.seed = solarBirth.year * 10000 + solarBirth.month * 100 + solarBirth.day + solarBirth.hour + castCount * 7919;
     }
     const calculated = (() => {
@@ -156,7 +157,7 @@ export function LiuyaoWorkspace() {
       };
       if (question) input.question = question;
       if (method === 'manual' && yaoValues) input.yaoValues = yaoValues.replace(/\s/g, '');
-      if (method === 'coin') input.seed = solarBirth.year * 10000 + solarBirth.month * 100 + solarBirth.day + solarBirth.hour + castCount * 7919;
+      if (method === 'coin' || method === 'yarrow') input.seed = solarBirth.year * 10000 + solarBirth.month * 100 + solarBirth.day + solarBirth.hour + castCount * 7919;
       const env = calcLiuyaoEnveloped(input);
       return toFourLayer(env.data.export_snapshot as ReadingLike);
     } catch {
