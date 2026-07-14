@@ -130,19 +130,17 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
         const gy = cy + guaRadius * Math.sin(midAngle);
 
         // 卦名沿切线旋转（与圆平行），左右半圆翻转正读；
-        // 切线接近垂直的左右两小段（正左/正右）强制水平，避免竖排难读
+        // 仅高亮三卦 + 选中卦显示文字（圆图保持干净），普通卦 hover 通过 title 提示
         const degRaw = (midAngle * 180) / Math.PI;
         const degNorm = (degRaw + 360) % 360;
         let rotDeg = degRaw + 90;                            // 真实切线方向，与圆完全平行
         if (degNorm > 90 && degNorm < 270) rotDeg += 180;    // 左半圆翻转，正读
-        // 切线竖直区间（正右 60~120°、正左 240~300°）→ 文字强制水平
-        const verticalish = (degNorm > 60 && degNorm < 120) || (degNorm > 240 && degNorm < 300);
-        if (verticalish) rotDeg = (degNorm > 90 && degNorm < 270) ? 180 : 0;
+        const showName = roles.length > 0 || isSel;          // 仅高亮/选中显示文字
 
         // 爻象小图：6爻径向排列（内爻靠近圆心、外爻靠外），宽沿切线
-        const yaoLen = 9;
-        const yaoThick = 1.6;
-        const yaoGap = 0.9;
+        const yaoLen = 11;
+        const yaoThick = 1.9;
+        const yaoGap = 1.1;
         const guaRotDeg = degRaw;
 
         return (
@@ -156,36 +154,39 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
               />
             )}
 
-            {/* 卦名（外环，沿切线旋转，正读） */}
-            <g
-              transform={`translate(${nx} ${ny}) rotate(${rotDeg})`}
-              className="cursor-pointer"
-              onClick={() => setSelected(name)}
-            >
-              <text
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fontSize={roles.length > 0 || isSel ? 10 : 7.5}
-                fontWeight={roles.length > 0 ? 700 : isSel ? 600 : 400}
-                fill={hl ? HIGHLIGHT[hl].text : isSel ? '#c9b2d6' : '#5f6f63'}
-                style={{ fontFamily: '"Noto Serif SC","Songti SC",serif' }}
+            {/* 卦名（仅高亮三卦 + 选中卦显示，沿切线旋转正读；大字清晰） */}
+            {showName && (
+              <g
+                transform={`translate(${nx} ${ny}) rotate(${rotDeg})`}
+                className="cursor-pointer"
+                onClick={() => setSelected(name)}
               >
-                {name}
-              </text>
-            </g>
+                <text
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontSize={12}
+                  fontWeight={700}
+                  fill={hl ? HIGHLIGHT[hl].text : '#c9b2d6'}
+                  style={{ fontFamily: '"Noto Serif SC","Songti SC",serif' }}
+                >
+                  {name}
+                </text>
+              </g>
+            )}
 
-            {/* 爻象小图（内环，径向排列） */}
+            {/* 爻象小图（内环，径向排列，hover 显示卦名 tooltip） */}
             <g
               transform={`translate(${gx} ${gy}) rotate(${guaRotDeg})`}
               className="cursor-pointer"
               onClick={() => setSelected(name)}
             >
+              <title>{name}</title>
               {code.split('').map((c, yi) => {
                 // yi=0 初爻在最内（靠近圆心，局部 y 负方向），yi=5 上爻在最外
                 const yy = -(5 - yi) * (yaoThick + yaoGap) + (5 * (yaoThick + yaoGap)) / 2 - (yaoThick + yaoGap) / 2;
                 const isYang = c === '7';
-                const fill = hl ? HIGHLIGHT[hl].ring : isSel ? '#9d7ad6' : '#5a6a5e';
-                const op = hl ? 1 : isSel ? 0.85 : 0.5;
+                const fill = hl ? HIGHLIGHT[hl].ring : isSel ? '#9d7ad6' : '#6a7a6e';
+                const op = hl ? 1 : isSel ? 0.9 : 0.65;
                 return isYang ? (
                   <rect key={yi} x={-yaoLen / 2} y={yy} width={yaoLen} height={yaoThick} fill={fill} fillOpacity={op} rx={0.3} />
                 ) : (

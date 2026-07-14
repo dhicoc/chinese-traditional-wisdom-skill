@@ -24,10 +24,12 @@ describe('HuangjiGuaCircle', () => {
     expect(allText).toContain('正卦');
     expect(allText).toContain('世卦');
     expect(allText).toContain('年卦');
-    // 新版：所有64卦名都显示（含未高亮的，如乾/坤/復）
-    expect(allText).toContain('乾');
-    expect(allText).toContain('坤');
-    expect(allText).toContain('復');
+    // 方案B：普通卦名不在 text 显示（圆图干净），但通过 <title> tooltip 可查
+    const titles = svg?.querySelectorAll('title');
+    const allTitles = Array.from(titles ?? []).map((t) => t.textContent ?? '').join(' ');
+    expect(allTitles).toContain('乾');
+    expect(allTitles).toContain('坤');
+    expect(allTitles).toContain('復');
   });
 
   it('高亮三卦在先天序中有确定位置', () => {
