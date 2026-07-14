@@ -62,8 +62,8 @@ const HIGHLIGHT: Record<string, { ring: string; label: string; text: string; bg:
 
 export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acumYear, size = 520 }: HuangjiGuaCircleProps) {
   const [selected, setSelected] = useState<string>(zhengGua);
-  // viewBox 下方留 36 单位给图例，避免与最下方卦名重叠
-  const legendSpace = 36;
+  // viewBox 下方留 48 单位给三卦总览+图例，避免与最下方卦名重叠
+  const legendSpace = 48;
   const viewH = size + legendSpace;
   const cx = size / 2;
   const cy = size / 2;
@@ -73,14 +73,25 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
   const innerRadius = guaRadius - 30;    // 中心圆半径
   const sector = (2 * Math.PI) / 64;     // 每卦占的角度
 
-  const highlightOf = (name: string): keyof typeof HIGHLIGHT | null => {
-    if (name === zhengGua) return 'zheng';
-    if (name === shiGua) return 'shi';
-    if (name === yearGua) return 'year';
+  // 一卦可兼任多角色（如正卦=年卦），返回全部角色
+  const rolesOf = (name: string): Array<keyof typeof HIGHLIGHT> => {
+    const roles: Array<keyof typeof HIGHLIGHT> = [];
+    if (name === zhengGua) roles.push('zheng');
+    if (name === shiGua) roles.push('shi');
+    if (name === yearGua) roles.push('year');
+    return roles;
+  };
+  // 爻象着色优先级：年卦（最具体）> 世卦 > 正卦
+  const primaryRoleOf = (name: string): keyof typeof HIGHLIGHT | null => {
+    const roles = rolesOf(name);
+    if (roles.includes('year')) return 'year';
+    if (roles.includes('shi')) return 'shi';
+    if (roles.includes('zheng')) return 'zheng';
     return null;
   };
 
-  const selectedHL = highlightOf(selected);
+  const selectedRoles = rolesOf(selected);
+  const selectedHL = primaryRoleOf(selected);
 
   return (
     <svg
@@ -107,54 +118,58 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
         // 乾在正上方（-90°），顺时针排列
         const angle = -Math.PI / 2 + i * sector;
         const midAngle = angle + sector / 2;
+        const roles = rolesOf(name);
+        const hl = primaryRoleOf(name);
+        const isSel = name === selected;
+        const code = GUA_CODE[name] ?? '777777';
+
+        // 卦名位置：沿径向再外移，给水平文字留空间
         const nx = cx + nameRadius * Math.cos(midAngle);
         const ny = cy + nameRadius * Math.sin(midAngle);
         const gx = cx + guaRadius * Math.cos(midAngle);
         const gy = cy + guaRadius * Math.sin(midAngle);
-        const hl = highlightOf(name);
-        const isSel = name === selected;
-        const code = GUA_CODE[name] ?? '777777';
 
-        // 卦名旋转角：让文字沿切线方向（径向朝外），左右半圆翻转避免倒读
-        // 文字 baseline 朝圆心，textAnchor=middle 居中
-        let rotDeg = (midAngle * 180) / Math.PI + 90; // 切线方向
-        // 右半圆（0~180°）文字翻转 180° 保持正读
+        // 水平文字锚点：依据在圆上的方位调整，保证文字不挤入圆内、始终正读
         const degNorm = ((midAngle * 180) / Math.PI + 360) % 360;
-        if (degNorm > 90 && degNorm < 270) rotDeg += 180;
+        let anchor: 'start' | 'middle' | 'end' = 'middle';
+        let dx = 0, dy = 0;
+        if (degNorm > 45 && degNorm < 135) { anchor = 'start'; dx = 6; }       // 右侧，左对齐朝外
+        else if (degNorm > 225 && degNorm < 315) { anchor = 'end'; dx = -6; }  // 左侧，右对齐朝外
+        else { dy = degNorm <= 45 || degNorm >= 315 ? 10 : -6; }               // 顶/底，居中微调
+        const baseline = (degNorm > 135 && degNorm < 225) ? 'auto' : 'middle';
 
         // 爻象小图：6爻径向排列（内爻靠近圆心、外爻靠外），宽沿切线
-        const yaoLen = 9;      // 爻长（切线方向）
-        const yaoThick = 1.6;  // 爻厚（径向）
-        const yaoGap = 0.9;    // 爻间距（径向）
-        const guaRotDeg = (midAngle * 180) / Math.PI; // 爻图旋转：让径向 = 局部 y 轴
+        const yaoLen = 9;
+        const yaoThick = 1.6;
+        const yaoGap = 0.9;
+        const guaRotDeg = (midAngle * 180) / Math.PI;
 
         return (
           <g key={name}>
-            {/* 高亮扇形背景（淡色填充该卦所在扇区） */}
-            {hl && (
+            {/* 高亮扇形背景（任一角色即高亮；多角色用年卦色） */}
+            {roles.length > 0 && (
               <path
                 d={describeSector(cx, cy, guaRadius + 11, innerRadius + 2, angle, angle + sector)}
-                fill={HIGHLIGHT[hl].bg}
+                fill={HIGHLIGHT[hl!].bg}
                 stroke="none"
               />
             )}
 
-            {/* 卦名（外环，切线旋转） */}
-            <g
-              transform={`translate(${nx} ${ny}) rotate(${rotDeg})`}
+            {/* 卦名（外环，水平不旋转，智能锚点） */}
+            <text
+              x={nx + dx}
+              y={ny + dy}
+              textAnchor={anchor}
+              dominantBaseline={baseline}
+              fontSize={roles.length > 0 || isSel ? 11 : 9}
+              fontWeight={roles.length > 0 ? 700 : isSel ? 600 : 400}
+              fill={hl ? HIGHLIGHT[hl].text : isSel ? '#c9b2d6' : '#6a7a6e'}
               className="cursor-pointer"
+              style={{ fontFamily: '"Noto Serif SC","Songti SC",serif', pointerEvents: 'all' }}
               onClick={() => setSelected(name)}
             >
-              <text
-                textAnchor="middle"
-                fontSize={hl || isSel ? 11 : 9}
-                fontWeight={hl ? 700 : isSel ? 600 : 400}
-                fill={hl ? HIGHLIGHT[hl].text : isSel ? '#c9b2d6' : '#6a7a6e'}
-                style={{ fontFamily: '"Noto Serif SC","Songti SC",serif' }}
-              >
-                {name}
-              </text>
-            </g>
+              {name}
+            </text>
 
             {/* 爻象小图（内环，径向排列） */}
             <g
@@ -209,14 +224,28 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
         style={{ fontFamily: '"Noto Serif SC","Songti SC",serif' }}>
         {selected}
       </text>
-      {selectedHL && (
-        <text x={cx} y={cy + 50} textAnchor="middle" fontSize={8.5} fill={HIGHLIGHT[selectedHL].ring} letterSpacing={1}>
-          {HIGHLIGHT[selectedHL].label}
+      {selectedRoles.length > 0 && (
+        <text x={cx} y={cy + 50} textAnchor="middle" fontSize={8.5} letterSpacing={1}
+          fill={HIGHLIGHT[selectedRoles[selectedRoles.length - 1]].ring}>
+          {selectedRoles.map((r) => HIGHLIGHT[r].label).join('·')}
         </text>
       )}
 
+      {/* 三卦当前值总览（圆外，始终可见，解决多角色重叠时看不到年卦） */}
+      <g transform={`translate(${cx} ${size + 12})`} fontSize={10} textAnchor="middle">
+        <text x={-80} y={0} fill={HIGHLIGHT.zheng.text} fontWeight={600} style={{ fontFamily: '"Noto Serif SC","Songti SC",serif' }}>
+          正卦 {zhengGua}
+        </text>
+        <text x={0} y={0} fill={HIGHLIGHT.shi.text} fontWeight={600} style={{ fontFamily: '"Noto Serif SC","Songti SC",serif' }}>
+          世卦 {shiGua}
+        </text>
+        <text x={80} y={0} fill={HIGHLIGHT.year.text} fontWeight={600} style={{ fontFamily: '"Noto Serif SC","Songti SC",serif' }}>
+          年卦 {yearGua}
+        </text>
+      </g>
+
       {/* 图例（圆外底部居中，三列等距，避开卦名环） */}
-      <g transform={`translate(${cx} ${size + 20})`} fontSize={9} fill="#9fb0a4">
+      <g transform={`translate(${cx} ${size + 26})`} fontSize={8} fill="#7a8a7e">
         <g transform="translate(-92 0)">
           <circle cx={0} cy={0} r={4.5} fill="none" stroke="#d4a857" strokeWidth={1.3} />
           <text x={9} y={3.2}>正卦·主运</text>
