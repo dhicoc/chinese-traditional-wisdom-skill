@@ -129,15 +129,15 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
         const gx = cx + guaRadius * Math.cos(midAngle);
         const gy = cy + guaRadius * Math.sin(midAngle);
 
-        // 卦名沿切线旋转（与圆平行），左右半圆翻转正读；
-        // 切线接近垂直的左右两小段（正左/正右）强制水平，避免竖排难读
+        // 卦名方向：每90°一个区段，4段朝向切换，段内文字互相平行
+        // 顶段(315~45°)水平、右段(45~135°)竖、底段(135~225°)水平、左段(225~315°)竖
+        // 左半圆翻转保证正读
         const degRaw = (midAngle * 180) / Math.PI;
         const degNorm = (degRaw + 360) % 360;
-        let rotDeg = degRaw + 90;                            // 真实切线方向，与圆完全平行
-        if (degNorm > 90 && degNorm < 270) rotDeg += 180;    // 左半圆翻转，正读
-        // 切线竖直区间（正右 60~120°、正左 240~300°）→ 文字强制水平
-        const verticalish = (degNorm > 60 && degNorm < 120) || (degNorm > 240 && degNorm < 300);
-        if (verticalish) rotDeg = (degNorm > 90 && degNorm < 270) ? 180 : 0;
+        const segIdx = Math.round(degNorm / 90) % 4;        // 0顶 1右 2底 3左
+        const segDir = segIdx * 90;                          // 区段中心朝向
+        let rotDeg = segDir + 90;                            // 切线方向（按区段量化）
+        if (segIdx === 2 || segIdx === 3) rotDeg += 180;     // 底/左段翻转，正读
 
         // 爻象小图：6爻径向排列（内爻靠近圆心、外爻靠外），宽沿切线
         const yaoLen = 9;
