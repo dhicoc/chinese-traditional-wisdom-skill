@@ -174,13 +174,12 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
               </g>
             )}
 
-            {/* 爻象小图（内环，径向排列，hover 显示卦名 tooltip） */}
+            {/* 爻象小图（内环，径向排列；点击在中心显示卦名，不用 hover tooltip 避免与双击放大冲突） */}
             <g
               transform={`translate(${gx} ${gy}) rotate(${guaRotDeg})`}
               className="cursor-pointer"
               onClick={() => setSelected(name)}
             >
-              <title>{name}</title>
               {code.split('').map((c, yi) => {
                 // yi=0 初爻在最内（靠近圆心，局部 y 负方向），yi=5 上爻在最外
                 const yy = -(5 - yi) * (yaoThick + yaoGap) + (5 * (yaoThick + yaoGap)) / 2 - (yaoThick + yaoGap) / 2;

@@ -24,12 +24,9 @@ describe('HuangjiGuaCircle', () => {
     expect(allText).toContain('正卦');
     expect(allText).toContain('世卦');
     expect(allText).toContain('年卦');
-    // 方案B：普通卦名不在 text 显示（圆图干净），但通过 <title> tooltip 可查
-    const titles = svg?.querySelectorAll('title');
-    const allTitles = Array.from(titles ?? []).map((t) => t.textContent ?? '').join(' ');
-    expect(allTitles).toContain('乾');
-    expect(allTitles).toContain('坤');
-    expect(allTitles).toContain('復');
+    // 方案B：普通卦名不在 text 显示（圆图干净，避免与双击放大冲突不用 hover tooltip）
+    // 点击普通卦后在中心显示其名（交互），此处仅验证高亮三卦文字存在
+    expect(allText).not.toContain('乾'); // 普通卦默认不显示
   });
 
   it('高亮三卦在先天序中有确定位置', () => {
