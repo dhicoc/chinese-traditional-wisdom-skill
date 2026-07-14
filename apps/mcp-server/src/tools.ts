@@ -1,7 +1,7 @@
 /**
  * tools.ts — MCP 工具定义
  *
- * 把 apps/visual/src/legacy 的 21 个 enveloped 引擎各包成一个 MCP 工具。
+ * 把 apps/visual/src/legacy 的 22 个 enveloped 引擎各包成一个 MCP 工具。
  * 每个工具：name + description + zod input schema + handler 返回 ToolEnvelope。
  *
  * 需要精确历法的工具（bazi/yunqi/liuyao/meihua）传入 lunar-javascript 的 Solar 入口；
@@ -22,6 +22,7 @@ import { calcQimenEnveloped } from '../../visual/src/legacy/qimenEngine';
 import { calcDaliurenEnveloped } from '../../visual/src/legacy/daliurenEngine';
 import { calcXingXiuEnveloped } from '../../visual/src/legacy/xingxiuEngine';
 import { calcTaiyiEnveloped } from '../../visual/src/legacy/taiyiEngine';
+import { calcHuangjiEnveloped } from '../../visual/src/legacy/huangjiEngine';
 import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo, calcSanshiCombo, calcSanshiClassicCombo, calcDailyWellnessCombo, calcZeriCombo, calcMonthlyFortuneCombo } from '../../visual/src/legacy/comboEngine';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
@@ -115,6 +116,17 @@ export const TOOLS: ToolDef[] = [
       birth: (i as { birth: unknown }).birth as never,
       jiStyle: ((i as { jiStyle?: string }).jiStyle ?? '0') as never,
       acumYear: ((i as { acumYear?: string }).acumYear ?? '0') as never,
+      solar: solarEntry,
+    }),
+  },
+  {
+    name: 'huangji_calculate',
+    description: '皇极经世排盘：邵雍元会运世宇宙周期定位 + 九卦配置（正卦/运卦/世卦/旬卦/年卦/月卦/日卦/时卦/分卦）。积年67017+年分解会/运/世，正卦主一运（360年）大势，世卦主一世（30年）气数。长期/宏观预测视角，与太乙同属高端神数。历法复用lunar-javascript真实干支农历。',
+    schema: z.object({
+      birth: birthSchema,
+    }),
+    handler: (i) => calcHuangjiEnveloped({
+      birth: (i as { birth: unknown }).birth as never,
       solar: solarEntry,
     }),
   },

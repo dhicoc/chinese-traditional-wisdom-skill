@@ -25,7 +25,8 @@ export type ModuleId =
   | 'combo'
   | 'liuren'
   | 'xingxiu'
-  | 'taiyi';
+  | 'taiyi'
+  | 'huangji';
 
 export interface WisdomModule {
   id: ModuleId;
@@ -148,6 +149,18 @@ export const MODULES: WisdomModule[] = [
     questionTypes: ['事件占断', '主客胜负', '应期推算', '格局吉凶'],
     accent: '#8a6db8',
     description: '太乙神数：传统三式之首。太乙积年推局数，太乙落宫、文昌始击定目、主客算与四将，据掩迫关囚击格等格局断事件吉凶与主客胜负。',
+  },
+  {
+    id: 'huangji',
+    group: '术数排盘',
+    title: '皇极经世',
+    shortTitle: '皇极',
+    status: 'local-exact',
+    statusLabel: '本地精确历法',
+    privacyLevel: '仅本地计算',
+    questionTypes: ['元会运世', '宇宙周期', '长期运势', '大势推演'],
+    accent: '#b87a4a',
+    description: '皇极经世：邵雍象数学巅峰。以元会运世宇宙周期（1元=129600年）定位时空，推九卦配置（正卦主一运大势、世卦主一世气数、年卦主本年应象），擅长期宏观推演。',
   },
   {
     id: 'fengshui',

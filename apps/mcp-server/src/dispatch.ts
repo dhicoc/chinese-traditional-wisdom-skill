@@ -47,6 +47,7 @@ const ROUTE_RULES: RouteRule[] = [
   { tool: 'arrange_qimen', keywords: ['奇门', '奇门遁甲', '起局', '排局', '八门', '九星'], priority: 80 },
   { tool: 'liuren_calculate', keywords: ['大六壬', '六壬', '六壬神课', '三传', '四课', '天地盘'], priority: 80 },
   { tool: 'taiyi_calculate', keywords: ['太乙', '太乙神数', '太乙神數', '年计', '月计', '日计', '時計', '积年', '主客算', '太乙局'], priority: 80 },
+  { tool: 'huangji_calculate', keywords: ['皇极', '皇極', '皇极经世', '皇極經世', '元会运世', '元會運世', '邵雍', '康节', '正卦', '世卦', '运卦'], priority: 80 },
   { tool: 'xingxiu_daily', keywords: ['二十八宿', '二十八星宿', '星宿', '值宿', '禽星', '四象'], priority: 78 },
   { tool: 'cast_liuyao', keywords: ['六爻', '起卦', '纳甲', '卜卦', '占卦', '铜钱', '摇卦'], priority: 75 },
   { tool: 'cast_meihua', keywords: ['梅花', '梅花易数', '体用', '数字起卦'], priority: 75 },
@@ -242,6 +243,7 @@ export function dispatchIntent(text: string): DispatchResult {
     case 'arrange_qimen':
     case 'liuren_calculate':
     case 'taiyi_calculate':
+    case 'huangji_calculate':
     case 'xingxiu_daily':
       if (birth.birth) args.birth = birth.birth;
       break;

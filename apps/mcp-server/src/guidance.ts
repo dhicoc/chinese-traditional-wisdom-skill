@@ -120,6 +120,14 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour'],
     workflow: '先确认占时（测事的当前时间或指定时间）→ 调 taiyi_calculate → 看太乙落宫、主客算与格局断吉凶。',
   },
+  huangji_calculate: {
+    tool: 'huangji_calculate',
+    purpose: '皇极经世排盘：邵雍元会运世宇宙周期 + 九卦配置。长期/宏观预测视角（一运360年、一世30年）。',
+    requiredParams: BIRTH_PARAMS,
+    safeDefaults: { birth: { minute: 0, gender: '男' } },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour'],
+    workflow: '确认占时（年月日时）→ 调 huangji_calculate → 看会/运/世周期定位 + 正卦（主运大势）+ 世卦（当下30年气数）+ 年卦（本年应象）。',
+  },
   combo_sanshi_classic: {
     tool: 'combo_sanshi_classic',
     purpose: '三式合一：奇门+太乙+大六壬 真正传统三式交叉验证。需完整生辰 + 求测事项。',

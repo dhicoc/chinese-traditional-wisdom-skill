@@ -23,9 +23,9 @@ describe('agent_guidance 参数引导', () => {
     expect(getToolGuidance('nonexistent')).toBeNull();
   });
 
-  it('listToolGuidance 返回 21 个工具摘要', () => {
+  it('listToolGuidance 返回 22 个工具摘要', () => {
     const list = listToolGuidance();
-    expect(list.length).toBe(21);
+    expect(list.length).toBe(22);
     list.forEach((g) => {
       expect(g.tool).toMatch(/^[a-z_]+$/);
       expect(g.purpose).toBeTruthy();
@@ -227,6 +227,11 @@ describe('wisdom_dispatch 意图路由', () => {
   it('taiyi: "太乙神数" → taiyi_calculate', () => {
     const r = dispatchIntent('用太乙神数排盘看2024年3月15日9时某事吉凶');
     expect(r.tool).toBe('taiyi_calculate');
+  });
+
+  it('huangji: "皇极经世" → huangji_calculate', () => {
+    const r = dispatchIntent('用皇极经世看1990年6月15日12时的元会运世周期');
+    expect(r.tool).toBe('huangji_calculate');
   });
 
   it('combo: "三式合一" → combo_sanshi_classic', () => {

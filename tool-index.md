@@ -70,8 +70,8 @@ ToolEnvelope<TData> = { ok, tool, version, input_normalized, data: TData & { exp
 
 > `apps/mcp-server/`：薄壳包装上述 enveloped 引擎为 MCP 工具，供 Claude Code/Desktop/Cursor/Cline 调用。无计算逻辑，import 纯 TS 引擎。
 
-**23 个 MCP 工具**（21 计算 + 2 元工具）：
-- 排盘计算（13）：`bazi_calculate` / `ziwei_chart` / `cast_liuyao` / `arrange_qimen` / `liuren_calculate` / `xingxiu_daily` / `taiyi_calculate` / `cast_meihua` / `calc_yunqi` / `analyze_name` / `calc_xiyong` / `get_constitution_tendency` / `dream_interpret`
+**24 个 MCP 工具**（22 计算 + 2 元工具）：
+- 排盘计算（14）：`bazi_calculate` / `ziwei_chart` / `cast_liuyao` / `arrange_qimen` / `liuren_calculate` / `xingxiu_daily` / `taiyi_calculate` / `huangji_calculate` / `cast_meihua` / `calc_yunqi` / `analyze_name` / `calc_xiyong` / `get_constitution_tendency` / `dream_interpret`
 - 跨系统联合分析（8）：`combo_annual_fortune` / `combo_monthly_fortune` / `combo_decision` / `combo_space_time` / `combo_sanshi` / `combo_sanshi_classic` / `combo_daily_wellness` / `combo_zeri`
 - 元工具（2）：`agent_guidance`（参数引导防瞎猜）+ `wisdom_dispatch`（自然语言意图路由）
 
@@ -192,6 +192,7 @@ flowchart TD
 | `babyname/fate` | MIT | 字义出处 | `apps/visual/src/legacy/charMeanings.json`（从 `character.json` meaning 字段提取 19931 字字义，1.6MB） |
 | `babyname/fate` | MIT | 生肖喜忌用字 | `apps/visual/src/legacy/zodiacNameChars.json`（从 `zodiac.go` 提取 12 生肖 Xi/Ji 用字表，39KB） |
 | `kentang2017/kintaiyi` | MIT | 太乙神数算法逻辑 + 64 卦古典文本 | `apps/visual/src/legacy/taiyiEngine.ts`（纯 TS 重写，数据表移植）+ `ichingTexts.json`（从 `data.pkl` 提取 64 卦 × 8 条卦辞/爻辞/彖传） |
+| `kentang2017/kinwangji` | MIT | 皇极经世算法逻辑（元会运世/九卦） | `apps/visual/src/legacy/huangjiEngine.ts`（纯 TS 重写 wanji.py 核心算法：积年67017+年→会/运/世→正/运/世/旬/年/月/日/时/分九卦，历法复用 lunar-javascript，不引 ephem/sxtwl 依赖） |
 | `kentang2017/kinliuren` | MIT | 大六壬算法逻辑 | `apps/visual/src/legacy/daliurenEngine.ts`（纯 TS 重写：天地盘/四课/三传九宗门/神煞/格局，不引 Python 依赖） |
 | `liuren-ts-lib` 等 TS 六壬库 | MIT | 三传查表法参考 | `daliurenEngine.ts` 三传推算参考其 `sanchuan.json` 查表思路 |
 

@@ -1,12 +1,12 @@
 # chinese-wisdom-mcp-server
 
-中国传统玄学计算 MCP Server。把 21 个计算引擎（八字/紫微/六爻/奇门/大六壬/二十八星宿/太乙/梅花/五运六气/姓名/喜用神/体质/周公解梦 + 8 个跨系统联合分析）暴露为 [MCP](https://modelcontextprotocol.io) 工具，供 Claude Desktop、Cursor、Cline 等客户端直接调用。
+中国传统玄学计算 MCP Server。把 22 个计算引擎（八字/紫微/六爻/奇门/大六壬/二十八星宿/太乙/皇极经世/梅花/五运六气/姓名/喜用神/体质/周公解梦 + 8 个跨系统联合分析）暴露为 [MCP](https://modelcontextprotocol.io) 工具，供 Claude Desktop、Cursor、Cline 等客户端直接调用。
 
 > 三层架构 Layer 2：薄壳包装，不含计算逻辑。所有引擎都是纯 TypeScript、零 DOM 依赖，来自 `apps/visual/src/legacy/`，统一返回 `ToolEnvelope` 结构。
 
 ## 工具列表
 
-> 共 23 个工具：21 个计算工具（下表）+ 2 个元工具（`agent_guidance` 参数引导、`wisdom_dispatch` 自然语言意图路由）。
+> 共 24 个工具：22 个计算工具（下表）+ 2 个元工具（`agent_guidance` 参数引导、`wisdom_dispatch` 自然语言意图路由）。
 
 | 工具 | 能力 | 引擎来源 |
 |------|------|---------|
@@ -17,6 +17,7 @@
 | `liuren_calculate` | 大六壬（天地盘、四课、三传、神煞、格局） | 自研 + lunar-javascript |
 | `xingxiu_daily` | 二十八星宿每日值宿（吉凶宜忌、四象禽星） | 自研 + lunar-javascript |
 | `taiyi_calculate` | 太乙神数（积年、局数、落宫、主客算、格局） | 自研 + lunar-javascript |
+| `huangji_calculate` | 皇极经世（元会运世周期、九卦配置、动爻） | 自研 + lunar-javascript |
 | `cast_meihua` | 梅花易数（体用生克、吉凶分级、错综卦、策略） | 自研 + lunar-javascript |
 | `calc_yunqi` | 五运六气（岁运、司天在泉、客气六步、病势） | 自研 + lunar-javascript 大寒定年 |
 | `analyze_name` | 姓名五维评分（五格、三才、五行、字义、命理契合：生肖+八字用神补强） | fate 数据 + 自研 |
@@ -101,7 +102,7 @@ VS Code settings.json，参考 `examples/cline-vscode-settings.json`。
 
 ### 验证
 
-配置后重启客户端，应能看到 `chinese-wisdom` server 已连接，工具列表含上述 21 个计算工具 + 2 个元工具（共 23 个）。
+配置后重启客户端，应能看到 `chinese-wisdom` server 已连接，工具列表含上述 22 个计算工具 + 2 个元工具（共 24 个）。
 
 ## 使用示例
 

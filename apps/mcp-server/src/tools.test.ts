@@ -5,7 +5,7 @@ import type { ToolEnvelope } from '../../visual/src/legacy/baseTypes';
 /**
  * MCP 工具端到端测试（handler 层）。
  * 直接调每个 TOOLS handler，验证返回有效 ToolEnvelope。
- * 覆盖全部 21 个工具。
+ * 覆盖全部 22 个工具。
  */
 
 /** 校验 ToolEnvelope 必填字段 */
@@ -41,8 +41,8 @@ function findTool(name: string) {
 }
 
 describe('MCP TOOLS 注册完整性', () => {
-  it('注册了 21 个工具', () => {
-    expect(TOOLS.length).toBe(21);
+  it('注册了 22 个工具', () => {
+    expect(TOOLS.length).toBe(22);
   });
 
   it('所有工具有 name/description/schema/handler', () => {
@@ -158,6 +158,34 @@ describe('taiyi_calculate', () => {
     expect(Object.keys(data.geju).length).toBeGreaterThan(0);
     expect(typeof data.home.cal).toBe('number');
     expect(data.export_snapshot.summary).toContain('太乙');
+    expectExportSnapshot(e);
+  });
+});
+
+describe('huangji_calculate', () => {
+  it('返回含元会运世周期+九卦配置的皇极经世 envelope', () => {
+    const t = findTool('huangji_calculate');
+    const env = t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
+    const e = expectValidEnvelope(env);
+    expect(e.tool).toBe('HuangjiEngine');
+    const data = e.data as {
+      cycles: { acumYear: number; hui: number; yun: number; shi: number };
+      gua: { zheng: string; yun: string; shi: string; xun: string; year: string; month: string; day: string; hour: string; minute: string };
+      movingLines: { yun: number; shi: number; xun: number };
+      export_snapshot: { summary: string; sections: Array<{ heading: string }> };
+    };
+    expect(data.cycles.acumYear).toBe(69007);
+    expect(data.cycles.hui).toBe(7);
+    expect(data.gua.zheng).toBe('鼎');
+    expect(data.gua.shi).toBeTruthy();
+    expect(data.gua.year).toBeTruthy();
+    for (const yao of [data.movingLines.yun, data.movingLines.shi, data.movingLines.xun]) {
+      expect(yao).toBeGreaterThanOrEqual(1);
+      expect(yao).toBeLessThanOrEqual(6);
+    }
+    expect(data.export_snapshot.summary).toContain('皇极');
+    expect(data.export_snapshot.summary).toContain('鼎');
+    expect(data.export_snapshot.sections.some((s) => s.heading === '周期定位')).toBe(true);
     expectExportSnapshot(e);
   });
 });
