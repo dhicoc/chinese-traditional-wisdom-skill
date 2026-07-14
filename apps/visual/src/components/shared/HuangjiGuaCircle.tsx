@@ -129,11 +129,14 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
         const gx = cx + guaRadius * Math.cos(midAngle);
         const gy = cy + guaRadius * Math.sin(midAngle);
 
-        // 卦名沿切线旋转：脚朝圆心、头朝外，左右半圆翻转保证全部正读（不倒置）
+        // 卦名方向：每45°一个区段，区段内文字方向一致，8个朝向切换
+        // 避免切线连续旋转导致的拥挤；左半圆翻转保证正读
         const degRaw = (midAngle * 180) / Math.PI;
         const degNorm = (degRaw + 360) % 360;
-        let rotDeg = degRaw + 90;                 // 切线方向
-        if (degNorm > 90 && degNorm < 270) rotDeg += 180; // 左半圆翻转，使头朝外、正读
+        const segIdx = Math.round(degNorm / 45) % 8;        // 0~7 八个区段
+        const segDir = segIdx * 45;                          // 区段中心朝向（度）
+        let rotDeg = segDir + 90;                            // 切线方向（按区段量化）
+        if (segIdx >= 3 && segIdx <= 5) rotDeg += 180;       // 左半圆（135~225°）翻转，正读
 
         // 爻象小图：6爻径向排列（内爻靠近圆心、外爻靠外），宽沿切线
         const yaoLen = 9;
