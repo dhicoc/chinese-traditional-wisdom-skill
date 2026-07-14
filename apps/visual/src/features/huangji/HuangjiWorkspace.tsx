@@ -3,6 +3,8 @@ import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
+import { HuangjiGuaCircle } from '@/components/shared/HuangjiGuaCircle';
+import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
 import { calcHuangjiEnveloped, type HuangjiData } from '@/legacy/huangjiEngine';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
@@ -131,6 +133,27 @@ export function HuangjiWorkspace() {
             );
           })}
         </div>
+      </InterpretationCard>
+
+      {/* 先天六十四卦圆图 */}
+      <InterpretationCard
+        title="先天六十四卦圆图"
+        subtitle="正卦·世卦·年卦 当前时空定位（点击卦位查看）"
+      >
+        <ZoomableSvg title="皇极经世先天六十四卦圆图">
+          <HuangjiGuaCircle
+            zhengGua={gua.zheng}
+            shiGua={gua.shi}
+            yearGua={gua.year}
+            hui={cycles.hui}
+            yun={cycles.yun}
+            shi={cycles.shi}
+            acumYear={cycles.acumYear}
+          />
+        </ZoomableSvg>
+        <p className="mt-2 text-[11px] leading-5 text-jade-100/45">
+          邵雍先天六十四卦圆图，64卦围成一圈（乾起正上方逆时针）。金色环为正卦（主一运大势），玉色环为世卦（主当下三十年气数），朱砂环为年卦（本年应象）。点击任一卦位可在中心查看卦名。
+        </p>
       </InterpretationCard>
 
       {/* 趋势解读 */}
