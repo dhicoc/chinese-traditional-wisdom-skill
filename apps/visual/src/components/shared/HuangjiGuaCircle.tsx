@@ -3,11 +3,13 @@ import { useState } from 'react';
 /**
  * HuangjiGuaCircle — 皇极经世先天六十四卦圆图 SVG
  *
- * 邵雍先天六十四卦圆图：64卦围成一圈，每卦6爻（阳实阴虚），
- * 当前正卦（金色）、世卦（玉色）、年卦（朱砂色）高亮，其余淡显。
- * 中心显示会/运/世 + 积年 + 选中卦名。点击卦位切换详情。
+ * 邵雍先天六十四卦圆图。双环布局：
+ * - 外环：64卦名沿圆切线方向旋转排列，所有卦名都显示（淡色），高亮卦加粗着色
+ * - 内环：64卦6爻小图（阳实阴虚），径向朝心
+ * - 中心：会/运/世 + 积年 + 选中卦，分区清晰
  *
- * 数据自包含：先天64卦序 + 6位7/8爻码（与 huangjiEngine GUA_CODE 对齐）。
+ * 文字质量：卦名按圆心角旋转、textAnchor 居中，左右两侧文字不会挤入圆内；
+ * 中心文字分行固定间距，字号梯级（标题>周期>积年>选中卦）。
  */
 
 // 先天六十四卦序（邵雍圆图顺序，乾起逆时针）
@@ -47,25 +49,27 @@ export interface HuangjiGuaCircleProps {
   shi: number;
   /** 积年（中心显示） */
   acumYear: number;
-  /** viewBox 尺寸，默认 420 */
+  /** viewBox 尺寸，默认 520 */
   size?: number;
 }
 
 // 高亮类型配色
-const HIGHLIGHT: Record<string, { ring: string; label: string; text: string }> = {
-  zheng: { ring: '#d4a857', label: '正卦', text: '#e8b988' },   // 金
-  shi: { ring: '#5fb8a8', label: '世卦', text: '#7fd0c0' },      // 玉
-  year: { ring: '#c95a4a', label: '年卦', text: '#d97565' },     // 朱砂
+const HIGHLIGHT: Record<string, { ring: string; label: string; text: string; bg: string }> = {
+  zheng: { ring: '#d4a857', label: '正卦', text: '#e8b988', bg: 'rgba(212,168,87,0.12)' },   // 金
+  shi: { ring: '#5fb8a8', label: '世卦', text: '#7fd0c0', bg: 'rgba(95,184,168,0.12)' },      // 玉
+  year: { ring: '#c95a4a', label: '年卦', text: '#d97565', bg: 'rgba(201,90,74,0.12)' },     // 朱砂
 };
 
-export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acumYear, size = 420 }: HuangjiGuaCircleProps) {
+export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acumYear, size = 520 }: HuangjiGuaCircleProps) {
   const [selected, setSelected] = useState<string>(zhengGua);
   const cx = size / 2;
   const cy = size / 2;
-  const radius = size / 2 - 28;       // 卦象中心圆半径
-  const innerRadius = radius - 38;     // 内圈（爻象内沿）
+  // 双环几何
+  const nameRadius = size / 2 - 14;      // 卦名所在环半径
+  const guaRadius = size / 2 - 52;       // 爻象所在环半径
+  const innerRadius = guaRadius - 30;    // 中心圆半径
+  const sector = (2 * Math.PI) / 64;     // 每卦占的角度
 
-  // 卦的高亮类型
   const highlightOf = (name: string): keyof typeof HIGHLIGHT | null => {
     if (name === zhengGua) return 'zheng';
     if (name === shiGua) return 'shi';
@@ -83,99 +87,169 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
       role="img"
       aria-label="皇极经世先天六十四卦圆图"
     >
-      {/* 外圈装饰环 */}
-      <circle cx={cx} cy={cy} r={radius + 18} fill="none" stroke="#b87a4a" strokeWidth={0.6} strokeOpacity={0.25} />
-      <circle cx={cx} cy={cy} r={radius + 6} fill="none" stroke="#b87a4a" strokeWidth={0.4} strokeOpacity={0.15} />
+      <defs>
+        <radialGradient id="hj-center-bg" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#121a16" />
+          <stop offset="100%" stopColor="#0d1410" />
+        </radialGradient>
+      </defs>
+
+      {/* 外圈装饰双环 */}
+      <circle cx={cx} cy={cy} r={nameRadius + 8} fill="none" stroke="#b87a4a" strokeWidth={0.8} strokeOpacity={0.3} />
+      <circle cx={cx} cy={cy} r={nameRadius - 6} fill="none" stroke="#b87a4a" strokeWidth={0.4} strokeOpacity={0.18} />
+      <circle cx={cx} cy={cy} r={guaRadius + 10} fill="none" stroke="#b87a4a" strokeWidth={0.4} strokeOpacity={0.15} />
 
       {/* 64卦围圈 */}
       {XIANTIAN_64.map((name, i) => {
-        const angle = (i / 64) * 2 * Math.PI - Math.PI / 2; // 乾在正上
-        const x = cx + radius * Math.cos(angle);
-        const y = cy + radius * Math.sin(angle);
+        // 乾在正上方（-90°），顺时针排列
+        const angle = -Math.PI / 2 + i * sector;
+        const midAngle = angle + sector / 2;
+        const nx = cx + nameRadius * Math.cos(midAngle);
+        const ny = cy + nameRadius * Math.sin(midAngle);
+        const gx = cx + guaRadius * Math.cos(midAngle);
+        const gy = cy + guaRadius * Math.sin(midAngle);
         const hl = highlightOf(name);
         const isSel = name === selected;
         const code = GUA_CODE[name] ?? '777777';
-        const dim = hl ? 1 : 0.4;
-        // 爻象小条：6爻从下到上，垂直排列在卦位处
-        const yaoW = 10;
-        const yaoH = 1.8;
-        const yaoGap = 0.8;
-        const yaoStartY = y - (6 * yaoH + 5 * yaoGap) / 2;
+
+        // 卦名旋转角：让文字沿切线方向（径向朝外），左右半圆翻转避免倒读
+        // 文字 baseline 朝圆心，textAnchor=middle 居中
+        let rotDeg = (midAngle * 180) / Math.PI + 90; // 切线方向
+        // 右半圆（0~180°）文字翻转 180° 保持正读
+        const degNorm = ((midAngle * 180) / Math.PI + 360) % 360;
+        if (degNorm > 90 && degNorm < 270) rotDeg += 180;
+
+        // 爻象小图：6爻径向排列（内爻靠近圆心、外爻靠外），宽沿切线
+        const yaoLen = 9;      // 爻长（切线方向）
+        const yaoThick = 1.6;  // 爻厚（径向）
+        const yaoGap = 0.9;    // 爻间距（径向）
+        const guaRotDeg = (midAngle * 180) / Math.PI; // 爻图旋转：让径向 = 局部 y 轴
+
         return (
-          <g
-            key={name}
-            transform={`translate(${x} ${y})`}
-            className="cursor-pointer"
-            onClick={() => setSelected(name)}
-          >
-            {/* 高亮环 */}
+          <g key={name}>
+            {/* 高亮扇形背景（淡色填充该卦所在扇区） */}
             {hl && (
-              <circle r={15} fill="none" stroke={HIGHLIGHT[hl].ring} strokeWidth={1.5} strokeOpacity={0.9} />
+              <path
+                d={describeSector(cx, cy, guaRadius + 11, innerRadius + 2, angle, angle + sector)}
+                fill={HIGHLIGHT[hl].bg}
+                stroke="none"
+              />
             )}
-            {isSel && !hl && (
-              <circle r={14} fill="none" stroke="#9d7ad6" strokeWidth={1} strokeOpacity={0.6} />
-            )}
-            {/* 6爻 */}
-            {code.split('').map((c, yi) => {
-              const yy = yaoStartY + yi * (yaoH + yaoGap) - y;
-              const isYang = c === '7';
-              return isYang ? (
-                <rect
-                  key={yi}
-                  x={-yaoW / 2}
-                  y={yy}
-                  width={yaoW}
-                  height={yaoH}
-                  fill={hl ? HIGHLIGHT[hl].ring : '#7a8a7e'}
-                  fillOpacity={dim}
-                />
-              ) : (
-                <g key={yi} fillOpacity={dim} fill={hl ? HIGHLIGHT[hl].ring : '#7a8a7e'}>
-                  <rect x={-yaoW / 2} y={yy} width={yaoW * 0.42} height={yaoH} />
-                  <rect x={yaoW * 0.08} y={yy} width={yaoW * 0.42} height={yaoH} />
-                </g>
-              );
-            })}
-            {/* 卦名（仅高亮/选中显示，避免拥挤） */}
-            {(hl || isSel) && (
+
+            {/* 卦名（外环，切线旋转） */}
+            <g
+              transform={`translate(${nx} ${ny}) rotate(${rotDeg})`}
+              className="cursor-pointer"
+              onClick={() => setSelected(name)}
+            >
               <text
-                y={20}
                 textAnchor="middle"
-                fontSize={7.5}
-                fill={hl ? HIGHLIGHT[hl].text : '#c9b2d6'}
-                fontWeight={hl ? 600 : 400}
+                fontSize={hl || isSel ? 11 : 9}
+                fontWeight={hl ? 700 : isSel ? 600 : 400}
+                fill={hl ? HIGHLIGHT[hl].text : isSel ? '#c9b2d6' : '#6a7a6e'}
+                style={{ fontFamily: '"Noto Serif SC","Songti SC",serif' }}
               >
                 {name}
               </text>
-            )}
+            </g>
+
+            {/* 爻象小图（内环，径向排列） */}
+            <g
+              transform={`translate(${gx} ${gy}) rotate(${guaRotDeg})`}
+              className="cursor-pointer"
+              onClick={() => setSelected(name)}
+            >
+              {code.split('').map((c, yi) => {
+                // yi=0 初爻在最内（靠近圆心，局部 y 负方向），yi=5 上爻在最外
+                const yy = -(5 - yi) * (yaoThick + yaoGap) + (5 * (yaoThick + yaoGap)) / 2 - (yaoThick + yaoGap) / 2;
+                const isYang = c === '7';
+                const fill = hl ? HIGHLIGHT[hl].ring : isSel ? '#9d7ad6' : '#5a6a5e';
+                const op = hl ? 1 : isSel ? 0.85 : 0.5;
+                return isYang ? (
+                  <rect key={yi} x={-yaoLen / 2} y={yy} width={yaoLen} height={yaoThick} fill={fill} fillOpacity={op} rx={0.3} />
+                ) : (
+                  <g key={yi} fill={fill} fillOpacity={op}>
+                    <rect x={-yaoLen / 2} y={yy} width={yaoLen * 0.42} height={yaoThick} rx={0.3} />
+                    <rect x={yaoLen * 0.08} y={yy} width={yaoLen * 0.42} height={yaoThick} rx={0.3} />
+                  </g>
+                );
+              })}
+              {/* 高亮卦外环描边 */}
+              {hl && (
+                <circle r={13} fill="none" stroke={HIGHLIGHT[hl].ring} strokeWidth={1.4} strokeOpacity={0.85} />
+              )}
+            </g>
           </g>
         );
       })}
 
       {/* 中心信息圆 */}
-      <circle cx={cx} cy={cy} r={innerRadius - 6} fill="#0d1410" stroke="#b87a4a" strokeWidth={0.8} strokeOpacity={0.3} />
-      <text x={cx} y={cy - 22} textAnchor="middle" fontSize={11} fill="#d9a574" fontWeight={600}>皇极经世</text>
-      <text x={cx} y={cy - 4} textAnchor="middle" fontSize={9} fill="#9fb0a4">
-        第{hui}会 · 第{yun}运 · 第{shi}世
+      <circle cx={cx} cy={cy} r={innerRadius} fill="url(#hj-center-bg)" stroke="#b87a4a" strokeWidth={1} strokeOpacity={0.4} />
+      <circle cx={cx} cy={cy} r={innerRadius - 4} fill="none" stroke="#b87a4a" strokeWidth={0.4} strokeOpacity={0.2} />
+
+      {/* 中心文字：分区固定间距，字号梯级 */}
+      <text x={cx} y={cy - 34} textAnchor="middle" fontSize={13} fontWeight={700} fill="#d9a574"
+        style={{ fontFamily: '"Noto Serif SC","Songti SC",serif' }}>
+        皇极经世
       </text>
-      <text x={cx} y={cy + 12} textAnchor="middle" fontSize={8} fill="#7a8a7e">积年 {acumYear}</text>
+      <line x1={cx - 22} y1={cy - 24} x2={cx + 22} y2={cy - 24} stroke="#b87a4a" strokeWidth={0.5} strokeOpacity={0.4} />
+      <text x={cx} y={cy - 8} textAnchor="middle" fontSize={10} fill="#9fb0a4">
+        第 {hui} 会 · 第 {yun} 运 · 第 {shi} 世
+      </text>
+      <text x={cx} y={cy + 8} textAnchor="middle" fontSize={9} fill="#7a8a7e" letterSpacing={0.5}>
+        积年 {acumYear}
+      </text>
+      <line x1={cx - 22} y1={cy + 18} x2={cx + 22} y2={cy + 18} stroke="#b87a4a" strokeWidth={0.5} strokeOpacity={0.4} />
       {/* 选中卦名 */}
-      <text x={cx} y={cy + 32} textAnchor="middle" fontSize={13} fontWeight={600} fontFamily="serif"
-        fill={selectedHL ? HIGHLIGHT[selectedHL].text : '#c9b2d6'}>
+      <text x={cx} y={cy + 36} textAnchor="middle" fontSize={16} fontWeight={700}
+        fill={selectedHL ? HIGHLIGHT[selectedHL].text : '#c9b2d6'}
+        style={{ fontFamily: '"Noto Serif SC","Songti SC",serif' }}>
         {selected}
       </text>
       {selectedHL && (
-        <text x={cx} y={cy + 46} textAnchor="middle" fontSize={7.5} fill={HIGHLIGHT[selectedHL].ring}>
+        <text x={cx} y={cy + 50} textAnchor="middle" fontSize={8.5} fill={HIGHLIGHT[selectedHL].ring} letterSpacing={1}>
           {HIGHLIGHT[selectedHL].label}
         </text>
       )}
 
-      {/* 图例 */}
-      <g transform={`translate(${cx - 60} ${size - 12})`} fontSize={7} fill="#7a8a7e">
-        <circle cx={0} cy={0} r={4} fill="none" stroke="#d4a857" strokeWidth={1.2} /><text x={8} y={2.5}>正卦·主运</text>
-        <circle cx={50} cy={0} r={4} fill="none" stroke="#5fb8a8" strokeWidth={1.2} /><text x={58} y={2.5}>世卦·主世</text>
-        <circle cx={100} cy={0} r={4} fill="none" stroke="#c95a4a" strokeWidth={1.2} /><text x={108} y={2.5}>年卦·本年</text>
+      {/* 图例（底部居中，整齐三列） */}
+      <g transform={`translate(${cx} ${size - 10})`} fontSize={8} fill="#7a8a7e">
+        <g transform="translate(-78 0)">
+          <circle cx={0} cy={0} r={4.5} fill="none" stroke="#d4a857" strokeWidth={1.3} />
+          <text x={9} y={3}>正卦·主运</text>
+        </g>
+        <g transform="translate(-12 0)">
+          <circle cx={0} cy={0} r={4.5} fill="none" stroke="#5fb8a8" strokeWidth={1.3} />
+          <text x={9} y={3}>世卦·主世</text>
+        </g>
+        <g transform="translate(54 0)">
+          <circle cx={0} cy={0} r={4.5} fill="none" stroke="#c95a4a" strokeWidth={1.3} />
+          <text x={9} y={3}>年卦·本年</text>
+        </g>
       </g>
     </svg>
   );
+}
+
+/**
+ * 描述一个扇形（环形切片）路径：从 angle1 到 angle2，外半径 outerR 到内半径 innerR。
+ * 用于高亮卦的扇区背景。
+ */
+function describeSector(cx: number, cy: number, outerR: number, innerR: number, angle1: number, angle2: number): string {
+  const p1x = cx + outerR * Math.cos(angle1);
+  const p1y = cy + outerR * Math.sin(angle1);
+  const p2x = cx + outerR * Math.cos(angle2);
+  const p2y = cy + outerR * Math.sin(angle2);
+  const p3x = cx + innerR * Math.cos(angle2);
+  const p3y = cy + innerR * Math.sin(angle2);
+  const p4x = cx + innerR * Math.cos(angle1);
+  const p4y = cy + innerR * Math.sin(angle1);
+  const large = angle2 - angle1 > Math.PI ? 1 : 0;
+  return [
+    `M ${p1x} ${p1y}`,
+    `A ${outerR} ${outerR} 0 ${large} 1 ${p2x} ${p2y}`,
+    `L ${p3x} ${p3y}`,
+    `A ${innerR} ${innerR} 0 ${large} 0 ${p4x} ${p4y}`,
+    'Z',
+  ].join(' ');
 }

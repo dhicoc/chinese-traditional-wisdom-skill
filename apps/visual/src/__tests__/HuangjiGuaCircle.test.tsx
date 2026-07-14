@@ -16,13 +16,18 @@ describe('HuangjiGuaCircle', () => {
     // 中心显示会/运/世 + 积年
     const texts = svg?.querySelectorAll('text');
     const allText = Array.from(texts ?? []).map((t) => t.textContent ?? '').join(' ');
-    expect(allText).toContain('第7会');
+    expect(allText).toContain('第 7 会');
+    expect(allText).toContain('第 192 运');
     expect(allText).toContain('积年 69007');
     // 正卦鼎、世卦恆、年卦豐 卦名应出现在高亮标签
     expect(allText).toContain('鼎');
     expect(allText).toContain('正卦');
     expect(allText).toContain('世卦');
     expect(allText).toContain('年卦');
+    // 新版：所有64卦名都显示（含未高亮的，如乾/坤/復）
+    expect(allText).toContain('乾');
+    expect(allText).toContain('坤');
+    expect(allText).toContain('復');
   });
 
   it('高亮三卦在先天序中有确定位置', () => {
