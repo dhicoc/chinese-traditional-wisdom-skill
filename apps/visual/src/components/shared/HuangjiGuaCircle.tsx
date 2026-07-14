@@ -62,6 +62,9 @@ const HIGHLIGHT: Record<string, { ring: string; label: string; text: string; bg:
 
 export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acumYear, size = 520 }: HuangjiGuaCircleProps) {
   const [selected, setSelected] = useState<string>(zhengGua);
+  // viewBox 下方留 36 单位给图例，避免与最下方卦名重叠
+  const legendSpace = 36;
+  const viewH = size + legendSpace;
   const cx = size / 2;
   const cy = size / 2;
   // 双环几何
@@ -81,7 +84,7 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
 
   return (
     <svg
-      viewBox={`0 0 ${size} ${size}`}
+      viewBox={`0 0 ${size} ${viewH}`}
       className="h-auto w-full select-none"
       data-testid="huangji-gua-circle"
       role="img"
@@ -212,19 +215,19 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
         </text>
       )}
 
-      {/* 图例（底部居中，整齐三列） */}
-      <g transform={`translate(${cx} ${size - 10})`} fontSize={8} fill="#7a8a7e">
-        <g transform="translate(-78 0)">
+      {/* 图例（圆外底部居中，三列等距，避开卦名环） */}
+      <g transform={`translate(${cx} ${size + 20})`} fontSize={9} fill="#9fb0a4">
+        <g transform="translate(-92 0)">
           <circle cx={0} cy={0} r={4.5} fill="none" stroke="#d4a857" strokeWidth={1.3} />
-          <text x={9} y={3}>正卦·主运</text>
+          <text x={9} y={3.2}>正卦·主运</text>
         </g>
-        <g transform="translate(-12 0)">
+        <g transform="translate(-28 0)">
           <circle cx={0} cy={0} r={4.5} fill="none" stroke="#5fb8a8" strokeWidth={1.3} />
-          <text x={9} y={3}>世卦·主世</text>
+          <text x={9} y={3.2}>世卦·主世</text>
         </g>
-        <g transform="translate(54 0)">
+        <g transform="translate(36 0)">
           <circle cx={0} cy={0} r={4.5} fill="none" stroke="#c95a4a" strokeWidth={1.3} />
-          <text x={9} y={3}>年卦·本年</text>
+          <text x={9} y={3.2}>年卦·本年</text>
         </g>
       </g>
     </svg>
