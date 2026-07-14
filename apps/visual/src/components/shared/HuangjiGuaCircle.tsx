@@ -68,9 +68,9 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
   const cx = size / 2;
   const cy = size / 2;
   // 双环几何
-  const nameRadius = size / 2 - 14;      // 卦名所在环半径
-  const guaRadius = size / 2 - 52;       // 爻象所在环半径
-  const innerRadius = guaRadius - 30;    // 中心圆半径
+  const nameRadius = size / 2 - 16;      // 卦名所在环半径
+  const guaRadius = size / 2 - 58;       // 爻象所在环半径
+  const innerRadius = guaRadius - 32;    // 中心圆半径
   const sector = (2 * Math.PI) / 64;     // 每卦占的角度
 
   // 一卦可兼任多角色（如正卦=年卦），返回全部角色
@@ -123,26 +123,23 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
         const isSel = name === selected;
         const code = GUA_CODE[name] ?? '777777';
 
-        // 卦名位置：沿径向再外移，给水平文字留空间
+        // 卦名位置
         const nx = cx + nameRadius * Math.cos(midAngle);
         const ny = cy + nameRadius * Math.sin(midAngle);
         const gx = cx + guaRadius * Math.cos(midAngle);
         const gy = cy + guaRadius * Math.sin(midAngle);
 
-        // 水平文字锚点：依据在圆上的方位调整，保证文字不挤入圆内、始终正读
-        const degNorm = ((midAngle * 180) / Math.PI + 360) % 360;
-        let anchor: 'start' | 'middle' | 'end' = 'middle';
-        let dx = 0, dy = 0;
-        if (degNorm > 45 && degNorm < 135) { anchor = 'start'; dx = 6; }       // 右侧，左对齐朝外
-        else if (degNorm > 225 && degNorm < 315) { anchor = 'end'; dx = -6; }  // 左侧，右对齐朝外
-        else { dy = degNorm <= 45 || degNorm >= 315 ? 10 : -6; }               // 顶/底，居中微调
-        const baseline = (degNorm > 135 && degNorm < 225) ? 'auto' : 'middle';
+        // 卦名沿切线旋转：脚朝圆心、头朝外，左右半圆翻转保证全部正读（不倒置）
+        const degRaw = (midAngle * 180) / Math.PI;
+        const degNorm = (degRaw + 360) % 360;
+        let rotDeg = degRaw + 90;                 // 切线方向
+        if (degNorm > 90 && degNorm < 270) rotDeg += 180; // 左半圆翻转，使头朝外、正读
 
         // 爻象小图：6爻径向排列（内爻靠近圆心、外爻靠外），宽沿切线
         const yaoLen = 9;
         const yaoThick = 1.6;
         const yaoGap = 0.9;
-        const guaRotDeg = (midAngle * 180) / Math.PI;
+        const guaRotDeg = degRaw;
 
         return (
           <g key={name}>
@@ -155,21 +152,23 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
               />
             )}
 
-            {/* 卦名（外环，水平不旋转，智能锚点） */}
-            <text
-              x={nx + dx}
-              y={ny + dy}
-              textAnchor={anchor}
-              dominantBaseline={baseline}
-              fontSize={roles.length > 0 || isSel ? 11 : 9}
-              fontWeight={roles.length > 0 ? 700 : isSel ? 600 : 400}
-              fill={hl ? HIGHLIGHT[hl].text : isSel ? '#c9b2d6' : '#6a7a6e'}
+            {/* 卦名（外环，沿切线旋转，正读） */}
+            <g
+              transform={`translate(${nx} ${ny}) rotate(${rotDeg})`}
               className="cursor-pointer"
-              style={{ fontFamily: '"Noto Serif SC","Songti SC",serif', pointerEvents: 'all' }}
               onClick={() => setSelected(name)}
             >
-              {name}
-            </text>
+              <text
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize={roles.length > 0 || isSel ? 10 : 7.5}
+                fontWeight={roles.length > 0 ? 700 : isSel ? 600 : 400}
+                fill={hl ? HIGHLIGHT[hl].text : isSel ? '#c9b2d6' : '#5f6f63'}
+                style={{ fontFamily: '"Noto Serif SC","Songti SC",serif' }}
+              >
+                {name}
+              </text>
+            </g>
 
             {/* 爻象小图（内环，径向排列） */}
             <g
