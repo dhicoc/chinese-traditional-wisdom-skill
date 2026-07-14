@@ -246,3 +246,135 @@ export function calcZiweiEnveloped(input: ZiweiInput): ToolEnvelope<ZiweiData> {
   }
   return env;
 }
+
+// ─── 紫微流年/大限摘要（供年度运势 combo 接入紫微维度）───
+
+/** iztro horoscope 子结构（decadal/yearly/age 共用形态） */
+interface IztroHoroscopePeriod {
+  index?: number;
+  name?: string;
+  heavenlyStem?: string;
+  earthlyBranch?: string;
+  palaceNames?: string[];
+  mutagen?: string[];
+  stars?: unknown[];
+  yearlyDecStar?: unknown[];
+  nominalAge?: number;
+}
+
+interface IztroHoroscope {
+  decadal?: IztroHoroscopePeriod;
+  yearly?: IztroHoroscopePeriod;
+  age?: IztroHoroscopePeriod & { nominalAge?: number };
+}
+
+/** 流年/大限摘要 */
+export interface ZiweiHoroscopeSummary {
+  /** 目标年份 */
+  targetYear: number;
+  /** 大限：名称（如「第三大限」）+ 天干地支 */
+  decadal: { name: string; stem: string; branch: string; mutagen: string[] };
+  /** 流年：天干地支 + 流年四化星（mutagen 顺序：[化禄, 化权, 化科, 化忌]） */
+  yearly: { stem: string; branch: string; mutagen: string[] };
+  /** 小限：虚岁 + 所在宫位 */
+  age: { nominalAge: number; palace: string };
+  /** 命宫在流年盘中的宫位名（palaceNames[命宫索引]） */
+  yearlyMingPalace: string;
+  /** 本命命宫主星（供 combo 判四化是否入命） */
+  mingMainStars: string[];
+  /** 流年化忌星（mutagen[3]） */
+  yearlyJiStar: string;
+  /** 流年化禄星（mutagen[0]） */
+  yearlyLuStar: string;
+  /** 一句话摘要（供 combo tone 推断与展示） */
+  summary: string;
+  /** 是否成功取到 horoscope（iztro 不可用或异常时 false） */
+  available: boolean;
+}
+
+/**
+ * 取紫微流年/大限摘要（iztro horoscope）。
+ * 给定出生信息 + 目标年份，返回该年大限/流年/小限的结构化摘要。
+ * iztro 不可用或 horoscope 抛错时返回 available=false 的空壳，不抛异常。
+ *
+ * @param targetYear 目标年份（公历）
+ * @param targetMonth 目标月（horoscope 需完整日期，传 1-12，默认 7）
+ */
+export function getZiweiHoroscopeSummary(
+  birth: ZiweiBirth,
+  targetYear: number,
+  targetMonth = 7,
+): ZiweiHoroscopeSummary {
+  const empty: ZiweiHoroscopeSummary = {
+    targetYear,
+    decadal: { name: '未知', stem: '', branch: '', mutagen: [] },
+    yearly: { stem: '', branch: '', mutagen: [] },
+    age: { nominalAge: 0, palace: '未知' },
+    yearlyMingPalace: '未知',
+    mingMainStars: [],
+    yearlyJiStar: '',
+    yearlyLuStar: '',
+    summary: '紫微流年数据不可用',
+    available: false,
+  };
+  try {
+    let timeIndex = Math.floor((birth.hour + 1) / 2);
+    if (timeIndex === 12) timeIndex = 0;
+    const genderKey = birth.gender === '男' ? '男' : '女';
+    const solarDateStr = `${birth.year}-${birth.month}-${birth.day}`;
+    const chart = astro.bySolar(solarDateStr, timeIndex, genderKey) as unknown as {
+      horoscope?: (d: string) => IztroHoroscope;
+      palaces?: IztroPalace[];
+    };
+    if (!chart || typeof chart.horoscope !== 'function') return empty;
+    // horoscope 需完整 yyyy-mm-dd；传目标年某日，流年四化/大限取决于年支与年龄，与具体日无关
+    const h = chart.horoscope(`${targetYear}-${String(targetMonth).padStart(2, '0')}-15`);
+    if (!h) return empty;
+
+    const decadal = h.decadal ?? {};
+    const yearly = h.yearly ?? {};
+    const age = h.age ?? {};
+
+    // 流年命宫：palaceNames 数组中「命宫」所在位置
+    const yearlyMingPalace = yearly.palaceNames?.find((n) => n === '命宫')
+      ?? yearly.palaceNames?.[0]
+      ?? '未知';
+
+    // 本命命宫主星（供 combo 判四化入命）
+    const mingMainStars = extractMainStars(chart.palaces ?? []).filter((s) => {
+      // 取命宫主星：palaces 中 name === '命宫'
+      const mingPalace = (chart.palaces ?? []).find((p) => p.name === '命宫');
+      return mingPalace?.majorStars?.some((s2) => s2.name === s);
+    });
+
+    const decadalName = decadal.name || '大限';
+    const decadalStem = decadal.heavenlyStem || '';
+    const decadalBranch = decadal.earthlyBranch || '';
+    const yearlyStem = yearly.heavenlyStem || '';
+    const yearlyBranch = yearly.earthlyBranch || '';
+    const yearlyMutagen = yearly.mutagen ?? [];
+    const decadalMutagen = decadal.mutagen ?? [];
+    // mutagen 顺序：[化禄, 化权, 化科, 化忌]
+    const yearlyLuStar = yearlyMutagen[0] ?? '';
+    const yearlyJiStar = yearlyMutagen[3] ?? '';
+
+    const summary = `${targetYear}年流年${yearlyStem}${yearlyBranch}，流年四化${yearlyMutagen.join('、') || '无'}（${yearlyLuStar}化禄、${yearlyJiStar}化忌）；` +
+      `当前${decadalName}（${decadalStem}${decadalBranch}），大限四化${decadalMutagen.join('、') || '无'}；` +
+      `小限${age.nominalAge ?? '?'}岁居${age.palaceNames?.[0] ?? '未知'}宫，流年命宫居${yearlyMingPalace}。`;
+
+    return {
+      targetYear,
+      decadal: { name: decadalName, stem: decadalStem, branch: decadalBranch, mutagen: decadalMutagen },
+      yearly: { stem: yearlyStem, branch: yearlyBranch, mutagen: yearlyMutagen },
+      age: { nominalAge: age.nominalAge ?? 0, palace: age.palaceNames?.[0] ?? '未知' },
+      yearlyMingPalace,
+      mingMainStars,
+      yearlyJiStar,
+      yearlyLuStar,
+      summary,
+      available: true,
+    };
+  } catch {
+    return empty;
+  }
+}

@@ -46,6 +46,14 @@
 - 复用现有 `getAlmanacData`/`calcTaisui`/`calcMingGua`/`getPersonalDirections`，零新依赖，保持纯前端 + 薄 MCP 壳架构。
 - 工具总数：20 计算 + 2 元工具 = 22。
 
+### 2026-07-14 续：紫微流年/大限接入年度运势 combo
+
+补齐年度综合运势整合包缺失的紫微维度（原只有八字+五运六气+奇门+命卦方位四系统）：
+- 新增 `ziweiEngine.getZiweiHoroscopeSummary(birth, targetYear)`：调 iztro `chart.horoscope(targetDate)` 取流年/大限/小限摘要（流年天干地支+四化、大限名+天干地支+四化、小限虚岁宫位、流年命宫宫位、本命命宫主星、化禄/化忌星）。iztro 不可用或异常时返回 `available=false` 空壳，不抛异常。
+- `comboEngine.calcAnnualFortuneCombo` 新增「紫微流年」第四子系统：tone 推断（化忌星入命宫主星→凶，化禄星入命→吉，否则中），synthesis 改为「四系统」定调，recommendations 新增「紫微化忌」提醒（标注化忌星是否入命）。
+- 一致性检验从三系统升级为四系统同向校验。
+- 复用 iztro ESM（visual 与 MCP 端均可用），零新依赖。
+
 ### 验证
 
 - visual 单元 + e2e + mcp-server 测试全过（visual 229 + mcp-server 70 ≈ 299 项）。

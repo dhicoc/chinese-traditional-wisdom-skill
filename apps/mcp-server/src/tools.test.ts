@@ -264,14 +264,16 @@ describe('dream_interpret', () => {
 // ─── 跨系统联合分析（combo）handler 测试 ───
 
 describe('combo_annual_fortune', () => {
-  it('返回含3子系统 + 一致性的 ComboResult envelope', () => {
+  it('返回含4子系统(八字+五运六气+奇门+紫微流年) + 一致性的 ComboResult envelope', () => {
     const t = findTool('combo_annual_fortune');
     const env = t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, targetYear: 2024, currentMonth: 6 });
     const e = expectValidEnvelope(env);
-    const data = e.data as { comboName: string; subsystems: unknown[]; consistency: { confidence: string }; export_snapshot: { summary: string } };
+    const data = e.data as { comboName: string; subsystems: Array<{ name: string }>; consistency: { confidence: string }; export_snapshot: { summary: string; sections: Array<{ heading: string }> } };
     expect(data.comboName).toBe('年度综合运势');
-    expect(data.subsystems.length).toBe(3);
+    expect(data.subsystems.length).toBe(4);
+    expect(data.subsystems.map((s) => s.name)).toEqual(['八字', '五运六气', '奇门年盘', '紫微流年']);
     expect(data.export_snapshot.summary).toContain('2024');
+    expect(data.export_snapshot.sections.some((s) => s.heading === '紫微流年维度')).toBe(true);
     expectExportSnapshot(e);
   });
 });

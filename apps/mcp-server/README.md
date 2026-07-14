@@ -23,7 +23,7 @@
 | `calc_xiyong` | 喜用神（日主强弱、同类异类、喜用五行） | 自研 |
 | `get_constitution_tendency` | 五运六气体质倾向（九种体质） | 自研 |
 | `dream_interpret` | 周公解梦（9548 现代条目 + 952 古文断语） | 开源解梦库 |
-| `combo_annual_fortune` | 年度综合运势（八字+五运六气+奇门+命卦方位） | 聚合各引擎 |
+| `combo_annual_fortune` | 年度综合运势（八字+五运六气+奇门+紫微流年/大限+命卦方位） | 聚合各引擎 |
 | `combo_decision` | 事件决策（六爻+梅花+奇门三卜交叉验证） | 聚合各引擎 |
 | `combo_space_time` | 空间+时间（飞星+八宅+奇门吉方） | 聚合各引擎 |
 | `combo_sanshi` | 三式互参（大六壬+奇门+梅花） | 聚合各引擎 |

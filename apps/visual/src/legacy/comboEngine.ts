@@ -18,6 +18,7 @@ import type { ToolEnvelope, ExportSnapshot, Tone } from './baseTypes';
 import { calcBaziEnveloped } from './baziEngine';
 import { calcYunqiEnveloped } from './yunqiEngine';
 import { calcQimenEnveloped } from './qimenEngine';
+import { getZiweiHoroscopeSummary } from './ziweiEngine';
 import { calcLiuyaoEnveloped } from './liuyaoEngine';
 import { calcMeihuaEnveloped } from './meihuaEngine';
 import { calcDaliurenEnveloped, type DaliurenSchool } from './daliurenEngine';
@@ -140,7 +141,7 @@ export interface AnnualFortuneComboInput {
 }
 
 /**
- * 年度综合运势 = 八字（大运/日主/喜用）+ 五运六气（年运）+ 奇门（年盘）+ 命卦方位
+ * 年度综合运势 = 八字（大运/日主/喜用）+ 五运六气（年运）+ 奇门（年盘）+ 紫微流年/大限 + 命卦方位
  */
 export function calcAnnualFortuneCombo(input: AnnualFortuneComboInput): ToolEnvelope<ComboResult> {
   const { birth, solar } = input;
@@ -153,18 +154,44 @@ export function calcAnnualFortuneCombo(input: AnnualFortuneComboInput): ToolEnve
   const mingGua = calcMingGua(birth.year, birth.gender);
   const personalDirs = getPersonalDirections(mingGua.trigram);
 
+  // 紫微流年/大限摘要（iztro horoscope；iztro 不可用时 available=false，仍作维度占位）
+  const ziweiSummary = getZiweiHoroscopeSummary(
+    { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, gender: birth.gender as '男' | '女' },
+    targetYear,
+    input.currentMonth ?? 7,
+  );
+  // 紫微 tone：化忌入命→凶，化禄入命→吉，否则中
+  let ziweiTone: Tone = '中';
+  if (ziweiSummary.available) {
+    const jiInMing = ziweiSummary.yearlyJiStar && ziweiSummary.mingMainStars.includes(ziweiSummary.yearlyJiStar);
+    const luInMing = ziweiSummary.yearlyLuStar && ziweiSummary.mingMainStars.includes(ziweiSummary.yearlyLuStar);
+    if (jiInMing) ziweiTone = '凶';
+    else if (luInMing) ziweiTone = '吉';
+  }
+  // 紫微子系统用轻量伪 envelope 承载 summary（供深入查看与 tone 推断回退）。
+  // 即使 iztro 不可用，envelope.ok 仍 true（降级为占位，子系统结构完整不破坏 combo 契约）。
+  const ziweiPseudoEnv: ToolEnvelope = {
+    ok: true,
+    tool: 'ZiweiHoroscope',
+    version: 'iztro@2.5.8',
+    input_normalized: { birth: { year: birth.year }, targetYear },
+    data: { export_snapshot: { summary: ziweiSummary.summary, sections: [] } },
+    warnings: ziweiSummary.available ? [] : ['iztro 流年数据不可用，紫微维度降级为占位'],
+  };
+
   const subsystems: SubsystemResult[] = [
     { name: '八字', tone: toneFromEnvelope(baziEnv), summary: summaryFromEnvelope(baziEnv), envelope: baziEnv },
     { name: '五运六气', tone: toneFromEnvelope(yunqiEnv), summary: summaryFromEnvelope(yunqiEnv), envelope: yunqiEnv },
     { name: '奇门年盘', tone: toneFromEnvelope(qimenEnv), summary: summaryFromEnvelope(qimenEnv), envelope: qimenEnv },
+    { name: '紫微流年', tone: ziweiTone, summary: ziweiSummary.summary, envelope: ziweiPseudoEnv },
   ];
   const consistency = checkConsistency(subsystems);
 
   // 命卦方位信息（不参与 tone 检验，作辅助建议）
   const auspiciousDirs = personalDirs?.auspicious.map((d) => `${d.star}在${d.direction}`).join('、') ?? '未知';
 
-  const synthesis = `${targetYear}年综合运势：八字${toneWord(subsystems[0].tone)}、五运六气${toneWord(subsystems[1].tone)}、奇门年盘${toneWord(subsystems[2].tone)}。` +
-    (consistency.aligned ? `三系统方向基本一致，置信度${consistency.confidence}。` : `三系统有分歧：${consistency.conflicts.join('；')}。`) +
+  const synthesis = `${targetYear}年综合运势：八字${toneWord(subsystems[0].tone)}、五运六气${toneWord(subsystems[1].tone)}、奇门年盘${toneWord(subsystems[2].tone)}、紫微流年${toneWord(subsystems[3].tone)}。` +
+    (consistency.aligned ? `四系统方向基本一致，置信度${consistency.confidence}。` : `四系统有分歧：${consistency.conflicts.join('；')}。`) +
     `命卦${mingGua.trigram}（${mingGua.group}），本年吉方：${auspiciousDirs}。`;
 
   const recommendations: ComboResult['recommendations'] = [];
@@ -173,6 +200,13 @@ export function calcAnnualFortuneCombo(input: AnnualFortuneComboInput): ToolEnve
   }
   if (subsystems.some((s) => s.tone === '凶')) {
     recommendations.push({ label: '稳妥防守', value: '部分系统示警，宜保守、避免大举冒进，注意健康与人际。', tone: '凶' });
+  }
+  if (ziweiSummary.available && ziweiSummary.yearlyJiStar) {
+    recommendations.push({
+      label: '紫微化忌',
+      value: `流年${ziweiSummary.yearly.stem}${ziweiSummary.yearly.branch}，${ziweiSummary.yearlyJiStar}化忌${ziweiSummary.mingMainStars.includes(ziweiSummary.yearlyJiStar) ? '入命宫' : ''}，该年与${ziweiSummary.yearlyJiStar}相关事项（如该星主导的宫位领域）宜谨慎。`,
+      tone: ziweiTone === '凶' ? '凶' : '中',
+    });
   }
   recommendations.push({ label: '方位借力', value: `本年个人吉方${auspiciousDirs}，可作主卧/办公位/财位布局。`, tone: '吉' });
 
@@ -184,8 +218,9 @@ export function calcAnnualFortuneCombo(input: AnnualFortuneComboInput): ToolEnve
       { heading: '八字维度', body: subsystems[0].summary },
       { heading: '五运六气维度', body: subsystems[1].summary },
       { heading: '奇门年盘维度', body: subsystems[2].summary },
+      { heading: '紫微流年维度', body: subsystems[3].summary },
       { heading: '命卦方位', body: `命卦${mingGua.trigram}（${mingGua.group}），吉方：${auspiciousDirs}。` },
-      { heading: '一致性检验', body: consistency.aligned ? `三系统同向，置信度${consistency.confidence}。` : `有分歧：${consistency.conflicts.join('；')}` },
+      { heading: '一致性检验', body: consistency.aligned ? `四系统同向，置信度${consistency.confidence}。` : `有分歧：${consistency.conflicts.join('；')}` },
       { heading: '综合建议', body: recommendations.map((r) => `【${r.label}】${r.value}`).join('\n') },
     ],
     sourceNotes: '联合分析为多系统聚合参考，非预言绝对，请结合自身境遇理性看待。',
@@ -193,7 +228,7 @@ export function calcAnnualFortuneCombo(input: AnnualFortuneComboInput): ToolEnve
 
   const result: ComboResult = {
     comboName: '年度综合运势',
-    purpose: '八字+五运六气+奇门年盘+命卦方位 联合推算某年整体运势',
+    purpose: '八字+五运六气+奇门年盘+紫微流年+命卦方位 联合推算某年整体运势',
     inputs: { birth: { year: birth.year, gender: birth.gender }, targetYear },
     subsystems,
     synthesis,
@@ -211,7 +246,11 @@ export function calcAnnualFortuneCombo(input: AnnualFortuneComboInput): ToolEnve
     version: '0.1.0',
     input_normalized: input as unknown as Record<string, unknown>,
     data: result,
-    warnings: [result.confidenceNote, ...(consistency.aligned ? [] : ['多系统结论有分歧，已标注权衡'])],
+    warnings: [
+      result.confidenceNote,
+      ...(consistency.aligned ? [] : ['多系统结论有分歧，已标注权衡']),
+      ...(!ziweiSummary.available ? ['iztro 流年数据不可用，紫微维度降级为占位'] : []),
+    ],
   };
 }
 

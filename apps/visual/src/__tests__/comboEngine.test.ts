@@ -10,14 +10,14 @@ import { toFourLayer, type ReadingLike } from '@/legacy/reportLayers';
 const BIRTH = { year: 1990, month: 6, day: 15, hour: 12, gender: '男' };
 
 describe('calcAnnualFortuneCombo 年度综合运势', () => {
-  it('返回 ok=true 的 ComboResult，含 3 子系统', () => {
+  it('返回 ok=true 的 ComboResult，含 4 子系统', () => {
     const env = calcAnnualFortuneCombo({ birth: BIRTH, targetYear: 2024, currentMonth: 6 });
     expect(env.ok).toBe(true);
     expect(env.tool).toBe('AnnualFortureComboEngine'.replace('Forture', 'Fortune'));
     const data = env.data;
     expect(data.comboName).toBe('年度综合运势');
-    expect(data.subsystems.length).toBe(3);
-    expect(data.subsystems.map((s) => s.name)).toEqual(['八字', '五运六气', '奇门年盘']);
+    expect(data.subsystems.length).toBe(4);
+    expect(data.subsystems.map((s) => s.name)).toEqual(['八字', '五运六气', '奇门年盘', '紫微流年']);
   });
 
   it('每个子系统有 tone + summary + envelope', () => {
@@ -33,7 +33,7 @@ describe('calcAnnualFortuneCombo 年度综合运势', () => {
   it('一致性检验：tones 长度=子系统数，confidence 为高或中', () => {
     const env = calcAnnualFortuneCombo({ birth: BIRTH, targetYear: 2024, currentMonth: 6 });
     const c = env.data.consistency;
-    expect(c.tones.length).toBe(3);
+    expect(c.tones.length).toBe(4);
     expect(['高', '中', '低']).toContain(c.confidence);
     // aligned=true 时 conflicts 为空；aligned=false 时 conflicts 非空
     if (c.aligned) expect(c.conflicts).toEqual([]);
@@ -59,6 +59,7 @@ describe('calcAnnualFortuneCombo 年度综合运势', () => {
     expect(snap.summary).toContain('2024');
     expect(snap.sections.some((s) => s.heading === '整合结论')).toBe(true);
     expect(snap.sections.some((s) => s.heading === '八字维度')).toBe(true);
+    expect(snap.sections.some((s) => s.heading === '紫微流年维度')).toBe(true);
     expect(snap.sections.some((s) => s.heading === '一致性检验')).toBe(true);
   });
 
