@@ -19,7 +19,7 @@
 | `taiyi_calculate` | 太乙神数（积年、局数、落宫、主客算、格局） | 自研 + lunar-javascript |
 | `cast_meihua` | 梅花易数（体用生克、吉凶分级、错综卦、策略） | 自研 + lunar-javascript |
 | `calc_yunqi` | 五运六气（岁运、司天在泉、客气六步、病势） | 自研 + lunar-javascript 大寒定年 |
-| `analyze_name` | 姓名五维评分（五格、三才、五行、字义、生肖） | fate 数据 + 自研 |
+| `analyze_name` | 姓名五维评分（五格、三才、五行、字义、命理契合：生肖+八字用神补强） | fate 数据 + 自研 |
 | `calc_xiyong` | 喜用神（日主强弱、同类异类、喜用五行） | 自研 |
 | `get_constitution_tendency` | 五运六气体质倾向（九种体质） | 自研 |
 | `dream_interpret` | 周公解梦（9548 现代条目 + 952 古文断语） | 开源解梦库 |

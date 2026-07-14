@@ -7,7 +7,7 @@
  * - 三才配置 15%：三才吉凶（大吉100/吉80/半吉半凶50/凶20）
  * - 五行平衡 25%：五行分布均匀度（标准差越小越高）
  * - 字义五行 20%：字元字义五行多样性 + 未收录字扣分
- * - 生肖契合 10%：出生年生肖五行与名字字义五行相生关系
+ * - 命理契合 10%：出生年生肖五行契合；若提供完整生辰，叠加八字喜用神补强评分
  *
  * 等级表对齐 fate scoreToGrade：≥90上上 / ≥80上吉 / ≥70中吉 / ≥60中平 / ≥50中下 / <50下下。
  * 明确标注「简化自建口径，非 fate 令分数体系」。
@@ -15,6 +15,8 @@
 
 import type { NameAnalysis } from './nameWuxing';
 import zodiacNameChars from './zodiacNameChars.json';
+import { calculateBazi, type BaziInput } from './baziEngine';
+import { calcXiYong } from './xiyong';
 
 export interface NameRatingResult {
   totalScore: number;
@@ -113,12 +115,77 @@ function scoreToGrade(score: number): string {
   return '下下';
 }
 
+/** 完整生辰（用于八字喜用神补强评分） */
+export interface NameRatingBirth {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute?: number;
+  gender: string;
+}
+
+/**
+ * 八字喜用神补强评分：调 baziEngine 算日主+五行计数，再调 xiyong 得喜用神五行，
+ * 看名字字义五行里含多少喜用神五行（及生喜用神的印星五行）。
+ * - 字义五行 === 喜用神 → 该字满分（直接补用神）
+ * - 字义五行生喜用神（印） → 高分（生扶用神）
+ * - 字义五行克喜用神 → 扣分（克耗用神）
+ * - 无字义五行 → 中性分
+ * 返回 { score, detail }，available=false 时表示八字/用神算不出（降级）。
+ */
+function yongshenScore(
+  birth: NameRatingBirth,
+  solar: unknown,
+  chars: { char: string; meaningWuxing: string }[],
+): { score: number; detail: string; available: boolean } {
+  try {
+    const bazi = calculateBazi({ birth: birth as BaziInput['birth'], solar: solar as BaziInput['solar'] });
+    const dmWx = bazi.dayMasterWuxing;
+    const els = bazi.elements;
+    if (!dmWx || !els) return { score: 50, detail: '八字五行数据不完整，用神补强按中性分', available: false };
+    const xy = calcXiYong(dmWx, els);
+    const shen = xy.shen; // 喜用神五行
+    if (!shen) return { score: 50, detail: '喜用神未推出，按中性分', available: false };
+    const shengShen = SHENG_MAP[shen]; // 生喜用神的五行（印星）
+    const keShen = KE_MAP[shen]; // 克喜用神的五行
+
+    let total = 0;
+    let counted = 0;
+    let hitCount = 0;
+    for (const c of chars) {
+      let s = 60;
+      if (c.meaningWuxing) {
+        if (c.meaningWuxing === shen) { s = 100; hitCount++; } // 直接补用神
+        else if (c.meaningWuxing === shengShen) s = 85; // 生扶用神（印）
+        else if (c.meaningWuxing === keShen) s = 35; // 克耗用神
+        else if (KE_MAP[c.meaningWuxing] === shen) s = 45; // 用神克该行（泄用神）
+      }
+      total += Math.max(0, Math.min(100, s));
+      counted++;
+    }
+    const score = counted > 0 ? Math.round(total / counted) : 50;
+    const hit = hitCount > 0 ? `名字含${shen}行字${hitCount}个直接补用神` : `名字未含${shen}行字，补用神不足`;
+    const detail = `日主${dmWx}（${xy.qiangRuo}），喜用神为${shen}。${hit}。`;
+    return { score, detail, available: true };
+  } catch {
+    return { score: 50, detail: '八字排盘失败，用神补强按中性分', available: false };
+  }
+}
+
 /**
  * 计算姓名五维评分。
  * @param analysis analyzeName 的结果
  * @param birthYear 出生年（用于生肖契合度），可选
+ * @param birth 完整生辰（用于八字喜用神补强），可选；提供后第 5 维升级为「命理契合」
+ * @param solar 可选 lunar-javascript Solar 入口（精确历法）；未传八字走 local-approx 近似
  */
-export function calcNameRating(analysis: NameAnalysis, birthYear?: number): NameRatingResult {
+export function calcNameRating(
+  analysis: NameAnalysis,
+  birthYear?: number,
+  birth?: NameRatingBirth,
+  solar?: unknown,
+): NameRatingResult {
   // 1. 五格数理 30%
   const wugeScores = analysis.wuGeEntries.map((e) => luckToScore(e.luck));
   const wugeAvg = wugeScores.reduce((s, v) => s + v, 0) / wugeScores.length;
@@ -150,16 +217,23 @@ export function calcNameRating(analysis: NameAnalysis, birthYear?: number): Name
     unrecordedCount > 0 ? `，${unrecordedCount} 字未收录扣分` : ''
   }`;
 
-  // 5. 生肖契合 10%
+  // 5. 命理契合 10%：有完整生辰时 = 生肖契合(50%) + 八字用神补强(50%)；否则只生肖契合；都没有中性分
   const zodiacSc = birthYear ? zodiacScore(birthYear, allChars) : 50;
-  const zodiacDetail = birthYear ? `基于出生年生肖五行与字义五行相生关系` : '未提供出生年，按中性分';
+  const zodiacDetail = birthYear ? '生肖五行与字义五行相生关系' : '未提供出生年，按中性分';
+  let mingliScore = zodiacSc;
+  let mingliDetail = zodiacDetail;
+  if (birth) {
+    const ys = yongshenScore(birth, solar, allChars);
+    mingliScore = Math.round(zodiacSc * 0.5 + ys.score * 0.5);
+    mingliDetail = `生肖契合：${zodiacDetail}（${zodiacSc}分）；用神补强：${ys.detail}（${ys.score}分）`;
+  }
 
   const dimensions = [
     { name: '五格数理', score: wugeScore, weight: 0.3, detail: wugeDetail },
     { name: '三才配置', score: sancaiScore, weight: 0.15, detail: sancaiDetail },
     { name: '五行平衡', score: balanceSc, weight: 0.25, detail: balanceDetail },
     { name: '字义五行', score: meaningScore, weight: 0.2, detail: meaningDetail },
-    { name: '生肖契合', score: zodiacSc, weight: 0.1, detail: zodiacDetail },
+    { name: '命理契合', score: mingliScore, weight: 0.1, detail: mingliDetail },
   ];
 
   const totalScore = Math.round(
@@ -171,6 +245,6 @@ export function calcNameRating(analysis: NameAnalysis, birthYear?: number): Name
     grade: scoreToGrade(totalScore),
     dimensions,
     confidenceNote:
-      '五维评分基于本项目已有数据简化计算（五格30%+三才15%+五行平衡25%+字义五行20%+生肖契合10%），非 fate 令分数体系口径，仅供参考。',
+      '五维评分基于本项目已有数据简化计算（五格30%+三才15%+五行平衡25%+字义五行20%+命理契合10%），非 fate 令分数体系口径，仅供参考。',
   };
 }

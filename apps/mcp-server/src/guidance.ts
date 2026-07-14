@@ -189,14 +189,14 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
   },
   analyze_name: {
     tool: 'analyze_name',
-    purpose: '姓名评分：需姓 + 名，出生年可选（影响生肖契合度）。',
+    purpose: '姓名评分：需姓 + 名。出生年提升生肖契合度；完整生辰叠加八字喜用神补强评分。',
     requiredParams: [
       { name: 'surname', required: true, description: '姓氏', promptToUser: '请提供姓氏（如"张"）。' },
       { name: 'givenName', required: true, description: '名', promptToUser: '请提供名（如"伟"）。' },
     ],
     safeDefaults: {},
-    doNotAssume: ['surname', 'givenName'],
-    workflow: '确认姓与名 → 调 analyze_name（如有出生年一并传入提升生肖契合度）→ 看五维评分与等级。',
+    doNotAssume: ['surname', 'givenName', 'birth.year', 'birth.month', 'birth.day', 'birth.hour'],
+    workflow: '确认姓与名 → （可选）问出生年提生肖契合 → （可选）问完整生辰叠八字喜用神补强 → 调 analyze_name → 看五维评分与等级，命理契合维度会标注用神补强情况。',
   },
   calc_xiyong: {
     tool: 'calc_xiyong',

@@ -5,7 +5,8 @@ import { FiveElementsChart } from '@/components/shared/FiveElementsChart';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { analyzeName, type NameAnalysis } from '@/legacy/nameWuxing';
-import { calcNameRating } from '@/legacy/nameRating';
+import { calcNameRating, type NameRatingBirth } from '@/legacy/nameRating';
+import { useBirth } from '@/lib/birthContext';
 
 /**
  * 姓名五行工作区
@@ -22,9 +23,11 @@ const LUCK_COLOR: Record<string, string> = {
 };
 
 export function NamewuxingWorkspace() {
+  const { solarBirth } = useBirth();
   const [surname, setSurname] = useState('');
   const [givenName, setGivenName] = useState('');
   const [birthYear, setBirthYear] = useState('');
+  const [useBaziBoost, setUseBaziBoost] = useState(false);
   const [analysis, setAnalysis] = useState<NameAnalysis | null>(null);
 
   const handleAnalyze = () => {
@@ -41,8 +44,18 @@ export function NamewuxingWorkspace() {
   const rating = useMemo(() => {
     if (!analysis) return null;
     const year = Number.parseInt(birthYear, 10);
-    return calcNameRating(analysis, Number.isNaN(year) ? undefined : year);
-  }, [analysis, birthYear]);
+    const birthYearNum = Number.isNaN(year) ? solarBirth.year : year;
+    let birth: NameRatingBirth | undefined;
+    let solar: unknown;
+    if (useBaziBoost) {
+      birth = {
+        year: solarBirth.year, month: solarBirth.month, day: solarBirth.day,
+        hour: solarBirth.hour, minute: solarBirth.minute, gender: solarBirth.gender,
+      };
+      solar = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
+    }
+    return calcNameRating(analysis, birthYearNum, birth, solar);
+  }, [analysis, birthYear, solarBirth, useBaziBoost]);
 
   return (
     <div className="space-y-6">
@@ -97,6 +110,19 @@ export function NamewuxingWorkspace() {
               className="w-full min-w-0 rounded-lg border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
             />
           </ControlField>
+          <div className="flex items-center gap-2 self-end pb-1">
+            <input
+              type="checkbox"
+              id="bazi-boost"
+              checked={useBaziBoost}
+              onChange={(e) => setUseBaziBoost(e.target.checked)}
+              className="h-4 w-4 rounded border-jade-500/30 bg-ink-900 accent-jade-500"
+            />
+            <label htmlFor="bazi-boost" className="text-xs text-jade-100/60">
+              用全局生辰算八字用神补强
+              <span className="ml-1 text-jade-100/35">（看名字是否补益八字喜用神）</span>
+            </label>
+          </div>
         </div>
         <button
           onClick={handleAnalyze}
@@ -247,7 +273,7 @@ export function NamewuxingWorkspace() {
               <div className="mb-4 flex items-center justify-between border-b border-white/8 pb-3">
                 <div>
                   <h3 className="text-base font-semibold text-jade-50">五维评分</h3>
-                  <p className="mt-0.5 text-xs text-jade-100/45">五格30% · 三才15% · 五行平衡25% · 字义五行20% · 生肖契合10%</p>
+                  <p className="mt-0.5 text-xs text-jade-100/45">五格30% · 三才15% · 五行平衡25% · 字义五行20% · 命理契合10%{useBaziBoost ? '（含八字用神补强）' : ''}</p>
                 </div>
                 <div className="text-right">
                   <div className="font-mono text-3xl font-bold text-jade-400">{rating.totalScore}</div>

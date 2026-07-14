@@ -297,6 +297,10 @@ export function dispatchIntent(text: string): DispatchResult {
       if (name.surname) args.surname = name.surname;
       if (name.givenName) args.givenName = name.givenName;
       if (year) args.birthYear = year;
+      // 完整生辰（含时辰+性别）时填 birth，启用八字喜用神补强
+      if (birth.birth && birth.birth.hour && birth.birth.gender) {
+        args.birth = birth.birth;
+      }
       break;
     case 'dream_interpret':
       if (dreamKw) args.keyword = dreamKw;

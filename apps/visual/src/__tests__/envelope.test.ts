@@ -110,6 +110,17 @@ describe('ToolEnvelope 统一信封', () => {
       }
       expect(hasUnrecorded).toBe(true);
     });
+
+    it('传入完整生辰时第5维为「命理契合」含用神补强', () => {
+      const env = calcNameRatingEnveloped('张', '伟', 1990, {
+        year: 1990, month: 6, day: 15, hour: 12, gender: '男',
+      });
+      const data = env.data as { dimensions: Array<{ name: string; detail: string }> };
+      const mingli = data.dimensions.find((d) => d.name === '命理契合');
+      expect(mingli).toBeDefined();
+      expect(mingli?.detail).toContain('用神补强');
+      expect(mingli?.detail).toContain('喜用神');
+    });
   });
 
   describe('getConstitutionTendencyEnveloped 体质倾向', () => {

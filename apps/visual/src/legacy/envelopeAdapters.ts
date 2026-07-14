@@ -85,15 +85,17 @@ export function calcNameRatingEnveloped(
   surname: string,
   givenName: string,
   birthYear?: number,
+  birth?: { year: number; month: number; day: number; hour: number; minute?: number; gender: string },
+  solar?: unknown,
 ): ToolEnvelope<NameRatingData> {
-  const input = { surname, givenName, birthYear };
+  const input = { surname, givenName, birthYear, birth };
   const analysis = analyzeName(surname, givenName);
-  const result = calcNameRating(analysis, birthYear);
+  const result = calcNameRating(analysis, birthYear, birth, solar);
 
   const dimDetail = result.dimensions.map((d) => `${d.name}${d.score}分(权重${d.weight}%):${d.detail}`).join('；');
   const snapshot: ExportSnapshot = {
     summary: `姓名「${surname}${givenName}」综合${result.totalScore}分，等级${result.grade}。`,
-    tags: ['姓名评分', result.grade, birthYear ? `${birthYear}年生` : '未提供出生年'],
+    tags: ['姓名评分', result.grade, birth ? `${birth.year}年生（含八字用神补强）` : birthYear ? `${birthYear}年生` : '未提供出生年'],
     sections: [
       { heading: '综合评级', body: `总分${result.totalScore}，等级「${result.grade}」。${result.confidenceNote}` },
       { heading: '五维明细', body: dimDetail || '无' },

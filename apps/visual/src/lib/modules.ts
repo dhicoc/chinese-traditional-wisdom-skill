@@ -242,9 +242,9 @@ export const MODULES: WisdomModule[] = [
     status: 'folk-experience',
     statusLabel: '民俗体验',
     privacyLevel: '仅本地计算',
-    questionTypes: ['笔画', '五行', '三才'],
+    questionTypes: ['笔画', '五行', '三才', '用神补强'],
     accent: '#2a9d75',
-    description: '分析姓名汉字的笔画五行与三才配置，作为文化参考，不构成命名建议。',
+    description: '分析姓名汉字的笔画五行与三才配置，五维评分含命理契合（生肖契合+八字喜用神补强）。作为文化参考，不构成命名建议。',
   },
   {
     id: 'dream',

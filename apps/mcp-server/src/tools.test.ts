@@ -204,6 +204,20 @@ describe('analyze_name', () => {
     expect(data.dimensions.length).toBeGreaterThan(0);
     expectExportSnapshot(e);
   });
+
+  it('张伟+完整生辰 命理契合维度含八字用神补强', () => {
+    const t = findTool('analyze_name');
+    const env = t.handler({
+      surname: '张', givenName: '伟',
+      birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+    });
+    const e = expectValidEnvelope(env);
+    const data = e.data as { dimensions: Array<{ name: string; detail: string }> };
+    const mingli = data.dimensions.find((d) => d.name === '命理契合');
+    expect(mingli).toBeDefined();
+    expect(mingli?.detail).toContain('用神补强');
+    expect(mingli?.detail).toContain('喜用神');
+  });
 });
 
 describe('calc_xiyong', () => {

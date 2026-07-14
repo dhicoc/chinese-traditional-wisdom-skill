@@ -142,16 +142,19 @@ export const TOOLS: ToolDef[] = [
   },
   {
     name: 'analyze_name',
-    description: '姓名五维评分：五格数理（30%）+ 三才配置（15%）+ 五行平衡（25%）+ 字义五行（20%）+ 生肖契合（10%）。含康熙笔画、字义出处、生肖喜忌。',
+    description: '姓名五维评分：五格数理（30%）+ 三才配置（15%）+ 五行平衡（25%）+ 字义五行（20%）+ 命理契合（10%）。含康熙笔画、字义出处、生肖喜忌。若提供完整生辰（birth），命理契合维度叠加八字喜用神补强评分（名字字义五行是否补益用神）。',
     schema: z.object({
       surname: z.string().min(1).describe('姓氏（如「张」）'),
       givenName: z.string().min(1).describe('名（如「伟」）'),
       birthYear: z.number().int().min(1900).max(2100).optional().describe('出生年（用于生肖契合度）'),
+      birth: birthSchema.optional().describe('完整生辰（年月日时+性别），提供后命理契合维度叠加八字喜用神补强评分'),
     }),
     handler: (i) => calcNameRatingEnveloped(
       (i as { surname: string }).surname,
       (i as { givenName: string }).givenName,
       (i as { birthYear?: number }).birthYear,
+      (i as { birth?: { year: number; month: number; day: number; hour: number; minute?: number; gender: string } }).birth,
+      solarEntry,
     ),
   },
   {

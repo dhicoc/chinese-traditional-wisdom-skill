@@ -63,6 +63,15 @@
 - MCP `dispatch.ts` 加 `combo_monthly_fortune` 路由（月度运势/本月运势/流月运势等）+ `extractTargetMonth`/`extractTargetYear`（排除生辰年份月份干扰）。
 - 工具总数：21 计算 + 2 元工具 = 23。
 
+### 2026-07-14 续：姓名学接八字喜用神补强（命理契合维度）
+
+把姓名第 5 维「生肖契合」升级为「命理契合」，补齐姓名与八字联动：
+- `nameRating.calcNameRating` 新增 `birth` 完整生辰参数：调 `calculateBazi` 取日主五行+五行计数，再调 `calcXiYong` 得喜用神五行，看名字字义五行是否补益用神（直接补用神满分/生扶用神印星高分/克耗用神扣分）。
+- 有完整生辰时第 5 维 = 生肖契合(50%) + 用神补强(50%)；只有出生年时仍只生肖契合；都没有中性分。权重仍 10%，维度数不变（5）。
+- `calcNameRatingEnveloped` + MCP `analyze_name` 透传 birth/solar；dispatch 的 analyze_name case 在用户给完整生辰时自动填 birth。
+- Dashboard 姓名工作区加「用全局生辰算八字用神补强」复选框，复用 birthContext。
+- 复用现有 baziEngine/xiyong，零新依赖。visual 230 + mcp 78 = 308 测试全过。
+
 ### 验证
 
 - visual 单元 + e2e + mcp-server 测试全过（visual 229 + mcp-server 70 ≈ 299 项）。
