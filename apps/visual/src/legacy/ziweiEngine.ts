@@ -265,6 +265,7 @@ interface IztroHoroscopePeriod {
 interface IztroHoroscope {
   decadal?: IztroHoroscopePeriod;
   yearly?: IztroHoroscopePeriod;
+  monthly?: IztroHoroscopePeriod;
   age?: IztroHoroscopePeriod & { nominalAge?: number };
 }
 
@@ -286,6 +287,8 @@ export interface ZiweiHoroscopeSummary {
   yearlyJiStar: string;
   /** 流年化禄星（mutagen[0]） */
   yearlyLuStar: string;
+  /** 流月：天干地支 + 流月四化星（mutagen 顺序同 yearly） */
+  monthly: { stem: string; branch: string; mutagen: string[] };
   /** 一句话摘要（供 combo tone 推断与展示） */
   summary: string;
   /** 是否成功取到 horoscope（iztro 不可用或异常时 false） */
@@ -314,6 +317,7 @@ export function getZiweiHoroscopeSummary(
     mingMainStars: [],
     yearlyJiStar: '',
     yearlyLuStar: '',
+    monthly: { stem: '', branch: '', mutagen: [] },
     summary: '紫微流年数据不可用',
     available: false,
   };
@@ -333,6 +337,7 @@ export function getZiweiHoroscopeSummary(
 
     const decadal = h.decadal ?? {};
     const yearly = h.yearly ?? {};
+    const monthly = h.monthly ?? {};
     const age = h.age ?? {};
 
     // 流年命宫：palaceNames 数组中「命宫」所在位置
@@ -358,14 +363,20 @@ export function getZiweiHoroscopeSummary(
     const yearlyLuStar = yearlyMutagen[0] ?? '';
     const yearlyJiStar = yearlyMutagen[3] ?? '';
 
+    const monthlyStem = monthly.heavenlyStem || '';
+    const monthlyBranch = monthly.earthlyBranch || '';
+    const monthlyMutagen = monthly.mutagen ?? [];
+
     const summary = `${targetYear}年流年${yearlyStem}${yearlyBranch}，流年四化${yearlyMutagen.join('、') || '无'}（${yearlyLuStar}化禄、${yearlyJiStar}化忌）；` +
       `当前${decadalName}（${decadalStem}${decadalBranch}），大限四化${decadalMutagen.join('、') || '无'}；` +
+      `流月${monthlyStem}${monthlyBranch}，流月四化${monthlyMutagen.join('、') || '无'}；` +
       `小限${age.nominalAge ?? '?'}岁居${age.palaceNames?.[0] ?? '未知'}宫，流年命宫居${yearlyMingPalace}。`;
 
     return {
       targetYear,
       decadal: { name: decadalName, stem: decadalStem, branch: decadalBranch, mutagen: decadalMutagen },
       yearly: { stem: yearlyStem, branch: yearlyBranch, mutagen: yearlyMutagen },
+      monthly: { stem: monthlyStem, branch: monthlyBranch, mutagen: monthlyMutagen },
       age: { nominalAge: age.nominalAge ?? 0, palace: age.palaceNames?.[0] ?? '未知' },
       yearlyMingPalace,
       mingMainStars,

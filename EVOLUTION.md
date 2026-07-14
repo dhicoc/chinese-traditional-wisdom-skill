@@ -54,6 +54,15 @@
 - 一致性检验从三系统升级为四系统同向校验。
 - 复用 iztro ESM（visual 与 MCP 端均可用），零新依赖。
 
+### 2026-07-14 续：月度运势切片（年-月两级运势）
+
+把年度运势细化到月，补齐「年-月」两级运势切片：
+- 新增 `comboEngine.calcMonthlyFortuneCombo` + MCP `combo_monthly_fortune`：流月干支（lunar-javascript 月柱，月支冲命主生肖→凶）+ 五运六气客气步（currentMonth=targetMonth）+ 节气调养（queryJieqiWellness + 体质加减）+ 紫微流月（iztro horoscope monthly 字段，化忌入命→凶/化禄入命→吉）四维度。
+- `getZiweiHoroscopeSummary` 扩展 monthly 字段（流月天干地支+四化）。
+- `ComboWorkspace` 新增「月度运势」入口 + 年/月/体质输入 + 月度维度卡片。
+- MCP `dispatch.ts` 加 `combo_monthly_fortune` 路由（月度运势/本月运势/流月运势等）+ `extractTargetMonth`/`extractTargetYear`（排除生辰年份月份干扰）。
+- 工具总数：21 计算 + 2 元工具 = 23。
+
 ### 验证
 
 - visual 单元 + e2e + mcp-server 测试全过（visual 229 + mcp-server 70 ≈ 299 项）。

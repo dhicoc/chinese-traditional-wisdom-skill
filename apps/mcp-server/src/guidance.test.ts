@@ -23,9 +23,9 @@ describe('agent_guidance 参数引导', () => {
     expect(getToolGuidance('nonexistent')).toBeNull();
   });
 
-  it('listToolGuidance 返回 20 个工具摘要', () => {
+  it('listToolGuidance 返回 21 个工具摘要', () => {
     const list = listToolGuidance();
-    expect(list.length).toBe(20);
+    expect(list.length).toBe(21);
     list.forEach((g) => {
       expect(g.tool).toMatch(/^[a-z_]+$/);
       expect(g.purpose).toBeTruthy();
@@ -126,6 +126,16 @@ describe('wisdom_dispatch 意图路由', () => {
     expect(args.purpose).toBe('搬家');
     expect(args.startDate).toBe('2026-08-01');
     expect(args.endDate).toBe('2026-08-31');
+  });
+
+  it('月度运势 → combo_monthly_fortune 提取年份+月份', () => {
+    const r = dispatchIntent('1990年6月15日12时男，看2026年8月月度运势');
+    expect(r.hit).toBe(true);
+    expect(r.tool).toBe('combo_monthly_fortune');
+    const args = r.arguments as { birth: { year: number }; targetYear: number; targetMonth: number };
+    expect(args.birth.year).toBe(1990);
+    expect(args.targetYear).toBe(2026);
+    expect(args.targetMonth).toBe(8);
   });
 
   it('紫微排盘 → ziwei_chart', () => {

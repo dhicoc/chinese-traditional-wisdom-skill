@@ -5,7 +5,7 @@ import type { ToolEnvelope } from '../../visual/src/legacy/baseTypes';
 /**
  * MCP 工具端到端测试（handler 层）。
  * 直接调每个 TOOLS handler，验证返回有效 ToolEnvelope。
- * 覆盖全部 20 个工具。
+ * 覆盖全部 21 个工具。
  */
 
 /** 校验 ToolEnvelope 必填字段 */
@@ -41,8 +41,8 @@ function findTool(name: string) {
 }
 
 describe('MCP TOOLS 注册完整性', () => {
-  it('注册了 20 个工具', () => {
-    expect(TOOLS.length).toBe(20);
+  it('注册了 21 个工具', () => {
+    expect(TOOLS.length).toBe(21);
   });
 
   it('所有工具有 name/description/schema/handler', () => {
@@ -428,5 +428,31 @@ describe('combo_zeri', () => {
     const e = expectValidEnvelope(env);
     const data = e.data as { rankedDays: unknown[] };
     expect(data.rankedDays.length).toBeLessThanOrEqual(3);
+  });
+});
+
+describe('combo_monthly_fortune', () => {
+  it('返回含流月干支+四维度的月度运势 envelope', () => {
+    const t = findTool('combo_monthly_fortune');
+    const env = t.handler({
+      birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      targetYear: 2026,
+      targetMonth: 8,
+    });
+    const e = expectValidEnvelope(env);
+    const data = e.data as {
+      comboName: string;
+      context: { year: number; month: number; monthGanZhi: string; jieqi: string };
+      subsystems: Array<{ name: string }>;
+      export_snapshot: { summary: string; sections: Array<{ heading: string }> };
+    };
+    expect(data.comboName).toBe('月度运势');
+    expect(data.context.year).toBe(2026);
+    expect(data.context.month).toBe(8);
+    expect(data.context.monthGanZhi).toBeTruthy();
+    expect(data.subsystems.map((s) => s.name)).toEqual(['流月干支', '五运六气', '节气调养', '紫微流月']);
+    expect(data.export_snapshot.summary).toContain('2026');
+    expect(data.export_snapshot.summary).toContain('8月');
+    expect(data.export_snapshot.sections.some((s) => s.heading === '流月干支')).toBe(true);
   });
 });

@@ -154,6 +154,18 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'purpose', 'startDate', 'endDate'],
     workflow: '确认生辰 + 用途 + 日期区间 → 调 combo_zeri → 看 Top-N 吉日（评分+理由）+ 吉时 + 本年凶方规避 + 命卦吉方借力。动土/安葬用途已自动剔除犯太岁岁破日。',
   },
+  combo_monthly_fortune: {
+    tool: 'combo_monthly_fortune',
+    purpose: '月度运势切片：流月干支+五运六气客气步+节气调养+紫微流月。需生辰 + 年份 + 月份。',
+    requiredParams: [
+      ...BIRTH_PARAMS,
+      { name: 'targetYear', required: true, description: '欲测年份', promptToUser: '请给出欲测年份（如 2026）。' },
+      { name: 'targetMonth', required: true, description: '欲测月份（1-12）', promptToUser: '请给出欲测月份（1-12）。' },
+    ],
+    safeDefaults: { birth: { minute: 0, gender: '男' } },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'targetYear', 'targetMonth'],
+    workflow: '确认生辰 + 年份 + 月份 → （可选）问体质传 constitution → 调 combo_monthly_fortune → 看流月干支+客气步+节气调养+紫微流月四维度 + 本月建议。',
+  },
   cast_meihua: {
     tool: 'cast_meihua',
     purpose: '梅花易数：时间起卦需生辰，数字起卦需两个数字。',

@@ -40,6 +40,7 @@ const ROUTE_RULES: RouteRule[] = [
   { tool: 'combo_daily_wellness', keywords: ['今日养生', '今天养生', '每日养生', '养生建议', '节气养生', '现在适合做什么', '当下养生', '今日调养', '一天养生'], priority: 96 },
   { tool: 'combo_space_time', keywords: ['风水布局', '布局建议', '空间布局', '综合布局', '主卧财位', '办公室布局'], priority: 95 },
   { tool: 'combo_zeri', keywords: ['择日', '择吉', '择吉日', '选日子', '选个好日子', '好日子', '黄道吉日', '开业吉日', '结婚吉日', '搬家吉日', '动土吉日', '找个好日子', '哪天适合', '哪天好'], priority: 96 },
+  { tool: 'combo_monthly_fortune', keywords: ['月度运势', '某月运势', '这个月运势', '下个月运势', '本月运势', '月运', '流月运势', '月运势'], priority: 94 },
   { tool: 'dream_interpret', keywords: ['梦见', '做梦', '梦境', '梦到', '解梦', '周公'], priority: 90 },
   { tool: 'analyze_name', keywords: ['姓名', '起名', '取名', '名字', '打分', '改名', '测名'], priority: 85 },
   { tool: 'ziwei_chart', keywords: ['紫微', '紫微斗数', '命盘', '主星', '十二宫', '斗数'], priority: 80 },
@@ -114,6 +115,30 @@ function extractQuestion(text: string): string | undefined {
   // 去掉命理关键词后剩下的当作事项
   const cleaned = text.replace(/(?:帮我|请帮|想|问|测|看|查|算|今年|我|的|了|吗|呢|啊|呀|。|，|！|？)/g, '').trim();
   return cleaned.length > 0 ? cleaned.slice(0, 50) : undefined;
+}
+
+/** 从文本提取目标月份（1-12）：取所有「M月」中与出生月份不同的，否则取第一个。
+ *  避免把生辰「1990年6月15日」里的「6月」误当目标月。 */
+function extractTargetMonth(text: string, birthMonth?: number): number | undefined {
+  const matches = text.match(/(\d{1,2})\s*月/g);
+  if (!matches || matches.length === 0) return undefined;
+  const months = matches.map((m) => Number(m.match(/(\d{1,2})/)![1])).filter((n) => n >= 1 && n <= 12);
+  if (months.length === 0) return undefined;
+  // 优先取与出生月不同的
+  const diff = months.filter((m) => m !== birthMonth);
+  if (diff.length > 0) return diff[diff.length - 1];
+  return months[months.length - 1];
+}
+
+/** 从文本提取目标年份：取所有「XXXX年」中与出生年不同的，否则取最后一个。 */
+function extractTargetYear(text: string, birthYear?: number): number | undefined {
+  const matches = text.match(/(\d{4})\s*年/g);
+  if (!matches || matches.length === 0) return undefined;
+  const years = matches.map((m) => Number(m.match(/(\d{4})/)![1])).filter((n) => n >= 1900 && n <= 2100);
+  if (years.length === 0) return undefined;
+  const diff = years.filter((y) => y !== birthYear);
+  if (diff.length > 0) return diff[diff.length - 1];
+  return years[years.length - 1];
 }
 
 /** 从文本提取择日用途（八种） */
@@ -206,6 +231,8 @@ export function dispatchIntent(text: string): DispatchResult {
   const question = extractQuestion(text);
   const zeriPurpose = extractZeriPurpose(text);
   const dateRange = extractDateRange(text);
+  const targetMonth = extractTargetMonth(text, birth.birth ? birth.birth.month as number : undefined);
+  const targetYearExplicit = extractTargetYear(text, birth.birth ? birth.birth.year as number : undefined);
 
   // 按工具组装参数
   let args: Record<string, unknown> = {};
@@ -240,6 +267,14 @@ export function dispatchIntent(text: string): DispatchResult {
       if (zeriPurpose) args.purpose = zeriPurpose;
       if (dateRange.startDate) args.startDate = dateRange.startDate;
       if (dateRange.endDate) args.endDate = dateRange.endDate;
+      break;
+    }
+    case 'combo_monthly_fortune': {
+      if (birth.birth) args.birth = birth.birth;
+      if (targetYearExplicit) args.targetYear = targetYearExplicit;
+      if (targetMonth) args.targetMonth = targetMonth;
+      const c = extractConstitution(text);
+      if (c) args.constitution = c;
       break;
     }
     case 'cast_meihua':

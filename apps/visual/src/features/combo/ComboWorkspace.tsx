@@ -14,10 +14,12 @@ import {
   calcSanshiClassicCombo,
   calcDailyWellnessCombo,
   calcZeriCombo,
+  calcMonthlyFortuneCombo,
   type ComboResult,
   type DailyWellnessResult,
   type ZeriResult,
   type ZeriPurpose,
+  type MonthlyFortuneResult,
 } from '@/legacy/comboEngine';
 import { DALIUREN_SCHOOLS, type DaliurenSchool } from '@/legacy/daliurenEngine';
 import { QUESTIONNAIRE } from '@/legacy/constitutionQuestionnaire';
@@ -37,7 +39,7 @@ import type { ToolEnvelope } from '@/legacy/baseTypes';
  * 用全局生辰调对应 combo 函数，结果用 FourLayerReport 四层渲染 + 子系统卡片 + 一致性徽章。
  */
 
-type ComboType = 'annual' | 'decision' | 'space' | 'sanshi' | 'sanshi-classic' | 'wellness' | 'zeri';
+type ComboType = 'annual' | 'monthly' | 'decision' | 'space' | 'sanshi' | 'sanshi-classic' | 'wellness' | 'zeri';
 
 const COMBO_OPTIONS: Array<{
   key: ComboType;
@@ -45,7 +47,8 @@ const COMBO_OPTIONS: Array<{
   desc: string;
   icon: string;
 }> = [
-  { key: 'annual', label: '年度综合运势', desc: '八字 + 五运六气 + 奇门 + 命卦方位', icon: '运' },
+  { key: 'annual', label: '年度综合运势', desc: '八字 + 五运六气 + 奇门 + 紫微流年 + 命卦方位', icon: '运' },
+  { key: 'monthly', label: '月度运势', desc: '流月干支 + 五运六气 + 节气 + 紫微流月', icon: '月' },
   { key: 'decision', label: '事件决策', desc: '六爻 + 梅花 + 奇门 三卜交叉验证', icon: '决' },
   { key: 'space', label: '空间 + 时间', desc: '飞星 + 八宅命卦 + 奇门吉方布局', icon: '堪' },
   { key: 'sanshi', label: '三式互参', desc: '大六壬 + 奇门 + 梅花 传统三式', icon: '式' },
@@ -78,6 +81,7 @@ export function ComboWorkspace() {
   const [comboType, setComboType] = useState<ComboType>('wellness');
   const [question, setQuestion] = useState('今年整体运势如何？');
   const [targetYear, setTargetYear] = useState<number>(solarBirth.year);
+  const [targetMonth, setTargetMonth] = useState<number>(new Date().getMonth() + 1);
   const [liurenSchool, setLiurenSchool] = useState<DaliurenSchool>('classic');
   const [constitution, setConstitution] = useState<string>('');
   const [zeriPurpose, setZeriPurpose] = useState<ZeriPurpose>('开业');
@@ -85,7 +89,7 @@ export function ComboWorkspace() {
   const [zeriEnd, setZeriEnd] = useState<string>(shiftStr(todayStr(), 30));
   const [zeriTopN, setZeriTopN] = useState<number>(5);
 
-  const result = useMemo<{ envelope: ToolEnvelope<ComboResult | DailyWellnessResult | ZeriResult> | null; loading: boolean }>(() => {
+  const result = useMemo<{ envelope: ToolEnvelope<ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult> | null; loading: boolean }>(() => {
     const solar = getSolarEntry() ?? null;
     const birthInput = {
       year: solarBirth.year, month: solarBirth.month, day: solarBirth.day,
@@ -94,6 +98,18 @@ export function ComboWorkspace() {
     try {
       if (comboType === 'annual') {
         return { envelope: calcAnnualFortuneCombo({ birth: birthInput, targetYear, solar, currentMonth: new Date().getMonth() + 1 }) as ToolEnvelope<ComboResult>, loading: false };
+      }
+      if (comboType === 'monthly') {
+        return {
+          envelope: calcMonthlyFortuneCombo({
+            birth: birthInput,
+            targetYear,
+            targetMonth,
+            constitution: constitution || undefined,
+            solar,
+          }) as ToolEnvelope<MonthlyFortuneResult>,
+          loading: false,
+        };
       }
       if (comboType === 'decision') {
         return { envelope: calcDecisionCombo({ birth: birthInput, question, solar }) as ToolEnvelope<ComboResult>, loading: false };
@@ -134,14 +150,14 @@ export function ComboWorkspace() {
     } catch {
       return { envelope: null, loading: false };
     }
-  }, [comboType, solarBirth, question, targetYear, liurenSchool, constitution, zeriPurpose, zeriStart, zeriEnd, zeriTopN]);
+  }, [comboType, solarBirth, question, targetYear, targetMonth, liurenSchool, constitution, zeriPurpose, zeriStart, zeriEnd, zeriTopN]);
 
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!result.envelope) return null;
     return toFourLayer(result.envelope.data.export_snapshot as ReadingLike);
   }, [result.envelope]);
 
-  const data = result.envelope?.data as (ComboResult | DailyWellnessResult | ZeriResult) | undefined;
+  const data = result.envelope?.data as (ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult) | undefined;
   const birthSummary = `${solarBirth.year}-${String(solarBirth.month).padStart(2, '0')}-${String(solarBirth.day).padStart(2, '0')} ${String(solarBirth.hour).padStart(2, '0')}:00 ${solarBirth.gender}`;
 
   return (
@@ -209,6 +225,46 @@ export function ComboWorkspace() {
                 className="w-24 rounded-lg border border-jade-500/20 bg-ink-900/80 px-2 py-1 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
               />
             </label>
+          )}
+          {comboType === 'monthly' && (
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+              <label className="flex items-center gap-2 text-jade-100/70">
+                <span className="text-jade-100/55">欲测年份</span>
+                <input
+                  type="number"
+                  min={1900}
+                  max={2100}
+                  value={targetYear}
+                  onChange={(e) => setTargetYear(Number(e.target.value) || solarBirth.year)}
+                  className="w-24 rounded-lg border border-jade-500/20 bg-ink-900/80 px-2 py-1 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
+                />
+              </label>
+              <label className="flex items-center gap-2 text-jade-100/70">
+                <span className="text-jade-100/55">月份</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={12}
+                  value={targetMonth}
+                  onChange={(e) => setTargetMonth(Math.max(1, Math.min(12, Number(e.target.value) || 1)))}
+                  className="w-16 rounded-lg border border-jade-500/20 bg-ink-900/80 px-2 py-1 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-sm sm:min-w-[220px] sm:flex-1">
+                <span className="text-jade-100/55">体质（可选，节气调养针对性加减）</span>
+                <select
+                  value={comboType === 'monthly' ? constitution : ''}
+                  onChange={(e) => setConstitution(e.target.value)}
+                  className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+                >
+                  <option value="">通用节气调养（不区分体质）</option>
+                  {QUESTIONNAIRE.map((g) => (
+                    <option key={g.type} value={g.type}>{g.type}（{g.direction}）</option>
+                  ))}
+                  <option value="平和质">平和质（阴阳气血调和）</option>
+                </select>
+              </label>
+            </div>
           )}
           {(comboType === 'decision' || comboType === 'sanshi' || comboType === 'sanshi-classic') && (
             <label className="flex flex-col gap-1 text-sm">
@@ -312,7 +368,7 @@ export function ComboWorkspace() {
       )}
       {!result.loading && data && fourLayer && (
         <div className="space-y-4">
-          {/* 子系统卡片（wellness 无一致性检验，走养生维度展示；zeri 走吉日列表） */}
+          {/* 子系统卡片（wellness/monthly 无一致性检验，走维度展示；zeri 走吉日列表） */}
           {comboType === 'zeri' ? (
             <ZeriDayList data={data as ZeriResult} />
           ) : comboType === 'wellness' ? (
@@ -322,6 +378,20 @@ export function ComboWorkspace() {
             >
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                 {(data as DailyWellnessResult).subsystems.map((s) => (
+                  <div key={s.name} className="rounded-card border border-jade-500/20 bg-jade-500/5 px-3 py-2">
+                    <span className="text-xs font-medium text-jade-300">{s.name}</span>
+                    <p className="mt-1 text-[11px] leading-4 text-jade-100/60">{s.summary}</p>
+                  </div>
+                ))}
+              </div>
+            </InterpretationCard>
+          ) : comboType === 'monthly' ? (
+            <InterpretationCard
+              title={`月度维度 · ${(data as MonthlyFortuneResult).context.year}年${(data as MonthlyFortuneResult).context.month}月`}
+              subtitle={`流月${(data as MonthlyFortuneResult).context.monthGanZhi} · 节气${(data as MonthlyFortuneResult).context.jieqi}`}
+            >
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                {(data as MonthlyFortuneResult).subsystems.map((s) => (
                   <div key={s.name} className="rounded-card border border-jade-500/20 bg-jade-500/5 px-3 py-2">
                     <span className="text-xs font-medium text-jade-300">{s.name}</span>
                     <p className="mt-1 text-[11px] leading-4 text-jade-100/60">{s.summary}</p>
@@ -379,7 +449,8 @@ export function ComboWorkspace() {
                 birth: { year: solarBirth.year, gender: solarBirth.gender },
                 targetYear: comboType !== 'decision' ? targetYear : undefined,
                 question: (comboType === 'decision' || comboType === 'sanshi' || comboType === 'sanshi-classic') ? question : undefined,
-                constitution: comboType === 'wellness' ? constitution || undefined : undefined,
+                constitution: (comboType === 'wellness' || comboType === 'monthly') ? constitution || undefined : undefined,
+                targetMonth: comboType === 'monthly' ? (data as MonthlyFortuneResult).context.month : undefined,
                 synthesis: data.synthesis,
                 ...(comboType === 'zeri' ? {
                   zeriPurpose: (data as ZeriResult).zeriPurpose,
@@ -388,9 +459,11 @@ export function ComboWorkspace() {
                     date: d.date, lunarDate: d.lunarDate, dayGanZhi: d.dayGanZhi, score: d.score, tone: d.tone, reasons: d.reasons,
                   })),
                   annualSha: (data as ZeriResult).annualSha,
-                } : comboType === 'wellness' ? {} : { consistency: (data as ComboResult).consistency }),
+                } : (comboType === 'wellness' || comboType === 'monthly') ? {} : { consistency: (data as ComboResult).consistency }),
                 ...(comboType === 'zeri' ? {} : {
-                  subsystems: (comboType === 'wellness' ? (data as DailyWellnessResult).subsystems : (data as ComboResult).subsystems).map((s) => ({
+                  subsystems: (comboType === 'wellness' ? (data as DailyWellnessResult).subsystems
+                    : comboType === 'monthly' ? (data as MonthlyFortuneResult).subsystems
+                    : (data as ComboResult).subsystems).map((s) => ({
                     name: s.name,
                     tone: (s as { tone?: string }).tone,
                     summary: s.summary,

@@ -70,9 +70,9 @@ ToolEnvelope<TData> = { ok, tool, version, input_normalized, data: TData & { exp
 
 > `apps/mcp-server/`：薄壳包装上述 enveloped 引擎为 MCP 工具，供 Claude Code/Desktop/Cursor/Cline 调用。无计算逻辑，import 纯 TS 引擎。
 
-**22 个 MCP 工具**（20 计算 + 2 元工具）：
+**23 个 MCP 工具**（21 计算 + 2 元工具）：
 - 排盘计算（13）：`bazi_calculate` / `ziwei_chart` / `cast_liuyao` / `arrange_qimen` / `liuren_calculate` / `xingxiu_daily` / `taiyi_calculate` / `cast_meihua` / `calc_yunqi` / `analyze_name` / `calc_xiyong` / `get_constitution_tendency` / `dream_interpret`
-- 跨系统联合分析（7）：`combo_annual_fortune` / `combo_decision` / `combo_space_time` / `combo_sanshi` / `combo_sanshi_classic` / `combo_daily_wellness` / `combo_zeri`
+- 跨系统联合分析（8）：`combo_annual_fortune` / `combo_monthly_fortune` / `combo_decision` / `combo_space_time` / `combo_sanshi` / `combo_sanshi_classic` / `combo_daily_wellness` / `combo_zeri`
 - 元工具（2）：`agent_guidance`（参数引导防瞎猜）+ `wisdom_dispatch`（自然语言意图路由）
 
 **一键自动配置**（无需手动编辑 JSON）：

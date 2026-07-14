@@ -1,7 +1,7 @@
 /**
  * tools.ts — MCP 工具定义
  *
- * 把 apps/visual/src/legacy 的 20 个 enveloped 引擎各包成一个 MCP 工具。
+ * 把 apps/visual/src/legacy 的 21 个 enveloped 引擎各包成一个 MCP 工具。
  * 每个工具：name + description + zod input schema + handler 返回 ToolEnvelope。
  *
  * 需要精确历法的工具（bazi/yunqi/liuyao/meihua）传入 lunar-javascript 的 Solar 入口；
@@ -22,7 +22,7 @@ import { calcQimenEnveloped } from '../../visual/src/legacy/qimenEngine';
 import { calcDaliurenEnveloped } from '../../visual/src/legacy/daliurenEngine';
 import { calcXingXiuEnveloped } from '../../visual/src/legacy/xingxiuEngine';
 import { calcTaiyiEnveloped } from '../../visual/src/legacy/taiyiEngine';
-import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo, calcSanshiCombo, calcSanshiClassicCombo, calcDailyWellnessCombo, calcZeriCombo } from '../../visual/src/legacy/comboEngine';
+import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo, calcSanshiCombo, calcSanshiClassicCombo, calcDailyWellnessCombo, calcZeriCombo, calcMonthlyFortuneCombo } from '../../visual/src/legacy/comboEngine';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
 const solarEntry: unknown = (() => {
@@ -301,6 +301,23 @@ export const TOOLS: ToolDef[] = [
       endDate: (i as { endDate: string }).endDate,
       targetYear: (i as { targetYear?: number }).targetYear,
       topN: (i as { topN?: number }).topN,
+      solar: solarEntry,
+    }),
+  },
+  {
+    name: 'combo_monthly_fortune',
+    description: '月度运势切片：流月干支 + 五运六气客气步 + 节气调养 + 紫微流月。把年度运势细化到月，形成年-月两级运势。流月干支取 lunar-javascript 月柱（月支冲命主生肖→凶倾向），五运六气取该月客气步，节气调养取该月所处节气+体质针对性加减，紫微流月取 iztro 流月四化（化忌入命→凶，化禄入命→吉）。输出整合结论+四维度+本月建议。',
+    schema: z.object({
+      birth: birthSchema,
+      targetYear: z.number().int().min(1900).max(2100).describe('欲测年份'),
+      targetMonth: z.number().int().min(1).max(12).describe('欲测月份（1-12）'),
+      constitution: z.string().optional().describe('体质类型（节气调养针对性加减；不传则按通用节气调养）'),
+    }),
+    handler: (i) => calcMonthlyFortuneCombo({
+      birth: (i as { birth: unknown }).birth as never,
+      targetYear: (i as { targetYear: number }).targetYear,
+      targetMonth: (i as { targetMonth: number }).targetMonth,
+      constitution: (i as { constitution?: string }).constitution,
       solar: solarEntry,
     }),
   },

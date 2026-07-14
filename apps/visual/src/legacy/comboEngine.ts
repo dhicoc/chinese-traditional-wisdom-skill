@@ -1144,3 +1144,178 @@ export function calcZeriCombo(input: ZeriComboInput): ToolEnvelope<ZeriResult> {
     warnings,
   };
 }
+
+// ─── Combo 7: 月度运势（流月干支 + 五运六气客气步 + 节气调养 + 紫微流月）───
+
+export interface MonthlyFortuneComboInput {
+  birth: BirthInput;
+  /** 欲测年份 */
+  targetYear: number;
+  /** 欲测月份（1-12） */
+  targetMonth: number;
+  solar?: SolarLike | null;
+  /** 体质（节气调养针对性加减，可选） */
+  constitution?: string;
+}
+
+/** 月度运势结果 */
+export interface MonthlyFortuneResult {
+  comboName: string;
+  purpose: string;
+  inputs: Record<string, unknown>;
+  /** 月份上下文 */
+  context: { year: number; month: number; monthGanZhi: string; jieqi: string };
+  /** 各维度子系统 */
+  subsystems: WellnessSubsystem[];
+  /** 整合结论 */
+  synthesis: string;
+  /** 综合建议 */
+  recommendations: { label: string; value: string; tone: Tone }[];
+  export_snapshot: ExportSnapshot;
+  engineName: string;
+  mode: string;
+  confidenceNote: string;
+}
+
+/** 月支冲命主生肖（地支六冲） */
+const ZHI_CHONG: Record<string, string> = {
+  子: '午', 丑: '未', 寅: '申', 卯: '酉', 辰: '戌', 巳: '亥',
+  午: '子', 未: '丑', 申: '寅', 酉: '卯', 戌: '辰', 亥: '巳',
+};
+
+/**
+ * 月度运势 = 流月干支 + 五运六气客气步 + 节气调养 + 紫微流月
+ * 把年度运势细化到月，形成「年-月」两级运势切片。
+ * - 流月干支：lunar-javascript 取目标月月柱，月支冲命主生肖→凶倾向。
+ * - 五运六气：该月所处客气步（currentMonth=targetMonth）。
+ * - 节气调养：该月所处节气（queryJieqiWellness）+ 体质针对性加减。
+ * - 紫微流月：iztro horoscope monthly 字段，流月四化（化忌入命→凶，化禄入命→吉）。
+ */
+export function calcMonthlyFortuneCombo(input: MonthlyFortuneComboInput): ToolEnvelope<MonthlyFortuneResult> {
+  const { birth, solar, constitution } = input;
+  const { targetYear, targetMonth } = input;
+
+  // 流月干支：solar.fromYmd 取月柱
+  const solarEntry = (solar ?? null) as { fromYmd?: (y: number, mo: number, d: number) => { getLunar(): { getMonthInGanZhi?: () => string; getJieQiTable?: () => Record<string, unknown> } } } | null;
+  let monthGanZhi = '未知';
+  let jieQiTable: Record<string, unknown> | undefined;
+  try {
+    if (solarEntry?.fromYmd) {
+      const lunar = solarEntry.fromYmd(targetYear, targetMonth, 15).getLunar();
+      if (typeof lunar.getMonthInGanZhi === 'function') monthGanZhi = lunar.getMonthInGanZhi();
+      if (typeof lunar.getJieQiTable === 'function') jieQiTable = lunar.getJieQiTable();
+    }
+  } catch {
+    /* 精确历法不可用，月柱取近似 */
+  }
+  // 近似月支：从月数推（寅月正月起）
+  if (monthGanZhi === '未知') {
+    const approxBranch = ['寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '子', '丑'][(targetMonth + 10) % 12];
+    monthGanZhi = `?${approxBranch}`;
+  }
+  const monthBranch = monthGanZhi.slice(-1);
+
+  // 命主生肖地支
+  const ownerZhiIndex = ((birth.year - 4) % 12 + 12) % 12;
+  const ownerZhi = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'][ownerZhiIndex];
+  const monthChongOwner = ownerZhi ? ZHI_CHONG[monthBranch] === ownerZhi : false;
+  const liuyueTone: Tone = monthChongOwner ? '凶' : '中';
+
+  // 五运六气：该月客气步
+  const yunqiEnv = calcYunqiEnveloped({ year: targetYear, birthMonth: birth.month, birthDay: birth.day, solar: (solar ?? null) as never, currentMonth: targetMonth });
+  const yunqiData = yunqiEnv.data as { current_step?: { step: string; qi: string; zhuqi: string } | null; export_snapshot?: { summary?: string } };
+  const keqiStep = yunqiData.current_step;
+  const yunqiTone = toneFromEnvelope(yunqiEnv);
+
+  // 节气调养
+  const jieqiQuery = queryJieqiWellness({ year: targetYear, month: targetMonth, day: 15 }, constitution || undefined, jieQiTable);
+
+  // 紫微流月
+  const ziweiSummary = getZiweiHoroscopeSummary(
+    { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, gender: birth.gender as '男' | '女' },
+    targetYear,
+    targetMonth,
+  );
+  let ziweiMonthlyTone: Tone = '中';
+  if (ziweiSummary.available) {
+    const jiStar = ziweiSummary.monthly.mutagen[3] ?? '';
+    const luStar = ziweiSummary.monthly.mutagen[0] ?? '';
+    if (jiStar && ziweiSummary.mingMainStars.includes(jiStar)) ziweiMonthlyTone = '凶';
+    else if (luStar && ziweiSummary.mingMainStars.includes(luStar)) ziweiMonthlyTone = '吉';
+  }
+
+  const subsystems: WellnessSubsystem[] = [
+    { name: '流月干支', summary: `${targetYear}年${targetMonth}月流月${monthGanZhi}（月支${monthBranch}）${monthChongOwner ? '冲命主生肖，月运偏滞' : '与命主无冲'}。` },
+    { name: '五运六气', summary: keqiStep ? `该月处「${keqiStep.step}」（客气${keqiStep.qi}，主气${keqiStep.zhuqi}）。${yunqiData.export_snapshot?.summary ?? ''}` : (yunqiData.export_snapshot?.summary ?? '客气步数据不可用') },
+    { name: '节气调养', summary: `${jieqiQuery.jieqi}（${jieqiQuery.wellness.season}季）：${jieqiQuery.wellness.principle}。饮食${jieqiQuery.wellness.diet}。` },
+    { name: '紫微流月', summary: ziweiSummary.available ? `流月${ziweiSummary.monthly.stem}${ziweiSummary.monthly.branch}，流月四化${ziweiSummary.monthly.mutagen.join('、') || '无'}。` : '紫微流月数据不可用。' },
+  ];
+
+  const tones: Tone[] = [liuyueTone, yunqiTone, '中', ziweiMonthlyTone];
+  const ji = tones.filter((t) => t === '吉').length;
+  const xiong = tones.filter((t) => t === '凶').length;
+  const aligned = ji === 0 || xiong === 0;
+
+  const synthesis = `${targetYear}年${targetMonth}月（流月${monthGanZhi}）月度运势：` +
+    `流月${monthChongOwner ? '冲命主偏滞' : '平稳'}、五运六气${toneWord(yunqiTone)}、紫微流月${toneWord(ziweiMonthlyTone)}。` +
+    `当月节气${jieqiQuery.jieqi}，宜「${jieqiQuery.wellness.principle}」。` +
+    (aligned ? '各维度方向基本一致。' : '各维度有分歧，宜权衡。');
+
+  const recommendations: MonthlyFortuneResult['recommendations'] = [
+    { label: '节气饮食', value: jieqiQuery.wellness.diet, tone: '中' },
+    { label: '节气起居', value: jieqiQuery.wellness.lifestyle, tone: '中' },
+    { label: '节气运动', value: jieqiQuery.wellness.exercise, tone: '中' },
+  ];
+  if (monthChongOwner) {
+    recommendations.push({ label: '流月冲命', value: `本月月支${monthBranch}冲命主生肖${ownerZhi}，重要事项宜稳、防破耗与人际摩擦。`, tone: '凶' });
+  }
+  if (ziweiSummary.available && ziweiSummary.monthly.mutagen[3]) {
+    const jiStar = ziweiSummary.monthly.mutagen[3];
+    recommendations.push({ label: '流月化忌', value: `流月${jiStar}化忌${ziweiSummary.mingMainStars.includes(jiStar) ? '入命宫' : ''}，与${jiStar}相关事项宜谨慎。`, tone: ziweiMonthlyTone === '凶' ? '凶' : '中' });
+  }
+  if (keqiStep) {
+    recommendations.push({ label: '运气养生', value: `当月客气${keqiStep.qi}加临主气${keqiStep.zhuqi}，注意${keqiStep.qi}所致病势倾向的调护。`, tone: yunqiTone === '凶' ? '凶' : '中' });
+  }
+  recommendations.push({ label: '理性提示', value: '月度运势为流月干支+五运六气+节气+紫微流月的多维度参考，非绝对预言。', tone: '中' });
+
+  const snapshot: ExportSnapshot = {
+    summary: synthesis,
+    tags: ['月度运势', `${targetYear}年${targetMonth}月`, `流月${monthGanZhi}`, jieqiQuery.jieqi],
+    sections: [
+      { heading: '整合结论', body: synthesis },
+      { heading: '流月干支', body: subsystems[0].summary },
+      { heading: '五运六气', body: subsystems[1].summary },
+      { heading: '节气调养', body: `${jieqiQuery.jieqi}（${jieqiQuery.wellness.season}季）。调养总则：${jieqiQuery.wellness.principle}。饮食：${jieqiQuery.wellness.diet}。起居：${jieqiQuery.wellness.lifestyle}。运动：${jieqiQuery.wellness.exercise}。穴位：${jieqiQuery.wellness.acupoints}。` },
+      { heading: '紫微流月', body: subsystems[3].summary },
+      { heading: '本月建议', body: recommendations.map((r) => `【${r.label}】${r.value}`).join('\n') },
+    ],
+    sourceNotes: '月度运势为多维度聚合参考，民俗传统，非决策绝对依据。',
+  };
+
+  const result: MonthlyFortuneResult = {
+    comboName: '月度运势',
+    purpose: '流月干支+五运六气客气步+节气调养+紫微流月 联合推算某月运势切片',
+    inputs: { birth: { year: birth.year, gender: birth.gender }, targetYear, targetMonth, constitution: constitution || undefined },
+    context: { year: targetYear, month: targetMonth, monthGanZhi, jieqi: jieqiQuery.jieqi },
+    subsystems,
+    synthesis,
+    recommendations,
+    export_snapshot: snapshot,
+    engineName: 'MonthlyFortuneComboEngine',
+    mode: solarEntry?.fromYmd ? 'local-exact' : 'local-approx',
+    confidenceNote: snapshot.sourceNotes!,
+  };
+
+  const warnings: string[] = [result.confidenceNote];
+  if (!solarEntry?.fromYmd) warnings.push('未传入精确历法入口，流月干支取近似，节气查表走近似');
+  if (!ziweiSummary.available) warnings.push('iztro 流月数据不可用，紫微流月维度降级为占位');
+
+  return {
+    ok: true,
+    tool: result.engineName,
+    version: '0.1.0',
+    input_normalized: input as unknown as Record<string, unknown>,
+    data: result,
+    warnings,
+  };
+}
