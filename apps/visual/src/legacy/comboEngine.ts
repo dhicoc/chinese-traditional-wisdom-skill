@@ -191,15 +191,15 @@ export function calcAnnualFortuneCombo(input: AnnualFortuneComboInput): ToolEnve
   const auspiciousDirs = personalDirs?.auspicious.map((d) => `${d.star}在${d.direction}`).join('、') ?? '未知';
 
   const synthesis = `${targetYear}年综合运势：八字${toneWord(subsystems[0].tone)}、五运六气${toneWord(subsystems[1].tone)}、奇门年盘${toneWord(subsystems[2].tone)}、紫微流年${toneWord(subsystems[3].tone)}。` +
-    (consistency.aligned ? `四系统方向基本一致，置信度${consistency.confidence}。` : `四系统有分歧：${consistency.conflicts.join('；')}。`) +
+    (consistency.aligned ? `四种术数看法基本一致，结论较稳。` : `四种术数看法有出入：${consistency.conflicts.join('；')}。`) +
     `命卦${mingGua.trigram}（${mingGua.group}），本年吉方：${auspiciousDirs}。`;
 
   const recommendations: ComboResult['recommendations'] = [];
   if (subsystems[0].tone === '吉' || subsystems[1].tone === '吉') {
-    recommendations.push({ label: '整体进取', value: '多系统显示有利，宜把握机遇、主动推进。', tone: '吉' });
+    recommendations.push({ label: '整体进取', value: '多种术数显示有利，宜把握机遇、主动推进。', tone: '吉' });
   }
   if (subsystems.some((s) => s.tone === '凶')) {
-    recommendations.push({ label: '稳妥防守', value: '部分系统示警，宜保守、避免大举冒进，注意健康与人际。', tone: '凶' });
+    recommendations.push({ label: '稳妥防守', value: '部分术数示警，宜保守、避免大举冒进，注意健康与人际。', tone: '凶' });
   }
   if (ziweiSummary.available && ziweiSummary.yearlyJiStar) {
     recommendations.push({
@@ -212,7 +212,7 @@ export function calcAnnualFortuneCombo(input: AnnualFortuneComboInput): ToolEnve
 
   const snapshot: ExportSnapshot = {
     summary: synthesis,
-    tags: ['年度综合运势', String(targetYear) + '年', `置信度${consistency.confidence}`],
+    tags: ['年度综合运势', String(targetYear) + '年'],
     sections: [
       { heading: '整合结论', body: synthesis },
       { heading: '八字维度', body: subsystems[0].summary },
@@ -220,7 +220,7 @@ export function calcAnnualFortuneCombo(input: AnnualFortuneComboInput): ToolEnve
       { heading: '奇门年盘维度', body: subsystems[2].summary },
       { heading: '紫微流年维度', body: subsystems[3].summary },
       { heading: '命卦方位', body: `命卦${mingGua.trigram}（${mingGua.group}），吉方：${auspiciousDirs}。` },
-      { heading: '一致性检验', body: consistency.aligned ? `四系统同向，置信度${consistency.confidence}。` : `有分歧：${consistency.conflicts.join('；')}` },
+      { heading: '各术数看法', body: consistency.aligned ? '各术数看法一致，结论较稳。' : `看法有出入：${consistency.conflicts.join('；')}` },
       { heading: '综合建议', body: recommendations.map((r) => `【${r.label}】${r.value}`).join('\n') },
     ],
     sourceNotes: '联合分析为多系统聚合参考，非预言绝对，请结合自身境遇理性看待。',
@@ -286,11 +286,11 @@ export function calcDecisionCombo(input: DecisionComboInput): ToolEnvelope<Combo
 
   // 三卜交叉：以六爻为主
   const liuyaoTone = subsystems[0].tone;
-  let synthesis = `针对「${question}」的三卜交叉验证：六爻${toneWord(liuyaoTone)}、梅花${toneWord(subsystems[1].tone)}、奇门${toneWord(subsystems[2].tone)}。`;
+  let synthesis = `针对「${question}」用三种卜法同参：六爻${toneWord(liuyaoTone)}、梅花${toneWord(subsystems[1].tone)}、奇门${toneWord(subsystems[2].tone)}。`;
   if (consistency.aligned) {
-    synthesis += `三卜方向一致，结论可信度${consistency.confidence}。`;
+    synthesis += `三种卜法看法一致，结论较稳。`;
   } else {
-    synthesis += `三卜有分歧，以六爻为主、梅花奇门为辅参考。分歧：${consistency.conflicts.join('；')}。`;
+    synthesis += `三种卜法看法有出入，以六爻为主、梅花奇门为辅。出入处：${consistency.conflicts.join('；')}。`;
   }
 
   const recommendations: ComboResult['recommendations'] = [];
@@ -305,13 +305,13 @@ export function calcDecisionCombo(input: DecisionComboInput): ToolEnvelope<Combo
 
   const snapshot: ExportSnapshot = {
     summary: synthesis,
-    tags: ['事件决策', '三卜交叉', `置信度${consistency.confidence}`],
+    tags: ['事件决策', '三卜同参'],
     sections: [
       { heading: '整合结论', body: synthesis },
       { heading: '六爻', body: subsystems[0].summary },
       { heading: '梅花易数', body: subsystems[1].summary },
       { heading: '奇门', body: subsystems[2].summary },
-      { heading: '一致性检验', body: consistency.aligned ? `三卜同向，置信度${consistency.confidence}。` : `有分歧：${consistency.conflicts.join('；')}。以六爻为主。` },
+      { heading: '各术数看法', body: consistency.aligned ? '三种卜法看法一致，结论较稳。' : `看法有出入：${consistency.conflicts.join('；')}。以六爻为主。` },
       { heading: '行动建议', body: recommendations.map((r) => `【${r.label}】${r.value}`).join('\n') },
     ],
     sourceNotes: '三卜交叉验证为传统卜筮参考，非绝对预言，决策请结合现实理性判断。',
@@ -463,9 +463,9 @@ export function calcSanshiCombo(input: SanshiComboInput): ToolEnvelope<ComboResu
   const liurenTone = subsystems[0].tone;
   let synthesis = `针对「${question}」的三式互参：大六壬${toneWord(liurenTone)}（三传四课主事态轨迹）、奇门${toneWord(subsystems[1].tone)}（八门九星主方位时机）、梅花${toneWord(subsystems[2].tone)}（体用生克主快速判断）。`;
   if (consistency.aligned) {
-    synthesis += `三式方向一致，结论可信度${consistency.confidence}。`;
+    synthesis += `三式看法一致，结论较稳。`;
   } else {
-    synthesis += `三式有分歧，以大六壬三传为主、奇门梅花为辅参考。分歧：${consistency.conflicts.join('；')}。`;
+    synthesis += `三式看法有出入，以大六壬三传为主、奇门梅花为辅。出入处：${consistency.conflicts.join('；')}。`;
   }
 
   const recommendations: ComboResult['recommendations'] = [];
@@ -486,13 +486,13 @@ export function calcSanshiCombo(input: SanshiComboInput): ToolEnvelope<ComboResu
 
   const snapshot: ExportSnapshot = {
     summary: synthesis,
-    tags: ['三式互参', '大六壬+奇门+梅花', `置信度${consistency.confidence}`],
+    tags: ['三式互参', '大六壬+奇门+梅花'],
     sections: [
       { heading: '整合结论', body: synthesis },
       { heading: '大六壬', body: subsystems[0].summary },
       { heading: '奇门遁甲', body: subsystems[1].summary },
       { heading: '梅花易数', body: subsystems[2].summary },
-      { heading: '一致性检验', body: consistency.aligned ? `三式同向，置信度${consistency.confidence}。` : `有分歧：${consistency.conflicts.join('；')}。以大六壬为主。` },
+      { heading: '各术数看法', body: consistency.aligned ? '三式看法一致，结论较稳。' : `看法有出入：${consistency.conflicts.join('；')}。以大六壬为主。` },
       { heading: '行动建议', body: recommendations.map((r) => `【${r.label}】${r.value}`).join('\n') },
     ],
     sourceNotes: '三式互参为传统占断参考，非绝对预言，决策请结合现实理性判断。',
@@ -749,9 +749,9 @@ export function calcSanshiClassicCombo(input: SanshiClassicComboInput): ToolEnve
   const taiyiTone = subsystems[1].tone;
   let synthesis = `针对「${question}」的三式合一：奇门${toneWord(subsystems[0].tone)}（八门九星主方位时机）、太乙${toneWord(taiyiTone)}（主客算与格局断吉凶胜负）、大六壬${toneWord(liurenTone)}（三传四课主事态轨迹与应期）。`;
   if (consistency.aligned) {
-    synthesis += `三式方向一致，结论可信度${consistency.confidence}。`;
+    synthesis += `三式看法一致，结论较稳。`;
   } else {
-    synthesis += `三式有分歧，以大六壬三传为主、太乙格局次之、奇门方位为辅参考。分歧：${consistency.conflicts.join('；')}。`;
+    synthesis += `三式看法有出入，以大六壬三传为主、太乙格局次之、奇门方位为辅。出入处：${consistency.conflicts.join('；')}。`;
   }
 
   const recommendations: ComboResult['recommendations'] = [];
@@ -775,13 +775,13 @@ export function calcSanshiClassicCombo(input: SanshiClassicComboInput): ToolEnve
 
   const snapshot: ExportSnapshot = {
     summary: synthesis,
-    tags: ['三式合一', '奇门+太乙+大六壬', `置信度${consistency.confidence}`],
+    tags: ['三式合一', '奇门+太乙+大六壬'],
     sections: [
       { heading: '整合结论', body: synthesis },
       { heading: '奇门遁甲', body: subsystems[0].summary },
       { heading: '太乙神数', body: subsystems[1].summary },
       { heading: '大六壬', body: subsystems[2].summary },
-      { heading: '一致性检验', body: consistency.aligned ? `三式同向，置信度${consistency.confidence}。` : `有分歧：${consistency.conflicts.join('；')}。以大六壬为主。` },
+      { heading: '各术数看法', body: consistency.aligned ? '三式看法一致，结论较稳。' : `看法有出入：${consistency.conflicts.join('；')}。以大六壬为主。` },
       { heading: '行动建议', body: recommendations.map((r) => `【${r.label}】${r.value}`).join('\n') },
     ],
     sourceNotes: '三式合一为传统占断参考，非绝对预言，决策请结合现实理性判断。',
@@ -1072,8 +1072,8 @@ export function calcZeriCombo(input: ZeriComboInput): ToolEnvelope<ZeriResult> {
   } else {
     const jiCount = top.filter((d) => d.tone === '吉').length;
     synthesis = `针对「${purpose}」在${startDate}至${endDate}（共${candidates.length}日）内择日，` +
-      `筛得优选${top.length}日（其中定调吉者${jiCount}日）。` +
-      `首选${best.date}（${best.lunarDate}，${best.dayGanZhi}日，评分${best.score}）：${best.reasons.join('；')}。` +
+      `为你筛出${top.length}个较吉的日子（其中明显偏吉的${jiCount}个）。` +
+      `首选${best.date}（${best.lunarDate}，${best.dayGanZhi}日）：${best.reasons.join('；')}。` +
       `本年凶方：太岁${annualSha.taisui}、岁破${annualSha.suiPo}、三煞${annualSha.sanSha}、五黄${annualSha.fiveYellow}，行事宜避之；` +
       `命卦${mingGua.trigram}个人吉方：${auspiciousDirs.map((d) => d.star + d.direction).join('、')}，可作方位借力。`;
   }
@@ -1100,7 +1100,7 @@ export function calcZeriCombo(input: ZeriComboInput): ToolEnvelope<ZeriResult> {
 
   const snapshot: ExportSnapshot = {
     summary: synthesis,
-    tags: ['综合择日', purpose, `${candidates.length}日筛${top.length}选`, `置信度${best ? '中' : '低'}`],
+    tags: ['综合择日', purpose, `${candidates.length}日筛${top.length}选`],
     sections: [
       { heading: '整合结论', body: synthesis },
       { heading: '优选吉日', body: top.map((d, i) => `${i + 1}. ${d.date}（${d.lunarDate}，${d.dayGanZhi}日）评分${d.score}：${d.reasons.join('；')}`).join('\n') || '无' },

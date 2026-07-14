@@ -60,7 +60,7 @@ describe('calcAnnualFortuneCombo 年度综合运势', () => {
     expect(snap.sections.some((s) => s.heading === '整合结论')).toBe(true);
     expect(snap.sections.some((s) => s.heading === '八字维度')).toBe(true);
     expect(snap.sections.some((s) => s.heading === '紫微流年维度')).toBe(true);
-    expect(snap.sections.some((s) => s.heading === '一致性检验')).toBe(true);
+    expect(snap.sections.some((s) => s.heading === '各术数看法')).toBe(true);
   });
 
   it('可与 FourLayerReport toFourLayer 联动', () => {

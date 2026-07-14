@@ -167,12 +167,12 @@ export function ComboWorkspace() {
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-jade-50">联合分析</h2>
-            <p className="text-sm text-jade-100/55">跨系统综合分析 · 一致性检验 · 四层报告</p>
+            <p className="text-sm text-jade-100/55">多种传统术数综合参看 · 一站式解答</p>
           </div>
-          <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs text-purple-400">多系统联合</span>
+          <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs text-purple-400">综合参看</span>
         </div>
         <p className="mt-3 text-xs leading-5 text-jade-100/45">
-          把多个排盘结果聚合为联合分析，输出整合结论 + 各系统依据 + 一致性检验。三系统同向→置信度高，有分歧→标注权衡。
+          同一件事用多种术数一起看，结论更稳。各术数看法一致时宜把握，看法有出入时已为你标出权衡要点。
         </p>
       </div>
 
@@ -401,9 +401,8 @@ export function ComboWorkspace() {
             </InterpretationCard>
           ) : (
             <InterpretationCard
-              title="子系统结果"
-              badge={`置信度${(data as ComboResult).consistency.confidence}`}
-              subtitle={(data as ComboResult).consistency.aligned ? '多系统方向一致' : '多系统有分歧，已标注权衡'}
+              title="各术数看法"
+              subtitle={(data as ComboResult).consistency.aligned ? '各术数看法一致，结论较稳' : '各术数看法有出入，已为你标出权衡要点'}
             >
               <div className="grid gap-2 sm:grid-cols-3">
                 {(data as ComboResult).subsystems.map((s) => {
@@ -427,7 +426,7 @@ export function ComboWorkspace() {
               </div>
               {!(data as ComboResult).consistency.aligned && (data as ComboResult).consistency.conflicts.length > 0 && (
                 <div className="mt-2 rounded-card border border-cinnabar-500/20 bg-cinnabar-500/8 px-3 py-2">
-                  <p className="text-xs text-cinnabar-300/80">⚠️ 分歧：{(data as ComboResult).consistency.conflicts.join('；')}</p>
+                  <p className="text-xs text-cinnabar-300/80">⚠️ 看法有出入：{(data as ComboResult).consistency.conflicts.join('；')}</p>
                 </div>
               )}
             </InterpretationCard>
@@ -488,7 +487,7 @@ function ZeriDayList({ data }: { data: ZeriResult }) {
   return (
     <InterpretationCard
       title={`优选吉日 · ${data.zeriPurpose}`}
-      badge={`扫描${data.range.scannedDays}日 筛${data.rankedDays.length}选`}
+      badge={`共${data.range.scannedDays}天 · 筛出${data.rankedDays.length}个吉日`}
       subtitle={`本年凶方：太岁${data.annualSha.taisui} · 岁破${data.annualSha.suiPo} · 三煞${data.annualSha.sanSha} · 五黄${data.annualSha.fiveYellow}`}
     >
       {data.rankedDays.length === 0 ? (

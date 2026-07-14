@@ -1070,7 +1070,7 @@ export function calculateTaiyi(input: TaiyiInput): TaiyiData {
   const gejuStr = gejuKeys.includes('无格局') ? '无格局' : gejuKeys.join('、');
   data.export_snapshot = {
     summary: `${data.basicInfo.dayGz}日${data.basicInfo.hourGz}时${data.basicInfo.jiStyleName}（${data.basicInfo.acumYearName}），${kook.wen}，太乙在${tyGong}宫，文昌${wcGong}，始击${sjGong}。格局：${gejuStr}。`,
-    tags: ['太乙神数', data.basicInfo.jiStyleName, kook.wen, `太乙${tyGong}宫`, `置信度${tone === '吉' ? '高' : tone === '凶' ? '低' : '中'}`, mode === 'local-exact' ? '精确历法' : '近似历法'],
+    tags: ['太乙神数', data.basicInfo.jiStyleName, kook.wen, `太乙${tyGong}宫`, tone === '吉' ? '偏吉' : tone === '凶' ? '偏凶' : '平稳'],
     sections: [
       { heading: '局式', body: `${kook.wen}（${data.basicInfo.jiStyleName}·${data.basicInfo.acumYearName}），${kook.nian}，${kook.dun}。` },
       { heading: '太乙落宫', body: `太乙在${tyGong}宫（${tyNum}），文昌（天目）在${wcGong}，始击在${sjGong}，定目在${seGong}。` },
