@@ -1,7 +1,7 @@
 /**
  * tools.ts — MCP 工具定义
  *
- * 把 apps/visual/src/legacy 的 19 个 enveloped 引擎各包成一个 MCP 工具。
+ * 把 apps/visual/src/legacy 的 20 个 enveloped 引擎各包成一个 MCP 工具。
  * 每个工具：name + description + zod input schema + handler 返回 ToolEnvelope。
  *
  * 需要精确历法的工具（bazi/yunqi/liuyao/meihua）传入 lunar-javascript 的 Solar 入口；
@@ -22,7 +22,7 @@ import { calcQimenEnveloped } from '../../visual/src/legacy/qimenEngine';
 import { calcDaliurenEnveloped } from '../../visual/src/legacy/daliurenEngine';
 import { calcXingXiuEnveloped } from '../../visual/src/legacy/xingxiuEngine';
 import { calcTaiyiEnveloped } from '../../visual/src/legacy/taiyiEngine';
-import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo, calcSanshiCombo, calcSanshiClassicCombo, calcDailyWellnessCombo } from '../../visual/src/legacy/comboEngine';
+import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo, calcSanshiCombo, calcSanshiClassicCombo, calcDailyWellnessCombo, calcZeriCombo } from '../../visual/src/legacy/comboEngine';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
 const solarEntry: unknown = (() => {
@@ -280,6 +280,27 @@ export const TOOLS: ToolDef[] = [
       constitution: (i as { constitution?: string }).constitution,
       now: (i as { now?: { year: number; month: number; day: number; hour: number } }).now,
       targetYear: (i as { targetYear?: number }).targetYear,
+      solar: solarEntry,
+    }),
+  },
+  {
+    name: 'combo_zeri',
+    description: '综合择日：在给定公历日期区间内，按用途（开业/结婚/搬家/动土/出行/签约/安葬/祈福）筛选吉日。逐日取 lunar-javascript 真实黄历宜忌+神煞+吉神+冲煞+时辰吉凶，叠加本年太岁/三煞/五黄凶方与命卦吉方，淘汰忌日/冲命主/犯年煞者，按评分排序返回 Top-N 吉日+理由+吉时+方位建议。用途为动土/安葬时自动剔除犯太岁岁破方位之日。',
+    schema: z.object({
+      birth: birthSchema,
+      purpose: z.enum(['开业', '结婚', '搬家', '动土', '出行', '签约', '安葬', '祈福']).describe('择日用途'),
+      startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).describe('区间起（yyyy-mm-dd，含）'),
+      endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).describe('区间止（yyyy-mm-dd，含）'),
+      targetYear: z.number().int().min(1900).max(2100).optional().describe('太岁/飞星推算年份（默认取 startDate 年）'),
+      topN: z.number().int().min(1).max(20).optional().describe('返回前 N 个吉日（默认 5）'),
+    }),
+    handler: (i) => calcZeriCombo({
+      birth: (i as { birth: unknown }).birth as never,
+      purpose: (i as { purpose: string }).purpose as never,
+      startDate: (i as { startDate: string }).startDate,
+      endDate: (i as { endDate: string }).endDate,
+      targetYear: (i as { targetYear?: number }).targetYear,
+      topN: (i as { topN?: number }).topN,
       solar: solarEntry,
     }),
   },

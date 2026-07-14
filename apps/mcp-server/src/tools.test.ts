@@ -5,7 +5,7 @@ import type { ToolEnvelope } from '../../visual/src/legacy/baseTypes';
 /**
  * MCP 工具端到端测试（handler 层）。
  * 直接调每个 TOOLS handler，验证返回有效 ToolEnvelope。
- * 覆盖全部 19 个工具。
+ * 覆盖全部 20 个工具。
  */
 
 /** 校验 ToolEnvelope 必填字段 */
@@ -41,8 +41,8 @@ function findTool(name: string) {
 }
 
 describe('MCP TOOLS 注册完整性', () => {
-  it('注册了 19 个工具', () => {
-    expect(TOOLS.length).toBe(19);
+  it('注册了 20 个工具', () => {
+    expect(TOOLS.length).toBe(20);
   });
 
   it('所有工具有 name/description/schema/handler', () => {
@@ -358,5 +358,73 @@ describe('combo_daily_wellness', () => {
     const e = expectValidEnvelope(env);
     const data = e.data as { constitution: { source: string } };
     expect(data.constitution.source).toBe('五运六气倾向参考');
+  });
+});
+
+describe('combo_zeri', () => {
+  it('在区间内返回排序吉日列表 envelope', () => {
+    const t = findTool('combo_zeri');
+    const env = t.handler({
+      birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      purpose: '开业',
+      startDate: '2026-08-01',
+      endDate: '2026-08-31',
+    });
+    const e = expectValidEnvelope(env);
+    const data = e.data as {
+      comboName: string;
+      zeriPurpose: string;
+      range: { scannedDays: number };
+      rankedDays: Array<{ date: string; score: number; tone: string; reasons: string[]; lunarDate: string; dayGanZhi: string }>;
+      annualSha: { taisui: string; fiveYellow: string };
+      export_snapshot: { summary: string; sections: Array<{ heading: string }> };
+    };
+    expect(data.comboName).toBe('综合择日');
+    expect(data.zeriPurpose).toBe('开业');
+    expect(data.range.scannedDays).toBe(31);
+    expect(Array.isArray(data.rankedDays)).toBe(true);
+    expect(data.rankedDays.length).toBeGreaterThan(0);
+    // 评分降序
+    const scores = data.rankedDays.map((d) => d.score);
+    const sorted = [...scores].sort((a, b) => b - a);
+    expect(scores).toEqual(sorted);
+    // 首选日有理由与农历
+    const first = data.rankedDays[0];
+    expect(first.reasons.length).toBeGreaterThan(0);
+    expect(first.lunarDate).toContain('农历');
+    expect(first.dayGanZhi.length).toBe(2);
+    // 本年凶方字段齐全
+    expect(data.annualSha.taisui).toBeTruthy();
+    expect(data.annualSha.fiveYellow).toBeTruthy();
+    expect(data.export_snapshot.summary).toContain('开业');
+    expect(data.export_snapshot.sections.some((s) => s.heading === '优选吉日')).toBe(true);
+  });
+
+  it('动土用途自动剔除犯太岁岁破方位之日', () => {
+    const t = findTool('combo_zeri');
+    const env = t.handler({
+      birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      purpose: '动土',
+      startDate: '2026-09-01',
+      endDate: '2026-09-30',
+    });
+    const e = expectValidEnvelope(env);
+    const data = e.data as { rankedDays: Array<{ tone: string }>; recommendations: Array<{ label: string }> };
+    // 动土类必有「动土避煞」建议条目
+    expect(data.recommendations.some((r) => r.label === '动土避煞')).toBe(true);
+  });
+
+  it('topN 截断生效', () => {
+    const t = findTool('combo_zeri');
+    const env = t.handler({
+      birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      purpose: '祈福',
+      startDate: '2026-10-01',
+      endDate: '2026-10-31',
+      topN: 3,
+    });
+    const e = expectValidEnvelope(env);
+    const data = e.data as { rankedDays: unknown[] };
+    expect(data.rankedDays.length).toBeLessThanOrEqual(3);
   });
 });

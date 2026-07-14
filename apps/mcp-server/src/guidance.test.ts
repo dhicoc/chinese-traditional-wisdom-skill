@@ -23,9 +23,9 @@ describe('agent_guidance 参数引导', () => {
     expect(getToolGuidance('nonexistent')).toBeNull();
   });
 
-  it('listToolGuidance 返回 19 个工具摘要', () => {
+  it('listToolGuidance 返回 20 个工具摘要', () => {
     const list = listToolGuidance();
-    expect(list.length).toBe(19);
+    expect(list.length).toBe(20);
     list.forEach((g) => {
       expect(g.tool).toMatch(/^[a-z_]+$/);
       expect(g.purpose).toBeTruthy();
@@ -105,6 +105,27 @@ describe('wisdom_dispatch 意图路由', () => {
     const args = r.arguments as { birth: { year: number }; constitution: string };
     expect(args.birth.year).toBe(1990);
     expect(args.constitution).toBe('气虚质');
+  });
+
+  it('择吉日 → combo_zeri 提取用途+日期区间', () => {
+    const r = dispatchIntent('1990年6月15日12时男，想找个开业的好日子，2026-08-01 到 2026-08-31');
+    expect(r.hit).toBe(true);
+    expect(r.tool).toBe('combo_zeri');
+    const args = r.arguments as { birth: { year: number }; purpose: string; startDate: string; endDate: string };
+    expect(args.birth.year).toBe(1990);
+    expect(args.purpose).toBe('开业');
+    expect(args.startDate).toBe('2026-08-01');
+    expect(args.endDate).toBe('2026-08-31');
+  });
+
+  it('择吉日 仅给月份 → 自动展开为整月区间', () => {
+    const r = dispatchIntent('1990年6月15日12时男，2026年8月搬家择吉日');
+    expect(r.hit).toBe(true);
+    expect(r.tool).toBe('combo_zeri');
+    const args = r.arguments as { purpose: string; startDate: string; endDate: string };
+    expect(args.purpose).toBe('搬家');
+    expect(args.startDate).toBe('2026-08-01');
+    expect(args.endDate).toBe('2026-08-31');
   });
 
   it('紫微排盘 → ziwei_chart', () => {

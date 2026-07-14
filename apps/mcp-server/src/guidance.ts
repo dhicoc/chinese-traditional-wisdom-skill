@@ -141,6 +141,19 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour'],
     workflow: '确认生辰 → （可选）问用户体质问卷结果（气虚质等），有则传 constitution；不传按五运六气倾向推断 → 调 combo_daily_wellness → 看节气饮食/起居/运动/穴位 + 体质针对性加减 + 当令时辰养生 + 方位借力。',
   },
+  combo_zeri: {
+    tool: 'combo_zeri',
+    purpose: '综合择日：黄历宜忌+神煞+太岁三煞+命卦吉方 联合筛选指定用途吉日。需生辰 + 用途 + 日期区间。',
+    requiredParams: [
+      ...BIRTH_PARAMS,
+      { name: 'purpose', required: true, description: '择日用途', promptToUser: '请说明择日用途：开业/结婚/搬家/动土/出行/签约/安葬/祈福。' },
+      { name: 'startDate', required: true, description: '区间起（yyyy-mm-dd）', promptToUser: '请给出择日区间起始日期（如 2026-08-01）。' },
+      { name: 'endDate', required: true, description: '区间止（yyyy-mm-dd）', promptToUser: '请给出择日区间结束日期（如 2026-08-31）。' },
+    ],
+    safeDefaults: { birth: { minute: 0, gender: '男' }, topN: 5 },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'purpose', 'startDate', 'endDate'],
+    workflow: '确认生辰 + 用途 + 日期区间 → 调 combo_zeri → 看 Top-N 吉日（评分+理由）+ 吉时 + 本年凶方规避 + 命卦吉方借力。动土/安葬用途已自动剔除犯太岁岁破日。',
+  },
   cast_meihua: {
     tool: 'cast_meihua',
     purpose: '梅花易数：时间起卦需生辰，数字起卦需两个数字。',

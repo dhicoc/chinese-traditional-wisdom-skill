@@ -1,12 +1,12 @@
 # chinese-wisdom-mcp-server
 
-中国传统玄学计算 MCP Server。把 19 个计算引擎（八字/紫微/六爻/奇门/大六壬/二十八星宿/太乙/梅花/五运六气/姓名/喜用神/体质/周公解梦 + 6 个跨系统联合分析）暴露为 [MCP](https://modelcontextprotocol.io) 工具，供 Claude Desktop、Cursor、Cline 等客户端直接调用。
+中国传统玄学计算 MCP Server。把 20 个计算引擎（八字/紫微/六爻/奇门/大六壬/二十八星宿/太乙/梅花/五运六气/姓名/喜用神/体质/周公解梦 + 7 个跨系统联合分析）暴露为 [MCP](https://modelcontextprotocol.io) 工具，供 Claude Desktop、Cursor、Cline 等客户端直接调用。
 
 > 三层架构 Layer 2：薄壳包装，不含计算逻辑。所有引擎都是纯 TypeScript、零 DOM 依赖，来自 `apps/visual/src/legacy/`，统一返回 `ToolEnvelope` 结构。
 
 ## 工具列表
 
-> 共 21 个工具：19 个计算工具（下表）+ 2 个元工具（`agent_guidance` 参数引导、`wisdom_dispatch` 自然语言意图路由）。
+> 共 22 个工具：20 个计算工具（下表）+ 2 个元工具（`agent_guidance` 参数引导、`wisdom_dispatch` 自然语言意图路由）。
 
 | 工具 | 能力 | 引擎来源 |
 |------|------|---------|
@@ -29,6 +29,7 @@
 | `combo_sanshi` | 三式互参（大六壬+奇门+梅花） | 聚合各引擎 |
 | `combo_sanshi_classic` | 三式合一（奇门+太乙+大六壬，传统三式） | 聚合各引擎 |
 | `combo_daily_wellness` | 今日养生建议（体质+24节气+子午流注时辰+方位） | 聚合各引擎 |
+| `combo_zeri` | 综合择日（黄历宜忌+神煞+太岁三煞+命卦吉方筛吉日） | 聚合各引擎 |
 
 每个工具返回统一 `ToolEnvelope`：
 ```json
@@ -99,7 +100,7 @@ VS Code settings.json，参考 `examples/cline-vscode-settings.json`。
 
 ### 验证
 
-配置后重启客户端，应能看到 `chinese-wisdom` server 已连接，工具列表含上述 19 个计算工具 + 2 个元工具（共 21 个）。
+配置后重启客户端，应能看到 `chinese-wisdom` server 已连接，工具列表含上述 20 个计算工具 + 2 个元工具（共 22 个）。
 
 ## 使用示例
 

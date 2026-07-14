@@ -36,6 +36,16 @@
 - `ComboWorkspace` 新增「今日养生建议」入口（默认选项）+ 体质选择器。
 - MCP `dispatch.ts` 加 `combo_daily_wellness` 路由（今日养生/节气养生等关键词）+ `extractConstitution` 体质提取。
 
+### 2026-07-14 续：综合择日（黄历宜忌+神煞+太岁三煞+命卦吉方 联合筛吉日）
+
+补齐「一站式决策」的最后一块拼图——择日，用户最高频的「找个好日子开业/结婚/搬家」诉求：
+- 新增 `comboEngine.calcZeriCombo` + MCP `combo_zeri`：在给定公历区间内逐日取 lunar-javascript 真实黄历宜忌+神煞+吉神+冲煞+时辰吉凶，叠加本年太岁/三煞/五黄凶方与命卦吉方评分排序，淘汰忌日/冲命主/犯年煞者，返回 Top-N 吉日 + 理由 + 吉时 + 方位建议。
+- 8 种用途（开业/结婚/搬家/动土/出行/签约/安葬/祈福）各自匹配黄历宜忌关键词；动土/安葬用途自动剔除日煞犯太岁岁破方位之日；婚嫁/动土/安葬遇日冲命主生肖则淘汰。
+- `ComboWorkspace` 新增「综合择日」入口 + 用途/日期区间/topN 输入 + `ZeriDayList` 吉日列表卡片（排名+评分+吉凶徽章+理由+吉时+淘汰概要折叠）。
+- MCP `dispatch.ts` 加 `combo_zeri` 路由（择日/择吉/好日子/黄道吉日/哪天适合等关键词）+ `extractZeriPurpose` 用途提取 + `extractDateRange` 日期区间提取（支持「X到Y」完整区间与「YYYY年M月」自动展开整月，避免误匹配生辰）。
+- 复用现有 `getAlmanacData`/`calcTaisui`/`calcMingGua`/`getPersonalDirections`，零新依赖，保持纯前端 + 薄 MCP 壳架构。
+- 工具总数：20 计算 + 2 元工具 = 22。
+
 ### 验证
 
 - visual 单元 + e2e + mcp-server 测试全过（visual 229 + mcp-server 70 ≈ 299 项）。

@@ -771,3 +771,337 @@ export function calcSanshiClassicCombo(input: SanshiClassicComboInput): ToolEnve
     warnings: [result.confidenceNote, ...(consistency.aligned ? [] : ['三式有分歧，以大六壬为主'])],
   };
 }
+
+// ─── Combo 6: 综合择日（黄历宜忌 + 神煞 + 太岁三煞 + 命卦吉方 + 奇门吉方）───
+
+import { getAlmanacData, type AlmanacData } from './almanacData';
+
+/** 择日用途 */
+export type ZeriPurpose =
+  | '开业' | '结婚' | '搬家' | '动土' | '出行' | '签约' | '安葬' | '祈福';
+
+/** 用途 → 黄历宜忌关键词匹配（命中「宜」加分） */
+const PURPOSE_YI: Record<ZeriPurpose, string[]> = {
+  '开业': ['开市', '交易', '立券', '签约', '纳财'],
+  '结婚': ['嫁娶', '订盟', '纳采', '问名'],
+  '搬家': ['移徙', '入宅', '安床', '入殓'],
+  '动土': ['动土', '破土', '修造', '起基', '竖柱', '上梁'],
+  '出行': ['出行', '移徙', '归宁'],
+  '签约': ['交易', '立券', '纳财', '签约'],
+  '安葬': ['安葬', '入殓', '破土', '移柩'],
+  '祈福': ['祈福', '求嗣', '斋醮', '祭祀'],
+};
+
+/** 各用途「忌词」全集：当日「忌」含任一即淘汰该候选日 */
+const PURPOSE_JI_FULL: Record<ZeriPurpose, string[]> = {
+  '开业': ['开市', '交易', '立券'],
+  '结婚': ['嫁娶', '订盟', '纳采'],
+  '搬家': ['移徙', '入宅', '安床'],
+  '动土': ['动土', '破土', '修造', '起基', '竖柱', '上梁'],
+  '出行': ['出行'],
+  '签约': ['交易', '立券', '纳财'],
+  '安葬': ['安葬', '入殓', '破土', '移柩'],
+  '祈福': ['祈福', '求嗣', '斋醮', '祭祀'],
+};
+
+export interface ZeriComboInput {
+  birth: BirthInput;
+  /** 用途 */
+  purpose: ZeriPurpose;
+  /** 候选日期区间起止，yyyy-mm-dd */
+  startDate: string;
+  endDate: string;
+  /** 欲择年份（太岁/飞星用），默认取 startDate 年 */
+  targetYear?: number;
+  solar?: SolarLike | null;
+  /** 返回前 N 个吉日，默认 5 */
+  topN?: number;
+}
+
+/** 单日择日评分明细 */
+export interface ZeriDayScore {
+  /** yyyy-mm-dd */
+  date: string;
+  /** 农历日期 */
+  lunarDate: string;
+  /** 日干支 */
+  dayGanZhi: string;
+  /** 综合评分（越高越吉） */
+  score: number;
+  /** 吉凶定调 */
+  tone: Tone;
+  /** 评分理由条目 */
+  reasons: string[];
+  /** 该日黄历（宜忌/神煞/吉神/冲煞/时辰） */
+  almanac: AlmanacData | null;
+  /** 命主生肖是否被日支冲（婚嫁/动土重要参考） */
+  chongOwner: boolean;
+  /** 太岁/三煞/五黄是否落在该日重要方位（动土相关） */
+  hitsAnnualSha: boolean;
+}
+
+/** 择日结果 */
+export interface ZeriResult {
+  comboName: string;
+  purpose: string;
+  inputs: Record<string, unknown>;
+  /** 用途 */
+  zeriPurpose: ZeriPurpose;
+  /** 搜索区间 */
+  range: { start: string; end: string; scannedDays: number };
+  /** 排序后吉日列表（已截断 topN） */
+  rankedDays: ZeriDayScore[];
+  /** 被淘汰的日期及原因（供回溯，最多记 20 条） */
+  rejected: { date: string; reason: string }[];
+  /** 命卦吉方（所有候选日共用，作方位参考） */
+  personalAuspicious: { star: string; direction: string }[];
+  /** 本年凶方（太岁/岁破/三煞/五黄） */
+  annualSha: { taisui: string; suiPo: string; sanSha: string; fiveYellow: string };
+  /** 整合结论 */
+  synthesis: string;
+  /** 综合建议 */
+  recommendations: { label: string; value: string; tone: Tone }[];
+  export_snapshot: ExportSnapshot;
+  engineName: string;
+  mode: string;
+  confidenceNote: string;
+}
+
+/** 公历日期加减天数（yyyy-mm-dd）→ yyyy-mm-dd */
+function shiftDate(dateStr: string, deltaDays: number): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m - 1, d + deltaDays);
+  const yy = dt.getFullYear();
+  const mm = String(dt.getMonth() + 1).padStart(2, '0');
+  const dd = String(dt.getDate()).padStart(2, '0');
+  return `${yy}-${mm}-${dd}`;
+}
+
+/** 枚举区间内所有公历日期（含首尾，上限 400 日防失控） */
+function enumerateDates(start: string, end: string): string[] {
+  const out: string[] = [];
+  let cur = start;
+  let guard = 0;
+  while (cur <= end && guard < 400) {
+    out.push(cur);
+    if (cur === end) break;
+    cur = shiftDate(cur, 1);
+    guard++;
+  }
+  return out;
+}
+
+/** 地支 → 生肖 */
+const ZHI_SHENGXIAO: Record<string, string> = {
+  子: '鼠', 丑: '牛', 寅: '虎', 卯: '兔', 辰: '龙', 巳: '蛇',
+  午: '马', 未: '羊', 申: '猴', 酉: '鸡', 戌: '狗', 亥: '猪',
+};
+
+/**
+ * 综合择日 = 黄历宜忌 + 神煞 + 太岁/三煞/五黄 + 命卦吉方
+ * 在给定区间内逐日评分，淘汰忌日/冲命主/犯年煞者，按分数排序返回 Top-N。
+ * - 黄历宜忌来自 lunar-javascript 真实历法（getAlmanacData），命中「宜」加分、命中「忌」淘汰。
+ * - 神煞：吉神宜趋加分、凶煞宜忌扣分。
+ * - 太岁/三煞/五黄：动土/安葬类用途若该日煞方犯太岁/岁破则淘汰。
+ * - 冲命主生肖：婚嫁/动土/安葬用途遇之淘汰，其余扣分。
+ * - 命卦吉方：作方位建议参考（不直接参与评分，因择日不固定行事方位）。
+ */
+export function calcZeriCombo(input: ZeriComboInput): ToolEnvelope<ZeriResult> {
+  const { birth, purpose, startDate, endDate, solar, topN = 5 } = input;
+  const targetYear = input.targetYear ?? Number(startDate.slice(0, 4));
+
+  // solar 透传给 getAlmanacData（精确历法）；未传则引擎内回退 window.Solar
+  const solarEntry = (solar ?? null) as Parameters<typeof getAlmanacData>[1] | null;
+
+  // 年煞 + 命卦吉方（区间共用）
+  const taisui = calcTaisui(targetYear);
+  const mingGua = calcMingGua(birth.year, birth.gender);
+  const personalDirs = getPersonalDirections(mingGua.trigram);
+  const auspiciousDirs = personalDirs?.auspicious ?? [];
+  const ownerZhiIndex = ((birth.year - 4) % 12 + 12) % 12;
+  const ownerShengxiao = ZHI_SHENGXIAO[['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'][ownerZhiIndex]] ?? '';
+
+  const annualSha = {
+    taisui: taisui.taisui.direction,
+    suiPo: taisui.suiPo.direction,
+    sanSha: taisui.sanSha.direction,
+    fiveYellow: taisui.fiveYellow.direction,
+  };
+
+  const candidates = enumerateDates(startDate, endDate);
+  const ranked: ZeriDayScore[] = [];
+  const rejected: { date: string; reason: string }[] = [];
+  const isDongtu = purpose === '动土' || purpose === '安葬';
+
+  for (const date of candidates) {
+    const alm = getAlmanacData(date, solarEntry);
+    if (!alm) {
+      rejected.push({ date, reason: '历法引擎不可用，无法取宜忌' });
+      continue;
+    }
+
+    const reasons: string[] = [];
+    let score = 50; // 基础分
+
+    // 1) 宜忌匹配
+    const yiHit = PURPOSE_YI[purpose].filter((k) => alm.yi.some((y) => y.includes(k)));
+    const jiHit = PURPOSE_JI_FULL[purpose].filter((k) => alm.ji.some((j) => j.includes(k)));
+    if (jiHit.length > 0) {
+      rejected.push({ date, reason: `黄历忌「${jiHit.join('、')}」，与${purpose}相冲` });
+      continue;
+    }
+    if (yiHit.length > 0) {
+      score += 20 * yiHit.length;
+      reasons.push(`黄历宜「${yiHit.join('、')}」，正合${purpose}（+${20 * yiHit.length}）`);
+    } else {
+      reasons.push(`黄历宜项未直接命中${purpose}关键词，按通用吉日评估`);
+    }
+
+    // 2) 吉神/凶煞
+    if (alm.jiShen.length > 0) {
+      const add = Math.min(alm.jiShen.length * 3, 12);
+      score += add;
+      reasons.push(`吉神宜趋${alm.jiShen.length}位（+${add}）`);
+    }
+    if (alm.xiongSha.length > 0) {
+      const pen = Math.min(alm.xiongSha.length * 4, 20);
+      score -= pen;
+      reasons.push(`凶煞宜忌${alm.xiongSha.length}项（-${pen}）`);
+    }
+
+    // 3) 冲命主生肖（婚嫁/动土重要）
+    const chongDesc = alm.chong || '';
+    let chongOwner = false;
+    if (ownerShengxiao && chongDesc.includes(ownerShengxiao)) {
+      chongOwner = true;
+      if (purpose === '结婚' || purpose === '动土' || purpose === '安葬') {
+        rejected.push({ date, reason: `日冲${ownerShengxiao}（命主生肖），${purpose}大忌` });
+        continue;
+      }
+      score -= 15;
+      reasons.push(`日冲命主生肖${ownerShengxiao}（-15）`);
+    }
+
+    // 4) 动土类：检查日煞方是否犯太岁/岁破
+    let hitsAnnualSha = false;
+    if (isDongtu) {
+      const shaText = `${alm.sha || ''} ${alm.chong || ''}`;
+      if (shaText.includes(taisui.taisui.direction) || shaText.includes(taisui.suiPo.direction)) {
+        hitsAnnualSha = true;
+        rejected.push({ date, reason: `日煞方犯太岁/岁破（${taisui.taisui.direction}/${taisui.suiPo.direction}），动土大忌` });
+        continue;
+      }
+    }
+
+    // 5) 黄道/黑道
+    if (alm.dayTianShenType === '黄道') {
+      score += 8;
+      reasons.push('日值黄道（+8）');
+    } else if (alm.dayTianShenType === '黑道') {
+      score -= 5;
+      reasons.push('日值黑道（-5）');
+    }
+
+    score = Math.max(0, Math.min(100, score));
+    const tone: Tone = score >= 70 ? '吉' : score >= 45 ? '中' : '凶';
+
+    ranked.push({
+      date,
+      lunarDate: alm.lunarDate,
+      dayGanZhi: alm.dayGanZhi,
+      score,
+      tone,
+      reasons,
+      almanac: alm,
+      chongOwner,
+      hitsAnnualSha,
+    });
+  }
+
+  // 排序：分数降序，并列时优先吉神多者
+  ranked.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return (b.almanac?.jiShen.length ?? 0) - (a.almanac?.jiShen.length ?? 0);
+  });
+  const top = ranked.slice(0, topN);
+
+  // 整合结论
+  const best = top[0];
+  let synthesis: string;
+  if (!best) {
+    synthesis = `在${startDate}至${endDate}区间内，未找到适合「${purpose}」的吉日。共淘汰${rejected.length}日。建议放宽区间或调整用途。`;
+  } else {
+    const jiCount = top.filter((d) => d.tone === '吉').length;
+    synthesis = `针对「${purpose}」在${startDate}至${endDate}（共${candidates.length}日）内择日，` +
+      `筛得优选${top.length}日（其中定调吉者${jiCount}日）。` +
+      `首选${best.date}（${best.lunarDate}，${best.dayGanZhi}日，评分${best.score}）：${best.reasons.join('；')}。` +
+      `本年凶方：太岁${annualSha.taisui}、岁破${annualSha.suiPo}、三煞${annualSha.sanSha}、五黄${annualSha.fiveYellow}，行事宜避之；` +
+      `命卦${mingGua.trigram}个人吉方：${auspiciousDirs.map((d) => d.star + d.direction).join('、')}，可作方位借力。`;
+  }
+
+  const recommendations: ZeriResult['recommendations'] = [];
+  if (best) {
+    recommendations.push({ label: '首选吉日', value: `${best.date}（${best.lunarDate}），${best.reasons.join('；')}。`, tone: best.tone });
+    if (top.length > 1) {
+      recommendations.push({ label: '备选吉日', value: top.slice(1).map((d) => `${d.date}（${d.lunarDate}，${d.dayGanZhi}，${d.score}分）`).join('；'), tone: '中' });
+    }
+    // 时辰建议：取该日吉时
+    const goodHours = best.almanac?.hours.filter((h) => h.luck === '吉') ?? [];
+    if (goodHours.length > 0) {
+      recommendations.push({ label: '吉时', value: goodHours.slice(0, 3).map((h) => `${h.label}（${h.ganZhi}）`).join('、'), tone: '吉' });
+    }
+  }
+  if (isDongtu) {
+    recommendations.push({ label: '动土避煞', value: `本年太岁${annualSha.taisui}、三煞${annualSha.sanSha}、五黄${annualSha.fiveYellow}方忌动土修造，已自动剔除犯煞日。`, tone: '凶' });
+  }
+  if (auspiciousDirs.length > 0) {
+    recommendations.push({ label: '方位借力', value: `命卦${mingGua.trigram}吉方${auspiciousDirs.map((d) => d.star + d.direction).join('、')}，开业/办公/安床宜择吉方。`, tone: '吉' });
+  }
+  recommendations.push({ label: '理性提示', value: '综合择日为黄历宜忌+神煞+命理方位的多系统参考，非绝对吉凶保证，重大事项请结合现实条件与专业意见。', tone: '中' });
+
+  const snapshot: ExportSnapshot = {
+    summary: synthesis,
+    tags: ['综合择日', purpose, `${candidates.length}日筛${top.length}选`, `置信度${best ? '中' : '低'}`],
+    sections: [
+      { heading: '整合结论', body: synthesis },
+      { heading: '优选吉日', body: top.map((d, i) => `${i + 1}. ${d.date}（${d.lunarDate}，${d.dayGanZhi}日）评分${d.score}：${d.reasons.join('；')}`).join('\n') || '无' },
+      { heading: '本年凶方', body: `太岁${annualSha.taisui}、岁破${annualSha.suiPo}、三煞${annualSha.sanSha}、五黄${annualSha.fiveYellow}。` },
+      { heading: '命卦吉方', body: `命卦${mingGua.trigram}（${mingGua.group}）：${auspiciousDirs.map((d) => d.star + d.direction).join('、')}。` },
+      { heading: '淘汰概要', body: rejected.slice(0, 20).map((r) => `${r.date}：${r.reason}`).join('\n') || '无淘汰' },
+      { heading: '行动建议', body: recommendations.map((r) => `【${r.label}】${r.value}`).join('\n') },
+    ],
+    sourceNotes: '综合择日为黄历宜忌+神煞+太岁三煞+命卦方位的多系统聚合参考，民俗传统，非决策绝对依据。',
+  };
+
+  const result: ZeriResult = {
+    comboName: '综合择日',
+    purpose: `黄历宜忌+神煞+太岁三煞+命卦吉方 联合筛选${purpose}吉日`,
+    inputs: { birth: { year: birth.year, gender: birth.gender }, purpose, startDate, endDate, targetYear, topN },
+    zeriPurpose: purpose,
+    range: { start: startDate, end: endDate, scannedDays: candidates.length },
+    rankedDays: top,
+    rejected: rejected.slice(0, 20),
+    personalAuspicious: auspiciousDirs,
+    annualSha,
+    synthesis,
+    recommendations,
+    export_snapshot: snapshot,
+    engineName: 'ZeriComboEngine',
+    mode: solarEntry ? 'local-exact' : 'local-approx',
+    confidenceNote: snapshot.sourceNotes!,
+  };
+
+  const warnings: string[] = [result.confidenceNote];
+  if (!solarEntry) warnings.push('未传入精确历法入口，宜忌取自浏览器 window.Solar；MCP 纯命令行环境若 Solar 不可用将无法择日');
+  if (candidates.length === 0) warnings.push('日期区间为空或起止颠倒');
+  if (top.length === 0) warnings.push(`区间内无符合「${purpose}」的吉日，已列出淘汰原因供参考`);
+
+  return {
+    ok: true,
+    tool: result.engineName,
+    version: '0.1.0',
+    input_normalized: input as unknown as Record<string, unknown>,
+    data: result,
+    warnings,
+  };
+}

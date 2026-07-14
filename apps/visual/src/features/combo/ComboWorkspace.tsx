@@ -13,8 +13,11 @@ import {
   calcSanshiCombo,
   calcSanshiClassicCombo,
   calcDailyWellnessCombo,
+  calcZeriCombo,
   type ComboResult,
   type DailyWellnessResult,
+  type ZeriResult,
+  type ZeriPurpose,
 } from '@/legacy/comboEngine';
 import { DALIUREN_SCHOOLS, type DaliurenSchool } from '@/legacy/daliurenEngine';
 import { QUESTIONNAIRE } from '@/legacy/constitutionQuestionnaire';
@@ -34,7 +37,7 @@ import type { ToolEnvelope } from '@/legacy/baseTypes';
  * 用全局生辰调对应 combo 函数，结果用 FourLayerReport 四层渲染 + 子系统卡片 + 一致性徽章。
  */
 
-type ComboType = 'annual' | 'decision' | 'space' | 'sanshi' | 'sanshi-classic' | 'wellness';
+type ComboType = 'annual' | 'decision' | 'space' | 'sanshi' | 'sanshi-classic' | 'wellness' | 'zeri';
 
 const COMBO_OPTIONS: Array<{
   key: ComboType;
@@ -48,7 +51,23 @@ const COMBO_OPTIONS: Array<{
   { key: 'sanshi', label: '三式互参', desc: '大六壬 + 奇门 + 梅花 传统三式', icon: '式' },
   { key: 'sanshi-classic', label: '三式合一', desc: '奇门 + 太乙 + 大六壬 真正传统三式', icon: '叁' },
   { key: 'wellness', label: '今日养生建议', desc: '体质 + 24节气 + 时辰经络 + 方位', icon: '养' },
+  { key: 'zeri', label: '综合择日', desc: '黄历宜忌 + 神煞 + 太岁三煞 + 命卦吉方', icon: '择' },
 ];
+
+const ZERI_PURPOSES: ZeriPurpose[] = ['开业', '结婚', '搬家', '动土', '出行', '签约', '安葬', '祈福'];
+
+/** 取今天 yyyy-mm-dd */
+function todayStr(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** 取偏移 N 天后的 yyyy-mm-dd */
+function shiftStr(dateStr: string, deltaDays: number): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m - 1, d + deltaDays);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+}
 
 function getSolarEntry(): unknown {
   return typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
@@ -61,8 +80,12 @@ export function ComboWorkspace() {
   const [targetYear, setTargetYear] = useState<number>(solarBirth.year);
   const [liurenSchool, setLiurenSchool] = useState<DaliurenSchool>('classic');
   const [constitution, setConstitution] = useState<string>('');
+  const [zeriPurpose, setZeriPurpose] = useState<ZeriPurpose>('开业');
+  const [zeriStart, setZeriStart] = useState<string>(shiftStr(todayStr(), 1));
+  const [zeriEnd, setZeriEnd] = useState<string>(shiftStr(todayStr(), 30));
+  const [zeriTopN, setZeriTopN] = useState<number>(5);
 
-  const result = useMemo<{ envelope: ToolEnvelope<ComboResult> | null; loading: boolean }>(() => {
+  const result = useMemo<{ envelope: ToolEnvelope<ComboResult | DailyWellnessResult | ZeriResult> | null; loading: boolean }>(() => {
     const solar = getSolarEntry() ?? null;
     const birthInput = {
       year: solarBirth.year, month: solarBirth.month, day: solarBirth.day,
@@ -70,16 +93,16 @@ export function ComboWorkspace() {
     };
     try {
       if (comboType === 'annual') {
-        return { envelope: calcAnnualFortuneCombo({ birth: birthInput, targetYear, solar, currentMonth: new Date().getMonth() + 1 }), loading: false };
+        return { envelope: calcAnnualFortuneCombo({ birth: birthInput, targetYear, solar, currentMonth: new Date().getMonth() + 1 }) as ToolEnvelope<ComboResult>, loading: false };
       }
       if (comboType === 'decision') {
-        return { envelope: calcDecisionCombo({ birth: birthInput, question, solar }), loading: false };
+        return { envelope: calcDecisionCombo({ birth: birthInput, question, solar }) as ToolEnvelope<ComboResult>, loading: false };
       }
       if (comboType === 'sanshi') {
-        return { envelope: calcSanshiCombo({ birth: birthInput, question, solar, liurenSchool: liurenSchool }), loading: false };
+        return { envelope: calcSanshiCombo({ birth: birthInput, question, solar, liurenSchool: liurenSchool }) as ToolEnvelope<ComboResult>, loading: false };
       }
       if (comboType === 'sanshi-classic') {
-        return { envelope: calcSanshiClassicCombo({ birth: birthInput, question, solar, liurenSchool: liurenSchool }), loading: false };
+        return { envelope: calcSanshiClassicCombo({ birth: birthInput, question, solar, liurenSchool: liurenSchool }) as ToolEnvelope<ComboResult>, loading: false };
       }
       if (comboType === 'wellness') {
         const d = new Date();
@@ -90,22 +113,35 @@ export function ComboWorkspace() {
             constitution: constitution || undefined,
             targetYear: d.getFullYear(),
             solar,
-          }) as unknown as ToolEnvelope<ComboResult>,
+          }) as ToolEnvelope<DailyWellnessResult>,
           loading: false,
         };
       }
-      return { envelope: calcSpaceTimeCombo({ birth: birthInput, targetYear, solar }), loading: false };
+      if (comboType === 'zeri') {
+        return {
+          envelope: calcZeriCombo({
+            birth: birthInput,
+            purpose: zeriPurpose,
+            startDate: zeriStart,
+            endDate: zeriEnd,
+            topN: zeriTopN,
+            solar,
+          }) as ToolEnvelope<ZeriResult>,
+          loading: false,
+        };
+      }
+      return { envelope: calcSpaceTimeCombo({ birth: birthInput, targetYear, solar }) as ToolEnvelope<ComboResult>, loading: false };
     } catch {
       return { envelope: null, loading: false };
     }
-  }, [comboType, solarBirth, question, targetYear, liurenSchool, constitution]);
+  }, [comboType, solarBirth, question, targetYear, liurenSchool, constitution, zeriPurpose, zeriStart, zeriEnd, zeriTopN]);
 
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!result.envelope) return null;
     return toFourLayer(result.envelope.data.export_snapshot as ReadingLike);
   }, [result.envelope]);
 
-  const data = result.envelope?.data as (ComboResult | DailyWellnessResult) | undefined;
+  const data = result.envelope?.data as (ComboResult | DailyWellnessResult | ZeriResult) | undefined;
   const birthSummary = `${solarBirth.year}-${String(solarBirth.month).padStart(2, '0')}-${String(solarBirth.day).padStart(2, '0')} ${String(solarBirth.hour).padStart(2, '0')}:00 ${solarBirth.gender}`;
 
   return (
@@ -203,6 +239,52 @@ export function ComboWorkspace() {
               <span className="text-[10px] text-jade-100/35">建议先到「体质辨识」完成问卷自评，得到主体质后回此选择，建议更精准。</span>
             </label>
           )}
+          {comboType === 'zeri' && (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="text-jade-100/55">择日用途</span>
+                <select
+                  value={zeriPurpose}
+                  onChange={(e) => setZeriPurpose(e.target.value as ZeriPurpose)}
+                  className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+                >
+                  {ZERI_PURPOSES.map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="text-jade-100/55">区间起（含）</span>
+                <input
+                  type="date"
+                  value={zeriStart}
+                  onChange={(e) => setZeriStart(e.target.value)}
+                  className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="text-jade-100/55">区间止（含）</span>
+                <input
+                  type="date"
+                  value={zeriEnd}
+                  onChange={(e) => setZeriEnd(e.target.value)}
+                  className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="text-jade-100/55">返回前 N 个吉日</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={zeriTopN}
+                  onChange={(e) => setZeriTopN(Number(e.target.value) || 5)}
+                  className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+                />
+              </label>
+              <p className="text-[10px] text-jade-100/35 sm:col-span-2 lg:col-span-4">
+                逐日取真实黄历宜忌+神煞，叠加本年太岁/三煞/五黄凶方与命卦吉方评分排序。动土/安葬用途自动剔除犯太岁岁破方位之日。
+              </p>
+            </div>
+          )}
           {(comboType === 'sanshi' || comboType === 'sanshi-classic') && (
             <label className="flex flex-col gap-1 text-sm">
               <span className="text-jade-100/55">大六壬天将流派</span>
@@ -230,14 +312,16 @@ export function ComboWorkspace() {
       )}
       {!result.loading && data && fourLayer && (
         <div className="space-y-4">
-          {/* 子系统卡片（wellness 无一致性检验，走养生维度展示） */}
-          {comboType === 'wellness' ? (
+          {/* 子系统卡片（wellness 无一致性检验，走养生维度展示；zeri 走吉日列表） */}
+          {comboType === 'zeri' ? (
+            <ZeriDayList data={data as ZeriResult} />
+          ) : comboType === 'wellness' ? (
             <InterpretationCard
               title="养生维度"
               subtitle="体质 · 节气 · 时辰 · 方位"
             >
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                {data.subsystems.map((s) => (
+                {(data as DailyWellnessResult).subsystems.map((s) => (
                   <div key={s.name} className="rounded-card border border-jade-500/20 bg-jade-500/5 px-3 py-2">
                     <span className="text-xs font-medium text-jade-300">{s.name}</span>
                     <p className="mt-1 text-[11px] leading-4 text-jade-100/60">{s.summary}</p>
@@ -252,7 +336,7 @@ export function ComboWorkspace() {
               subtitle={(data as ComboResult).consistency.aligned ? '多系统方向一致' : '多系统有分歧，已标注权衡'}
             >
               <div className="grid gap-2 sm:grid-cols-3">
-                {data.subsystems.map((s) => {
+                {(data as ComboResult).subsystems.map((s) => {
                   const tone = (s as { tone?: string }).tone;
                   return (
                     <div key={s.name} className={`rounded-card border px-3 py-2 ${
@@ -297,12 +381,21 @@ export function ComboWorkspace() {
                 question: (comboType === 'decision' || comboType === 'sanshi' || comboType === 'sanshi-classic') ? question : undefined,
                 constitution: comboType === 'wellness' ? constitution || undefined : undefined,
                 synthesis: data.synthesis,
-                ...(comboType === 'wellness' ? {} : { consistency: (data as ComboResult).consistency }),
-                subsystems: data.subsystems.map((s) => ({
-                  name: s.name,
-                  tone: (s as { tone?: string }).tone,
-                  summary: s.summary,
-                })),
+                ...(comboType === 'zeri' ? {
+                  zeriPurpose: (data as ZeriResult).zeriPurpose,
+                  range: (data as ZeriResult).range,
+                  rankedDays: (data as ZeriResult).rankedDays.map((d) => ({
+                    date: d.date, lunarDate: d.lunarDate, dayGanZhi: d.dayGanZhi, score: d.score, tone: d.tone, reasons: d.reasons,
+                  })),
+                  annualSha: (data as ZeriResult).annualSha,
+                } : comboType === 'wellness' ? {} : { consistency: (data as ComboResult).consistency }),
+                ...(comboType === 'zeri' ? {} : {
+                  subsystems: (comboType === 'wellness' ? (data as DailyWellnessResult).subsystems : (data as ComboResult).subsystems).map((s) => ({
+                    name: s.name,
+                    tone: (s as { tone?: string }).tone,
+                    summary: s.summary,
+                  })),
+                }),
               }}
             />
             <ExportReportButton module={data.comboName} />
@@ -310,5 +403,60 @@ export function ComboWorkspace() {
         </div>
       )}
     </div>
+  );
+}
+
+/** 综合择日吉日列表渲染 */
+function ZeriDayList({ data }: { data: ZeriResult }) {
+  const toneColor = (t: string) =>
+    t === '吉' ? 'border-jade-500/30 bg-jade-500/8 text-jade-300'
+    : t === '凶' ? 'border-cinnabar-500/30 bg-cinnabar-500/8 text-cinnabar-300'
+    : 'border-white/10 bg-white/5 text-jade-100/60';
+  return (
+    <InterpretationCard
+      title={`优选吉日 · ${data.zeriPurpose}`}
+      badge={`扫描${data.range.scannedDays}日 筛${data.rankedDays.length}选`}
+      subtitle={`本年凶方：太岁${data.annualSha.taisui} · 岁破${data.annualSha.suiPo} · 三煞${data.annualSha.sanSha} · 五黄${data.annualSha.fiveYellow}`}
+    >
+      {data.rankedDays.length === 0 ? (
+        <p className="text-sm text-jade-100/55">区间内无符合「{data.zeriPurpose}」的吉日。建议放宽区间或调整用途。</p>
+      ) : (
+        <div className="space-y-2">
+          {data.rankedDays.map((d, idx) => (
+            <div key={d.date} className="rounded-card border border-white/10 bg-ink-900/60 px-3 py-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="grid h-6 w-6 place-items-center rounded-full bg-purple-500/15 text-xs font-semibold text-purple-300">{idx + 1}</span>
+                  <span className="text-sm font-medium text-jade-100">{d.date}</span>
+                  <span className="text-xs text-jade-100/45">{d.lunarDate} · {d.dayGanZhi}日</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-jade-100/55">评分 <span className="font-mono text-jade-100">{d.score}</span></span>
+                  <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${toneColor(d.tone)}`}>
+                    {d.tone === '吉' ? '吉' : d.tone === '凶' ? '凶' : '中'}
+                  </span>
+                </div>
+              </div>
+              <p className="mt-1.5 text-[11px] leading-5 text-jade-100/55">{d.reasons.join('；')}</p>
+              {d.almanac && d.almanac.hours.filter((h) => h.luck === '吉').length > 0 && (
+                <p className="mt-1 text-[10px] text-jade-300/70">
+                  吉时：{d.almanac.hours.filter((h) => h.luck === '吉').slice(0, 4).map((h) => `${h.label}（${h.ganZhi}）`).join('、')}
+                </p>
+              )}
+            </div>
+          ))}
+          {data.rejected.length > 0 && (
+            <details className="mt-2 rounded-card border border-white/8 bg-ink-900/40 px-3 py-2">
+              <summary className="cursor-pointer text-xs text-jade-100/45">淘汰概要（{data.rejected.length}条）</summary>
+              <ul className="mt-1.5 space-y-0.5 text-[10px] leading-4 text-jade-100/40">
+                {data.rejected.map((r) => (
+                  <li key={r.date}>{r.date}：{r.reason}</li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </div>
+      )}
+    </InterpretationCard>
   );
 }

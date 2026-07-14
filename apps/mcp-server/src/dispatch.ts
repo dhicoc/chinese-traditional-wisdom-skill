@@ -39,6 +39,7 @@ const ROUTE_RULES: RouteRule[] = [
   { tool: 'combo_sanshi_classic', keywords: ['三式合一', '奇门+太乙+大六壬', '太乙+奇门+六壬', '传统三式', '奇门太乙六壬'], priority: 97 },
   { tool: 'combo_daily_wellness', keywords: ['今日养生', '今天养生', '每日养生', '养生建议', '节气养生', '现在适合做什么', '当下养生', '今日调养', '一天养生'], priority: 96 },
   { tool: 'combo_space_time', keywords: ['风水布局', '布局建议', '空间布局', '综合布局', '主卧财位', '办公室布局'], priority: 95 },
+  { tool: 'combo_zeri', keywords: ['择日', '择吉', '择吉日', '选日子', '选个好日子', '好日子', '黄道吉日', '开业吉日', '结婚吉日', '搬家吉日', '动土吉日', '找个好日子', '哪天适合', '哪天好'], priority: 96 },
   { tool: 'dream_interpret', keywords: ['梦见', '做梦', '梦境', '梦到', '解梦', '周公'], priority: 90 },
   { tool: 'analyze_name', keywords: ['姓名', '起名', '取名', '名字', '打分', '改名', '测名'], priority: 85 },
   { tool: 'ziwei_chart', keywords: ['紫微', '紫微斗数', '命盘', '主星', '十二宫', '斗数'], priority: 80 },
@@ -115,6 +116,58 @@ function extractQuestion(text: string): string | undefined {
   return cleaned.length > 0 ? cleaned.slice(0, 50) : undefined;
 }
 
+/** 从文本提取择日用途（八种） */
+function extractZeriPurpose(text: string): string | undefined {
+  const map: Array<[string, string[]]> = [
+    ['开业', ['开业', '开市', '开张', '新店', '门店开业']],
+    ['结婚', ['结婚', '嫁娶', '婚嫁', '办婚礼', '领证']],
+    ['搬家', ['搬家', '入宅', '乔迁', '搬新家', '入伙']],
+    ['动土', ['动土', '装修', '修造', '开工', '建房', '破土']],
+    ['出行', ['出行', '出差', '远行', '旅游', '出门']],
+    ['签约', ['签约', '签合同', '合同', '下单', '交易']],
+    ['安葬', ['安葬', '下葬', '落葬', '迁坟', '造墓']],
+    ['祈福', ['祈福', '还愿', '上香', '祭祀', '法事']],
+  ];
+  for (const [purpose, kws] of map) {
+    if (kws.some((k) => text.includes(k))) return purpose;
+  }
+  return undefined;
+}
+
+/** 从文本提取日期区间（yyyy-mm-dd）。支持「X到Y」「X至Y」「X~Y」。
+ *  若用户只给月份（如「2026年8月」），自动展开为该月 1 日至月末。 */
+function extractDateRange(text: string): { startDate?: string; endDate?: string } {
+  // 两个完整日期
+  const m = text.match(/(\d{4})\s*[-/.年]\s*(\d{1,2})\s*[-/.月]\s*(\d{1,2})\s*[日]?\s*[到至~—–-]\s*(\d{4})?\s*[-/.年]?\s*(\d{1,2})?\s*[-/.月]?\s*(\d{1,2})?\s*[日]?/);
+  if (m) {
+    const startYear = Number(m[1]);
+    const startMonth = Number(m[2]);
+    const startDay = Number(m[3]);
+    const endYear = m[4] ? Number(m[4]) : startYear;
+    const endMonth = m[5] ? Number(m[5]) : startMonth;
+    const endDay = m[6] ? Number(m[6]) : startDay;
+    return {
+      startDate: `${startYear}-${String(startMonth).padStart(2, '0')}-${String(startDay).padStart(2, '0')}`,
+      endDate: `${endYear}-${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`,
+    };
+  }
+  // 单个月份「2026年8月」或「2026-08」——必须带「月」字或纯 YYYY-MM 且后面不跟「-日」，
+  // 否则会把生辰「1990年6月15日」里的「1990年6」误当区间。
+  const mm = text.match(/(\d{4})\s*[年\-/.]\s*(\d{1,2})\s*月(?!\s*\d{1,2}\s*[日])/);
+  if (mm) {
+    const y = Number(mm[1]);
+    const mo = Number(mm[2]);
+    if (mo >= 1 && mo <= 12) {
+      const lastDay = new Date(y, mo, 0).getDate();
+      return {
+        startDate: `${y}-${String(mo).padStart(2, '0')}-01`,
+        endDate: `${y}-${String(mo).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`,
+      };
+    }
+  }
+  return {};
+}
+
 /** 从文本提取体质类型（九种体质） */
 function extractConstitution(text: string): string | undefined {
   const types = ['平和质', '气虚质', '阳虚质', '阴虚质', '痰湿质', '湿热质', '血瘀质', '气郁质', '特禀质'];
@@ -151,6 +204,8 @@ export function dispatchIntent(text: string): DispatchResult {
   const dreamKw = extractDreamKeyword(text);
   const method = extractLiuyaoMethod(text);
   const question = extractQuestion(text);
+  const zeriPurpose = extractZeriPurpose(text);
+  const dateRange = extractDateRange(text);
 
   // 按工具组装参数
   let args: Record<string, unknown> = {};
@@ -178,6 +233,13 @@ export function dispatchIntent(text: string): DispatchResult {
       if (birth.birth) args.birth = birth.birth;
       const constitution = extractConstitution(text);
       if (constitution) args.constitution = constitution;
+      break;
+    }
+    case 'combo_zeri': {
+      if (birth.birth) args.birth = birth.birth;
+      if (zeriPurpose) args.purpose = zeriPurpose;
+      if (dateRange.startDate) args.startDate = dateRange.startDate;
+      if (dateRange.endDate) args.endDate = dateRange.endDate;
       break;
     }
     case 'cast_meihua':
