@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { getSolarEntry } from '@/legacy/solarEntry';
 import { ControlField } from '@/components/shared/ControlField';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { FiveElementsChart } from '@/components/shared/FiveElementsChart';
@@ -52,7 +53,7 @@ export function NamewuxingWorkspace() {
         year: solarBirth.year, month: solarBirth.month, day: solarBirth.day,
         hour: solarBirth.hour, minute: solarBirth.minute, gender: solarBirth.gender,
       };
-      solar = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
+      solar = getSolarEntry();
     }
     return calcNameRating(analysis, birthYearNum, birth, solar);
   }, [analysis, birthYear, solarBirth, useBaziBoost]);

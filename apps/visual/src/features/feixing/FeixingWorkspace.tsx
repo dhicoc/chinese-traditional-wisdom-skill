@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { calcMingGua } from '@/legacy/bazhaiHouse';
 import { ControlField } from '@/components/shared/ControlField';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { LegendPanel, type LegendItem } from '@/components/shared/LegendPanel';
@@ -11,7 +12,6 @@ import {
   getFeixingGrid,
   getFeixingSummary,
 } from '@/legacy/canvasRenderers';
-import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import {
   NINE_STAR_REMEDIES,
@@ -21,8 +21,6 @@ import {
   PALACE_TO_DIR,
   type NineStarRemedy,
 } from '@/legacy/flyingStarRemedies';
-import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
-import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
 import {
   YEAR_INTENT_EVENT,
@@ -45,16 +43,7 @@ const USAGE_LABEL_COLOR: Record<string, string> = {
 
 export function FeixingWorkspace() {
   const { solarBirth } = useBirth();
-  const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
   const [year, setYear] = useState(() => readPendingCommandYear('feixing'));
-
-  useEffect(() => {
-    let mounted = true;
-    loadLegacyScripts().then((state) => {
-      if (mounted) setLegacyState(state);
-    });
-    return () => { mounted = false; };
-  }, []);
 
   useEffect(() => {
     function handleYearIntent(event: Event) {
@@ -67,7 +56,7 @@ export function FeixingWorkspace() {
     return () => window.removeEventListener(YEAR_INTENT_EVENT, handleYearIntent);
   }, []);
 
-  const ready = legacyState.mode === 'ready';
+  const ready = true;
   const summary = useMemo(() => (ready ? getFeixingSummary(year) : null), [ready, year]);
   const grid = useMemo(() => (ready ? getFeixingGrid(year) : null), [ready, year]);
 
@@ -103,9 +92,8 @@ export function FeixingWorkspace() {
   // Step 4: 命卦合参
   const mingGuaResult = useMemo(() => {
     if (!ready) return null;
-    const result = calculateWithLegacyAdapter<{ birth: typeof solarBirth }, any>('bazhai', { birth: solarBirth });
-    if (!result) return null;
-    const guaNum = result.mingGua?.trigram ? trigramToGuaNum(result.mingGua.trigram) : null;
+    const ming = calcMingGua(solarBirth.year, solarBirth.gender);
+    const guaNum = ming.trigram ? trigramToGuaNum(ming.trigram) : null;
     if (!guaNum) return null;
     return MING_GUA_DIRECTIONS[guaNum] ?? null;
   }, [ready, solarBirth]);
@@ -129,7 +117,7 @@ export function FeixingWorkspace() {
       centerStar: summary ?? null,
       yuanYun: yuanYun.name,
       usageSummary,
-      source: 'visual/js/core.js + flyingStarRemedies.ts',
+      source: 'apps/visual/src/legacy/canvasRenderers.ts + flyingStarRemedies.ts',
     }),
     [year, summary, yuanYun, usageSummary],
   );
@@ -149,11 +137,6 @@ export function FeixingWorkspace() {
             <ExportReportButton module="流年飞星" />
           </div>
         </div>
-        {legacyState.mode === 'error' && (
-          <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
-            加载失败：{legacyState.error}
-          </p>
-        )}
       </div>
 
       {/* Step 3: 元运标识 */}

@@ -24,6 +24,7 @@
     "class-variance-authority": "latest",
     "clsx": "latest",
     "iztro": "^2.5.8",
+    "lunar-javascript": "^1.7.7",
     "postcss": "latest",
     "react": "latest",
     "react-dom": "latest",

@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { getSolarEntry } from '@/legacy/solarEntry';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
@@ -34,7 +35,7 @@ export function HuangjiWorkspace() {
 
   const result = useMemo<{ envelope: ToolEnvelope<HuangjiData> | null; loading: boolean }>(() => {
     try {
-      const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
+      const solarEntry = getSolarEntry();
       const env = calcHuangjiEnveloped({ birth: solarBirth, solar: solarEntry ?? null });
       return { envelope: env, loading: false };
     } catch {

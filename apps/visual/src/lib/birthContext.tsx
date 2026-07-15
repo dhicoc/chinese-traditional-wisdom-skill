@@ -1,6 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { DEFAULT_BIRTH, type BirthData, type SolarBirth, readFortuneBirth, writeFortuneBirth, toSolarBirth } from '@/legacy/birthBridge';
-import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
+import { DEFAULT_BIRTH, type BirthData, type SolarBirth, toSolarBirth } from '@/legacy/birthBridge';
 import {
   BIRTH_INTENT_EVENT,
   REFRESH_ALL_INTENT_EVENT,
@@ -15,6 +14,10 @@ interface BirthContextValue {
   birth: BirthData;
   /** 转换后的公历生辰（所有引擎统一用这个） */
   solarBirth: SolarBirth;
+  /**
+   * 引擎是否可用。
+   * 拔除 visual/ 旧桥后纯 TS 引擎始终就绪；字段名保留以兼容既有 UI。
+   */
   legacyReady: boolean;
   updateBirth: (patch: Partial<BirthData>) => void;
   resetBirth: () => void;
@@ -26,49 +29,15 @@ const BirthContext = createContext<BirthContextValue | null>(null);
 
 export function BirthProvider({ children }: { children: ReactNode }) {
   const [birth, setBirth] = useState<BirthData>(DEFAULT_BIRTH);
-  const [legacyReady, setLegacyReady] = useState(false);
   const birthRef = useRef<BirthData>(DEFAULT_BIRTH);
-  const userBirthOverrideRef = useRef(false);
 
   useEffect(() => {
     birthRef.current = birth;
   }, [birth]);
 
-  // 加载旧引擎后从 FORTUNE 读取当前出生资料
-  useEffect(() => {
-    let mounted = true;
-    loadLegacyScripts().then((state) => {
-      if (!mounted) return;
-      if (state.mode === 'ready') {
-        setLegacyReady(true);
-        if (userBirthOverrideRef.current) {
-          writeFortuneBirth(birthRef.current);
-        } else {
-          const currentBirth = readFortuneBirth();
-          writeFortuneBirth(currentBirth);
-          setBirth(currentBirth);
-        }
-      }
-    });
-    return () => {
-      mounted = false;
-    };
+  const updateBirth = useCallback((patch: Partial<BirthData>) => {
+    setBirth((prev) => ({ ...prev, ...patch }));
   }, []);
-
-  const updateBirth = useCallback(
-    (patch: Partial<BirthData>) => {
-      userBirthOverrideRef.current = true;
-      setBirth((prev) => {
-        const next = { ...prev, ...patch };
-        // 同步到旧 FORTUNE（如果已加载）
-        if (legacyReady) {
-          writeFortuneBirth(next);
-        }
-        return next;
-      });
-    },
-    [legacyReady],
-  );
 
   const resetBirth = useCallback(() => {
     updateBirth(DEFAULT_BIRTH);
@@ -89,19 +58,23 @@ export function BirthProvider({ children }: { children: ReactNode }) {
     function handleRefreshAll(event: Event) {
       const detail = (event as CustomEvent<RefreshAllIntentDetail>).detail;
       void detail;
-      if (legacyReady) {
-        writeFortuneBirth(birthRef.current);
-      }
+      // 强制触发依赖 solarBirth 的 useMemo 重算
       setBirth((prev) => ({ ...prev }));
     }
 
     window.addEventListener(REFRESH_ALL_INTENT_EVENT, handleRefreshAll);
     return () => window.removeEventListener(REFRESH_ALL_INTENT_EVENT, handleRefreshAll);
-  }, [legacyReady]);
+  }, []);
 
   const value = useMemo<BirthContextValue>(
-    () => ({ birth, solarBirth: toSolarBirth(birth), legacyReady, updateBirth, resetBirth }),
-    [birth, legacyReady, updateBirth, resetBirth],
+    () => ({
+      birth,
+      solarBirth: toSolarBirth(birth),
+      legacyReady: true,
+      updateBirth,
+      resetBirth,
+    }),
+    [birth, updateBirth, resetBirth],
   );
 
   return <BirthContext.Provider value={value}>{children}</BirthContext.Provider>;

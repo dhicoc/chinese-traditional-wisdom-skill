@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
-import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { BROWSER_TEST_SPECS, runAllBrowserTests, type BrowserTestResult } from '@/legacy/browserTestRunner';
 import { getLegacyCapabilities, getLegacyTools } from '@/legacy/toolRegistry';
 import {
@@ -10,7 +9,6 @@ import {
   type TestSuite,
   type TestSuiteType,
 } from '@/legacy/testRegistry';
-import type { LegacyState } from '@/legacy/legacyGlobals';
 
 /* ── 环境诊断 ─────────────────────────────────────────── */
 
@@ -31,13 +29,13 @@ function detectBrowser(ua: string): string {
   return ua.slice(0, 40);
 }
 
-function collectEnvInfo(legacyState: LegacyState, legacyReady: boolean): EnvInfo {
-  const tools = legacyReady ? getLegacyTools() : [];
-  const capabilities = legacyReady ? getLegacyCapabilities() : {};
+function collectEnvInfo(): EnvInfo {
+  const tools = getLegacyTools();
+  const capabilities = getLegacyCapabilities();
   return {
     browser: detectBrowser(navigator.userAgent),
     protocol: window.location.protocol,
-    legacyMode: legacyState.mode,
+    legacyMode: 'pure-ts',
     toolCount: tools.length,
     capabilityCount: Object.keys(capabilities).length,
     hasMermaid: typeof (window as unknown as { mermaid?: unknown }).mermaid !== 'undefined',
@@ -131,26 +129,13 @@ function SuiteCard({ suite }: { suite: TestSuite }) {
 /* ── 主组件 ───────────────────────────────────────────── */
 
 export function TestRunnerConsole() {
-  const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
-  const [legacyReady, setLegacyReady] = useState(false);
-  // Phase 9 第二版：页内浏览器测试运行状态
+  const legacyReady = true;
+  // 页内浏览器套件已空（迁至 Vitest）；按钮仍可跑占位提示
   const [inlineRunning, setInlineRunning] = useState(false);
   const [inlineResults, setInlineResults] = useState<BrowserTestResult[]>([]);
 
-  useEffect(() => {
-    let mounted = true;
-    loadLegacyScripts().then((state) => {
-      if (!mounted) return;
-      setLegacyState(state);
-      if (state.mode === 'ready') setLegacyReady(true);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
   const handleRunInlineTests = () => {
-    if (inlineRunning || !legacyReady) return;
+    if (inlineRunning) return;
     setInlineRunning(true);
     setInlineResults([]);
     runAllBrowserTests((r) => {
@@ -165,7 +150,7 @@ export function TestRunnerConsole() {
   const inlineTotalFailed = inlineResults.reduce((s, r) => s + r.failed, 0);
   const inlineHasErrors = inlineResults.some((r) => r.error);
 
-  const env = useMemo(() => collectEnvInfo(legacyState, legacyReady), [legacyState, legacyReady]);
+  const env = useMemo(() => collectEnvInfo(), []);
 
   const nodeSuites = getTestSuitesByType('node');
   const browserSuites = getTestSuitesByType('browser');
@@ -197,11 +182,6 @@ export function TestRunnerConsole() {
           </div>
           <CopyContextButton commandScope="testing" title="测试控制台上下文" payload={contextPayload} />
         </div>
-        {legacyState.mode === 'error' && (
-          <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
-            旧引擎加载失败：{legacyState.error}
-          </p>
-        )}
       </div>
 
       {/* 摘要仪表盘 */}

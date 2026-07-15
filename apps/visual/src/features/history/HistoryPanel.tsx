@@ -1,28 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
-
-/* ── 类型 ─────────────────────────────────────────────── */
-
-interface HistoryEntry {
-  id: string;
-  module: string;
-  title: string;
-  summary: string;
-  tags: string[];
-  mode: string;
-  createdAt: string;
-  favorite: boolean;
-}
-
-interface HistoryStore {
-  list: () => HistoryEntry[];
-  listFavorites: () => HistoryEntry[];
-  toggleFavorite: (id: string) => boolean;
-  remove: (id: string) => void;
-  clear: () => void;
-  clearFavorites: () => void;
-  getCount: () => number;
-}
+import { HistoryStore, type HistoryEntry } from '@/legacy/historyStore';
 
 /* ── 工具 ─────────────────────────────────────────────── */
 
@@ -46,11 +24,6 @@ const MODE_COLORS: Record<string, string> = {
   'knowledge': '#e9c46a',
   'derived': '#a78bfa',
 };
-
-function getHistoryStore(): HistoryStore | null {
-  const w = window as unknown as { HistoryStore?: HistoryStore };
-  return w.HistoryStore ?? null;
-}
 
 function formatTime(iso: string): string {
   if (!iso) return '';
@@ -130,10 +103,9 @@ export function HistoryWorkspace() {
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [favorites, setFavorites] = useState<HistoryEntry[]>([]);
   const [tab, setTab] = useState<'history' | 'favorites'>('history');
-  const store = useMemo(() => getHistoryStore(), []);
+  const store = HistoryStore;
 
   const refresh = useCallback(() => {
-    if (!store) return;
     setEntries(store.list());
     setFavorites(store.listFavorites());
   }, [store]);
@@ -199,7 +171,7 @@ export function HistoryWorkspace() {
         </div>
         {!store && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
-            HistoryStore 未加载，请确认 visual/js/history-store.js 已被 legacy script loader 引入。
+            暂无历史记录。排盘后可通过导出/复制上下文沉淀脱敏摘要。
           </p>
         )}
       </div>

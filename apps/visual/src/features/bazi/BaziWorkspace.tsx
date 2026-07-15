@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { getSolarEntry } from '@/legacy/solarEntry';
 import { BaziPillarsChart } from '@/components/shared/BaziPillarsChart';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 
@@ -8,15 +9,12 @@ import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
-import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
-import { renderDataWithLegacyAdapter, calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { calculateBazi as calculateBaziPure, calcBaziEnveloped } from '@/legacy/baziEngine';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { type BaziPillars, type WuxingStats } from '@/legacy/canvasRenderers';
 import { calcXiYong } from '@/legacy/xiyong';
 import type { SolarBirth } from '@/legacy/birthBridge';
-import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
 
 const DEFAULT_PILLARS: BaziPillars = {
@@ -51,11 +49,10 @@ function calculateBazi(solarBirth: SolarBirth, ready: boolean) {
   if (!ready) {
     return { result: null, pillars: { ...DEFAULT_PILLARS, gender: solarBirth.gender }, wuxing: DEFAULT_WUXING, envelope: null };
   }
-  // 优先用纯 TS 引擎（架构重构后推荐路径），传入浏览器 lunar-javascript 的 Solar 走精确历法
   try {
-    const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
-    const env = calcBaziEnveloped({ birth: solarBirth, solar: solarEntry ?? null });
-    const pure = calculateBaziPure({ birth: solarBirth, solar: solarEntry ?? null });
+    const solarEntry = getSolarEntry();
+    const env = calcBaziEnveloped({ birth: solarBirth, solar: solarEntry });
+    const pure = calculateBaziPure({ birth: solarBirth, solar: solarEntry });
     const pillars: BaziPillars = {
       year: { stem: pure.pillars.year.stem, branch: pure.pillars.year.branch, hidden: pure.hiddenStems.year },
       month: { stem: pure.pillars.month.stem, branch: pure.pillars.month.branch, hidden: pure.hiddenStems.month },
@@ -66,16 +63,13 @@ function calculateBazi(solarBirth: SolarBirth, ready: boolean) {
     };
     return { result: pure as unknown as BaziResult, pillars, wuxing: { ...DEFAULT_WUXING, ...pure.elements }, envelope: env };
   } catch {
-    // 回退旧 adapter（legacy window 引擎）
+    return {
+      result: null,
+      pillars: { ...DEFAULT_PILLARS, gender: solarBirth.gender },
+      wuxing: DEFAULT_WUXING,
+      envelope: null,
+    };
   }
-  const result = calculateWithLegacyAdapter<SolarBirth, BaziResult>('bazi', solarBirth);
-  const renderData = result ? renderDataWithLegacyAdapter<SolarBirth, BaziResult, BaziPillars>('bazi', result, solarBirth) : null;
-  return {
-    result,
-    pillars: renderData ?? { ...DEFAULT_PILLARS, gender: solarBirth.gender },
-    wuxing: { ...DEFAULT_WUXING, ...(result?.elements ?? {}) },
-    envelope: null,
-  };
 }
 
 function birthSummary(solarBirth: SolarBirth) {
@@ -84,19 +78,8 @@ function birthSummary(solarBirth: SolarBirth) {
 
 export function BaziWorkspace() {
   const { birth, solarBirth } = useBirth();
-  const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
 
-  useEffect(() => {
-    let mounted = true;
-    loadLegacyScripts().then((state) => {
-      if (mounted) setLegacyState(state);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const ready = legacyState.mode === 'ready';
+  const ready = true;
   const { result, pillars, wuxing, envelope } = useMemo(() => calculateBazi(solarBirth, ready), [solarBirth, ready]);
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!envelope) return null;
@@ -118,11 +101,11 @@ export function BaziWorkspace() {
     () => ({
       module: 'bazi',
       mode: result?.mode ?? 'fallback-demo',
-      engineName: result?.engineName ?? '等待旧引擎',
+      engineName: result?.engineName ?? 'BaziEngine',
       solarBirth,
       pillars,
       wuxing,
-      source: 'visual/js/engine-adapters.js + visual/js/bazi.js',
+      source: 'apps/visual/src/legacy/baziEngine.ts + lunar-javascript',
     }),
     [solarBirth, pillars, result, wuxing],
   );
@@ -143,11 +126,6 @@ export function BaziWorkspace() {
             <ExportReportButton module="八字命盘" />
           </div>
         </div>
-        {legacyState.mode === 'error' && (
-          <p className="mt-3 rounded-[16px] border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
-            旧加载失败：{legacyState.error}
-          </p>
-        )}
       </div>
 
       <div className="bazi-console-grid grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)_320px]">

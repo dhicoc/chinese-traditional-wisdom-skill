@@ -1,4 +1,8 @@
-import { MODULES, type ModuleId, type WisdomModule } from '@/lib/modules';
+/**
+ * toolRegistry — 纯 TS 工具目录与能力标签（从 MODULES 派生，不读浏览器全局 registry）
+ */
+
+import { MODULES, type ModuleId, type ModuleStatus, type WisdomModule } from '@/lib/modules';
 
 export interface LegacyTool {
   id: string;
@@ -23,22 +27,16 @@ export interface LegacyCapability {
   note: string;
 }
 
-interface LegacyRegistryWindow extends Window {
-  ToolManifest?: {
-    getVisibleTools?: () => LegacyTool[];
-    getTools?: () => LegacyTool[];
-  };
-  CapabilityRegistry?: {
-    getCapabilities?: () => Record<string, LegacyCapability>;
-    modeLabels?: Record<string, string>;
-  };
-}
+const STATUS_TO_MODE: Record<ModuleStatus, string> = {
+  'local-exact': 'local-exact',
+  'local-approx': 'local-approx',
+  demo: 'demo',
+  knowledge: 'knowledge',
+  derived: 'derived',
+  'folk-experience': 'folk-experience',
+};
 
-function legacyWindow() {
-  return window as LegacyRegistryWindow;
-}
-
-function fallbackTool(module: WisdomModule): LegacyTool {
+function moduleToTool(module: WisdomModule): LegacyTool {
   return {
     id: module.id,
     title: module.title,
@@ -57,11 +55,21 @@ function fallbackTool(module: WisdomModule): LegacyTool {
 }
 
 export function getLegacyTools(): LegacyTool[] {
-  return legacyWindow().ToolManifest?.getVisibleTools?.() ?? MODULES.filter((module) => module.id !== 'home').map(fallbackTool);
+  return MODULES.filter((module) => module.id !== 'home').map(moduleToTool);
 }
 
 export function getLegacyCapabilities(): Record<string, LegacyCapability> {
-  return legacyWindow().CapabilityRegistry?.getCapabilities?.() ?? {};
+  const out: Record<string, LegacyCapability> = {};
+  for (const module of MODULES) {
+    if (module.id === 'home') continue;
+    out[module.id] = {
+      label: module.title,
+      mode: STATUS_TO_MODE[module.status] ?? module.status,
+      modeLabel: module.statusLabel,
+      note: module.description,
+    };
+  }
+  return out;
 }
 
 export function getCapabilityForTool(tool: LegacyTool) {

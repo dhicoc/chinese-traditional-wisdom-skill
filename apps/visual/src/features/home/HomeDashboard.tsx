@@ -1,16 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { calculateBazi as calculateBaziPure } from '@/legacy/baziEngine';
+import { getSolarEntry } from '@/legacy/solarEntry';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { HomeBaziPlate } from '@/components/shared/HomeBaziPlate';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import type { ModuleId } from '@/lib/modules';
 import { MODULES } from '@/lib/modules';
-import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
-import { renderDataWithLegacyAdapter, calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { type BaziPillars } from '@/legacy/canvasRenderers';
 import { getCapabilityForTool, getLegacyTools, getToolModeLabel, type LegacyTool } from '@/legacy/toolRegistry';
 import type { SolarBirth } from '@/legacy/birthBridge';
-import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
 
 const FALLBACK_PILLARS: BaziPillars = {
@@ -22,21 +21,23 @@ const FALLBACK_PILLARS: BaziPillars = {
   gender: '男',
 };
 
-interface BaziResult {
-  pillars?: unknown;
-  dayMaster?: string;
-  dayMasterWuxing?: string;
-  engineName?: string;
-  mode?: string;
-  confidenceNote?: string;
-}
-
-/** 用真实八字引擎算四柱；引擎未就绪时回退占位四柱（仅展示，不宣称真实）。 */
+/** 用纯 TS 八字引擎算四柱；失败时回退占位四柱（仅展示，不宣称真实）。 */
 function resolvePillars(solarBirth: SolarBirth, ready: boolean): { pillars: BaziPillars; engineName?: string } {
   if (!ready) return { pillars: { ...FALLBACK_PILLARS, gender: solarBirth.gender } };
-  const result = calculateWithLegacyAdapter<SolarBirth, BaziResult>('bazi', solarBirth);
-  const pillars = result ? renderDataWithLegacyAdapter<SolarBirth, BaziResult, BaziPillars>('bazi', result, solarBirth) : null;
-  return { pillars: pillars ?? { ...FALLBACK_PILLARS, gender: solarBirth.gender }, engineName: result?.engineName };
+  try {
+    const pure = calculateBaziPure({ birth: solarBirth, solar: getSolarEntry() });
+    const pillars: BaziPillars = {
+      year: { stem: pure.pillars.year.stem, branch: pure.pillars.year.branch, hidden: pure.hiddenStems.year },
+      month: { stem: pure.pillars.month.stem, branch: pure.pillars.month.branch, hidden: pure.hiddenStems.month },
+      day: { stem: pure.pillars.day.stem, branch: pure.pillars.day.branch, hidden: pure.hiddenStems.day },
+      hour: { stem: pure.pillars.hour.stem, branch: pure.pillars.hour.branch, hidden: pure.hiddenStems.hour },
+      dayMaster: pure.dayMaster,
+      gender: pure.gender,
+    };
+    return { pillars, engineName: pure.engineName };
+  } catch {
+    return { pillars: { ...FALLBACK_PILLARS, gender: solarBirth.gender }, engineName: 'fallback-demo' };
+  }
 }
 
 interface HomeDashboardProps {
@@ -46,24 +47,6 @@ interface HomeDashboardProps {
 
 function isModuleId(value: string): value is ModuleId {
   return MODULES.some((module) => module.id === value);
-}
-
-function fallbackTools(): LegacyTool[] {
-  return MODULES.filter((module) => module.id !== 'home').map((module) => ({
-    id: module.id,
-    title: module.title,
-    icon: module.shortTitle.slice(0, 1),
-    category: module.group,
-    entryTab: module.id,
-    capabilityKey: module.id,
-    questionTypes: module.questionTypes,
-    requiredInputs: [],
-    privacyLevel: module.privacyLevel,
-    reportSection: module.id,
-    accent: module.accent,
-    intro: module.description,
-    description: module.description,
-  }));
 }
 
 function modeCounts(tools: LegacyTool[]) {
@@ -83,24 +66,9 @@ function birthSummary(year: number, month: number, day: number, hour: number) {
 
 export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardProps) {
   const { birth, solarBirth } = useBirth();
-  const [tools, setTools] = useState<LegacyTool[]>(() => fallbackTools());
-  const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
+  const tools = useMemo(() => getLegacyTools(), []);
 
-  useEffect(() => {
-    let mounted = true;
-    loadLegacyScripts().then((state) => {
-      if (!mounted) return;
-      setLegacyState(state);
-      if (state.mode === 'ready') {
-        setTools(getLegacyTools());
-      }
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const ready = legacyState.mode === 'ready';
+  const ready = true;
   const legacyReady = ready;
   const { pillars } = useMemo(() => resolvePillars(solarBirth, ready), [solarBirth, ready]);
 

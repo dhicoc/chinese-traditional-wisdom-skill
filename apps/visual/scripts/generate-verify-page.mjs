@@ -346,7 +346,7 @@ ${rows}
           { id: 'e2e-cmdk-hint', label: '⌘K 快捷键提示可见', test: () => { const doc = frame.contentDocument; if (!doc) return false; return doc.body.textContent.indexOf('⌘K') !== -1; } },
           { id: 'e2e-sidebar', label: 'SidebarNav 导航存在', test: () => { const doc = frame.contentDocument; if (!doc) return false; return doc.querySelector('aside nav') !== null; } },
           { id: 'e2e-workspace-tabs', label: 'WorkspaceTabs 标签栏存在', test: () => { const doc = frame.contentDocument; if (!doc) return false; return doc.querySelector('[role=tablist]') !== null; } },
-          { id: 'e2e-legacy-ready', label: 'Legacy 引擎已加载', test: () => { const w = frame.contentWindow; return !!(w && w.LegacyCORE && w.LegacyVizModules); } },
+          { id: 'e2e-pure-ts-ready', label: '纯 TS 引擎就绪（无 visual/ 旧桥）', test: () => { const w = frame.contentWindow; return !!(w && !w.LegacyCORE && !w.LegacyVizModules); } },
         ];
         let pass = 0, fail = 0;
         let html = '<h2 style="margin-top:24px;font-size:16px;color:#e5e7eb;">E2E 交互检查</h2>';

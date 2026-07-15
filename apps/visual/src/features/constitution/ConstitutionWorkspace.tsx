@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { calculateYunqi } from '@/legacy/yunqiEngine';
+import { getSolarEntry } from '@/legacy/solarEntry';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { ControlField } from '@/components/shared/ControlField';
@@ -11,9 +13,6 @@ import {
 import { CONSTITUTION_TYPES } from '@/legacy/baseTypes';
 import { QUESTIONNAIRE, calculateScoresFromAnswers } from '@/legacy/constitutionQuestionnaire';
 import { getConstitutionTendency } from '@/legacy/constitutionTendency';
-import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
-import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
-import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
 
 const DEFAULT_SCORES: ConstitutionScores = {
@@ -31,28 +30,18 @@ const SCORE_OPTIONS = [
 
 export function ConstitutionWorkspace() {
   const { solarBirth } = useBirth();
-  const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
   const [scores, setScores] = useState<ConstitutionScores>(DEFAULT_SCORES);
   const [questionMode, setQuestionMode] = useState(true);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [activeGroupIdx, setActiveGroupIdx] = useState(0);
 
-  useEffect(() => {
-    let mounted = true;
-    loadLegacyScripts().then((state) => {
-      if (mounted) setLegacyState(state);
-    });
-    return () => { mounted = false; };
-  }, []);
-
-  const ready = legacyState.mode === 'ready';
+  const ready = true;
 
   // 五运六气体质倾向参考
   const yunqiTendency = useMemo(() => {
     if (!ready) return null;
-    const yunqiResult = calculateWithLegacyAdapter<{ birth: typeof solarBirth }, any>('yunqi', { birth: solarBirth });
-    if (!yunqiResult) return null;
-    return getConstitutionTendency(yunqiResult);
+    const yunqiResult = calculateYunqi({ year: solarBirth.year, birthMonth: solarBirth.month, birthDay: solarBirth.day, solar: getSolarEntry() });
+    return getConstitutionTendency(yunqiResult as never);
   }, [ready, solarBirth]);
 
   const dominant = useMemo(() => deriveDominantConstitution(scores), [scores]);
@@ -69,7 +58,7 @@ export function ConstitutionWorkspace() {
     module: 'tizhi',
     mode: 'derived',
     data: { scores, dominant },
-    source: 'visual/js/health.js + constitutionQuestionnaire.ts',
+    source: 'constitutionQuestionnaire.ts + yunqiEngine.ts',
     medicalBoundary: '体质辨识仅作中医文化参考，不替代医疗诊断。',
   }), [scores, dominant]);
 

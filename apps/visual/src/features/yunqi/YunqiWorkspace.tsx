@@ -1,17 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
+import { getSolarEntry } from '@/legacy/solarEntry';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { ControlField } from '@/components/shared/ControlField';
 import { YunqiChart } from '@/components/shared/YunqiChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
-import { calculateLegacyYunqi, type YunqiData } from '@/legacy/canvasRenderers';
+import type { YunqiData } from '@/legacy/canvasRenderers';
+import { calculateYunqi } from '@/legacy/yunqiEngine';
 import { calcYunqiEnveloped } from '@/legacy/yunqiEngine';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
-import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
-import type { LegacyState } from '@/legacy/legacyGlobals';
 import {
   YEAR_INTENT_EVENT,
   normalizeCommandYear,
@@ -20,28 +20,13 @@ import {
 } from '@/lib/commandIntents';
 
 export function YunqiWorkspace() {
-  const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
   const [year, setYear] = useState(() => readPendingCommandYear('yunqi'));
   const [data, setData] = useState<YunqiData | null>(null);
 
+  
   useEffect(() => {
-    let mounted = true;
-    loadLegacyScripts().then((state) => {
-      if (!mounted) return;
-      setLegacyState(state);
-      if (state.mode === 'ready') {
-        setData(calculateLegacyYunqi(year));
-      }
-    });
-    return () => {
-      mounted = false;
-    };
+    setData(calculateYunqi({ year, solar: getSolarEntry() }) as unknown as YunqiData);
   }, [year]);
-
-  useEffect(() => {
-    if (legacyState.mode !== 'ready') return;
-    setData(calculateLegacyYunqi(year));
-  }, [legacyState.mode, year]);
 
   useEffect(() => {
     function handleYearIntent(event: Event) {
@@ -54,12 +39,11 @@ export function YunqiWorkspace() {
     return () => window.removeEventListener(YEAR_INTENT_EVENT, handleYearIntent);
   }, []);
 
-  const ready = legacyState.mode === 'ready' && !!data;
+  const ready = !!data;
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!year) return null;
     try {
-      const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
-      const env = calcYunqiEnveloped({ year, solar: solarEntry ?? null, currentMonth: new Date().getMonth() + 1 });
+      const env = calcYunqiEnveloped({ year, solar: getSolarEntry(), currentMonth: new Date().getMonth() + 1 });
       return toFourLayer(env.data.export_snapshot as ReadingLike);
     } catch {
       return null;
@@ -68,10 +52,10 @@ export function YunqiWorkspace() {
   const contextPayload = useMemo(
     () => ({
       module: 'yunqi',
-      mode: 'legacy-engine-and-canvas-react-shell',
+      mode: 'local-exact',
       year,
       data,
-      source: 'visual/js/engines/yunqi-engine.js + visual/js/health.js',
+      source: 'apps/visual/src/legacy/yunqiEngine.ts + lunar-javascript',
       medicalBoundary: '文化参考，不替代医疗诊断或治疗建议。',
     }),
     [year, data],
@@ -92,11 +76,6 @@ export function YunqiWorkspace() {
             <ExportReportButton module="五运六气" />
           </div>
         </div>
-        {legacyState.mode === 'error' && (
-          <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
-            旧加载失败：{legacyState.error}
-          </p>
-        )}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">

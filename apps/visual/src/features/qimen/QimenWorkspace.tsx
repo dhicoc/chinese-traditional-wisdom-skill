@@ -3,15 +3,12 @@ import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
-import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { calculateQimen as calculateQimenPure, calcQimenEnveloped } from '@/legacy/qimenEngine';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { QimenChart } from '@/components/shared/QimenChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
-import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
-import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
 
 /**
@@ -70,26 +67,14 @@ interface QimenResult {
 
 export function QimenWorkspace() {
   const { solarBirth } = useBirth();
-  const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
 
-  useEffect(() => {
-    let mounted = true;
-    loadLegacyScripts().then((state) => {
-      if (mounted) setLegacyState(state);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const ready = legacyState.mode === 'ready';
+  const ready = true;
   const result = useMemo<QimenResult | null>(() => {
     if (!ready) return null;
-    // 优先用纯 TS 引擎（ESM 3meta，架构重构后推荐路径），失败回退旧 adapter
     try {
       return calculateQimenPure({ birth: solarBirth }) as unknown as QimenResult;
     } catch {
-      return calculateWithLegacyAdapter<{ birth: typeof solarBirth }, QimenResult>('qimen', { birth: solarBirth });
+      return null;
     }
   }, [ready, solarBirth]);
 
@@ -101,7 +86,7 @@ export function QimenWorkspace() {
     } catch {
       return null;
     }
-  }, [ready,, solarBirth, result]);
+  }, [ready, solarBirth, result]);
 
   const contextPayload = useMemo(
     () => ({
@@ -115,7 +100,7 @@ export function QimenWorkspace() {
       zhiShi: result?.zhiShi,
       auspiciousPatterns: result?.auspiciousPatterns,
       inauspiciousPatterns: result?.inauspiciousPatterns,
-      source: '3meta v2.6.0 + visual/js/engines/qimen-engine.js',
+      source: '3meta v2.6.0 + apps/visual/src/legacy/qimenEngine.ts',
     }),
     [result, solarBirth],
   );
@@ -135,11 +120,6 @@ export function QimenWorkspace() {
             <ExportReportButton module="命盘" />
           </div>
         </div>
-        {legacyState.mode === 'error' && (
-          <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
-            加载失败：{legacyState.error}
-          </p>
-        )}
       </div>
 
       {!ready && (

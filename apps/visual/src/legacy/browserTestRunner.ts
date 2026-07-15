@@ -1,16 +1,9 @@
 /**
- * browserTestRunner — 在 React TestRunnerConsole 内页内执行浏览器端测试。
+ * browserTestRunner — 页内浏览器测试占位
  *
- * Phase 9 第二版：把旧 test-runner.html 的浏览器测试搬到 React 内运行，
- * 展示 rolling logs / 通过失败计数 / 失败详情，无需跳转旧页。
- *
- * 实现方式与 loadLegacyScripts 一致：用 `?raw` import 测试脚本源码，
- * legacy 引擎就绪后 eval 注入，再调用脚本暴露的 `window.TestXxx.run()`
- * 取 {passed, failed, details[]}。
+ * 领域规则改由 Vitest 单测（apps/visual/src/__tests__）覆盖。
+ * 此模块保留 API，避免 TestRunnerConsole 崩溃；内联套件列表为空。
  */
-
-import liuyaoTestSource from '../../../../visual/js/tests/test-liuyao-engine.js?raw';
-import adapterSamplesTestSource from '../../../../visual/js/tests/test-adapter-samples.js?raw';
 
 export interface BrowserTestResult {
   id: string;
@@ -18,7 +11,6 @@ export interface BrowserTestResult {
   passed: number;
   failed: number;
   details: string[];
-  /** 运行耗时 ms */
   durationMs: number;
   error?: string;
 }
@@ -26,94 +18,42 @@ export interface BrowserTestResult {
 export interface BrowserTestSpec {
   id: string;
   name: string;
-  /** 脚本源码（?raw 注入） */
   source: string;
-  /** 脚本注入后暴露的全局对象名，须有 run() 方法 */
   globalName: string;
-  /** 依赖的 legacy 全局（注入前校验存在） */
   requires: string[];
 }
 
-/** 可页内运行的浏览器测试套件 */
-export const BROWSER_TEST_SPECS: BrowserTestSpec[] = [
-  {
-    id: 'test-liuyao-engine',
-    name: '六爻纳甲引擎测试',
-    source: liuyaoTestSource,
-    globalName: 'TestLiuyaoEngine',
-    requires: ['LiuyaoEngine'],
-  },
-  {
-    id: 'test-adapter-samples',
-    name: 'Adapter 固定样例测试（八字/紫微/梅花/五运六气）',
-    source: adapterSamplesTestSource,
-    globalName: 'TestAdapterSamples',
-    requires: ['EngineAdapterRegistry'],
-  },
-];
+/** 已无 visual/ 旧测试脚本依赖；请运行 pnpm test:unit */
+export const BROWSER_TEST_SPECS: BrowserTestSpec[] = [];
 
-/** 校验依赖的 legacy 全局是否已就绪 */
-function checkRequires(requires: string[]): boolean {
-  const w = window as unknown as Record<string, unknown>;
-  return requires.every((name) => typeof w[name] !== 'undefined');
-}
-
-/** 注入脚本源码到当前 window 作用域 */
-function injectScript(source: string): void {
-  // 与 loadLegacyScripts 相同的 eval 策略，避免独立 <script> 标签的 CORS/async 问题
-  const run = new Function(source);
-  run();
-}
-
-/**
- * 运行单个浏览器测试套件。legacy 未就绪或脚本异常时返回 error 字段。
- */
 export function runBrowserTest(spec: BrowserTestSpec): BrowserTestResult {
-  const start = performance.now();
-  const result: BrowserTestResult = {
+  return {
     id: spec.id,
     name: spec.name,
     passed: 0,
     failed: 0,
     details: [],
     durationMs: 0,
+    error: '旧 visual/ 浏览器测试已移除。请使用 pnpm test:unit（Vitest）。',
   };
-  try {
-    if (!checkRequires(spec.requires)) {
-      result.error = `依赖未就绪：${spec.requires.join(', ')}`;
-      result.durationMs = Math.round(performance.now() - start);
-      return result;
-    }
-    injectScript(spec.source);
-    const w = window as unknown as Record<string, { run: () => { passed: number; failed: number; details: string[] } }>;
-    const handle = w[spec.globalName];
-    if (!handle || typeof handle.run !== 'function') {
-      result.error = `脚本未暴露 ${spec.globalName}.run()`;
-      result.durationMs = Math.round(performance.now() - start);
-      return result;
-    }
-    const r = handle.run();
-    result.passed = r.passed;
-    result.failed = r.failed;
-    result.details = r.details;
-  } catch (e) {
-    result.error = e instanceof Error ? e.message : String(e);
-  }
-  result.durationMs = Math.round(performance.now() - start);
-  return result;
 }
 
-/** 依次运行所有浏览器测试套件，回调每个完成的结果（供 UI rolling 展示）。 */
 export async function runAllBrowserTests(
-  onResult: (result: BrowserTestResult) => void,
+  onEach?: (result: BrowserTestResult) => void,
 ): Promise<BrowserTestResult[]> {
-  const results: BrowserTestResult[] = [];
-  for (const spec of BROWSER_TEST_SPECS) {
-    // 让出一帧让 UI 更新 rolling log
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    const r = runBrowserTest(spec);
-    results.push(r);
-    onResult(r);
+  const results = BROWSER_TEST_SPECS.map((spec) => runBrowserTest(spec));
+  results.forEach((r) => onEach?.(r));
+  if (results.length === 0) {
+    const empty: BrowserTestResult = {
+      id: 'no-browser-specs',
+      name: '无页内浏览器套件',
+      passed: 0,
+      failed: 0,
+      details: ['已迁移至 Vitest：cd apps/visual && pnpm test:unit'],
+      durationMs: 0,
+    };
+    onEach?.(empty);
+    return [empty];
   }
   return results;
 }

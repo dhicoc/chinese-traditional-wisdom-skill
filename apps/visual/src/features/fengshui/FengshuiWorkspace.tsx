@@ -4,12 +4,10 @@ import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { FengshuiCompass } from '@/components/shared/FengshuiCompass';
 import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
-import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { getFeixingGrid, getBazhaiGrid } from '@/legacy/canvasRenderers';
 import { NINE_STAR_REMEDIES, MING_GUA_DIRECTIONS, PALACE_TO_DIR, getYuanYun } from '@/legacy/flyingStarRemedies';
 import { useBirth } from '@/lib/birthContext';
-import type { LegacyState } from '@/legacy/legacyGlobals';
 
 // 坐向选项（坐山→朝向）
 const FACING_OPTIONS = [
@@ -32,19 +30,10 @@ function trigramToGuaNum(trigram: string): number | null {
 
 export function FengshuiWorkspace() {
   const { solarBirth } = useBirth();
-  const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
   const [facing, setFacing] = useState('');
   const [year, setYear] = useState(new Date().getFullYear());
 
-  useEffect(() => {
-    let mounted = true;
-    loadLegacyScripts().then((state) => {
-      if (mounted) setLegacyState(state);
-    });
-    return () => { mounted = false; };
-  }, []);
-
-  const ready = legacyState.mode === 'ready';
+  const ready = true;
 
   // 飞星九宫数据
   const feixingGrid = useMemo(() => (ready ? getFeixingGrid(year) : null), [ready, year]);
@@ -142,11 +131,6 @@ export function FengshuiWorkspace() {
             <ExportReportButton module="风水罗盘" />
           </div>
         </div>
-        {legacyState.mode === 'error' && (
-          <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
-            加载失败：{legacyState.error}
-          </p>
-        )}
       </div>
 
       {/* 元运标识 */}

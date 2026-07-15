@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
+import { explainTerm } from '@/legacy/termExplanations';
 
 /**
- * TermExplanationPanel — 通用术语解释面板（UX P2）
- *
- * 用 CORE.explain() 查通俗解释，覆盖命理/中医/风水等全部术语。
- * 需传入 ready（legacy 引擎是否就绪），就绪后才查解释。
+ * TermExplanationPanel — 通用术语解释面板（纯 TS 词表，无 window.LegacyCORE）
  */
 
 interface TermExplanationPanelProps {
@@ -14,37 +12,24 @@ interface TermExplanationPanelProps {
   terms: string[];
   /** 面板说明 */
   description?: string;
-  /** legacy 引擎是否就绪 */
+  /**
+   * @deprecated 旧桥已移除，术语表始终可用；保留 prop 以免改动各工作区调用点。
+   */
   ready?: boolean;
 }
 
-interface LegacyCore {
-  explain?: (term: string) => string;
-}
-
-function getCore(): LegacyCore | null {
-  const w = window as unknown as { LegacyCORE?: LegacyCore };
-  return w.LegacyCORE ?? null;
-}
-
-export function TermExplanationPanel({ initialTerm, terms, description, ready }: TermExplanationPanelProps) {
+export function TermExplanationPanel({ initialTerm, terms, description, ready = true }: TermExplanationPanelProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [explanation, setExplanation] = useState<string>('');
   const [notFound, setNotFound] = useState(false);
 
-  // ready 变化时重新获取 core 并查初始术语
   useEffect(() => {
-    if (!ready) return;
-    const core = getCore();
-    if (!core?.explain) return;
-
-    if (initialTerm) {
-      const exp = core.explain(initialTerm);
-      if (exp && exp !== '暂无该术语的解释') {
-        setSelected(initialTerm);
-        setExplanation(exp);
-        setNotFound(false);
-      }
+    if (!ready || !initialTerm) return;
+    const exp = explainTerm(initialTerm);
+    if (exp && exp !== '暂无该术语的解释') {
+      setSelected(initialTerm);
+      setExplanation(exp);
+      setNotFound(false);
     }
   }, [ready, initialTerm]);
 
@@ -55,13 +40,7 @@ export function TermExplanationPanel({ initialTerm, terms, description, ready }:
       setNotFound(true);
       return;
     }
-    const core = getCore();
-    if (!core?.explain) {
-      setExplanation('');
-      setNotFound(true);
-      return;
-    }
-    const exp = core.explain(term);
+    const exp = explainTerm(term);
     if (exp && exp !== '暂无该术语的解释') {
       setExplanation(exp);
       setNotFound(false);
@@ -81,10 +60,10 @@ export function TermExplanationPanel({ initialTerm, terms, description, ready }:
             key={term}
             type="button"
             onClick={() => lookupTerm(term)}
-            className={`rounded-full px-2.5 py-1 text-[11px] transition ${
+            className={`rounded-full border px-2.5 py-1 text-xs transition ${
               selected === term
-                ? 'border border-jade-500/40 bg-jade-500/12 text-jade-300'
-                : 'border border-white/8 text-jade-100/45 hover:text-jade-100'
+                ? 'border-jade-500/40 bg-jade-500/15 text-jade-300'
+                : 'border-white/10 bg-black/20 text-jade-100/60 hover:border-white/20 hover:text-jade-100/80'
             }`}
           >
             {term}
@@ -92,14 +71,14 @@ export function TermExplanationPanel({ initialTerm, terms, description, ready }:
         ))}
       </div>
       {selected && (
-        <div className="mt-3 rounded-card border border-white/5 bg-white/[0.02] p-3">
-          <p className="text-xs font-semibold text-jade-300">{selected}</p>
+        <div className="mt-3 rounded-[14px] border border-white/8 bg-black/20 p-3 text-sm leading-6 text-jade-100/70">
           {notFound ? (
-            <p className="mt-1.5 text-xs leading-5 text-jade-100/45">
-              暂无该术语的解释。可尝试其他术语。
-            </p>
+            <span className="text-jade-100/45">「{selected}」暂无内置解释。</span>
           ) : (
-            <p className="mt-1.5 text-xs leading-6 text-jade-100/70">{explanation}</p>
+            <>
+              <span className="font-semibold text-jade-200">{selected}：</span>
+              {explanation}
+            </>
           )}
         </div>
       )}

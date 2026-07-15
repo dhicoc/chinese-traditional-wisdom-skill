@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { getSolarEntry } from '@/legacy/solarEntry';
 import { ControlField } from '@/components/shared/ControlField';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
@@ -39,7 +40,7 @@ export function LiurenWorkspace() {
 
   const result = useMemo<{ envelope: ToolEnvelope<DaliurenData> | null; loading: boolean }>(() => {
     try {
-      const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
+      const solarEntry = getSolarEntry();
       const env = calcDaliurenEnveloped({ birth: solarBirth, solar: solarEntry ?? null, school });
       return { envelope: env, loading: false };
     } catch {

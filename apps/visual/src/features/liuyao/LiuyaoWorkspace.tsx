@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { getSolarEntry } from '@/legacy/solarEntry';
 import { ControlField } from '@/components/shared/ControlField';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
@@ -8,13 +9,10 @@ import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import type { LiuyaoData } from '@/legacy/canvasRenderers';
 import type { LiuyaoLine } from '@/legacy/divinationTypes';
-import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { calculateLiuyao as calculateLiuyaoPure, calcLiuyaoEnveloped, type LiuyaoInput } from '@/legacy/liuyaoEngine';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
-import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
-import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
 import { LIUYAO_INTENT_EVENT, type LiuyaoIntentDetail } from '@/lib/commandIntents';
 
@@ -82,21 +80,10 @@ function isValidYaoValues(v: string) {
 
 export function LiuyaoWorkspace() {
   const { solarBirth } = useBirth();
-  const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
   const [method, setMethod] = useState<CastMethod>('coin');
   const [question, setQuestion] = useState('');
   const [yaoValues, setYaoValues] = useState('789789');
   const [castCount, setCastCount] = useState(0);
-
-  useEffect(() => {
-    let mounted = true;
-    loadLegacyScripts().then((state) => {
-      if (mounted) setLegacyState(state);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   useEffect(() => {
     function handleLiuyaoIntent(event: Event) {
@@ -118,7 +105,7 @@ export function LiuyaoWorkspace() {
     return () => window.removeEventListener(LIUYAO_INTENT_EVENT, handleLiuyaoIntent);
   }, []);
 
-  const ready = legacyState.mode === 'ready';
+  const ready = true;
 
   const result = useMemo<LiuyaoResult>(() => {
     if (!ready) return DEFAULT_FALLBACK;
@@ -132,28 +119,18 @@ export function LiuyaoWorkspace() {
     if (method === 'coin' || method === 'yarrow') {
       input.seed = solarBirth.year * 10000 + solarBirth.month * 100 + solarBirth.day + solarBirth.hour + castCount * 7919;
     }
-    const calculated = (() => {
-      // 优先用纯 TS 引擎（架构重构后推荐路径），传入浏览器 lunar-javascript Solar 走精确日干支/空亡
-      try {
-        const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
-        return calculateLiuyaoPure({ birth: solarBirth, ...input, solar: solarEntry ?? null }) as unknown as LiuyaoResult;
-      } catch {
-        // 回退旧 adapter
-      }
-      return calculateWithLegacyAdapter<
-        { birth: typeof solarBirth; method: string; question?: string; yaoValues?: string; seed?: number },
-        LiuyaoResult
-      >('liuyao', { birth: solarBirth, ...input });
-    })();
-    return calculated ?? DEFAULT_FALLBACK;
-  }, [ready,, solarBirth, method, question, yaoValues, castCount]);
+    try {
+      return calculateLiuyaoPure({ birth: solarBirth, ...input, solar: getSolarEntry() }) as unknown as LiuyaoResult;
+    } catch {
+      return DEFAULT_FALLBACK;
+    }
+  }, [ready, solarBirth, method, question, yaoValues, castCount]);
 
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!ready) return null;
     try {
-      const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
       const input: LiuyaoInput = {
-        birth: solarBirth, method, solar: (solarEntry ?? null) as never,
+        birth: solarBirth, method, solar: getSolarEntry() as never,
       };
       if (question) input.question = question;
       if (method === 'manual' && yaoValues) input.yaoValues = yaoValues.replace(/\s/g, '');
@@ -163,7 +140,7 @@ export function LiuyaoWorkspace() {
     } catch {
       return null;
     }
-  }, [ready,, solarBirth, method, question, yaoValues, castCount]);
+  }, [ready, solarBirth, method, question, yaoValues, castCount]);
 
   const changedLines = useMemo<LiuyaoData | null>(() => {
     if (!result.changingYao || result.changingYao.length === 0) return null;
@@ -191,7 +168,7 @@ export function LiuyaoWorkspace() {
       changingYao: result.changingYao,
       dayStem: result.dayStem,
       lines: result.lines,
-      source: 'visual/js/engines/liuyao-engine.js + visual/js/divination.js (renderLiuyao)',
+      source: 'apps/visual/src/legacy/liuyaoEngine.ts',
     }),
     [result, method,, solarBirth, question],
   );
@@ -212,11 +189,6 @@ export function LiuyaoWorkspace() {
             <ExportReportButton module="命盘" />
           </div>
         </div>
-        {legacyState.mode === 'error' && (
-          <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
-            加载失败：{legacyState.error}
-          </p>
-        )}
         <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
           六爻为传统文化占问参考，非绝对预测；同一事不宜反复起卦。
         </p>

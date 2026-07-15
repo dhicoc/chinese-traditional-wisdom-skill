@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { getSolarEntry } from '@/legacy/solarEntry';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
@@ -70,10 +71,6 @@ function shiftStr(dateStr: string, deltaDays: number): string {
   const [y, m, d] = dateStr.split('-').map(Number);
   const dt = new Date(y, m - 1, d + deltaDays);
   return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
-}
-
-function getSolarEntry(): unknown {
-  return typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
 }
 
 export function ComboWorkspace() {

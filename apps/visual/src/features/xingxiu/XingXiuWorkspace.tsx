@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { getSolarEntry } from '@/legacy/solarEntry';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
@@ -30,7 +31,7 @@ export function XingXiuWorkspace() {
 
   const result = useMemo<{ envelope: ToolEnvelope<XingXiuData> | null }>(() => {
     try {
-      const solarEntry = typeof window !== 'undefined' ? (window as unknown as { Solar?: unknown }).Solar : undefined;
+      const solarEntry = getSolarEntry();
       return { envelope: calcXingXiuEnveloped({ birth: solarBirth, solar: solarEntry ?? null, method }) };
     } catch {
       return { envelope: null };

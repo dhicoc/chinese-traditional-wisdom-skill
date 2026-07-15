@@ -1,11 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
+import { getSolarEntry } from '@/legacy/solarEntry';
 import { ControlField } from '@/components/shared/ControlField';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { getAlmanacData, type AlmanacData } from '@/legacy/almanacData';
-import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
-import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
-import type { LegacyState } from '@/legacy/legacyGlobals';
 
 /**
  * 每日黄历工作区
@@ -13,30 +11,15 @@ import type { LegacyState } from '@/legacy/legacyGlobals';
  * 神位方位、冲煞、时辰吉凶、纳音星宿。民俗参考，不做吉凶预测。
  */
 export function AlmanacWorkspace() {
-  const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
   const [almanac, setAlmanac] = useState<AlmanacData | null>(null);
-  const [loadError, setLoadError] = useState(false);
-
+  
   useEffect(() => {
-    let mounted = true;
-    loadLegacyScripts().then((state) => {
-      if (!mounted) return;
-      setLegacyState(state);
-      if (state.mode === 'error') setLoadError(true);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (legacyState.mode !== 'ready') return;
-    setAlmanac(getAlmanacData(selectedDate));
-  }, [legacyState.mode, selectedDate]);
+    setAlmanac(getAlmanacData(selectedDate, getSolarEntry() as never));
+  }, [selectedDate]);
 
   const jiHours = useMemo(() => almanac?.hours.filter((h) => h.luck === '吉') ?? [], [almanac]);
   const xiongHours = useMemo(() => almanac?.hours.filter((h) => h.luck === '凶') ?? [], [almanac]);
@@ -72,17 +55,7 @@ export function AlmanacWorkspace() {
       </div>
 
       {/* 加载中 / 错误 */}
-      {legacyState.mode === 'loading' && (
-        <div className="rounded-card border border-jade-500/20 bg-jade-500/10 p-4 text-sm text-jade-100/55">
-          <LoadingSkeleton label="正在排盘" />
-        </div>
-      )}
-      {loadError && (
-        <p className="rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-4 text-sm text-red-200">
-          历法加载失败，无法生成真实黄历数据。
-        </p>
-      )}
-
+            
       {/* 黄历内容 */}
       {almanac && (
         <div className="grid gap-4 md:grid-cols-2">

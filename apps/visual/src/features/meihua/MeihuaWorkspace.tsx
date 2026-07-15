@@ -5,9 +5,7 @@ import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { MeihuaChart } from '@/components/shared/MeihuaChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { MEIHUA_TRIGRAMS, type MeihuaData } from '@/legacy/canvasRenderers';
-import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
-import type { LegacyState } from '@/legacy/legacyGlobals';
 import { MEIHUA_INTENT_EVENT, type MeihuaIntentDetail } from '@/lib/commandIntents';
 
 const NAME_MAP: Record<string, string> = {
@@ -33,21 +31,10 @@ function trigramDisplay(name: string) {
 }
 
 export function MeihuaWorkspace() {
-  const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
   const [upper, setUpper] = useState('坤');
   const [lower, setLower] = useState('乾');
   const [movingLine, setMovingLine] = useState(3);
   const [relation, setRelation] = useState<(typeof RELATION_OPTIONS)[number]>('生');
-
-  useEffect(() => {
-    let mounted = true;
-    loadLegacyScripts().then((state) => {
-      if (mounted) setLegacyState(state);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   useEffect(() => {
     function handleMeihuaIntent(event: Event) {
@@ -100,12 +87,12 @@ export function MeihuaWorkspace() {
       module: 'meihua',
       mode: 'legacy-canvas-react-shell',
       data,
-      source: 'visual/js/divination.js (renderMeihua)',
+      source: 'apps/visual/src/legacy/meihuaEngine.ts + MeihuaChart SVG',
     }),
     [data],
   );
 
-  const ready = legacyState.mode === 'ready';
+  const ready = true;
 
   return (
     <section className="space-y-4">
@@ -122,11 +109,6 @@ export function MeihuaWorkspace() {
             <ExportReportButton module="梅花易数" />
           </div>
         </div>
-        {legacyState.mode === 'error' && (
-          <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
-            旧加载失败：{legacyState.error}
-          </p>
-        )}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">

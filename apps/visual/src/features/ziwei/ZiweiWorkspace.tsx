@@ -6,14 +6,11 @@ import { LegendPanel } from '@/components/shared/LegendPanel';
 import { ZiweiPalaceGrid } from '@/components/shared/ZiweiPalaceGrid';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
-import { calculateWithLegacyAdapter } from '@/legacy/engineAdapters';
 import { calculateZiwei as calculateZiweiPure, calcZiweiEnveloped } from '@/legacy/ziweiEngine';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
-import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import type { SolarBirth } from '@/legacy/birthBridge';
-import type { LegacyState } from '@/legacy/legacyGlobals';
 import { useBirth } from '@/lib/birthContext';
 
 interface ZiweiMingGua {
@@ -103,38 +100,19 @@ function buildFallbackZiweiData(solarBirth: SolarBirth, mingGua: ZiweiMingGua): 
 
 function calculateZiweiData(solarBirth: SolarBirth, ready: boolean): ZiweiData {
   const mingGua = calcMingGua(solarBirth.year, solarBirth.gender);
-  if (ready) {
-    // 优先用纯 TS 引擎（ESM iztro，架构重构后推荐路径）
-    try {
-      return calculateZiweiPure({ birth: solarBirth, mingGua }) as ZiweiData;
-    } catch {
-      // 回退旧 adapter
-    }
-    const adapterData = calculateWithLegacyAdapter<{ birth: SolarBirth; mingGua: ZiweiMingGua }, ZiweiData>('ziwei', {
-      birth: solarBirth,
-      mingGua,
-    });
-    if (adapterData) return adapterData;
+  if (!ready) return buildFallbackZiweiData(solarBirth, mingGua);
+  try {
+    return calculateZiweiPure({ birth: solarBirth, mingGua }) as ZiweiData;
+  } catch {
+    return buildFallbackZiweiData(solarBirth, mingGua);
   }
-  return buildFallbackZiweiData(solarBirth, mingGua);
 }
 
 
 export function ZiweiWorkspace() {
   const { solarBirth } = useBirth();
-  const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
 
-  useEffect(() => {
-    let mounted = true;
-    loadLegacyScripts().then((state) => {
-      if (mounted) setLegacyState(state);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const ready = legacyState.mode === 'ready';
+  const ready = true;
   const data = useMemo(() => calculateZiweiData(solarBirth, ready), [solarBirth, ready]);
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!ready) return null;
@@ -155,7 +133,7 @@ export function ZiweiWorkspace() {
       version: data.version,
       birth: data.birthInfo,
       palaceCount,
-      source: transformedByIztro ? 'SylarLong/iztro v2.5.8 + visual/js/engine-adapters.js' : 'React fallback demo',
+      source: transformedByIztro ? 'SylarLong/iztro v2.5.8 (ESM) + ziweiEngine.ts' : 'React fallback demo',
       note: transformedByIztro
         ? '基于内置 iztro v2.5.8 真实排盘。'
         : '旧引擎未就绪时仅用于界面降级，不作为真实排盘结论。',
@@ -178,11 +156,6 @@ export function ZiweiWorkspace() {
             <ExportReportButton module="命盘" />
           </div>
         </div>
-        {legacyState.mode === 'error' && (
-          <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
-            旧加载失败：{legacyState.error}
-          </p>
-        )}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">

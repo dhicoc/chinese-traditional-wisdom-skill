@@ -20,14 +20,11 @@ import {
   SHAPE_SHA,
   FACING_OPTIONS,
 } from '@/legacy/bazhaiHouse';
-import { loadLegacyScripts } from '@/legacy/loadLegacyScripts';
 import { calcTaisui } from '@/legacy/taisuiEngine';
 import { calcMenZhuZao } from '@/legacy/menZhuZaoEngine';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
-import type { LegacyState } from '@/legacy/legacyGlobals';
 
 export function BazhaiWorkspace() {
-  const [legacyState, setLegacyState] = useState<LegacyState>({ mode: 'loading' });
   const [year, setYear] = useState(1990);
   const [gender, setGender] = useState<'男' | '女'>('男');
   const [facing, setFacing] = useState<string>('南');
@@ -36,17 +33,7 @@ export function BazhaiWorkspace() {
   const [mzzBedroom, setMzzBedroom] = useState('北');
   const [mzzKitchen, setMzzKitchen] = useState('东');
 
-  useEffect(() => {
-    let mounted = true;
-    loadLegacyScripts().then((state) => {
-      if (mounted) setLegacyState(state);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const ready = legacyState.mode === 'ready';
+  const ready = true;
   const summary = useMemo(
     () => (ready ? getBazhaiSummary(year, gender) : null),
     [ready, year, gender],
@@ -89,7 +76,7 @@ export function BazhaiWorkspace() {
       houseGua: houseGua ?? null,
       compatibility: compatibility ?? null,
       combo: combo ?? null,
-      source: 'visual/js/fengshui.js + visual/js/core.js + bazhaiHouse.ts + flyingStarRemedies.ts',
+      source: 'canvasRenderers.ts + bazhaiHouse.ts + flyingStarRemedies.ts',
     }),
     [year, gender, facing, flowYear, summary, houseGua, compatibility, combo],
   );
@@ -109,11 +96,6 @@ export function BazhaiWorkspace() {
             <ExportReportButton module="八宅大游年" />
           </div>
         </div>
-        {legacyState.mode === 'error' && (
-          <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
-            旧加载失败：{legacyState.error}
-          </p>
-        )}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
