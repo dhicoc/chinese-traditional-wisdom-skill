@@ -12,9 +12,8 @@
  *   - #bazhai 工作区渲染 SVG 八宅命盘（Phase 10 已从 Canvas 迁移至 EightMansionsChart）
  *   - #fengshui 工作区渲染 SVG 二十四山罗盘（Phase 10 已从 Canvas 迁移至 FengshuiCompass）
  *   - AppShell 通过统一 workspace registry 路由各工作区
- *   - legacy registry 桥接已建立（LegacyVizModules / ToolManifest / CapabilityRegistry）
- *   - legacy loader 引用的旧脚本文件确实存在
- *   - canvasRenderers 暴露预期的 renderer 包装函数
+ *   - 纯 TS 引擎就绪（solarEntry / *Engine.ts，无 visual/ ?raw 桥）
+ *   - canvasRenderers 暴露飞星/八宅纯 TS API
  *
  * 运行：node apps/visual/scripts/smoke-react-shell.mjs
  */
@@ -72,7 +71,7 @@ check(
   'brand-seal 不应继续直接渲染文字 玄',
 );
 
-check(exists(path.join(repoRoot, 'visual/react.html')), 'visual/react.html 应存在，作为 React 并行验证入口');
+check(exists(path.join(appRoot, 'index.html')), 'apps/visual/index.html 应存在，作为 React Dashboard 的 vite 入口');
 
 // ── 1. #bazi: 四柱主盘与五行平衡均已迁移至 SVG（Phase 10） ──
 const baziWorkspace = read(path.join(srcRoot, 'features/bazi/BaziWorkspace.tsx'));
@@ -84,8 +83,10 @@ check(
   !baziWorkspace.includes('renderLegacyBazi') && !baziWorkspace.includes('renderLegacyWuxing'),
   '#bazi 不应再调用 renderLegacyBazi / renderLegacyWuxing（已由 SVG 组件替换）',
 );
-check(baziWorkspace.includes('calculateWithLegacyAdapter'), '#bazi 应通过 EngineAdapterRegistry 计算四柱');
+check(baziWorkspace.includes('calcBaziEnveloped') || baziWorkspace.includes('calculateBazi'), '#bazi 应通过纯 TS baziEngine 计算四柱');
+check(baziWorkspace.includes('getSolarEntry'), '#bazi 应使用 npm lunar-javascript Solar 入口');
 check(baziWorkspace.includes('useBirth'), '#bazi 应读取全局生辰上下文');
+check(!baziWorkspace.includes('loadLegacyScripts'), '#bazi 不应再加载 visual/ 旧桥');
 
 // ── 2. #yunqi: 已迁移至 SVG（Phase 10） ─────────────────
 const yunqiPath = path.join(srcRoot, 'features/yunqi/YunqiWorkspace.tsx');
@@ -164,9 +165,10 @@ if (exists(liuyaoPath)) {
     'LiuyaoWorkspace 不应再调用 renderLegacyLiuyao（已由 HexagramChart 替换）',
   );
   check(
-    liuyaoWorkspace.includes("calculateWithLegacyAdapter") && liuyaoWorkspace.includes("'liuyao'"),
-    'LiuyaoWorkspace 应通过 calculateWithLegacyAdapter 接入 liuyao Adapter',
+    liuyaoWorkspace.includes('calculateLiuyao') || liuyaoWorkspace.includes('calcLiuyaoEnveloped'),
+    'LiuyaoWorkspace 应通过纯 TS liuyaoEngine 起卦',
   );
+  check(!liuyaoWorkspace.includes('loadLegacyScripts'), 'LiuyaoWorkspace 不应再加载 visual/ 旧桥');
   check(liuyaoWorkspace.includes('LIUYAO_INTENT_EVENT'), 'LiuyaoWorkspace 应监听六爻快捷命令 intent');
   check(liuyaoWorkspace.includes('setQuestion'), 'LiuyaoWorkspace 应可通过快捷命令更新占问事项');
   check(liuyaoWorkspace.includes('setCastCount'), 'LiuyaoWorkspace 应可通过快捷命令触发重新起卦');
@@ -186,9 +188,10 @@ if (exists(ziweiPath)) {
     'ZiweiWorkspace 应使用 ZiweiPalaceGrid 渲染 SVG 命盘',
   );
   check(
-    ziweiWorkspace.includes('calculateWithLegacyAdapter') && ziweiWorkspace.includes('ZiweiIztroAdapter'),
-    'ZiweiWorkspace 应通过 EngineAdapterRegistry 接入 ZiweiIztroAdapter',
+    ziweiWorkspace.includes('calculateZiwei') || ziweiWorkspace.includes('calcZiweiEnveloped'),
+    'ZiweiWorkspace 应通过纯 TS ziweiEngine（iztro ESM）排盘',
   );
+  check(!ziweiWorkspace.includes('loadLegacyScripts'), 'ZiweiWorkspace 不应再加载 visual/ 旧桥');
   check(
     ziweiWorkspace.includes('useBirth'),
     'ZiweiWorkspace 应读取全局生辰上下文',
@@ -424,7 +427,8 @@ if (exists(birthContextPath)) {
   const birthContext = read(birthContextPath);
   check(birthContext.includes('BirthProvider'), 'birthContext 应导出 BirthProvider');
   check(birthContext.includes('useBirth'), 'birthContext 应导出 useBirth hook');
-  check(birthContext.includes('readFortuneBirth'), 'birthContext 应从旧 FORTUNE 读取出生资料');
+  check(!birthContext.includes('loadLegacyScripts'), 'birthContext 不应再加载旧脚本桥');
+  check(birthContext.includes('toSolarBirth'), 'birthContext 应使用 toSolarBirth 转公历');
   check(birthContext.includes('BIRTH_INTENT_EVENT'), 'birthContext 应监听 CommandBar 生辰更新 intent');
   check(birthContext.includes('REFRESH_ALL_INTENT_EVENT'), 'birthContext 应监听 CommandBar 全局刷新 intent');
 }
@@ -481,79 +485,66 @@ check(workspaceRegistry.includes("resolveWorkspace"), 'workspaceRegistry 应导�
 // ── 3k. BirthPanel 接入（侧边栏） ────────────────────────
 check(sidebarNav.includes('BirthPanel'), 'SidebarNav 应接入 BirthPanel（全局生辰控制台移至侧边栏）');
 
-// ── 5. legacy registry 桥接已建立 ────────────────────────
-const loadLegacy = read(path.join(srcRoot, 'legacy/loadLegacyScripts.ts'));
-check(loadLegacy.includes('window.LegacyVizModules'), 'loadLegacyScripts 应桥接 window.LegacyVizModules');
-check(loadLegacy.includes('window.LegacyCORE'), 'loadLegacyScripts 应桥接 window.LegacyCORE');
-check(loadLegacy.includes('window.LegacyRegisterVizModule'), 'loadLegacyScripts 应桥接 window.LegacyRegisterVizModule');
-check(loadLegacy.includes('iztro-2.5.8.min.js?raw'), 'loadLegacyScripts 应加载 iztro vendor 以支持真实紫微排盘');
-check(loadLegacy.includes('lunar-javascript-1.7.7.js?raw'), 'loadLegacyScripts 应加载 lunar-javascript vendor 以支持精确历法');
-check(loadLegacy.includes('engine-adapters.js?raw'), 'loadLegacyScripts 应加载 EngineAdapterRegistry');
-check(loadLegacy.includes('data-bridge.js?raw'), 'loadLegacyScripts 应加载 FORTUNE data bridge');
+// ── 5. 纯 TS 引擎路径（已拔除 visual/ 旧桥） ─────────────
+check(!exists(path.join(srcRoot, 'legacy/loadLegacyScripts.ts')), 'loadLegacyScripts.ts 应已删除');
+check(exists(path.join(srcRoot, 'legacy/solarEntry.ts')), 'solarEntry.ts 应提供 npm lunar-javascript 入口');
+check(exists(path.join(srcRoot, 'legacy/termExplanations.ts')), 'termExplanations.ts 应提供纯 TS 术语表');
+check(exists(path.join(srcRoot, 'legacy/termExplanations.json')), 'termExplanations.json 词表应存在');
+check(exists(path.join(srcRoot, 'legacy/baziEngine.ts')), 'baziEngine.ts 纯 TS 引擎应存在');
+check(exists(path.join(srcRoot, 'legacy/ziweiEngine.ts')), 'ziweiEngine.ts 纯 TS 引擎应存在');
+check(exists(path.join(srcRoot, 'legacy/liuyaoEngine.ts')), 'liuyaoEngine.ts 纯 TS 引擎应存在');
+check(exists(path.join(srcRoot, 'legacy/yunqiEngine.ts')), 'yunqiEngine.ts 纯 TS 引擎应存在');
 
-const engineAdaptersPath = path.join(srcRoot, 'legacy/engineAdapters.ts');
-check(exists(engineAdaptersPath), 'engineAdapters.ts 应位于 legacy/ 目录');
-if (exists(engineAdaptersPath)) {
-  const engineAdapters = read(engineAdaptersPath);
-  check(engineAdapters.includes('getLegacyEngineAdapter'), 'engineAdapters 应包装 EngineAdapterRegistry.get');
-  check(engineAdapters.includes('calculateWithLegacyAdapter'), 'engineAdapters 应包装 adapter.calculate');
-}
+const solarEntry = read(path.join(srcRoot, 'legacy/solarEntry.ts'));
+check(solarEntry.includes("from 'lunar-javascript'"), 'solarEntry 应从 npm 包 lunar-javascript 导入');
+check(!solarEntry.includes('?raw'), 'solarEntry 不应 ?raw 加载 visual/vendor');
+
+const birthCtx = read(path.join(srcRoot, 'lib/birthContext.tsx'));
+check(!birthCtx.includes('loadLegacyScripts'), 'birthContext 不应再加载 visual/ 旧桥');
+check(birthCtx.includes('legacyReady: true') || birthCtx.includes('legacyReady:true'), 'birthContext 引擎应始终就绪');
 
 const toolRegistry = read(path.join(srcRoot, 'legacy/toolRegistry.ts'));
-check(
-  toolRegistry.includes('window.ToolManifest') || toolRegistry.includes('ToolManifest'),
-  'toolRegistry 应接入旧 ToolManifest registry',
-);
-check(
-  toolRegistry.includes('window.CapabilityRegistry') || toolRegistry.includes('CapabilityRegistry'),
-  'toolRegistry 应接入旧 CapabilityRegistry registry',
-);
+check(toolRegistry.includes('MODULES'), 'toolRegistry 应从 MODULES 构建工具目录');
+check(!toolRegistry.includes('window.ToolManifest'), 'toolRegistry 不应读 window.ToolManifest');
+check(!toolRegistry.includes('window.CapabilityRegistry'), 'toolRegistry 不应读 window.CapabilityRegistry');
 
-// ── 6. legacy loader 引用的旧脚本确实存在 ─────────────────
-const legacyScripts = [
-  'visual/js/core.js',
-  'visual/js/tool-manifest.js',
-  'visual/js/capabilities.js',
-  'visual/js/bazi.js',
-  'visual/js/divination.js',
-  'visual/js/fengshui.js',
-  'visual/js/engines/yunqi-engine.js',
-  'visual/vendor/lunar-javascript-1.7.7.js',
-  'visual/vendor/iztro-2.5.8.min.js',
-  'visual/js/engine-adapters.js',
-  'visual/js/data-bridge.js',
-  'visual/js/health.js',
-];
-for (const rel of legacyScripts) {
-  check(exists(path.join(repoRoot, rel)), `legacy loader 引用的旧脚本应存在: ${rel}`);
+// ── 6. 源码不得再 ?raw import visual/ ─────────────────────
+function walkTs(dir, out = []) {
+  for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, ent.name);
+    if (ent.isDirectory()) walkTs(p, out);
+    else if (/\.(ts|tsx)$/.test(ent.name)) out.push(p);
+  }
+  return out;
 }
+const visualRawHits = [];
+for (const f of walkTs(srcRoot)) {
+  const text = read(f);
+  // 只把真正的 import 路径算违规（忽略注释）
+  const code = text
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/[^\n]*/g, '');
+  if (code.includes('visual/js/') && code.includes('?raw')) visualRawHits.push(path.relative(repoRoot, f));
+  if (code.includes('visual/vendor/') && code.includes('?raw')) visualRawHits.push(path.relative(repoRoot, f));
+}
+check(visualRawHits.length === 0, `src 不得再 ?raw 引用 visual/，实际命中: ${visualRawHits.join(', ') || '无'}`);
 
-// ── 7. canvasRenderers 暴露预期 renderer 包装 ─────────────
+// ── 7. canvasRenderers 纯 TS 飞星/八宅 API ───────────────
 const canvasRenderers = read(path.join(srcRoot, 'legacy/canvasRenderers.ts'));
 const expectedRenderers = [
-  'renderLegacyBazi',
-  'renderLegacyWuxing',
-  'renderLegacyYunqi',
-  'renderLegacyCompass',
-  'renderLegacyMeihua',
-  'renderLegacyLiuyao',
-  'renderLegacyConstitution',
-  'renderLegacyFlyingStars',
-  'renderLegacyEightMansions',
-  'calculateLegacyYunqi',
-  'getLegacyBaziModule',
-  'getLegacyHealthModule',
-  'getLegacyFengshuiModule',
-  'getLegacyZiweiModule',
-  'renderLegacyZiwei',
-  'getLegacyCORE',
-  'deriveDominantConstitution',
+  'getFlyingStars',
+  'getFeixingGrid',
   'getFeixingSummary',
+  'getBazhaiGrid',
   'getBazhaiSummary',
+  'deriveDominantConstitution',
 ];
 for (const name of expectedRenderers) {
   check(canvasRenderers.includes(name), `canvasRenderers 应导出 ${name}`);
 }
+check(!canvasRenderers.includes('getLegacyCORE'), 'canvasRenderers 不应再依赖 getLegacyCORE');
+check(!canvasRenderers.includes('LegacyVizModules'), 'canvasRenderers 不应再依赖 LegacyVizModules');
+check(!canvasRenderers.includes('renderLegacyBazi'), 'canvasRenderers 不应再导出 renderLegacy* Canvas 包装');
 
 // ── 8. CopyContextButton 与通用组件契约 ─────────────────
 const commandIntentsPath = path.join(srcRoot, 'lib/commandIntents.ts');

@@ -26,6 +26,7 @@ function exists(relPath) {
   return fs.existsSync(path.join(root, relPath));
 }
 
+// ── 应存在的文档与数据文件（不再依赖旧静态运行时 visual/js/*）──
 const requiredFiles = [
   "README.md",
   "README_AI.md",
@@ -35,14 +36,12 @@ const requiredFiles = [
   "EVOLUTION.md",
   "ROADMAP.md",
   "templates/visual-report.md",
-  "visual/index.html",
-  "visual/test-runner.html",
-  "visual/js/capabilities.js",
-    "visual/js/tool-manifest.js",
-  "visual/js/history-store.js",
-  "visual/js/engine-adapters.js",
-  "visual/vendor/lunar-javascript-1.7.7.js",
-  "visual/vendor/lunar-javascript-1.7.7.LICENSE",
+  // React Dashboard 入口与核心契约源
+  "apps/visual/index.html",
+  "apps/visual/src/lib/modules.ts",
+  "apps/visual/src/components/shared/ExportReportButton.tsx",
+  "apps/visual/src/legacy/reportLayers.ts",
+  "apps/visual/src/legacy/toolRegistry.ts",
   "knowledge-base/fengshui/mappings/SCHEMA.md",
   "knowledge-base/fengshui/mappings/life-trigram.json",
   "knowledge-base/fengshui/mappings/eight-mansions.json",
@@ -60,8 +59,12 @@ const skill = read("SKILL.md");
 const toolIndex = read("tool-index.md");
 const roadmap = read("ROADMAP.md");
 const reportTemplate = read("templates/visual-report.md");
-const capabilities = read("visual/js/capabilities.js");
+// React 版能力/导出契约源
+const modules = read("apps/visual/src/lib/modules.ts");
+const exportButton = read("apps/visual/src/components/shared/ExportReportButton.tsx");
+const reportLayers = read("apps/visual/src/legacy/reportLayers.ts");
 
+// ── 文档能力口径（与运行时无关；对齐文档当前用词 local-exact / local-approx / 演示）──
 [
   ["README.md", readme],
   ["README_AI.md", readmeAi],
@@ -69,33 +72,37 @@ const capabilities = read("visual/js/capabilities.js");
   ["tool-index.md", toolIndex],
   ["ROADMAP.md", roadmap]
 ].forEach(([name, content]) => {
-  check(content.includes("本地近似计算"), `${name} 缺少本地近似计算口径`);
-  check(content.includes("演示数据"), `${name} 缺少演示数据口径`);
-  check(content.includes("外部引擎") || content.includes("需外部引擎"), `${name} 缺少外部引擎口径`);
+  check(content.includes("local-approx") || content.includes("本地近似"), `${name} 缺少本地近似口径`);
+  check(content.includes("演示"), `${name} 缺少演示数据口径`);
+  check(content.includes("local-exact") || content.includes("本地精确") || content.includes("外部引擎") || content.includes("需外部"), `${name} 缺少精确/外部引擎口径`);
 });
 
-["getCapabilities()", "exportReportData()"].forEach((apiName) => {
-  check(readme.includes(apiName), `README.md 缺少 ${apiName}`);
-  check(readmeAi.includes(apiName), `README_AI.md 缺少 ${apiName}`);
-  check(skill.includes(apiName), `SKILL.md 缺少 ${apiName}`);
-  check(capabilities.includes(apiName.replace("()", "")), `capabilities.js 缺少 ${apiName}`);
-});
+// ── React Dashboard 能力声明契约（取代旧 capabilities.js 的 getCapabilities）──
+check(modules.includes("export const MODULES"), "modules.ts 缺少 MODULES 能力注册表");
+check(modules.includes("export interface WisdomModule"), "modules.ts 缺少 WisdomModule 接口");
+check(modules.includes("export function getModuleById"), "modules.ts 缺少 getModuleById 查询函数");
+check(modules.includes("export function isModuleId"), "modules.ts 缺少 isModuleId 类型守卫");
 
+// ── 报告导出契约（取代旧 capabilities.js 的 exportReportData）──
+check(exportButton.includes("version"), "ExportReportButton 导出缺少 version 字段");
+check(exportButton.includes("generatedAt"), "ExportReportButton 导出缺少 generatedAt 字段");
+check(exportButton.includes("sourceNotes"), "ExportReportButton 导出缺少 sourceNotes 字段");
+check(exportButton.includes("birth.year") || exportButton.includes("birthYear"), "ExportReportButton 导出缺少脱敏出生年份");
+// 隐私：导出快照应保留脱敏说明
+check(exportButton.includes("脱敏"), "ExportReportButton 导出缺少脱敏说明");
+
+// ── visual-report 模板字段契约（保留）──
 ["version", "generatedAt", "sourceNotes"].forEach((field) => {
   check(reportTemplate.includes(field), `visual-report 模板缺少 ${field}`);
-  check(capabilities.includes(field), `capabilities.js 导出缺少 ${field}`);
 });
 
-check(capabilities.includes("subject: {"), "exportReportData 缺少 subject");
-check(capabilities.includes("birthYear"), "exportReportData 缺少脱敏出生年份");
-check(!/subject:\s*\{[\s\S]{0,260}\b(month|day|hour)\s*:/.test(capabilities), "subject 不应导出完整月日时");
-check(capabilities.includes("不包含完整出生日期"), "exportReportData 缺少隐私说明");
-// 四层报告联动：exportReportData 应含 fourLayer 字段 + toFourLayerJS 归类函数
-check(capabilities.includes("fourLayer: fourLayer"), "exportReportData 缺少 fourLayer 字段");
-check(capabilities.includes("function toFourLayerJS"), "capabilities.js 缺少 toFourLayerJS 四层归类函数");
-check(capabilities.includes("HIGHLIGHT_HEADINGS"), "toFourLayerJS 缺少 highlights 归类规则");
-check(/四层报告 \(fourLayer\)/.test(capabilities), "downloadReport HTML 缺少四层报告渲染段");
+// ── 四层报告契约（取代旧 toFourLayerJS / HIGHLIGHT_HEADINGS）──
+check(reportLayers.includes("export function toFourLayer"), "reportLayers.ts 缺少 toFourLayer 四层归类函数");
+check(reportLayers.includes("export interface LayerReport"), "reportLayers.ts 缺少 LayerReport 接口");
+check(reportLayers.includes("highlights"), "toFourLayer 归类应含 highlights 层");
+check(reportLayers.includes("actions"), "toFourLayer 归类应含 actions 层");
 
+// ── 映射表数量与 schema 入口（保留）──
 const mappingDir = path.join(root, "knowledge-base", "fengshui", "mappings");
 const mappingCount = fs.readdirSync(mappingDir).filter((name) => name.endsWith(".json")).length;
 check(mappingCount === 6, `映射表数量应为 6，当前为 ${mappingCount}`);
