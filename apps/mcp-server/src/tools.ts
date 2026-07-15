@@ -24,6 +24,7 @@ import { calcXingXiuEnveloped } from '../../visual/src/legacy/xingxiuEngine';
 import { calcTaiyiEnveloped } from '../../visual/src/legacy/taiyiEngine';
 import { calcHuangjiEnveloped } from '../../visual/src/legacy/huangjiEngine';
 import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo, calcSanshiCombo, calcSanshiClassicCombo, calcDailyWellnessCombo, calcZeriCombo, calcMonthlyFortuneCombo } from '../../visual/src/legacy/comboEngine';
+import { calcMarriageCombo } from '../../visual/src/legacy/marriageCombo';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
 const solarEntry: unknown = (() => {
@@ -334,6 +335,43 @@ export const TOOLS: ToolDef[] = [
       targetMonth: (i as { targetMonth: number }).targetMonth,
       constitution: (i as { constitution?: string }).constitution,
       solar: solarEntry,
+    }),
+  },
+  {
+    name: 'combo_marriage',
+    description: '合婚/配对分析：输入双方出生信息，整合八字日柱冲合（六冲/六合/三合/相害/相刑/天干五合相冲）、用神互补、紫微命宫对照、姓名匹配（双方姓名五行+五格）、婚房/办公风水方位（双方命卦东四西四宅）、吉日推荐（zeri 嫁娶/开业）。适配婚恋/合伙/合作三类关系。输出综合契合度+五行互补度+逐柱冲合扫描+紫微对照+姓名匹配+风水建议+吉日+四层报告。',
+    schema: z.object({
+      personA: z.object({
+        birth: birthSchema,
+        surname: z.string().optional().describe('甲方姓氏（可选，用于姓名匹配）'),
+        givenName: z.string().optional().describe('甲方名字（可选）'),
+        label: z.string().optional().describe('称谓，如男方/甲方'),
+      }),
+      personB: z.object({
+        birth: birthSchema,
+        surname: z.string().optional().describe('乙方姓氏（可选）'),
+        givenName: z.string().optional().describe('乙方名字（可选）'),
+        label: z.string().optional().describe('称谓，如女方/乙方'),
+      }),
+      scene: z.enum(['婚恋', '合伙', '合作']).optional().describe('关系类型（默认婚恋）'),
+      targetYear: z.number().int().min(1900).max(2100).optional().describe('择吉日年份（默认双方出生较大年）'),
+    }),
+    handler: (i) => calcMarriageCombo({
+      personA: {
+        birth: (i as { personA: { birth: unknown } }).personA.birth as never,
+        surname: (i as { personA: { surname?: string } }).personA.surname,
+        givenName: (i as { personA: { givenName?: string } }).personA.givenName,
+        label: (i as { personA: { label?: string } }).personA.label,
+        solar: solarEntry,
+      },
+      personB: {
+        birth: (i as { personB: { birth: unknown } }).personB.birth as never,
+        surname: (i as { personB: { surname?: string } }).personB.surname,
+        givenName: (i as { personB: { givenName?: string } }).personB.givenName,
+        label: (i as { personB: { label?: string } }).personB.label,
+      },
+      scene: (i as { scene?: '婚恋' | '合伙' | '合作' }).scene,
+      targetYear: (i as { targetYear?: number }).targetYear,
     }),
   },
 ];

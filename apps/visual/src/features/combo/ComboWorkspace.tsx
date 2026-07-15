@@ -22,6 +22,7 @@ import {
   type ZeriPurpose,
   type MonthlyFortuneResult,
 } from '@/legacy/comboEngine';
+import { calcMarriageCombo, type MarriageResult, type MarriageScene } from '@/legacy/marriageCombo';
 import { DALIUREN_SCHOOLS, type DaliurenSchool } from '@/legacy/daliurenEngine';
 import { QUESTIONNAIRE } from '@/legacy/constitutionQuestionnaire';
 import type { ToolEnvelope } from '@/legacy/baseTypes';
@@ -40,7 +41,7 @@ import type { ToolEnvelope } from '@/legacy/baseTypes';
  * 用全局生辰调对应 combo 函数，结果用 FourLayerReport 四层渲染 + 子系统卡片 + 一致性徽章。
  */
 
-type ComboType = 'annual' | 'monthly' | 'decision' | 'space' | 'sanshi' | 'sanshi-classic' | 'wellness' | 'zeri';
+type ComboType = 'annual' | 'monthly' | 'decision' | 'space' | 'sanshi' | 'sanshi-classic' | 'wellness' | 'zeri' | 'marriage';
 
 const COMBO_OPTIONS: Array<{
   key: ComboType;
@@ -56,6 +57,7 @@ const COMBO_OPTIONS: Array<{
   { key: 'sanshi-classic', label: '三式合一', desc: '奇门 + 太乙 + 大六壬 真正传统三式', icon: '叁' },
   { key: 'wellness', label: '今日养生建议', desc: '体质 + 24节气 + 时辰经络 + 方位', icon: '养' },
   { key: 'zeri', label: '综合择日', desc: '黄历宜忌 + 神煞 + 太岁三煞 + 命卦吉方', icon: '择' },
+  { key: 'marriage', label: '合婚配对', desc: '双方八字冲合 + 用神互补 + 紫微对照 + 姓名匹配 + 风水吉日', icon: '合' },
 ];
 
 const ZERI_PURPOSES: ZeriPurpose[] = ['开业', '结婚', '搬家', '动土', '出行', '签约', '安葬', '祈福'];
@@ -85,8 +87,19 @@ export function ComboWorkspace() {
   const [zeriStart, setZeriStart] = useState<string>(shiftStr(todayStr(), 1));
   const [zeriEnd, setZeriEnd] = useState<string>(shiftStr(todayStr(), 30));
   const [zeriTopN, setZeriTopN] = useState<number>(5);
+  // 合婚：第二人输入（第一人用全局生辰）
+  const [partnerYear, setPartnerYear] = useState<number>(1990);
+  const [partnerMonth, setPartnerMonth] = useState<number>(6);
+  const [partnerDay, setPartnerDay] = useState<number>(15);
+  const [partnerHour, setPartnerHour] = useState<number>(12);
+  const [partnerGender, setPartnerGender] = useState<string>('女');
+  const [partnerSurname, setPartnerSurname] = useState<string>('');
+  const [partnerGivenName, setPartnerGivenName] = useState<string>('');
+  const [mySurname, setMySurname] = useState<string>('');
+  const [myGivenName, setMyGivenName] = useState<string>('');
+  const [marriageScene, setMarriageScene] = useState<MarriageScene>('婚恋');
 
-  const result = useMemo<{ envelope: ToolEnvelope<ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult> | null; loading: boolean }>(() => {
+  const result = useMemo<{ envelope: ToolEnvelope<ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult> | null; loading: boolean }>(() => {
     const solar = getSolarEntry() ?? null;
     const birthInput = {
       year: solarBirth.year, month: solarBirth.month, day: solarBirth.day,
@@ -143,18 +156,40 @@ export function ComboWorkspace() {
           loading: false,
         };
       }
+      if (comboType === 'marriage') {
+        return {
+          envelope: calcMarriageCombo({
+            personA: {
+              birth: birthInput,
+              surname: mySurname || undefined,
+              givenName: myGivenName || undefined,
+              label: marriageScene === '婚恋' ? '男方' : '甲方',
+              solar,
+            },
+            personB: {
+              birth: { year: partnerYear, month: partnerMonth, day: partnerDay, hour: partnerHour, gender: partnerGender },
+              surname: partnerSurname || undefined,
+              givenName: partnerGivenName || undefined,
+              label: marriageScene === '婚恋' ? '女方' : '乙方',
+            },
+            scene: marriageScene,
+            targetYear,
+          }) as ToolEnvelope<MarriageResult>,
+          loading: false,
+        };
+      }
       return { envelope: calcSpaceTimeCombo({ birth: birthInput, targetYear, solar }) as ToolEnvelope<ComboResult>, loading: false };
     } catch {
       return { envelope: null, loading: false };
     }
-  }, [comboType, solarBirth, question, targetYear, targetMonth, liurenSchool, constitution, zeriPurpose, zeriStart, zeriEnd, zeriTopN]);
+  }, [comboType, solarBirth, question, targetYear, targetMonth, liurenSchool, constitution, zeriPurpose, zeriStart, zeriEnd, zeriTopN, partnerYear, partnerMonth, partnerDay, partnerHour, partnerGender, partnerSurname, partnerGivenName, mySurname, myGivenName, marriageScene]);
 
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!result.envelope) return null;
     return toFourLayer(result.envelope.data.export_snapshot as ReadingLike);
   }, [result.envelope]);
 
-  const data = result.envelope?.data as (ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult) | undefined;
+  const data = result.envelope?.data as (ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult) | undefined;
   const birthSummary = `${solarBirth.year}-${String(solarBirth.month).padStart(2, '0')}-${String(solarBirth.day).padStart(2, '0')} ${String(solarBirth.hour).padStart(2, '0')}:00 ${solarBirth.gender}`;
 
   return (
@@ -338,6 +373,67 @@ export function ComboWorkspace() {
               </p>
             </div>
           )}
+          {comboType === 'marriage' && (
+            <div className="space-y-3">
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="text-jade-100/55">关系类型</span>
+                <select
+                  value={marriageScene}
+                  onChange={(e) => setMarriageScene(e.target.value as MarriageScene)}
+                  className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+                >
+                  <option value="婚恋">婚恋（结婚/找对象）</option>
+                  <option value="合伙">合伙（合伙创业）</option>
+                  <option value="合作">合作（项目合作）</option>
+                </select>
+              </label>
+              <p className="text-xs text-jade-100/55">甲方（你自己）生辰：<span className="font-mono text-jade-100">{birthSummary}</span></p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="text-jade-100/55">乙方出生年</span>
+                  <input type="number" min={1900} max={2100} value={partnerYear} onChange={(e) => setPartnerYear(Number(e.target.value) || 1990)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none focus:border-jade-500/45" />
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="text-jade-100/55">月</span>
+                  <input type="number" min={1} max={12} value={partnerMonth} onChange={(e) => setPartnerMonth(Number(e.target.value) || 1)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none focus:border-jade-500/45" />
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="text-jade-100/55">日</span>
+                  <input type="number" min={1} max={31} value={partnerDay} onChange={(e) => setPartnerDay(Number(e.target.value) || 1)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none focus:border-jade-500/45" />
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="text-jade-100/55">时（0-23）</span>
+                  <input type="number" min={0} max={23} value={partnerHour} onChange={(e) => setPartnerHour(Number(e.target.value) || 0)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none focus:border-jade-500/45" />
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="text-jade-100/55">乙方性别</span>
+                  <select value={partnerGender} onChange={(e) => setPartnerGender(e.target.value)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none focus:border-jade-500/45">
+                    <option value="男">男</option>
+                    <option value="女">女</option>
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="text-jade-100/55">甲方姓名（可选）</span>
+                  <input type="text" value={mySurname} onChange={(e) => setMySurname(e.target.value)} placeholder="姓" className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none focus:border-jade-500/45" />
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="text-jade-100/55">甲方名（可选）</span>
+                  <input type="text" value={myGivenName} onChange={(e) => setMyGivenName(e.target.value)} placeholder="名" className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none focus:border-jade-500/45" />
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="text-jade-100/55">乙方姓名（可选）</span>
+                  <input type="text" value={partnerSurname} onChange={(e) => setPartnerSurname(e.target.value)} placeholder="姓" className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none focus:border-jade-500/45" />
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="text-jade-100/55">乙方名（可选）</span>
+                  <input type="text" value={partnerGivenName} onChange={(e) => setPartnerGivenName(e.target.value)} placeholder="名" className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none focus:border-jade-500/45" />
+                </label>
+              </div>
+              <p className="text-[10px] text-jade-100/35">
+                输入双方出生信息，分析八字日柱冲合、用神互补、紫微命宫对照、姓名匹配、婚房风水与吉日。姓名为可选，不填则跳过姓名维度。仅供文化参考。
+              </p>
+            </div>
+          )}
           {(comboType === 'sanshi' || comboType === 'sanshi-classic') && (
             <label className="flex flex-col gap-1 text-sm">
               <span className="text-jade-100/55">大六壬天将流派</span>
@@ -396,6 +492,8 @@ export function ComboWorkspace() {
                 ))}
               </div>
             </InterpretationCard>
+          ) : comboType === 'marriage' ? (
+            <MarriageResultView data={data as MarriageResult} />
           ) : (
             <InterpretationCard
               title="各术数看法"
@@ -526,6 +624,67 @@ function ZeriDayList({ data }: { data: ZeriResult }) {
           )}
         </div>
       )}
+    </InterpretationCard>
+  );
+}
+
+/** 合婚配对结果视图：双方概览 + 互补度 + 冲合扫描 + 紫微/姓名/风水/吉日 */
+function MarriageResultView({ data }: { data: MarriageResult }) {
+  const m = data;
+  const toneColor = m.overallScore >= 70 ? 'text-jade-300' : m.overallScore < 50 ? 'text-red-300' : 'text-amber-300';
+  return (
+    <InterpretationCard
+      title={`${m.comboName} · 综合契合度 ${m.overallScore}（${m.grade}）`}
+      subtitle={m.scene + '配对 · 八字冲合 + 用神互补 + 紫微对照 + 姓名匹配 + 风水吉日'}
+    >
+      <div className="space-y-3">
+        {/* 综合契合度大字 */}
+        <div className="flex items-center gap-3 rounded-card border border-white/8 bg-ink-900/40 px-4 py-3">
+          <span className={`text-2xl font-bold ${toneColor}`}>{m.overallScore}</span>
+          <span className="text-sm text-jade-100/55">/100 · {m.grade}</span>
+          <div className="ml-auto flex flex-wrap gap-2 text-[11px]">
+            <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2 py-0.5 text-jade-300">五行互补 {m.wuxingComplement}</span>
+            {m.nameMatch !== null && <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2 py-0.5 text-jade-300">姓名匹配 {m.nameMatch}</span>}
+            <span className={`rounded-full border px-2 py-0.5 ${m.chongHeTotalScore >= 0 ? 'border-jade-500/25 bg-jade-500/10 text-jade-300' : 'border-red-500/25 bg-red-500/10 text-red-300'}`}>冲合 {m.chongHeTotalScore >= 0 ? '+' : ''}{m.chongHeTotalScore}</span>
+          </div>
+        </div>
+
+        {/* 双方概览 */}
+        <div className="grid gap-2 sm:grid-cols-2">
+          {[m.personA, m.personB].map((p) => (
+            <div key={p.label} className="rounded-card border border-white/8 bg-ink-900/40 px-3 py-2 text-xs">
+              <p className="font-semibold text-jade-200">{p.label}</p>
+              <p className="mt-1 text-jade-100/60">日柱 <span className="font-mono text-jade-100">{p.dayGanZhi}</span> · 日主 {p.dayMaster}({p.dayMasterWuxing}) · 用神 {p.xiyongShen || '未知'}</p>
+              <p className="text-jade-100/50">命卦 {p.mingGua.trigram}（{p.mingGua.group}）{p.nameScore !== undefined ? ` · 姓名 ${p.nameScore}（${p.nameGrade}）` : ''}</p>
+              {p.ziweiMingStars.length > 0 && <p className="text-jade-100/45">紫微命宫：{p.ziweiMingStars.join('、')}</p>}
+            </div>
+          ))}
+        </div>
+
+        {/* 逐柱冲合扫描 */}
+        <div>
+          <p className="mb-1 text-xs font-semibold text-jade-100/70">干支冲合（日柱权重最大）</p>
+          <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4">
+            {m.chongHeScan.map((s) => (
+              <div key={s.pillar} className={`rounded-card border px-3 py-2 text-[11px] ${s.score > 0 ? 'border-jade-500/25 bg-jade-500/5' : s.score < 0 ? 'border-red-500/25 bg-red-500/5' : 'border-white/8 bg-ink-900/40'}`}>
+                <p className="font-medium text-jade-100/70">{s.pillar}</p>
+                <p className="mt-0.5 font-mono text-jade-100">{s.aGanZhi} ↔ {s.bGanZhi}</p>
+                <p className="mt-0.5 text-jade-100/55">{s.note}</p>
+                <p className={`mt-0.5 ${s.score >= 0 ? 'text-jade-300' : 'text-red-300'}`}>{s.score > 0 ? '+' : ''}{s.score}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 紫微/姓名/风水/吉日 */}
+        <div className="space-y-1.5 text-xs">
+          <p className="rounded-card border border-white/8 bg-ink-900/40 px-3 py-2 text-jade-100/60"><span className="text-jade-300">紫微对照：</span>{m.ziweiCompare}</p>
+          <p className="rounded-card border border-white/8 bg-ink-900/40 px-3 py-2 text-jade-100/60"><span className="text-jade-300">风水建议：</span>{m.fengshuiAdvice}</p>
+          {m.auspiciousDays.length > 0 && m.auspiciousDays[0] !== '择日数据不可用' && (
+            <p className="rounded-card border border-white/8 bg-ink-900/40 px-3 py-2 text-jade-100/60"><span className="text-jade-300">吉日推荐：</span>{m.auspiciousDays.join('；')}</p>
+          )}
+        </div>
+      </div>
     </InterpretationCard>
   );
 }
