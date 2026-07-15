@@ -103,7 +103,7 @@ node scripts/setup-mcp.mjs --check    # 仅检查
 | 姓名五行 | 民俗体验（fate 数据） | 康熙笔画/五格/三才/五维评分/字义/生肖喜忌。 |
 | 黄历 / 解梦 / 节律 | 民俗体验 | 纯本地规则，不做吉凶预测；节律工作区含子午流注经络钟 SVG + 24 节气调养条带。 |
 
-能力状态统一由 `visual/js/capabilities.js` 管理旧入口、`apps/visual/src/lib/modules.ts` 管理 React Shell，Dashboard 通过 `FORTUNE.getCapabilities()` 暴露只读查询。
+能力状态统一由 `apps/visual/src/lib/modules.ts` 管理（`MODULES` 注册表 + `getModuleById` 查询），各模块 status 标识 `local-exact` / `local-approx` / `demo` / `knowledge` / `derived` / `folk-experience`。
 ---
 
 ## 键值映射表（JSON）
@@ -123,18 +123,19 @@ node scripts/setup-mcp.mjs --check    # 仅检查
 
 ## 可视化前端
 
+React Dashboard（`apps/visual`，vite + React + SVG），`pnpm dev` 启动 / `pnpm build` 产出 dist。
+
 | 工具 | 类型 | 入口 | 注意事项 |
 |------|------|------|---------|
-| Canvas 2D API | 浏览器原生 | visual/index.html | 无需依赖 |
-| Mermaid.js v10.9.1 | 可选 CDN | visual/index.html (script src) | 网络失败时显示离线降级提示，不阻塞 Canvas 模块 |
-| Chart.js | CDN | visual/index.html (script src) | 雷达图 + 扇形图 |
-| lunar-javascript 1.7.7 | 浏览器内置 vendor | `visual/vendor/lunar-javascript-1.7.7.js` | MIT；提供 `Solar` / `Lunar` / `EightChar`，用于八字节气干支和五运六气大寒边界 |
-| ToolManifest 工具目录 | 浏览器原生 | `visual/js/tool-manifest.js` | 统一首页卡片、工具分类、入口标签、能力键、隐私等级和报告区块元数据 |
-| HistoryStore 本地历史与收藏 | 浏览器原生 | `visual/js/history-store.js` | localStorage 存储脱敏阅读摘要，最多 30 条，自动清除完整日期，提供清空入口 |
-| toReading() 结构化阅读摘要 | 浏览器原生 | `visual/js/engine-adapters.js` | Adapter 可选方法，返回 title/summary/tags/sections/sourceNotes，用于历史记录和报告摘要 |
-| 引擎 Adapter 注册表 | 浏览器原生 | `visual/js/engine-adapters.js` | 统一八字、五运六气、紫微、六爻、梅花的 `calculate()` / `toRenderData()` 契约 |
-| 文档契约检查 | Node.js | `node visual/js/tests/check-doc-contracts.mjs` | 校验 README/SKILL/tool-index/ROADMAP 与入口文件、报告字段、隐私约束一致 |
-| 全局同步回归 | 浏览器 | `visual/test-runner.html` | 校验 FORTUNE 全局更新后各标签页控件与画布同步 |
+| SVG 组件 | React | `apps/visual/src/components/shared/*Chart.tsx` | 八字柱/五行/紫微宫位/六爻卦/奇门/皇极圆图等，纯 SVG 无 Canvas |
+| lunar-javascript 1.7.7 | npm 依赖 | `apps/visual` / `apps/mcp-server` package.json | MIT；提供 `Solar` / `Lunar` / `EightChar`，节气干支和五运六气大寒边界 |
+| iztro v2.5.8 | npm 依赖 | `apps/visual` package.json | MIT；紫微斗数十二宫排盘 |
+| 3meta v2.6.0 | npm 依赖 | `apps/visual` package.json | MIT；奇门遁甲时家奇门排盘 |
+| 模块注册表 | React | `apps/visual/src/lib/modules.ts` | `MODULES` 统一首页卡片、工具分类、能力键、隐私等级 |
+| 历史与收藏 | React | `apps/visual/src/legacy/historyStore.ts` | localStorage 脱敏阅读摘要，自动清除完整日期 |
+| toReading/export_snapshot | 纯 TS | `apps/visual/src/legacy/reportLayers.ts` | `toFourLayer` 归类四层报告（tldr/highlights/details/actions） |
+| 报告导出 | React | `apps/visual/src/components/shared/ExportReportButton.tsx` | 导出脱敏 JSON 快照（version/generatedAt/sourceNotes + birth.year） |
+| 文档契约检查 | Node.js | `node visual/js/tests/check-doc-contracts.mjs` | 校验 README/SKILL/tool-index/ROADMAP 与 React 入口、报告字段、隐私约束一致 |
 
 ---
 
@@ -168,8 +169,8 @@ flowchart TD
 | 排盘结果全空 | 引擎未安装或版本不兼容 | 切手工排盘（参考 bootstrap 指南） |
 | 六爻起卦返回错误 | API 参数格式不对或本地引擎未加载 | Dashboard 默认走本地纳甲引擎；命令行 `ichingshifa` 失败时检查输入格式，或用梅花替代 |
 | JSON mapping 文件读不到 | 路径不对或文件缺失 | 检查 knowledge-base/fengshui/mappings/ 下文件，并运行 `node visual/js/tests/check-mapping-schema.mjs` |
-| Mermaid 图不显示 | CDN 加载失败 / display:none 渲染 | 查看离线提示；Canvas 核心模块可继续使用 |
-| 可视化页面打不开 | 未双击 index.html | 直接在浏览器打开 visual/index.html |
+| Mermaid 图不显示 | CDN 加载失败 | 查看离线提示；核心模块可继续使用 |
+| 可视化页面打不开 | 未启动 dev server | `cd apps/visual && pnpm dev`，浏览器打开提示的本地地址 |
 
 ---
 
@@ -181,9 +182,9 @@ flowchart TD
 
 | 来源 | 许可证 | 采纳范围 | 本地落地 |
 |------|--------|---------|---------|
-| `6tail/lunar-javascript` | MIT | 节气、干支、八字、纳音、彭祖百忌、神位方位、时辰吉凶 | `visual/vendor/lunar-javascript-1.7.7.js`，经 `BaziLunarAdapter`/`YunqiLunarBoundaryAdapter`/黄历模块调用 |
-| `SylarLong/iztro` v2.5.8 | MIT | 紫微斗数十二宫排盘 | `visual/vendor/iztro-2.5.8.min.js`，经 `ZiweiIztroAdapter` 调用 |
-| `3metaJun/3meta` v2.6.0 | MIT | 奇门遁甲时家奇门排盘 | `visual/vendor/3meta-2.6.0.min.js`，经 `Qimen3metaAdapter` 调用；含三奇六仪、九星、八门、八神、值符值使、空亡马星、旺相休囚、十二长生、六仪击刑、十干生克、吉凶格局自动检测 |
+| `6tail/lunar-javascript` | MIT | 节气、干支、八字、纳音、彭祖百忌、神位方位、时辰吉凶 | npm 依赖 `lunar-javascript@1.7.7`，经 `apps/visual/src/legacy/solarEntry.ts` 及各引擎调用 |
+| `SylarLong/iztro` v2.5.8 | MIT | 紫微斗数十二宫排盘 | npm 依赖 `iztro@2.5.8`，经 `ZiweiIztroAdapter` 调用 |
+| `3metaJun/3meta` v2.6.0 | MIT | 奇门遁甲时家奇门排盘 | npm 依赖 `3meta@2.6.0`，经 `Qimen3metaAdapter` 调用；含三奇六仪、九星、八门、八神、值符值使、空亡马星、旺相休囚、十二长生、六仪击刑、十干生克、吉凶格局自动检测 |
 | `babyname/fate` | MIT | 康熙笔画 + 字义五行数据 | `apps/visual/src/legacy/kangxiStrokes.json`（从 `resources/character.json` 提取 22107 字，简体→繁体本字康熙笔画映射） |
 | `babyname/fate` | MIT | 81 数理详注表 | `apps/visual/src/legacy/dayanList.json`（从 `internal/wuge/dayan.go` 提取 81 条，含九星名/详注/女性不宜/最大好运标记） |
 | `babyname/fate` | MIT | 三才配置详描 | `apps/visual/src/legacy/sancaiDetails.json`（从 `internal/analysis/sancai_data.go` 提取 118 组天-人-地五行配置完整详描） |

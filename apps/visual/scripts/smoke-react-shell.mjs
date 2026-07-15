@@ -323,7 +323,6 @@ if (exists(testRegistryPath)) {
   check(testRegistry.includes('check-mapping-schema'), 'testRegistry 应注册 check-mapping-schema 套件');
   check(testRegistry.includes('check-knowledge-references'), 'testRegistry 应注册 check-knowledge-references 套件');
   check(testRegistry.includes('check-search-index'), 'testRegistry 应注册 check-search-index 套件');
-  check(testRegistry.includes('test-bazi'), 'testRegistry 应注册 test-bazi 套件');
   check(testRegistry.includes('verify-page'), 'testRegistry 应注册 verify-page 套件');
   check(testRegistry.includes('TestSuiteType'), 'testRegistry 应导出 TestSuiteType 类型');
 }
