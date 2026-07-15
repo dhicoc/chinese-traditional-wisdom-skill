@@ -135,6 +135,7 @@ React Dashboard（`apps/visual`，vite + React + SVG），`pnpm dev` 启动 / `p
 | 历史与收藏 | React | `apps/visual/src/legacy/historyStore.ts` | localStorage 脱敏阅读摘要，自动清除完整日期 |
 | toReading/export_snapshot | 纯 TS | `apps/visual/src/legacy/reportLayers.ts` | `toFourLayer` 归类四层报告（tldr/highlights/details/actions） |
 | 报告导出 | React | `apps/visual/src/components/shared/ExportReportButton.tsx` | 导出脱敏 JSON 快照（version/generatedAt/sourceNotes + birth.year） |
+| 全局搜索 | React + 纯 TS | `apps/visual/src/features/search/SearchModal.tsx` + `legacy/searchEngine.ts` | 三源全文检索：303 术语 + 6 映射表 + 31 古籍，评分排序；CommandBar「全局搜索」命令打开，点古籍切到 Split Reader 高亮 |
 | 文档契约检查 | Node.js | `node apps/visual/scripts/check-doc-contracts.mjs` | 校验 README/SKILL/tool-index/ROADMAP 与 React 入口、报告字段、隐私约束一致 |
 
 ---

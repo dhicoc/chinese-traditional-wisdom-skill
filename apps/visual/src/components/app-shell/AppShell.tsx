@@ -3,6 +3,7 @@ import { SidebarNav } from './SidebarNav';
 import { CommandBar } from './CommandBar';
 import { WorkspaceTabs } from './WorkspaceTabs';
 import { GlobalToast } from '@/components/shared/GlobalToast';
+import { SearchModal } from '@/features/search/SearchModal';
 import { resolveWorkspace } from './workspaceRegistry';
 import { HomeDashboard } from '@/features/home/HomeDashboard';
 import { DynamicTianPanBackground } from './DynamicTianPanBackground';
@@ -40,6 +41,7 @@ export function AppShell({ activeModule, onSelectModule }: AppShellProps) {
         </main>
       </div>
       <GlobalToast />
+      <SearchModal onSelectModule={onSelectModule} />
     </div>
   );
 }

@@ -79,7 +79,7 @@ export const TEST_SUITES: TestSuite[] = [
     id: 'check-search-index',
     name: '全局搜索索引校验',
     type: 'node',
-    description: '验证 search.js 的风水古籍索引与实际文件清单对齐，并展示来源、类别、完整性字段。',
+    description: '验证 searchEngine.ts 的术语/映射表/古籍索引与实际文件清单对齐，并校验搜索浮层挂载与入口命令。',
     expectedCount: 59,
     cliCommand: 'node apps/visual/scripts/check-search-index.mjs',
     covers: ['knowledge-base/fengshui', 'GlobalSearch', 'KB_INDEX'],

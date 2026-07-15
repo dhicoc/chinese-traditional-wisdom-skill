@@ -23,6 +23,7 @@ import {
 } from '@/lib/commandIntents';
 import { routeQuery, type AgentRoute } from '@/lib/agentRouter';
 import { AgentConfirmPanel } from './AgentConfirmPanel';
+import { openSearchModal } from '@/features/search/SearchModal';
 
 /* ── 类型 ─────────────────────────────────────────────── */
 
@@ -262,6 +263,14 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
         group: '操作',
         keywords: ['copy', 'context', 'AI', '复制', '上下文'],
         action: () => dispatchCopyContextIntent(active.id),
+      },
+      {
+        id: 'action-global-search',
+        label: '全局搜索 · 术语 / 古籍 / 映射表',
+        hint: '打开搜索浮层，全文检索 303 条术语、6 个风水映射表、31 篇古籍',
+        group: '操作',
+        keywords: ['search', '搜索', '查找', '术语', '古籍', 'global'],
+        action: () => openSearchModal(),
       },
     ];
 
