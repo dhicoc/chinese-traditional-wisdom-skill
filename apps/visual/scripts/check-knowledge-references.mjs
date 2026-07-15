@@ -73,7 +73,8 @@ workspaces.forEach((file) => {
   const source = read(file);
   check(source.includes("KnowledgeReferencePanel"), file + " 应接入 KnowledgeReferencePanel");
   check(source.includes("initialTerm"), file + " 应提供 initialTerm");
-  check(source.includes("terms={["), file + " 应提供可点击术语列表");
+  // terms prop 可为数组字面量 terms={[ 或预处理变量 terms={xxx}，均算提供可点击术语列表
+  check(/terms=\{/.test(source), file + " 应提供可点击术语列表 terms prop");
 });
 
 const mountains = readJson("twenty-four-mountains.json");
