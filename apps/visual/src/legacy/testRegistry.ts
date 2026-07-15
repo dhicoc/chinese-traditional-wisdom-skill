@@ -43,7 +43,7 @@ export const TEST_SUITES: TestSuite[] = [
     type: 'node',
     description: '验证 Phase 5-11 的核心迁移契约：CommandBar 不直接操作 DOM、年份跳转、Split Reader、测试控制台与通用解读/图例组件。',
     expectedCount: 58,
-    cliCommand: 'node visual/js/tests/check-react-migration.mjs',
+    cliCommand: 'node apps/visual/scripts/check-react-migration.mjs',
     covers: ['CommandBar', 'commandIntents', 'InterpretationCard', 'LegendPanel', 'AncientTextSplitReader', 'TestRunnerConsole'],
   },
   {
@@ -52,7 +52,7 @@ export const TEST_SUITES: TestSuite[] = [
     type: 'node',
     description: '验证 README / SKILL / tool-index / EVOLUTION 等文档中引用的文件、映射表、引擎脚本确实存在。',
     expectedCount: 58,
-    cliCommand: 'node visual/js/tests/check-doc-contracts.mjs',
+    cliCommand: 'node apps/visual/scripts/check-doc-contracts.mjs',
     covers: ['README.md', 'SKILL.md', 'tool-index.md', 'knowledge-base/mappings'],
   },
   {
@@ -61,7 +61,7 @@ export const TEST_SUITES: TestSuite[] = [
     type: 'node',
     description: '验证 6 个风水 JSON 映射表的字段完整性、方位覆盖、八宅与飞星规则结构。',
     expectedCount: 476,
-    cliCommand: 'node visual/js/tests/check-mapping-schema.mjs',
+    cliCommand: 'node apps/visual/scripts/check-mapping-schema.mjs',
     covers: ['life-trigram.json', 'eight-mansions.json', 'twenty-four-mountains.json', 'yearly-flying-stars.json', 'three-essentials.json', 'form-sha-cures.json'],
   },
 
@@ -71,7 +71,7 @@ export const TEST_SUITES: TestSuite[] = [
     type: 'node',
     description: '验证知识引用查询模块、React 面板接入，以及二十四山、八宅、飞星等映射表可命中。',
     expectedCount: 37,
-    cliCommand: 'node visual/js/tests/check-knowledge-references.mjs',
+    cliCommand: 'node apps/visual/scripts/check-knowledge-references.mjs',
     covers: ['KnowledgeReferencePanel', 'queryKnowledgeReferences', 'fengshui/_index.md', 'fengshui/mappings'],
   },
 
@@ -81,7 +81,7 @@ export const TEST_SUITES: TestSuite[] = [
     type: 'node',
     description: '验证 search.js 的风水古籍索引与实际文件清单对齐，并展示来源、类别、完整性字段。',
     expectedCount: 59,
-    cliCommand: 'node visual/js/tests/check-search-index.mjs',
+    cliCommand: 'node apps/visual/scripts/check-search-index.mjs',
     covers: ['knowledge-base/fengshui', 'GlobalSearch', 'KB_INDEX'],
   },
 

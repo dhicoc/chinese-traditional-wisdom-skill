@@ -27,7 +27,7 @@
 在仓库根目录执行：
 
 ```bash
-node visual/js/tests/check-mapping-schema.mjs
+node apps/visual/scripts/check-mapping-schema.mjs
 ```
 
 该脚本只校验结构完整性和覆盖范围，不判断传统术数规则本身是否正确。
