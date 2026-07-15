@@ -75,10 +75,9 @@ When generating components, adhere to the following strict coding styles:
 
 ## 6. Local Project Adaptation Notes
 
-The current `visual/` implementation is a static HTML/CSS/JS frontend rather than a React + Shadcn + Tailwind app. Until the project migrates to React, treat the above as the target design direction and translate it into equivalent static frontend patterns:
+The Dashboard is a React + Tailwind app in `apps/visual/` (vite + SVG). Translate the above design direction into equivalent React/SVG patterns:
 
-- Use CSS variables for tokens in `visual/css/style.css`.
-- Keep deterministic rendering in existing JS modules under `visual/js/`.
-- Avoid adding runtime dependencies unless the task explicitly authorizes a framework migration.
-- Preserve current tab IDs and existing engine adapters unless a migration plan explicitly changes them.
-- Maintain browser-testability through `visual/test-runner.html` and existing `visual/js/tests/` contracts.
+- Use CSS variables / Tailwind tokens for the jade/ink palette in `apps/visual/src/styles/`.
+- Keep deterministic rendering in pure-TS engine modules under `apps/visual/src/legacy/` and SVG components under `apps/visual/src/components/shared/`.
+- Preserve current module IDs (`apps/visual/src/lib/modules.ts`) and engine adapter contracts unless a plan explicitly changes them.
+- Maintain testability through `pnpm test` / `pnpm test:unit` (vitest) / `pnpm test:e2e` (playwright) and the `apps/visual/scripts/check-*.mjs` contract tests.
