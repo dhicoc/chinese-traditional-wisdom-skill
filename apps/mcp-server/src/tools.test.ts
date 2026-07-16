@@ -5,7 +5,7 @@ import type { ToolEnvelope } from '../../visual/src/legacy/baseTypes';
 /**
  * MCP 工具端到端测试（handler 层）。
  * 直接调每个 TOOLS handler，验证返回有效 ToolEnvelope。
- * 覆盖全部 23 个工具。
+ * 覆盖全部 24 个工具。
  */
 
 /** 校验 ToolEnvelope 必填字段 */
@@ -41,8 +41,8 @@ function findTool(name: string) {
 }
 
 describe('MCP TOOLS 注册完整性', () => {
-  it('注册了 23 个工具', () => {
-    expect(TOOLS.length).toBe(23);
+  it('注册了 24 个工具', () => {
+    expect(TOOLS.length).toBe(24);
   });
 
   it('所有工具有 name/description/schema/handler', () => {

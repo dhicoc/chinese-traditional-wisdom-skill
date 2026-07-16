@@ -26,7 +26,8 @@ export type ModuleId =
   | 'liuren'
   | 'xingxiu'
   | 'taiyi'
-  | 'huangji';
+  | 'huangji'
+  | 'cezi';
 
 export interface WisdomModule {
   id: ModuleId;
@@ -318,6 +319,18 @@ export const MODULES: WisdomModule[] = [
     questionTypes: ['历史', '收藏', '隐私'],
     accent: '#c9b27a',
     description: '自动保存最近 30 条脱敏阅读摘要，不保存完整姓名、完整出生日期或具体地点。',
+  },
+  {
+    id: 'cezi',
+    group: '日用工具',
+    title: '测字 · 字占',
+    shortTitle: '测字',
+    status: 'local-approx',
+    statusLabel: '本地规则',
+    privacyLevel: '仅本地计算',
+    questionTypes: ['测字', '字占', '起名参考'],
+    accent: '#d4a017',
+    description: '输入一个字，分析康熙笔画数理、字义五行、字形结构与偏旁象义，可选结合八字用神补益，给出吉凶定调与事业/感情影响及改字起名建议。象数 + 字义占卜。',
   },
 ];
 

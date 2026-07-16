@@ -25,6 +25,7 @@ import { calcTaiyiEnveloped } from '../../visual/src/legacy/taiyiEngine';
 import { calcHuangjiEnveloped } from '../../visual/src/legacy/huangjiEngine';
 import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo, calcSanshiCombo, calcSanshiClassicCombo, calcDailyWellnessCombo, calcZeriCombo, calcMonthlyFortuneCombo } from '../../visual/src/legacy/comboEngine';
 import { calcMarriageCombo } from '../../visual/src/legacy/marriageCombo';
+import { calcCeziEnveloped } from '../../visual/src/legacy/ceziEngine';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
 const solarEntry: unknown = (() => {
@@ -372,6 +373,21 @@ export const TOOLS: ToolDef[] = [
       },
       scene: (i as { scene?: '婚恋' | '合伙' | '合作' }).scene,
       targetYear: (i as { targetYear?: number }).targetYear,
+    }),
+  },
+  {
+    name: 'cast_cezi',
+    description: '测字/字占：输入一个汉字，分析康熙笔画数理（81 数理吉凶）、字义五行、字义本义（说文/形声）、字形结构（上下/左右/包围/独体）与偏旁象义，可选结合八字用神判断该字对日主的补益。输出吉凶定调+性格预示+事业/感情影响+改字起名建议。象数+字义占卜，门槛最低。',
+    schema: z.object({
+      char: z.string().min(1).max(4).describe('所测汉字（取首字）'),
+      aspect: z.enum(['事业', '感情', '财利', '健康', '综合']).optional().describe('问题方向（默认综合）'),
+      birth: birthSchema.optional().describe('可选生辰，结合八字用神补益判断'),
+    }),
+    handler: (i) => calcCeziEnveloped({
+      char: (i as { char: string }).char,
+      aspect: (i as { aspect?: '事业' | '感情' | '财利' | '健康' | '综合' }).aspect,
+      birth: (i as { birth?: unknown }).birth as never,
+      solar: solarEntry,
     }),
   },
 ];

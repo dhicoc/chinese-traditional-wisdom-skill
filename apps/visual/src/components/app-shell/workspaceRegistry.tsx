@@ -24,6 +24,7 @@ import { LiurenWorkspace } from '@/features/liuren/LiurenWorkspace';
 import { XingXiuWorkspace } from '@/features/xingxiu/XingXiuWorkspace';
 import { TaiyiWorkspace } from '@/features/taiyi/TaiyiWorkspace';
 import { HuangjiWorkspace } from '@/features/huangji/HuangjiWorkspace';
+import { CeziWorkspace } from '@/features/cezi/CeziWorkspace';
 import type { ModuleId } from '@/lib/modules';
 
 interface WorkspaceProps {
@@ -56,6 +57,7 @@ export const WORKSPACE_COMPONENTS: Partial<Record<ModuleId, ComponentType<Worksp
   xingxiu: XingXiuWorkspace,
   taiyi: TaiyiWorkspace,
   huangji: HuangjiWorkspace,
+  cezi: CeziWorkspace,
 };
 
 export function resolveWorkspace(moduleId: ModuleId): ComponentType<WorkspaceProps> {

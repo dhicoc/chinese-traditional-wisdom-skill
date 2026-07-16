@@ -553,8 +553,25 @@ export function ComboWorkspace() {
                     date: d.date, lunarDate: d.lunarDate, dayGanZhi: d.dayGanZhi, score: d.score, tone: d.tone, reasons: d.reasons,
                   })),
                   annualSha: (data as ZeriResult).annualSha,
-                } : (comboType === 'wellness' || comboType === 'monthly') ? {} : { consistency: (data as ComboResult).consistency }),
-                ...(comboType === 'zeri' ? {} : {
+                } : (comboType === 'wellness' || comboType === 'monthly' || comboType === 'marriage') ? {} : { consistency: (data as ComboResult).consistency }),
+                ...(comboType === 'zeri' ? {} : comboType === 'marriage' ? {
+                  marriage: {
+                    scene: (data as MarriageResult).scene,
+                    overallScore: (data as MarriageResult).overallScore,
+                    grade: (data as MarriageResult).grade,
+                    wuxingComplement: (data as MarriageResult).wuxingComplement,
+                    nameMatch: (data as MarriageResult).nameMatch,
+                    chongHeTotalScore: (data as MarriageResult).chongHeTotalScore,
+                    personA: (data as MarriageResult).personA,
+                    personB: (data as MarriageResult).personB,
+                    chongHeScan: (data as MarriageResult).chongHeScan.map((s) => ({
+                      pillar: s.pillar, aGanZhi: s.aGanZhi, bGanZhi: s.bGanZhi, note: s.note, score: s.score,
+                    })),
+                    ziweiCompare: (data as MarriageResult).ziweiCompare,
+                    fengshuiAdvice: (data as MarriageResult).fengshuiAdvice,
+                    auspiciousDays: (data as MarriageResult).auspiciousDays,
+                  },
+                } : {
                   subsystems: (comboType === 'wellness' ? (data as DailyWellnessResult).subsystems
                     : comboType === 'monthly' ? (data as MonthlyFortuneResult).subsystems
                     : (data as ComboResult).subsystems).map((s) => ({
