@@ -27,7 +27,8 @@ export type ModuleId =
   | 'xingxiu'
   | 'taiyi'
   | 'huangji'
-  | 'cezi';
+  | 'cezi'
+  | 'chenguz';
 
 export interface WisdomModule {
   id: ModuleId;
@@ -331,6 +332,18 @@ export const MODULES: WisdomModule[] = [
     questionTypes: ['测字', '字占', '起名参考'],
     accent: '#d4a017',
     description: '输入一个字，分析康熙笔画数理、字义五行、字形结构与偏旁象义，可选结合八字用神补益，给出吉凶定调与事业/感情影响及改字起名建议。象数 + 字义占卜。',
+  },
+  {
+    id: 'chenguz',
+    group: '日用工具',
+    title: '袁天罡称骨',
+    shortTitle: '称骨',
+    status: 'local-exact',
+    statusLabel: '本地精确历法',
+    privacyLevel: '仅本地计算',
+    questionTypes: ['称骨', '命格', '骨重'],
+    accent: '#d4a017',
+    description: '袁天罡称骨算命：按出生年月日时（农历）查四柱骨重，总重对应称骨歌一段，定命格轻重。骨越重命越贵，骨轻则多劳。用全局生辰直接算。',
   },
 ];
 

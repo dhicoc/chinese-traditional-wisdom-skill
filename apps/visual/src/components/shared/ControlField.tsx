@@ -1,4 +1,4 @@
-import type { ChangeEventHandler, ReactNode } from 'react';
+import type { ChangeEventHandler, FocusEventHandler, ReactNode } from 'react';
 
 type ControlFieldProps = {
   label: string;
@@ -6,13 +6,14 @@ type ControlFieldProps = {
   children?: ReactNode;
   value?: string | number;
   onChange?: ChangeEventHandler<HTMLInputElement>;
+  onBlur?: FocusEventHandler<HTMLInputElement>;
   type?: string;
   min?: number;
   max?: number;
   inputMode?: 'text' | 'numeric' | 'decimal';
 };
 
-export function ControlField({ label, hint, children, value, onChange, type = 'text', min, max, inputMode }: ControlFieldProps) {
+export function ControlField({ label, hint, children, value, onChange, onBlur, type = 'text', min, max, inputMode }: ControlFieldProps) {
   return (
     <label className="grid gap-1 text-xs text-jade-100/45">
       <span className="flex items-center justify-between gap-2">
@@ -23,6 +24,7 @@ export function ControlField({ label, hint, children, value, onChange, type = 't
         <input
           value={value}
           onChange={onChange}
+          onBlur={onBlur}
           type={type}
           min={min}
           max={max}

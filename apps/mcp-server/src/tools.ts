@@ -26,6 +26,7 @@ import { calcHuangjiEnveloped } from '../../visual/src/legacy/huangjiEngine';
 import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo, calcSanshiCombo, calcSanshiClassicCombo, calcDailyWellnessCombo, calcZeriCombo, calcMonthlyFortuneCombo } from '../../visual/src/legacy/comboEngine';
 import { calcMarriageCombo } from '../../visual/src/legacy/marriageCombo';
 import { calcCeziEnveloped } from '../../visual/src/legacy/ceziEngine';
+import { calcChenguzEnveloped } from '../../visual/src/legacy/chenguzEngine';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
 const solarEntry: unknown = (() => {
@@ -387,6 +388,17 @@ export const TOOLS: ToolDef[] = [
       char: (i as { char: string }).char,
       aspect: (i as { aspect?: '事业' | '感情' | '财利' | '健康' | '综合' }).aspect,
       birth: (i as { birth?: unknown }).birth as never,
+      solar: solarEntry,
+    }),
+  },
+  {
+    name: 'calc_chenguz',
+    description: '袁天罡称骨算命：按出生年月日时查四柱骨重（年按生肖/年支、月按农历月、日按农历日、时按时支），总重（两+钱）对应称骨歌一段，定命格轻重。骨越重命越贵，骨轻则多劳。输出四柱骨重+总重+称骨歌+白话解读。民间算命，门槛低。',
+    schema: z.object({
+      birth: birthSchema,
+    }),
+    handler: (i) => calcChenguzEnveloped({
+      birth: (i as { birth: unknown }).birth as never,
       solar: solarEntry,
     }),
   },

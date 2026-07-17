@@ -25,6 +25,7 @@ import { XingXiuWorkspace } from '@/features/xingxiu/XingXiuWorkspace';
 import { TaiyiWorkspace } from '@/features/taiyi/TaiyiWorkspace';
 import { HuangjiWorkspace } from '@/features/huangji/HuangjiWorkspace';
 import { CeziWorkspace } from '@/features/cezi/CeziWorkspace';
+import { ChenguzWorkspace } from '@/features/chenguz/ChenguzWorkspace';
 import type { ModuleId } from '@/lib/modules';
 
 interface WorkspaceProps {
@@ -58,6 +59,7 @@ export const WORKSPACE_COMPONENTS: Partial<Record<ModuleId, ComponentType<Worksp
   taiyi: TaiyiWorkspace,
   huangji: HuangjiWorkspace,
   cezi: CeziWorkspace,
+  chenguz: ChenguzWorkspace,
 };
 
 export function resolveWorkspace(moduleId: ModuleId): ComponentType<WorkspaceProps> {

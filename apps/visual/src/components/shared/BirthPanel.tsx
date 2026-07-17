@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useBirth } from '@/lib/birthContext';
 import { ControlField } from '@/components/shared/ControlField';
 import { DEFAULT_BIRTH } from '@/legacy/birthBridge';
@@ -25,6 +25,32 @@ export function BirthPanel() {
   const [userToggledHidden, setUserToggledHidden] = useState(false);
   const [expandedOnce] = useState(true);
   const expanded = userToggledHidden ? false : (userToggled || isDefaultBirth || expandedOnce);
+
+  // 数字字段 draft（字符串态）：允许输入框清空/编辑中间态，blur 时再提交
+  const [draftYear, setDraftYear] = useState(String(birth.year));
+  const [draftMonth, setDraftMonth] = useState(String(birth.month));
+  const [draftDay, setDraftDay] = useState(String(birth.day));
+  const [draftHour, setDraftHour] = useState(String(birth.hour));
+  // birth 外部变化（reset / 路由跳转）时同步回 draft
+  useEffect(() => { setDraftYear(String(birth.year)); }, [birth.year]);
+  useEffect(() => { setDraftMonth(String(birth.month)); }, [birth.month]);
+  useEffect(() => { setDraftDay(String(birth.day)); }, [birth.day]);
+  useEffect(() => { setDraftHour(String(birth.hour)); }, [birth.hour]);
+
+  /** blur 时把 draft 提交为 number；空或非法时回退到当前 birth 值 */
+  const commitDraft = (field: 'year' | 'month' | 'day' | 'hour', draft: string, fallback: number) => {
+    const n = Number.parseInt(draft, 10);
+    if (Number.isNaN(n) || draft.trim() === '') {
+      // 回退：把 draft 复位回当前 birth 值
+      if (field === 'year') setDraftYear(String(birth.year));
+      else if (field === 'month') setDraftMonth(String(birth.month));
+      else if (field === 'day') setDraftDay(String(birth.day));
+      else setDraftHour(String(birth.hour));
+      return;
+    }
+    updateBirth({ [field]: n } as Partial<typeof birth>);
+    void fallback;
+  };
 
   const summary = `${birth.year}-${String(birth.month).padStart(2, '0')}-${String(birth.day).padStart(2, '0')} ${birth.gender} ${birth.isLunar ? '农历' : '公历'} ${birth.useExactCalendar ? '精确' : '近似'}`;
 
@@ -92,8 +118,9 @@ export function BirthPanel() {
               min={1900}
               max={2100}
               inputMode="numeric"
-              value={birth.year}
-              onChange={(e) => updateBirth({ year: Number.parseInt(e.target.value, 10) || 1990 })}
+              value={draftYear}
+              onChange={(e) => setDraftYear(e.target.value)}
+              onBlur={() => commitDraft('year', draftYear, birth.year)}
             />
             <ControlField
               label="月"
@@ -101,8 +128,9 @@ export function BirthPanel() {
               min={1}
               max={12}
               inputMode="numeric"
-              value={birth.month}
-              onChange={(e) => updateBirth({ month: Number.parseInt(e.target.value, 10) || 1 })}
+              value={draftMonth}
+              onChange={(e) => setDraftMonth(e.target.value)}
+              onBlur={() => commitDraft('month', draftMonth, birth.month)}
             />
             <ControlField
               label="日"
@@ -110,8 +138,9 @@ export function BirthPanel() {
               min={1}
               max={31}
               inputMode="numeric"
-              value={birth.day}
-              onChange={(e) => updateBirth({ day: Number.parseInt(e.target.value, 10) || 1 })}
+              value={draftDay}
+              onChange={(e) => setDraftDay(e.target.value)}
+              onBlur={() => commitDraft('day', draftDay, birth.day)}
             />
             <ControlField
               label="时"
@@ -119,8 +148,9 @@ export function BirthPanel() {
               min={0}
               max={23}
               inputMode="numeric"
-              value={birth.hour}
-              onChange={(e) => updateBirth({ hour: Number.parseInt(e.target.value, 10) || 0 })}
+              value={draftHour}
+              onChange={(e) => setDraftHour(e.target.value)}
+              onBlur={() => commitDraft('hour', draftHour, birth.hour)}
             />
           </div>
 
