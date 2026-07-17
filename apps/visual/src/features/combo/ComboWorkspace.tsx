@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getSolarEntry } from '@/legacy/solarEntry';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
@@ -98,6 +98,30 @@ export function ComboWorkspace() {
   const [mySurname, setMySurname] = useState<string>('');
   const [myGivenName, setMyGivenName] = useState<string>('');
   const [marriageScene, setMarriageScene] = useState<MarriageScene>('婚恋');
+  // 合婚数字字段 draft（字符串态）：允许清空/编辑中间态，blur 时再提交为 number
+  const [draftPartnerYear, setDraftPartnerYear] = useState('1990');
+  const [draftPartnerMonth, setDraftPartnerMonth] = useState('6');
+  const [draftPartnerDay, setDraftPartnerDay] = useState('15');
+  const [draftPartnerHour, setDraftPartnerHour] = useState('12');
+  useEffect(() => { setDraftPartnerYear(String(partnerYear)); }, [partnerYear]);
+  useEffect(() => { setDraftPartnerMonth(String(partnerMonth)); }, [partnerMonth]);
+  useEffect(() => { setDraftPartnerDay(String(partnerDay)); }, [partnerDay]);
+  useEffect(() => { setDraftPartnerHour(String(partnerHour)); }, [partnerHour]);
+  const commitPartnerDraft = (field: 'year' | 'month' | 'day' | 'hour', draft: string) => {
+    const n = Number.parseInt(draft, 10);
+    if (Number.isNaN(n) || draft.trim() === '') {
+      // 回退到当前值
+      if (field === 'year') setDraftPartnerYear(String(partnerYear));
+      else if (field === 'month') setDraftPartnerMonth(String(partnerMonth));
+      else if (field === 'day') setDraftPartnerDay(String(partnerDay));
+      else setDraftPartnerHour(String(partnerHour));
+      return;
+    }
+    if (field === 'year') setPartnerYear(n);
+    else if (field === 'month') setPartnerMonth(n);
+    else if (field === 'day') setPartnerDay(n);
+    else setPartnerHour(n);
+  };
 
   const result = useMemo<{ envelope: ToolEnvelope<ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult> | null; loading: boolean }>(() => {
     const solar = getSolarEntry() ?? null;
@@ -391,19 +415,19 @@ export function ComboWorkspace() {
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">乙方出生年</span>
-                  <input type="number" min={1900} max={2100} value={partnerYear} onChange={(e) => setPartnerYear(Number(e.target.value) || 1990)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
+                  <input type="number" min={1900} max={2100} value={draftPartnerYear} onChange={(e) => setDraftPartnerYear(e.target.value)} onBlur={() => commitPartnerDraft('year', draftPartnerYear)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">月</span>
-                  <input type="number" min={1} max={12} value={partnerMonth} onChange={(e) => setPartnerMonth(Number(e.target.value) || 1)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
+                  <input type="number" min={1} max={12} value={draftPartnerMonth} onChange={(e) => setDraftPartnerMonth(e.target.value)} onBlur={() => commitPartnerDraft('month', draftPartnerMonth)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">日</span>
-                  <input type="number" min={1} max={31} value={partnerDay} onChange={(e) => setPartnerDay(Number(e.target.value) || 1)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
+                  <input type="number" min={1} max={31} value={draftPartnerDay} onChange={(e) => setDraftPartnerDay(e.target.value)} onBlur={() => commitPartnerDraft('day', draftPartnerDay)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">时（0-23）</span>
-                  <input type="number" min={0} max={23} value={partnerHour} onChange={(e) => setPartnerHour(Number(e.target.value) || 0)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
+                  <input type="number" min={0} max={23} value={draftPartnerHour} onChange={(e) => setDraftPartnerHour(e.target.value)} onBlur={() => commitPartnerDraft('hour', draftPartnerHour)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">乙方性别</span>
