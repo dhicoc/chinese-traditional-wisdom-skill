@@ -29,7 +29,7 @@ export function ControlField({ label, hint, children, value, onChange, onBlur, t
           min={min}
           max={max}
           inputMode={inputMode}
-          className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
+          className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45 focus:ring-1 focus:ring-jade-500/20"
         />
       )}
     </label>

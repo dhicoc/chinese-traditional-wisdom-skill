@@ -391,42 +391,42 @@ export function ComboWorkspace() {
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">乙方出生年</span>
-                  <input type="number" min={1900} max={2100} value={partnerYear} onChange={(e) => setPartnerYear(Number(e.target.value) || 1990)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none focus:border-jade-500/45" />
+                  <input type="number" min={1900} max={2100} value={partnerYear} onChange={(e) => setPartnerYear(Number(e.target.value) || 1990)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">月</span>
-                  <input type="number" min={1} max={12} value={partnerMonth} onChange={(e) => setPartnerMonth(Number(e.target.value) || 1)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none focus:border-jade-500/45" />
+                  <input type="number" min={1} max={12} value={partnerMonth} onChange={(e) => setPartnerMonth(Number(e.target.value) || 1)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">日</span>
-                  <input type="number" min={1} max={31} value={partnerDay} onChange={(e) => setPartnerDay(Number(e.target.value) || 1)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none focus:border-jade-500/45" />
+                  <input type="number" min={1} max={31} value={partnerDay} onChange={(e) => setPartnerDay(Number(e.target.value) || 1)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">时（0-23）</span>
-                  <input type="number" min={0} max={23} value={partnerHour} onChange={(e) => setPartnerHour(Number(e.target.value) || 0)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none focus:border-jade-500/45" />
+                  <input type="number" min={0} max={23} value={partnerHour} onChange={(e) => setPartnerHour(Number(e.target.value) || 0)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">乙方性别</span>
-                  <select value={partnerGender} onChange={(e) => setPartnerGender(e.target.value)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none focus:border-jade-500/45">
+                  <select value={partnerGender} onChange={(e) => setPartnerGender(e.target.value)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45">
                     <option value="男">男</option>
                     <option value="女">女</option>
                   </select>
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">甲方姓名（可选）</span>
-                  <input type="text" value={mySurname} onChange={(e) => setMySurname(e.target.value)} placeholder="姓" className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none focus:border-jade-500/45" />
+                  <input type="text" value={mySurname} onChange={(e) => setMySurname(e.target.value)} placeholder="姓" className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">甲方名（可选）</span>
-                  <input type="text" value={myGivenName} onChange={(e) => setMyGivenName(e.target.value)} placeholder="名" className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none focus:border-jade-500/45" />
+                  <input type="text" value={myGivenName} onChange={(e) => setMyGivenName(e.target.value)} placeholder="名" className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">乙方姓名（可选）</span>
-                  <input type="text" value={partnerSurname} onChange={(e) => setPartnerSurname(e.target.value)} placeholder="姓" className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none focus:border-jade-500/45" />
+                  <input type="text" value={partnerSurname} onChange={(e) => setPartnerSurname(e.target.value)} placeholder="姓" className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">乙方名（可选）</span>
-                  <input type="text" value={partnerGivenName} onChange={(e) => setPartnerGivenName(e.target.value)} placeholder="名" className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none focus:border-jade-500/45" />
+                  <input type="text" value={partnerGivenName} onChange={(e) => setPartnerGivenName(e.target.value)} placeholder="名" className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
                 </label>
               </div>
               <p className="text-[10px] text-jade-100/35">
