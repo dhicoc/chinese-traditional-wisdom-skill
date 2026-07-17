@@ -22,17 +22,19 @@ export function LoadingSkeleton({ label = '加载中', rows = 3 }: LoadingSkelet
         <span className="h-2 w-2 animate-pulse rounded-full bg-jade-500/60" style={{ animationDelay: '300ms' }} />
         <span className="ml-2 text-xs text-jade-100/45">{label}…</span>
       </div>
-      {/* 骨架块 */}
+      {/* 骨架块：脉动 + shimmer 扫光叠加 */}
       <div className="mx-auto max-w-md space-y-2.5">
         {Array.from({ length: rows }).map((_, i) => (
           <div
             key={i}
-            className="animate-pulse rounded-card bg-white/[0.04]"
+            className="relative animate-pulse overflow-hidden rounded-card bg-white/[0.04]"
             style={{
               height: i === 0 ? '32px' : i === 1 ? '120px' : '80px',
               animationDelay: `${i * 100}ms`,
             }}
-          />
+          >
+            <div className="ct-shimmer absolute inset-0" />
+          </div>
         ))}
       </div>
     </div>
