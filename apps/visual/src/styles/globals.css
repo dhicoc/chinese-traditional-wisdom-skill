@@ -121,11 +121,53 @@ input:focus-visible,
   to { transform: rotate(360deg); }
 }
 
-/* 尊重系统 reduced-motion 偏好：禁用动态天盘旋转动画 */
+/* ── UI 动画原语（Apple 风格柔和过渡，ct- 前缀避免冲突）── */
+@keyframes ct-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes ct-slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes ct-scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes ct-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.ct-animate-fade-in { animation: ct-fade-in 200ms ease-out both; }
+.ct-animate-slide-up { animation: ct-slide-up 240ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.ct-animate-scale-in { animation: ct-scale-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.ct-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+  background-size: 200% 100%;
+  animation: ct-shimmer 1.6s infinite;
+}
+
+/* 错峰延迟工具类（结果卡片依次淡入） */
+.ct-delay-1 { animation-delay: 60ms; }
+.ct-delay-2 { animation-delay: 120ms; }
+.ct-delay-3 { animation-delay: 180ms; }
+.ct-delay-4 { animation-delay: 240ms; }
+
+/* 尊重系统 reduced-motion 偏好：禁用动态天盘旋转动画与 UI 入场动画 */
 @media (prefers-reduced-motion: reduce) {
   .dynamic-tianpan-background,
   .tianpan-canvas {
     animation: none;
+  }
+  .ct-animate-fade-in,
+  .ct-animate-slide-up,
+  .ct-animate-scale-in,
+  .ct-shimmer {
+    animation: none;
+  }
+  * {
+    scroll-behavior: auto !important;
   }
 }
 
