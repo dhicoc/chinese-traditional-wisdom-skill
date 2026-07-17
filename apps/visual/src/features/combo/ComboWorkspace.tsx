@@ -87,6 +87,25 @@ export function ComboWorkspace() {
   const [zeriStart, setZeriStart] = useState<string>(shiftStr(todayStr(), 1));
   const [zeriEnd, setZeriEnd] = useState<string>(shiftStr(todayStr(), 30));
   const [zeriTopN, setZeriTopN] = useState<number>(5);
+  // combo 通用数字字段 draft（允许清空/编辑中间态，blur 时再提交）
+  const [draftTargetYear, setDraftTargetYear] = useState(String(solarBirth.year));
+  const [draftTargetMonth, setDraftTargetMonth] = useState(String(new Date().getMonth() + 1));
+  const [draftZeriTopN, setDraftZeriTopN] = useState('5');
+  useEffect(() => { setDraftTargetYear(String(targetYear)); }, [targetYear]);
+  useEffect(() => { setDraftTargetMonth(String(targetMonth)); }, [targetMonth]);
+  useEffect(() => { setDraftZeriTopN(String(zeriTopN)); }, [zeriTopN]);
+  const commitComboDraft = (field: 'targetYear' | 'targetMonth' | 'zeriTopN', draft: string) => {
+    const n = Number.parseInt(draft, 10);
+    if (Number.isNaN(n) || draft.trim() === '') {
+      if (field === 'targetYear') setDraftTargetYear(String(targetYear));
+      else if (field === 'targetMonth') setDraftTargetMonth(String(targetMonth));
+      else setDraftZeriTopN(String(zeriTopN));
+      return;
+    }
+    if (field === 'targetYear') setTargetYear(n);
+    else if (field === 'targetMonth') setTargetMonth(Math.max(1, Math.min(12, n)));
+    else setZeriTopN(Math.max(1, Math.min(20, n)));
+  };
   // 合婚：第二人输入（第一人用全局生辰）
   const [partnerYear, setPartnerYear] = useState<number>(1990);
   const [partnerMonth, setPartnerMonth] = useState<number>(6);
@@ -276,8 +295,9 @@ export function ComboWorkspace() {
                 type="number"
                 min={1900}
                 max={2100}
-                value={targetYear}
-                onChange={(e) => setTargetYear(Number(e.target.value) || solarBirth.year)}
+                value={draftTargetYear}
+                onChange={(e) => setDraftTargetYear(e.target.value)}
+                onBlur={() => commitComboDraft('targetYear', draftTargetYear)}
                 className="w-24 rounded-lg border border-jade-500/20 bg-ink-900/80 px-2 py-1 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
               />
             </label>
@@ -290,8 +310,9 @@ export function ComboWorkspace() {
                   type="number"
                   min={1900}
                   max={2100}
-                  value={targetYear}
-                  onChange={(e) => setTargetYear(Number(e.target.value) || solarBirth.year)}
+                  value={draftTargetYear}
+                  onChange={(e) => setDraftTargetYear(e.target.value)}
+                  onBlur={() => commitComboDraft('targetYear', draftTargetYear)}
                   className="w-24 rounded-lg border border-jade-500/20 bg-ink-900/80 px-2 py-1 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
                 />
               </label>
@@ -301,8 +322,9 @@ export function ComboWorkspace() {
                   type="number"
                   min={1}
                   max={12}
-                  value={targetMonth}
-                  onChange={(e) => setTargetMonth(Math.max(1, Math.min(12, Number(e.target.value) || 1)))}
+                  value={draftTargetMonth}
+                  onChange={(e) => setDraftTargetMonth(e.target.value)}
+                  onBlur={() => commitComboDraft('targetMonth', draftTargetMonth)}
                   className="w-16 rounded-lg border border-jade-500/20 bg-ink-900/80 px-2 py-1 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
                 />
               </label>
@@ -387,8 +409,9 @@ export function ComboWorkspace() {
                   type="number"
                   min={1}
                   max={20}
-                  value={zeriTopN}
-                  onChange={(e) => setZeriTopN(Number(e.target.value) || 5)}
+                  value={draftZeriTopN}
+                  onChange={(e) => setDraftZeriTopN(e.target.value)}
+                  onBlur={() => commitComboDraft('zeriTopN', draftZeriTopN)}
                   className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
                 />
               </label>
