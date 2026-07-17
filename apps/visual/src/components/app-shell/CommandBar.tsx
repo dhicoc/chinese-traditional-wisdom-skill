@@ -130,11 +130,11 @@ function CommandPalette({
   return (
     <div
       data-testid="command-palette"
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-[12vh] backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-[12vh] backdrop-blur-sm ct-animate-fade-in"
       onClick={onDismiss}
     >
       <div
-        className="w-full max-w-2xl overflow-hidden rounded-panel border border-ink-700 bg-ink-850/95 shadow-2xl"
+        className="w-full max-w-2xl overflow-hidden rounded-panel border border-ink-700 bg-ink-850/95 shadow-2xl ct-animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 搜索输入 */}
