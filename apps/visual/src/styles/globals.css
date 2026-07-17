@@ -154,7 +154,7 @@ input:focus-visible,
 .ct-delay-3 { animation-delay: 180ms; }
 .ct-delay-4 { animation-delay: 240ms; }
 
-/* 尊重系统 reduced-motion 偏好：禁用动态天盘旋转动画与 UI 入场动画 */
+/* 尊重系统 reduced-motion 偏好：禁用 UI 入场动画（动态背景由 JS 控制，不在此列） */
 @media (prefers-reduced-motion: reduce) {
   .dynamic-tianpan-background,
   .tianpan-canvas {
@@ -165,9 +165,6 @@ input:focus-visible,
   .ct-animate-scale-in,
   .ct-shimmer {
     animation: none;
-  }
-  * {
-    scroll-behavior: auto !important;
   }
 }
 

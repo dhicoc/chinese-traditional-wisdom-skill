@@ -276,11 +276,10 @@ export function DynamicTianPanBackground() {
     if (!ctx) return;
 
     const motionOverride = new URLSearchParams(window.location.search).get('motion') || localStorage.getItem('tianpan-motion');
-    // 尊重系统 prefers-reduced-motion 设置；URL/localStorage override 可显式开关
-    const prefersReduced = typeof window !== 'undefined'
-      && window.matchMedia
-      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const reduced = motionOverride === 'off' || motionOverride === 'reduce' || prefersReduced;
+    // 动态背景是观赏性核心体验，默认始终开启；仅在用户显式 ?motion=off / localStorage=tianpan-motion=off 时关闭
+    // （不再跟随系统 prefers-reduced-motion，避免玄学工具台背景被系统辅助设置误停）
+    void 0;
+    const reduced = motionOverride === 'off' || motionOverride === 'reduce';
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
     let w = 0;
     let h = 0;
