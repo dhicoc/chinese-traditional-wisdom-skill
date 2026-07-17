@@ -93,12 +93,12 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
           { label: '我想起名', desc: '姓名五行 · 五格评分', module: 'namewuxing' as ModuleId, icon: '名' },
           { label: '我想问事', desc: '六爻+梅花+奇门 三卜交叉', module: 'combo' as ModuleId, icon: '卜' },
           { label: '我想看风水', desc: '飞星+八宅+奇门吉方 联合', module: 'combo' as ModuleId, icon: '堪' },
-        ].map((entry) => (
+        ].map((entry, idx) => (
           <button
             key={entry.label}
             type="button"
             onClick={() => onSelectModule(entry.module)}
-            className="group flex items-center gap-3 rounded-panel border border-ink-700 bg-ink-850/60 p-4 text-left transition hover:border-jade-500/30 hover:bg-ink-850/80"
+            className={`group flex items-center gap-3 rounded-panel border border-ink-700 bg-ink-850/60 p-4 text-left transition hover:border-jade-500/30 hover:bg-ink-850/80 ct-animate-slide-up ct-delay-${idx + 1}`}
           >
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-jade-500/25 bg-jade-500/10 font-serif text-lg text-jade-400 transition group-hover:bg-jade-500/20">
               {entry.icon}
@@ -190,7 +190,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
               <article
                 key={tool.id}
                 data-testid="tool-card"
-                className="tool-tile group relative overflow-hidden rounded-[20px] border border-white/8 bg-white/[0.035] p-4 transition hover:-translate-y-1 hover:border-jade-500/30"
+                className={`tool-tile group relative overflow-hidden rounded-[20px] border border-white/8 bg-white/[0.035] p-4 transition hover:-translate-y-1 hover:border-jade-500/30 ct-animate-slide-up ct-delay-${(index % 4) + 1}`}
               >
                 <button
                   type="button"
