@@ -32,6 +32,13 @@ export function FengshuiWorkspace() {
   const { solarBirth } = useBirth();
   const [facing, setFacing] = useState('');
   const [year, setYear] = useState(new Date().getFullYear());
+  const [draftYear, setDraftYear] = useState(String(new Date().getFullYear()));
+  useEffect(() => { setDraftYear(String(year)); }, [year]);
+  const commitYearDraft = () => {
+    const n = Number.parseInt(draftYear, 10);
+    if (Number.isNaN(n) || draftYear.trim() === '') { setDraftYear(String(year)); return; }
+    setYear(n);
+  };
 
   const ready = true;
 
@@ -170,8 +177,9 @@ export function FengshuiWorkspace() {
               min={1900}
               max={2100}
               inputMode="numeric"
-              value={year}
-              onChange={(e) => setYear(Number.parseInt(e.target.value, 10) || year)}
+              value={draftYear}
+              onChange={(e) => setDraftYear(e.target.value)}
+              onBlur={commitYearDraft}
               className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
             />
           </div>

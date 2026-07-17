@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { calculateYunqi } from '@/legacy/yunqiEngine';
 import { getSolarEntry } from '@/legacy/solarEntry';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
@@ -31,6 +31,26 @@ const SCORE_OPTIONS = [
 export function ConstitutionWorkspace() {
   const { solarBirth } = useBirth();
   const [scores, setScores] = useState<ConstitutionScores>(DEFAULT_SCORES);
+  // 手动调分 draft（字符串态，允许清空/编辑中间态，blur 时提交）
+  const [draftScores, setDraftScores] = useState<Record<string, string>>(
+    () => Object.fromEntries(CONSTITUTION_TYPES.map((t) => [t, String(DEFAULT_SCORES[t])])) as Record<string, string>,
+  );
+  useEffect(() => {
+    setDraftScores((prev) => {
+      const next = { ...prev };
+      for (const t of CONSTITUTION_TYPES) next[t] = String(scores[t]);
+      return next;
+    });
+  }, [scores]);
+  const commitScoreDraft = (type: string) => {
+    const draft = draftScores[type] ?? '';
+    const n = Number.parseInt(draft, 10);
+    if (Number.isNaN(n) || draft.trim() === '') {
+      setDraftScores((prev) => ({ ...prev, [type]: String(scores[type as keyof ConstitutionScores]) }));
+      return;
+    }
+    setScores((prev) => ({ ...prev, [type]: Math.max(0, Math.min(100, n)) } as ConstitutionScores));
+  };
   const [questionMode, setQuestionMode] = useState(true);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [activeGroupIdx, setActiveGroupIdx] = useState(0);
@@ -220,8 +240,9 @@ export function ConstitutionWorkspace() {
                     min={0}
                     max={100}
                     inputMode="numeric"
-                    value={scores[type]}
-                    onChange={(e) => setScores((prev) => ({ ...prev, [type]: Number.parseInt(e.target.value, 10) || 0 }))}
+                    value={draftScores[type] ?? ''}
+                    onChange={(e) => setDraftScores((prev) => ({ ...prev, [type]: e.target.value }))}
+                    onBlur={() => commitScoreDraft(type)}
                     className="w-full min-w-0 rounded-lg border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
                   />
                 </ControlField>
