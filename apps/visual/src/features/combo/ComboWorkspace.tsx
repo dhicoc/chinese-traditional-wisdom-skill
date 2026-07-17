@@ -460,7 +460,7 @@ export function ComboWorkspace() {
         </InterpretationCard>
       )}
       {!result.loading && data && fourLayer && (
-        <div className="space-y-4">
+        <div className="space-y-4 ct-animate-fade-in">
           {/* 子系统卡片（wellness/monthly 无一致性检验，走维度展示；zeri 走吉日列表） */}
           {comboType === 'zeri' ? (
             <ZeriDayList data={data as ZeriResult} />

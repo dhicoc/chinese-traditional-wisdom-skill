@@ -90,7 +90,7 @@ export function CeziWorkspace() {
 
       {/* 结果 */}
       {r && result.fourLayer && (
-        <div className="space-y-4">
+        <div className="space-y-4 ct-animate-fade-in">
           <InterpretationCard
             title={`测「${r.char}」字 · ${r.tone === '吉' ? '吉' : r.tone === '凶' ? '凶' : '中'}`}
             subtitle={`康熙${r.strokes}画 · 数理${r.shuli.lucky}（${r.shuli.skyNine}）${r.charWuxing ? ` · 属${r.charWuxing}` : ''} · ${r.structure.structure}`}

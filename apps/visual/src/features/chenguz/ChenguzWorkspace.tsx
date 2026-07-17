@@ -48,7 +48,7 @@ export function ChenguzWorkspace() {
 
       {/* 结果 */}
       {r && result.fourLayer && (
-        <div className="space-y-4">
+        <div className="space-y-4 ct-animate-fade-in">
           <InterpretationCard
             title={`称骨 · 总重${r.totalText}`}
             subtitle={`${r.tone === '吉' ? '骨重厚实' : r.tone === '凶' ? '骨轻多劳' : '中等'} · ${r.yearBone.branch}年 ${r.hourBone.branch}时`}
