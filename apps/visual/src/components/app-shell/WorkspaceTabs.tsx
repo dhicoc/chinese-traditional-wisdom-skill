@@ -7,6 +7,29 @@ interface WorkspaceTabsProps {
   onSelectModule: (id: ModuleId) => void;
 }
 
+/** easeInOutCubic 缓动（Apple 风格柔和加减速） */
+function easeInOutCubic(t: number): number {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+/** 自定义平滑滚动：rAF + cubic 缓动，比浏览器默认 linear-smooth 更柔和 */
+function smoothScrollTo(el: HTMLElement, targetLeft: number, duration = 420) {
+  const start = el.scrollLeft;
+  const distance = targetLeft - start;
+  if (Math.abs(distance) < 1) return;
+  const startTime = performance.now();
+  let rafId = 0;
+  const tick = (now: number) => {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    el.scrollLeft = start + distance * easeInOutCubic(progress);
+    if (progress < 1) rafId = requestAnimationFrame(tick);
+  };
+  rafId = requestAnimationFrame(tick);
+  // 返回取消句柄（可选）
+  return () => cancelAnimationFrame(rafId);
+}
+
 export function WorkspaceTabs({ activeModule, onSelectModule }: WorkspaceTabsProps) {
   const active = getModuleById(activeModule);
   const activeRef = useRef<HTMLButtonElement | null>(null);
@@ -14,11 +37,20 @@ export function WorkspaceTabs({ activeModule, onSelectModule }: WorkspaceTabsPro
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
 
-  // 选中项变化时自动滚动到可见区域，避免靠后标签（如知识图谱/历史）被截断不可见
+  // 选中项变化时用自定义缓动滚动到可见区域（留 24px 边距，不完全贴边）
   useEffect(() => {
-    if (activeRef.current) {
-      activeRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-    }
+    const el = scrollRef.current;
+    const btn = activeRef.current;
+    if (!el || !btn) return;
+    const elRect = el.getBoundingClientRect();
+    const btnRect = btn.getBoundingClientRect();
+    // 选中项已在可见区内则不滚动
+    const visible = btnRect.left >= elRect.left + 24 && btnRect.right <= elRect.right - 24;
+    if (visible) return;
+    // 计算让选中项居中或贴近可见侧的目标 scrollLeft
+    const targetLeft = el.scrollLeft + (btnRect.left - elRect.left) - el.clientWidth / 2 + btnRect.width / 2;
+    const clamped = Math.max(0, Math.min(el.scrollWidth - el.clientWidth, targetLeft));
+    smoothScrollTo(el, clamped);
   }, [activeModule]);
 
   // 跟踪滚动位置，控制左右指示器/箭头显隐
@@ -41,7 +73,10 @@ export function WorkspaceTabs({ activeModule, onSelectModule }: WorkspaceTabsPro
   const scrollBy = (dir: -1 | 1) => {
     const el = scrollRef.current;
     if (!el) return;
-    el.scrollBy({ left: dir * el.clientWidth * 0.6, behavior: 'smooth' });
+    // 用自定义缓动替代浏览器默认 smooth
+    const targetLeft = el.scrollLeft + dir * el.clientWidth * 0.6;
+    const clamped = Math.max(0, Math.min(el.scrollWidth - el.clientWidth, targetLeft));
+    smoothScrollTo(el, clamped);
   };
 
   return (
@@ -52,7 +87,7 @@ export function WorkspaceTabs({ activeModule, onSelectModule }: WorkspaceTabsPro
           type="button"
           aria-label="向左滚动标签"
           onClick={() => scrollBy(-1)}
-          className={`z-10 grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/10 bg-ink-900/90 text-jade-100/70 transition hover:text-jade-100 ${
+          className={`z-10 grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/10 bg-ink-900/90 text-jade-100/70 transition-all duration-300 ease-out hover:scale-105 hover:text-jade-100 active:scale-95 ${
             canLeft ? 'opacity-100' : 'pointer-events-none opacity-0'
           }`}
         >
@@ -80,10 +115,10 @@ export function WorkspaceTabs({ activeModule, onSelectModule }: WorkspaceTabsPro
                     aria-selected={isActive}
                     onClick={() => onSelectModule(module.id)}
                     className={[
-                      'shrink-0 rounded-full border px-2 py-1.5 text-[11px] font-semibold transition sm:px-3 sm:py-2 sm:text-xs',
+                      'shrink-0 rounded-full border px-2 py-1.5 text-[11px] font-semibold transition-all duration-300 ease-out sm:px-3 sm:py-2 sm:text-xs',
                       isActive
-                        ? 'border-jade-500/40 bg-jade-500/12 text-jade-50'
-                        : 'border-transparent text-jade-100/45 hover:border-jade-500/20 hover:text-jade-100',
+                        ? 'border-jade-500/40 bg-jade-500/12 text-jade-50 shadow-[0_2px_12px_rgba(21,155,110,0.18)]'
+                        : 'border-transparent text-jade-100/45 hover:border-jade-500/20 hover:text-jade-100 hover:bg-jade-500/5',
                     ].join(' ')}
                   >
                     {module.title}
@@ -94,12 +129,12 @@ export function WorkspaceTabs({ activeModule, onSelectModule }: WorkspaceTabsPro
           </div>
           {/* 左右渐变遮罩，提示还有更多标签 */}
           <div
-            className={`pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-ink-850/90 to-transparent transition-opacity ${
+            className={`pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-ink-850/90 to-transparent transition-opacity duration-300 ease-out ${
               canLeft ? 'opacity-100' : 'opacity-0'
             }`}
           />
           <div
-            className={`pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-ink-850/90 to-transparent transition-opacity ${
+            className={`pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-ink-850/90 to-transparent transition-opacity duration-300 ease-out ${
               canRight ? 'opacity-100' : 'opacity-0'
             }`}
           />
@@ -109,7 +144,7 @@ export function WorkspaceTabs({ activeModule, onSelectModule }: WorkspaceTabsPro
           type="button"
           aria-label="向右滚动标签"
           onClick={() => scrollBy(1)}
-          className={`z-10 grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/10 bg-ink-900/90 text-jade-100/70 transition hover:text-jade-100 ${
+          className={`z-10 grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/10 bg-ink-900/90 text-jade-100/70 transition-all duration-300 ease-out hover:scale-105 hover:text-jade-100 active:scale-95 ${
             canRight ? 'opacity-100' : 'pointer-events-none opacity-0'
           }`}
         >
