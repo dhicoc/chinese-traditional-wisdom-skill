@@ -35,7 +35,7 @@ export function AppShell({ activeModule, onSelectModule }: AppShellProps) {
           <div className="hidden lg:block">
             <WorkspaceTabs activeModule={activeModule} onSelectModule={onSelectModule} />
           </div>
-          <div data-testid={`workspace-${activeModule}`}>
+          <div data-testid={`workspace-${activeModule}`} className="ct-animate-fade-in">
             <Workspace activeModule={activeModule} onSelectModule={onSelectModule} />
           </div>
         </main>
