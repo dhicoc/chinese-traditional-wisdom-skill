@@ -393,13 +393,15 @@ export const TOOLS: ToolDef[] = [
   },
   {
     name: 'calc_chenguz',
-    description: '袁天罡称骨算命：按出生年月日时查四柱骨重（年按生肖/年支、月按农历月、日按农历日、时按时支），总重（两+钱）对应称骨歌一段，定命格轻重。骨越重命越贵，骨轻则多劳。输出四柱骨重+总重+称骨歌+白话解读。民间算命，门槛低。',
+    description: '袁天罡称骨算命：按出生年月日时查四柱骨重（年按60甲子干支、月按农历月、日按农历日、时按时支），总重（两+钱）对应称骨歌一段，定命格轻重。骨越重命越贵，骨轻则多劳。称骨法无唯一正本，可通过 version 切换三个民间传抄版本：standard 通行工整本（52首完整，默认）/ folk 民间传抄本（51首，缺七两二）/ full 全本异文（52首，异文最多）。输出四柱骨重+总重+称骨歌+白话解读+版本信息。民间算命，门槛低。',
     schema: z.object({
       birth: birthSchema,
+      version: z.enum(['standard', 'folk', 'full']).optional().describe('称骨歌版本：standard 通行工整本（默认）/ folk 民间传抄本 / full 全本异文'),
     }),
     handler: (i) => calcChenguzEnveloped({
       birth: (i as { birth: unknown }).birth as never,
       solar: solarEntry,
+      version: (i as { version?: 'standard' | 'folk' | 'full' }).version,
     }),
   },
 ];

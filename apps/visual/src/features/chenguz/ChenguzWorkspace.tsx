@@ -1,7 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { getSolarEntry } from '@/legacy/solarEntry';
 import { useBirth } from '@/lib/birthContext';
 import { calcChenguz, type ChenguzResult } from '@/legacy/chenguzEngine';
+import { CHENGUZ_VERSIONS, DEFAULT_CHENGUZ_VERSION, type ChenguzVersionId } from '@/legacy/chenguzVersions';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
@@ -10,9 +11,11 @@ import { toFourLayer, type ReadingLike } from '@/legacy/reportLayers';
 
 /**
  * 袁天罡称骨算命工作区 — 用全局生辰直接算四柱骨重 + 称骨歌。
+ * 支持多版本切换（称骨法无唯一正本，三版民间传抄本供选择）。
  */
 export function ChenguzWorkspace() {
   const { solarBirth } = useBirth();
+  const [versionId, setVersionId] = useState<ChenguzVersionId>(DEFAULT_CHENGUZ_VERSION);
 
   const result = useMemo<{ data: ChenguzResult | null; fourLayer: ReturnType<typeof toFourLayer> | null }>(() => {
     try {
@@ -20,15 +23,17 @@ export function ChenguzWorkspace() {
       const env = calcChenguz({
         birth: { year: solarBirth.year, month: solarBirth.month, day: solarBirth.day, hour: solarBirth.hour, minute: solarBirth.minute, gender: solarBirth.gender },
         solar,
+        version: versionId,
       });
       return { data: env.data, fourLayer: toFourLayer(env.data.export_snapshot as ReadingLike) };
     } catch {
       return { data: null, fourLayer: null };
     }
-  }, [solarBirth]);
+  }, [solarBirth, versionId]);
 
   const r = result.data;
   const toneColor = r?.tone === '吉' ? 'text-jade-300' : r?.tone === '凶' ? 'text-red-300' : 'text-amber-300';
+  const activeVersion = CHENGUZ_VERSIONS.find((v) => v.id === versionId) ?? CHENGUZ_VERSIONS[0];
 
   return (
     <div className="space-y-4">
@@ -44,6 +49,30 @@ export function ChenguzWorkspace() {
         <p className="mt-3 text-xs leading-5 text-jade-100/45">
           袁天罡称骨法：按农历年月日时查四柱骨重（两+钱），总重对应称骨歌一段，定命格轻重。骨越重命越贵，骨轻则多劳。用顶部全局生辰即可，无需额外输入。仅供文化参考。
         </p>
+
+        {/* 版本选择器 */}
+        <div className="mt-3 rounded-card border border-white/8 bg-ink-900/40 px-3 py-2">
+          <p className="mb-1.5 text-xs font-semibold text-jade-100/70">称骨歌版本（无唯一正本，三版民间传抄本供选择）</p>
+          <div className="flex flex-wrap gap-1.5">
+            {CHENGUZ_VERSIONS.map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => setVersionId(v.id)}
+                className={`rounded-full px-3 py-1 text-xs transition-colors ${
+                  v.id === versionId
+                    ? 'border border-jade-500/50 bg-jade-500/20 text-jade-100'
+                    : 'border border-white/10 bg-ink-900/60 text-jade-100/55 hover:border-jade-500/30 hover:text-jade-100/80'
+                }`}
+              >
+                {v.name}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1.5 text-[11px] leading-4 text-jade-100/45">
+            {activeVersion.note} <span className="text-jade-100/30">来源：{activeVersion.source}</span>
+          </p>
+        </div>
       </div>
 
       {/* 结果 */}
@@ -51,7 +80,7 @@ export function ChenguzWorkspace() {
         <div className="space-y-4 ct-animate-fade-in">
           <InterpretationCard
             title={`称骨 · 总重${r.totalText}`}
-            subtitle={`${r.tone === '吉' ? '骨重厚实' : r.tone === '凶' ? '骨轻多劳' : '中等'} · ${r.yearBone.branch}年 ${r.hourBone.branch}时`}
+            subtitle={`${r.tone === '吉' ? '骨重厚实' : r.tone === '凶' ? '骨轻多劳' : '中等'} · ${r.yearBone.branch}年 ${r.hourBone.branch}时 · ${r.versionName}`}
           >
             <div className="space-y-3">
               {/* 总重大字 */}
@@ -103,6 +132,9 @@ export function ChenguzWorkspace() {
                     monthBone: r.monthBone,
                     dayBone: r.dayBone,
                     hourBone: r.hourBone,
+                    versionId: r.versionId,
+                    versionName: r.versionName,
+                    versionNote: r.versionNote,
                   }}
                 />
                 <ExportReportButton module="称骨" />
