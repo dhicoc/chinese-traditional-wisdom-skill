@@ -70,7 +70,7 @@ export function ChenguzWorkspace() {
             ))}
           </div>
           <p className="mt-1.5 text-[11px] leading-4 text-jade-100/45">
-            {activeVersion.note} <span className="text-jade-100/30">来源：{activeVersion.source}</span>
+            {activeVersion.note}
           </p>
         </div>
       </div>

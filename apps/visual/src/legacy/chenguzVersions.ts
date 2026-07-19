@@ -18,7 +18,7 @@ export interface ChenguzVersion {
   name: string;
   /** 版本特征一句话说明 */
   note: string;
-  /** 来源（透明标注，用于详情/关于） */
+  /** 数据来源（内部字段，供代码/导出追溯用，不在用户界面渲染） */
   source: string;
   /** 年骨重表（60甲子版，键为完整干支如"甲子"） */
   yearBone: Record<string, BoneWeight>;
@@ -272,7 +272,7 @@ export const CHENGUZ_VERSIONS: ChenguzVersion[] = [
   {
     id: 'standard',
     name: '通行工整本',
-    note: '52首诗诀完整（含七两二），对仗工整、无重复尾句。年骨重癸亥取7钱。',
+    note: '诗诀对仗工整、用词雅正，流传较广。',
     source: 'zhunsuan.org 称骨专站（49零钱）+ ruida.org（5整两）',
     yearBone: YEAR_BONE_GUIHAI_7,
     song: SONG_STANDARD,
@@ -280,7 +280,7 @@ export const CHENGUZ_VERSIONS: ChenguzVersion[] = [
   {
     id: 'folk',
     name: '民间传抄本',
-    note: '51首诗诀（缺七两二），传抄较粗但双 GitHub 源互证。年骨重癸亥取6钱。',
+    note: '民间口耳相传的版本，用词通俗，个别字句与通行本不同。',
     source: 'shizhilya/yuan（GitHub，与 ejucoder-star 高度一致）',
     yearBone: YEAR_BONE_GUIHAI_6,
     song: SONG_FOLK,
@@ -288,7 +288,7 @@ export const CHENGUZ_VERSIONS: ChenguzVersion[] = [
   {
     id: 'full',
     name: '全本异文',
-    note: '52首诗诀完整，异文最多，四两五钱属另一版本系统。年骨重癸亥取7钱。',
+    note: '另一路流传本，诗诀异文较多，部分条目命格描述与其他版本差异明显。',
     source: 'ThomasLun/The-true-meaning-of-life-suanming-（GitHub Python 实现）',
     yearBone: YEAR_BONE_GUIHAI_7,
     song: SONG_FULL,

@@ -176,7 +176,7 @@ export function calcChenguz(input: ChenguzInput): ToolEnvelope<ChenguzResult> {
       { heading: '四柱骨重', body: `年(${yearGanzhi})：${boneToText(yearBoneW)}；月(农历${lunarMonth}月)：${boneToText(monthBoneW)}；日(农历${lunarDay})：${boneToText(dayBoneW)}；时(${hourBranch})：${boneToText(hourBoneW)}。` },
       { heading: '总骨重', body: `总重${totalText}（${totalQ}钱）。${interpretation}` },
       { heading: '称骨歌', body: song },
-      { heading: '版本', body: `${ver.name}：${ver.note}（来源：${ver.source}）` },
+      { heading: '版本', body: `${ver.name}：${ver.note}` },
     ],
   };
 
