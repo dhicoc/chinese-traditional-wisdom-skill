@@ -10,7 +10,6 @@ const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:5174';
  *  - Copy context 按钮存在
  *  - 375px 移动端不横向溢出
  *  - 暗黑模式 contrast 合格（核心文本可见）
- *  - Mermaid fallback 可用（知识图谱页无致命错误）
  */
 
 const TOOL_TABS = [
@@ -96,31 +95,5 @@ test.describe('Phase 11 Gate - 响应式与可访问性', () => {
     expect(color).toMatch(/rgb\(/);
     // 颜色不应是纯黑（在暗底上不可见）
     expect(color).not.toBe('rgb(0, 0, 0)');
-  });
-});
-
-test.describe('Phase 11 Gate - Mermaid fallback', () => {
-  test('知识图谱页无致命错误（Mermaid 可用或降级）', async ({ page }) => {
-    const errors: string[] = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') errors.push(msg.text());
-    });
-
-    await page.goto(BASE_URL);
-    await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
-    const mermaidNav = page.locator('[data-testid="nav-item"]').filter({ hasText: '知识图谱' });
-    if (await mermaidNav.count()) {
-      await mermaidNav.click();
-      await page.waitForTimeout(2000);
-    }
-
-    const critical = errors.filter(
-      (e) =>
-        !e.includes('source map') &&
-        !e.includes('favicon') &&
-        !e.includes('Manifest') &&
-        !e.includes('React DevTools'),
-    );
-    expect(critical).toHaveLength(0);
   });
 });

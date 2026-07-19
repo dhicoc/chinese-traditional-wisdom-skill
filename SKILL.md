@@ -438,7 +438,6 @@ apps/visual 提供**完整的 React + SVG 可视化前端系统**，用于在浏
 | 五运六气 | YunqiChart | 岁运大字符+司天在泉连线+客气六步时间轴 |
 | 体质辨识 | RadarChart | 九种体质雷达图（同心圆网格），偏颇体质高亮 |
 | 皇极经世 | HuangjiGuaCircle | 先天六十四卦圆图，高亮正/世/年卦 |
-| 知识图谱 | Mermaid 模块 | Mermaid 五行生克图/风水堪舆流程/形煞分类/八字决策树/十神关系图 |
 
 入口：`apps/visual`（React + SVG Dashboard，`cd apps/visual && pnpm dev` 启动）。多工作区一站式展示，纯前端无服务器依赖。组件位于 `apps/visual/src/components/shared/`。
 

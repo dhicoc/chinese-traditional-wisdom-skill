@@ -95,7 +95,6 @@ const TOPIC_KEYWORDS: Partial<Record<ModuleId, string[]>> = {
   namewuxing: ['姓名', '起名', '改名', '笔画', '三才', '五行', '名字', '测名', '姓名学', '天格', '人格', '地格', '外格', '总格'],
   dream: ['梦', '解梦', '梦境', '意象', '做梦', '梦到', '梦见', '周公解梦'],
   rhythm: ['节律', '时辰', '经络', '养生', '子午流注', '气血', '子时', '丑时', '寅时', '卯时', '辰时', '巳时', '午时', '未时', '申时', '酉时', '戌时', '亥时', '胆经', '肝经', '肺经', '大肠经'],
-  mermaid: ['知识图谱', '流程图', '五行生克', '关系图', '架构图', '决策树'],
   reader: ['古籍', '原文', '八宅明镜', '经典', '书', '经典原文', '古籍对照', '注释'],
 };
 
@@ -122,7 +121,6 @@ const QUESTION_INTENT: Array<{ pattern: RegExp; module: ModuleId; reason: string
   { pattern: /(节律|时辰|经络|子午流注|养生节律)/, module: 'rhythm', reason: '养生节律 → 每日节律' },
   { pattern: /(紫微|斗数|十二宫|星曜|四化)/, module: 'ziwei', reason: '紫微排盘 → 紫微斗数' },
   { pattern: /(古籍|原文|经典|书|古籍对照)/, module: 'reader', reason: '古籍阅读 → Split Reader' },
-  { pattern: /(知识图谱|流程图|关系图|架构图)/, module: 'mermaid', reason: '知识图谱 → Mermaid 图' },
 ];
 
 /**

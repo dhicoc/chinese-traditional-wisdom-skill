@@ -10,7 +10,6 @@ import { ZiweiWorkspace } from '@/features/ziwei/ZiweiWorkspace';
 import { FeixingWorkspace } from '@/features/feixing/FeixingWorkspace';
 import { BazhaiWorkspace } from '@/features/bazhai/BazhaiWorkspace';
 import { FengshuiWorkspace } from '@/features/fengshui/FengshuiWorkspace';
-import { MermaidWorkspace } from '@/features/mermaid/MermaidWorkspace';
 import { TestRunnerConsole } from '@/features/testing/TestRunnerConsole';
 import { AncientTextSplitReader } from '@/features/knowledge/AncientTextSplitReader';
 import { HistoryWorkspace } from '@/features/history/HistoryPanel';
@@ -44,7 +43,6 @@ export const WORKSPACE_COMPONENTS: Partial<Record<ModuleId, ComponentType<Worksp
   feixing: FeixingWorkspace,
   bazhai: BazhaiWorkspace,
   fengshui: FengshuiWorkspace,
-  mermaid: MermaidWorkspace,
   testing: TestRunnerConsole,
   reader: AncientTextSplitReader,
   history: HistoryWorkspace,

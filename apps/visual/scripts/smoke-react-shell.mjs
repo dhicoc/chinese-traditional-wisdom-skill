@@ -263,30 +263,6 @@ if (exists(fengshuiPath)) {
   );
 }
 
-// ── 3e. #mermaid 迁移（知识图谱，不使用 canvas，CDN + 离线降级） ──
-const mermaidPath = path.join(srcRoot, 'features/mermaid/MermaidWorkspace.tsx');
-check(exists(mermaidPath), 'MermaidWorkspace.tsx 应位于 features/mermaid/ 目录');
-if (exists(mermaidPath)) {
-  const mermaidWorkspace = read(mermaidPath);
-  // mermaid 不使用 CanvasPanel，而是 Mermaid DOM 渲染
-  const mermaidCanvasCount = countOccurrences(mermaidWorkspace, '<CanvasPanel');
-  check(mermaidCanvasCount === 0, `#mermaid 不应使用 CanvasPanel（使用 Mermaid DOM 渲染），实际出现 ${mermaidCanvasCount} 次`);
-  check(
-    mermaidWorkspace.includes('MERMAID_DIAGRAMS'),
-    'MermaidWorkspace 应内置 MERMAID_DIAGRAMS 图源码数据',
-  );
-  check(
-    mermaidWorkspace.includes('loadMermaidScript'),
-    'MermaidWorkspace 应实现 CDN 加载与离线降级',
-  );
-  // 应包含与旧版对齐的 5 张图
-  check(mermaidWorkspace.includes('五行生克图'), 'MermaidWorkspace 应包含五行生克图');
-  check(mermaidWorkspace.includes('风水堪舆分析流程'), 'MermaidWorkspace 应包含风水堪舆分析流程');
-  check(mermaidWorkspace.includes('形煞分类体系'), 'MermaidWorkspace 应包含形煞分类体系');
-  check(mermaidWorkspace.includes('八字分析决策树'), 'MermaidWorkspace 应包含八字分析决策树');
-  check(mermaidWorkspace.includes('十神关系图'), 'MermaidWorkspace 应包含十神关系图');
-}
-
 // ── 3f. #testing 迁移（测试控制台，Phase 9 第一版） ──────
 const testingPath = path.join(srcRoot, 'features/testing/TestRunnerConsole.tsx');
 check(exists(testingPath), 'TestRunnerConsole.tsx 应位于 features/testing/ 目录');
@@ -473,7 +449,6 @@ check(workspaceRegistry.includes("meihua: MeihuaWorkspace"), 'workspaceRegistry 
 check(workspaceRegistry.includes("liuyao: LiuyaoWorkspace"), 'workspaceRegistry 应注册 liuyao 工作区');
 check(workspaceRegistry.includes("ziwei: ZiweiWorkspace"), 'workspaceRegistry 应注册 ziwei 工作区');
 check(workspaceRegistry.includes("fengshui: FengshuiWorkspace"), 'workspaceRegistry 应注册 fengshui 工作区');
-check(workspaceRegistry.includes("mermaid: MermaidWorkspace"), 'workspaceRegistry 应注册 mermaid 工作区');
 check(workspaceRegistry.includes("testing: TestRunnerConsole"), 'workspaceRegistry 应注册 testing 工作区');
 check(workspaceRegistry.includes("reader: AncientTextSplitReader"), 'workspaceRegistry 应注册 reader 工作区');
 check(workspaceRegistry.includes("bazi: BaziWorkspace"), 'workspaceRegistry 应注册 bazi 工作区');

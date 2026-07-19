@@ -46,7 +46,6 @@ const MODULE_SPECS = [
   { id: 'bazhai', hash: '#bazhai', mode: 'local-approx', workspace: 'features/bazhai/BazhaiWorkspace.tsx', titleMatch: '八宅大游年', checkPixels: true },
   { id: 'yunqi', hash: '#yunqi', mode: 'local-exact', workspace: 'features/yunqi/YunqiWorkspace.tsx', titleMatch: '五运六气', checkPixels: true },
   { id: 'tizhi', hash: '#tizhi', mode: 'derived', workspace: 'features/constitution/ConstitutionWorkspace.tsx', titleMatch: '体质辨识', checkPixels: true },
-  { id: 'mermaid', hash: '#mermaid', mode: 'knowledge', workspace: 'features/mermaid/MermaidWorkspace.tsx', titleMatch: '知识图谱', checkPixels: false, note: 'Mermaid DOM 渲染，无 canvas' },
   { id: 'testing', hash: '#testing', mode: 'derived', workspace: 'features/testing/TestRunnerConsole.tsx', titleMatch: '测试控制台', checkPixels: false, note: 'Phase 9 测试入口聚合，无 canvas' },
   { id: 'reader', hash: '#reader', mode: 'knowledge', workspace: 'features/knowledge/AncientTextSplitReader.tsx', titleMatch: '古籍 Split Reader', checkPixels: false, note: 'Phase 8 古籍对照阅读器，无 canvas' },
 ];
@@ -230,12 +229,9 @@ ${rows}
           if (!doc || !doc.body) return null;
           const h2 = doc.querySelector('h2');
           const canvasEls = doc.querySelectorAll('canvas');
-          // mermaid 工作区用 article 卡片计数（每张图一个 article）
-          const mermaidCards = doc.querySelectorAll('article').length;
           return {
             h2: h2 ? h2.textContent.trim() : '',
             canvas: canvasEls.length,
-            mermaidCards,
           };
         } catch (e) {
           return null;
@@ -301,7 +297,7 @@ ${rows}
             await waitForLoad(4000);
           }
           const result = await pollUntil(m, 8000);
-          const state = result.state || { h2: '', canvas: -1, mermaidCards: 0 };
+          const state = result.state || { h2: '', canvas: -1 };
           const titleOk = state.h2.indexOf(m.titleMatch) !== -1;
           const canvasOk = state.canvas === m.expectedCanvas;
           // canvas 非空像素检查（仅对 checkPixels 模块）

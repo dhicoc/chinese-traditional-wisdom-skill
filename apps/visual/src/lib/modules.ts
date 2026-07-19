@@ -18,7 +18,6 @@ export type ModuleId =
   | 'namewuxing'
   | 'dream'
   | 'rhythm'
-  | 'mermaid'
   | 'testing'
   | 'reader'
   | 'history'
@@ -284,18 +283,6 @@ export const MODULES: WisdomModule[] = [
     questionTypes: ['时辰', '经络', '养生'],
     accent: '#c9b27a',
     description: '展示十二时辰与经络气血流注的对应关系，提供养生节律参考。',
-  },
-  {
-    id: 'mermaid',
-    group: '知识检索',
-    title: '知识图谱',
-    shortTitle: '图谱',
-    status: 'knowledge',
-    statusLabel: '知识图谱',
-    privacyLevel: '不含个人资料',
-    questionTypes: ['古籍', '映射', '流程'],
-    accent: '#eee8cc',
-    description: '通过 Mermaid 和后续 Split Reader 展示知识结构与古籍映射。',
   },
   {
     id: 'reader',

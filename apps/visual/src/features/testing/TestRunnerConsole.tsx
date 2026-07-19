@@ -18,7 +18,6 @@ interface EnvInfo {
   legacyMode: string;
   toolCount: number;
   capabilityCount: number;
-  hasMermaid: boolean;
 }
 
 function detectBrowser(ua: string): string {
@@ -38,7 +37,6 @@ function collectEnvInfo(): EnvInfo {
     legacyMode: 'pure-ts',
     toolCount: tools.length,
     capabilityCount: Object.keys(capabilities).length,
-    hasMermaid: typeof (window as unknown as { mermaid?: unknown }).mermaid !== 'undefined',
   };
 }
 
@@ -225,10 +223,6 @@ export function TestRunnerConsole() {
                 {env.legacyMode}
               </span>
             </p>
-          </div>
-          <div className="rounded-card border border-white/8 bg-white/[0.03] p-3">
-            <p className="text-xs text-jade-100/45">Mermaid CDN</p>
-            <p className="mt-1 text-jade-100/80">{env.hasMermaid ? '已加载' : '未加载'}</p>
           </div>
           <div className="rounded-card border border-white/8 bg-white/[0.03] p-3">
             <p className="text-xs text-jade-100/45">截图建议</p>
