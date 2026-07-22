@@ -100,11 +100,11 @@ export function FeixingWorkspace() {
 
   const starLegend = useMemo<LegendItem[]>(
     () => [
-      { label: '一白 / 水', color: '#264653', description: '偏向流动、信息与文昌语义。' },
-      { label: '三碧四绿 / 木', color: '#2a9d8f', description: '偏向生发、变动与学习语义。' },
-      { label: '二黑五黄八白 / 土', color: '#e9c46a', description: '偏向中宫、稳定与病符风险提示。' },
-      { label: '六白七赤 / 金', color: '#e5e5e5', description: '偏向秩序、权柄与肃杀语义。' },
-      { label: '九紫 / 火', color: '#e76f51', description: '偏向喜庆、显化与未来运语义。' },
+      { label: '一白 / 水', color: 'var(--wz-water)', description: '偏向流动、信息与文昌语义。' },
+      { label: '三碧四绿 / 木', color: 'var(--wz-wood)', description: '偏向生发、变动与学习语义。' },
+      { label: '二黑五黄八白 / 土', color: 'var(--wz-earth)', description: '偏向中宫、稳定与病符风险提示。' },
+      { label: '六白七赤 / 金', color: 'var(--wz-metal)', description: '偏向秩序、权柄与肃杀语义。' },
+      { label: '九紫 / 火', color: 'var(--wz-fire)', description: '偏向喜庆、显化与未来运语义。' },
     ],
     [],
   );

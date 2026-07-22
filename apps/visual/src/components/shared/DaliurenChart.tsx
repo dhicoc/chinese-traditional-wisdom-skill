@@ -38,11 +38,11 @@ const JIANG_FULL: Record<string, string> = {
 };
 
 const RELATION_COLOR: Record<string, string> = {
-  '上克下': '#e0504a',
-  '下贼上': '#e0504a',
-  '比和': '#888',
-  '上生下': '#3cb4a0',
-  '下生上': '#3cb4a0',
+  '上克下': 'var(--wz-fire)',
+  '下贼上': 'var(--wz-fire)',
+  '比和': 'var(--chart-text-faint)',
+  '上生下': 'var(--wz-wood)',
+  '下生上': 'var(--wz-wood)',
 };
 
 const SERIF = "'Noto Serif CJK SC', serif";
@@ -84,7 +84,7 @@ export function DaliurenChart({
       aria-label="大六壬天地盘"
     >
       {/* ── 天地盘区域 ── */}
-      <rect x="0" y="0" width={PAN_SIZE} height={PAN_SIZE} rx="12" fill="rgba(5,10,8,0.7)" />
+      <rect x="0" y="0" width={PAN_SIZE} height={PAN_SIZE} rx="12" fill="rgb(var(--ink-900) / 0.7)" />
 
       {/* 12宫 */}
       {DI_ZHI.map((dz) => {
@@ -92,8 +92,8 @@ export function DaliurenChart({
         const tp = tianDiPan.diToTian[dz] ?? '';
         const jiang = tianDiPan.diToJiang[dz] ?? '';
         const isChuan = chuanZhi.includes(dz);
-        const bg = isChuan ? 'rgba(212,175,55,0.15)' : 'rgba(10,18,15,0.6)';
-        const border = isChuan ? '#d4af37' : 'rgba(60,70,65,0.4)';
+        const bg = isChuan ? 'rgb(var(--gold) / 0.15)' : 'rgb(var(--ink-900) / 0.6)';
+        const border = isChuan ? 'var(--c-gold)' : 'rgb(var(--ink-700) / 0.4)';
 
         return (
           <g key={dz}>
@@ -113,7 +113,7 @@ export function DaliurenChart({
               y={y - 28}
               textAnchor="middle"
               dominantBaseline="middle"
-              fill="rgba(60,140,120,0.6)"
+              fill="rgb(var(--jade) / 0.6)"
               fontSize="11"
               fontFamily={SERIF}
             >
@@ -125,7 +125,7 @@ export function DaliurenChart({
               y={y - 4}
               textAnchor="middle"
               dominantBaseline="middle"
-              fill={isChuan ? '#e8c547' : '#d0e0d8'}
+              fill={isChuan ? 'var(--wz-earth)' : 'var(--chart-text)'}
               fontSize="22"
               fontWeight="700"
               fontFamily={SERIF}
@@ -133,14 +133,14 @@ export function DaliurenChart({
               {tp}
             </text>
             {/* 分隔线 */}
-            <line x1={x - 24} y1={y + 10} x2={x + 24} y2={y + 10} stroke="rgba(60,70,65,0.3)" strokeWidth="0.5" />
+            <line x1={x - 24} y1={y + 10} x2={x + 24} y2={y + 10} stroke="rgb(var(--ink-700) / 0.3)" strokeWidth="0.5" />
             {/* 地盘地支（下） */}
             <text
               x={x}
               y={y + 24}
               textAnchor="middle"
               dominantBaseline="middle"
-              fill="rgba(44,159,132,0.4)"
+              fill="rgb(var(--jade) / 0.4)"
               fontSize="13"
               fontFamily={SERIF}
             >
@@ -153,8 +153,8 @@ export function DaliurenChart({
               const ly = y - CELL / 2 + 3;
               return (
                 <g>
-                  <rect x={lx} y={ly} width="40" height="12" rx="6" fill="rgba(10,18,15,0.85)" stroke="rgba(212,175,55,0.5)" strokeWidth="0.5" />
-                  <text x={x} y={ly + 2} textAnchor="middle" dominantBaseline="hanging" fill="#e8c547" fontSize="8" fontWeight="700">
+                  <rect x={lx} y={ly} width="40" height="12" rx="6" fill="rgb(var(--ink-900) / 0.85)" stroke="rgb(var(--gold) / 0.5)" strokeWidth="0.5" />
+                  <text x={x} y={ly + 2} textAnchor="middle" dominantBaseline="hanging" fill="var(--wz-earth)" fontSize="8" fontWeight="700">
                     {label}
                   </text>
                 </g>
@@ -171,31 +171,31 @@ export function DaliurenChart({
         width={centerBoxW}
         height={centerBoxH}
         rx="10"
-        fill="rgba(5,10,8,0.92)"
-        stroke="rgba(212,175,55,0.25)"
+        fill="rgb(var(--ink-900) / 0.92)"
+        stroke="rgb(var(--gold) / 0.25)"
         strokeWidth="1.2"
       />
-      <text x={PAN_CENTER} y={centerBoxY + 32} textAnchor="middle" fill="#d4af37" fontSize="14" fontWeight="700" fontFamily={SERIF}>
+      <text x={PAN_CENTER} y={centerBoxY + 32} textAnchor="middle" fill="var(--c-gold)" fontSize="14" fontWeight="700" fontFamily={SERIF}>
         {geJu}·{geJuDetail}
       </text>
-      <line x1={centerBoxX + 30} y1={centerBoxY + 48} x2={centerBoxX + centerBoxW - 30} y2={centerBoxY + 48} stroke="rgba(212,175,55,0.15)" strokeWidth="0.5" />
-      <text x={PAN_CENTER} y={centerBoxY + 68} textAnchor="middle" fill="rgba(44,159,132,0.5)" fontSize="12" fontFamily={SERIF}>
+      <line x1={centerBoxX + 30} y1={centerBoxY + 48} x2={centerBoxX + centerBoxW - 30} y2={centerBoxY + 48} stroke="rgb(var(--gold) / 0.15)" strokeWidth="0.5" />
+      <text x={PAN_CENTER} y={centerBoxY + 68} textAnchor="middle" fill="rgb(var(--jade) / 0.5)" fontSize="12" fontFamily={SERIF}>
         {yueJiangName}加{hourZhi}时
       </text>
-      <text x={PAN_CENTER} y={centerBoxY + 88} textAnchor="middle" fill="rgba(44,159,132,0.4)" fontSize="11">
+      <text x={PAN_CENTER} y={centerBoxY + 88} textAnchor="middle" fill="rgb(var(--jade) / 0.4)" fontSize="11">
         {dayNight}占 · 日{siKe.dayGan}{siKe.dayZhi} · 时{siKe.dayGan}寄{siKe.dayGanJiGong}
       </text>
       {/* 三传摘要 */}
-      <line x1={centerBoxX + 30} y1={centerBoxY + 104} x2={centerBoxX + centerBoxW - 30} y2={centerBoxY + 104} stroke="rgba(212,175,55,0.15)" strokeWidth="0.5" />
-      <text x={PAN_CENTER} y={centerBoxY + 124} textAnchor="middle" fill="#e8c547" fontSize="13" fontWeight="600" fontFamily={SERIF}>
+      <line x1={centerBoxX + 30} y1={centerBoxY + 104} x2={centerBoxX + centerBoxW - 30} y2={centerBoxY + 104} stroke="rgb(var(--gold) / 0.15)" strokeWidth="0.5" />
+      <text x={PAN_CENTER} y={centerBoxY + 124} textAnchor="middle" fill="var(--wz-earth)" fontSize="13" fontWeight="600" fontFamily={SERIF}>
         {sanChuan.chuChuan.diZhi}→{sanChuan.zhongChuan.diZhi}→{sanChuan.moChuan.diZhi}
       </text>
-      <text x={PAN_CENTER} y={centerBoxY + 142} textAnchor="middle" fill="rgba(212,175,55,0.45)" fontSize="10">
+      <text x={PAN_CENTER} y={centerBoxY + 142} textAnchor="middle" fill="rgb(var(--gold) / 0.45)" fontSize="10">
         初·中·末传
       </text>
 
       {/* ── 四课区域 ── */}
-      <text x={PAN_CENTER} y={SECTION_Y + 10} textAnchor="middle" fill="rgba(44,159,132,0.5)" fontSize="12" fontWeight="600" fontFamily={SERIF}>
+      <text x={PAN_CENTER} y={SECTION_Y + 10} textAnchor="middle" fill="rgb(var(--jade) / 0.5)" fontSize="12" fontWeight="600" fontFamily={SERIF}>
         四课
       </text>
       {siKe.list.map((ke, i) => {
@@ -204,7 +204,7 @@ export function DaliurenChart({
         const keTotalW = 4 * keW + 3 * keGap;
         const keX = PAN_CENTER - keTotalW / 2 + i * (keW + keGap) + keW / 2;
         const keY = SECTION_Y + 28;
-        const relColor = RELATION_COLOR[ke.relation] ?? '#888';
+        const relColor = RELATION_COLOR[ke.relation] ?? 'var(--chart-text-faint)';
 
         return (
           <g key={ke.position}>
@@ -214,20 +214,20 @@ export function DaliurenChart({
               width={keW}
               height={72}
               rx="6"
-              fill="rgba(10,18,15,0.6)"
-              stroke="rgba(60,70,65,0.4)"
+              fill="rgb(var(--ink-900) / 0.6)"
+              stroke="rgb(var(--ink-700) / 0.4)"
               strokeWidth="0.8"
             />
-            <text x={keX} y={keY + 14} textAnchor="middle" fill="rgba(44,159,132,0.4)" fontSize="9">第{ke.position}课</text>
-            <text x={keX} y={keY + 32} textAnchor="middle" fill="#d0e0d8" fontSize="14" fontWeight="700" fontFamily={SERIF}>{ke.shangShen}</text>
-            <text x={keX} y={keY + 48} textAnchor="middle" fill="rgba(200,216,208,0.55)" fontSize="12" fontFamily={SERIF}>{ke.xiaShen}</text>
+            <text x={keX} y={keY + 14} textAnchor="middle" fill="rgb(var(--jade) / 0.4)" fontSize="9">第{ke.position}课</text>
+            <text x={keX} y={keY + 32} textAnchor="middle" fill="var(--chart-text)" fontSize="14" fontWeight="700" fontFamily={SERIF}>{ke.shangShen}</text>
+            <text x={keX} y={keY + 48} textAnchor="middle" fill="rgb(var(--foreground) / 0.55)" fontSize="12" fontFamily={SERIF}>{ke.xiaShen}</text>
             <text x={keX} y={keY + 62} textAnchor="middle" fill={relColor} fontSize="9">{ke.relation}</text>
           </g>
         );
       })}
 
       {/* ── 三传区域 ── */}
-      <text x={PAN_CENTER} y={SECTION_Y + 120} textAnchor="middle" fill="rgba(212,175,55,0.5)" fontSize="12" fontWeight="600" fontFamily={SERIF}>
+      <text x={PAN_CENTER} y={SECTION_Y + 120} textAnchor="middle" fill="rgb(var(--gold) / 0.5)" fontSize="12" fontWeight="600" fontFamily={SERIF}>
         三传
       </text>
       {[
@@ -249,18 +249,18 @@ export function DaliurenChart({
               width={chW}
               height={60}
               rx="6"
-              fill="rgba(212,175,55,0.08)"
-              stroke="rgba(212,175,55,0.25)"
+              fill="rgb(var(--gold) / 0.08)"
+              stroke="rgb(var(--gold) / 0.25)"
               strokeWidth="0.8"
             />
-            <text x={cx} y={cy + 14} textAnchor="middle" fill="rgba(212,175,55,0.5)" fontSize="10">{label}</text>
+            <text x={cx} y={cy + 14} textAnchor="middle" fill="rgb(var(--gold) / 0.5)" fontSize="10">{label}</text>
             {/* 地支居中大字 */}
-            <text x={cx} y={cy + 36} textAnchor="middle" fill="#e8c547" fontSize="16" fontWeight="700" fontFamily={SERIF}>{chuan.diZhi}</text>
+            <text x={cx} y={cy + 36} textAnchor="middle" fill="var(--wz-earth)" fontSize="16" fontWeight="700" fontFamily={SERIF}>{chuan.diZhi}</text>
             {/* 天将+六亲 在地支下方 */}
-            <text x={cx - 18} y={cy + 50} textAnchor="middle" fill="rgba(60,140,120,0.5)" fontSize="9">{JIANG_FULL[chuan.tianJiang] ?? chuan.tianJiang}</text>
-            <text x={cx + 18} y={cy + 50} textAnchor="middle" fill="rgba(200,216,208,0.4)" fontSize="9">{chuan.liuQin}</text>
+            <text x={cx - 18} y={cy + 50} textAnchor="middle" fill="rgb(var(--jade) / 0.5)" fontSize="9">{JIANG_FULL[chuan.tianJiang] ?? chuan.tianJiang}</text>
+            <text x={cx + 18} y={cy + 50} textAnchor="middle" fill="rgb(var(--foreground) / 0.4)" fontSize="9">{chuan.liuQin}</text>
             {chuan.xunKong && (
-              <text x={cx + chW / 2 - 8} y={cy + 14} textAnchor="middle" fill="#e0504a" fontSize="8">空</text>
+              <text x={cx + chW / 2 - 8} y={cy + 14} textAnchor="middle" fill="var(--wz-fire)" fontSize="8">空</text>
             )}
           </g>
         );

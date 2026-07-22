@@ -66,14 +66,14 @@ export function HuangjiWorkspace() {
   return (
     <div className="space-y-4">
       {/* 头部 */}
-      <div className="console-panel rounded-[22px] border border-[#b87a4a]/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-[22px] border border-[rgb(var(--earth)/0.16)] bg-ink-950/90 p-4 shadow-instrument">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-jade-50">皇极经世</h2>
             <p className="text-sm text-jade-100/55">邵雍元会运世 · 宇宙周期定位 · 九卦配置</p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="rounded-full border border-[#b87a4a]/30 bg-[#b87a4a]/10 px-3 py-1 text-xs text-[#d9a574]">长期宏观</span>
+            <span className="rounded-full border border-[rgb(var(--earth)/0.30)] bg-[rgb(var(--earth)/0.10)] px-3 py-1 text-xs text-[var(--c-gold)]">长期宏观</span>
             <ExportReportButton module="皇极经世" />
           </div>
         </div>
@@ -93,13 +93,13 @@ export function HuangjiWorkspace() {
             <p className="mt-1 text-sm text-jade-100/80">年{ganZhi.year} · 月{ganZhi.month}</p>
             <p className="text-sm text-jade-100/80">日{ganZhi.day} · 时{ganZhi.hour}</p>
           </div>
-          <div className="rounded-card border border-[#b87a4a]/20 bg-[#b87a4a]/5 px-3 py-2">
-            <span className="text-xs text-[#d9a574]/70">积年</span>
-            <p className="mt-1 text-sm font-semibold text-[#d9a574]">{cycles.acumYear}年</p>
+          <div className="rounded-card border border-[rgb(var(--earth)/0.20)] bg-[rgb(var(--earth)/0.05)] px-3 py-2">
+            <span className="text-xs text-[rgb(var(--gold)/0.70)]">积年</span>
+            <p className="mt-1 text-sm font-semibold text-[var(--c-gold)]">{cycles.acumYear}年</p>
           </div>
-          <div className="rounded-card border border-[#b87a4a]/20 bg-[#b87a4a]/5 px-3 py-2">
-            <span className="text-xs text-[#d9a574]/70">会 / 运 / 世</span>
-            <p className="mt-1 text-sm font-semibold text-[#d9a574]">第{cycles.hui}会 · 第{cycles.yun}运 · 第{cycles.shi}世</p>
+          <div className="rounded-card border border-[rgb(var(--earth)/0.20)] bg-[rgb(var(--earth)/0.05)] px-3 py-2">
+            <span className="text-xs text-[rgb(var(--gold)/0.70)]">会 / 运 / 世</span>
+            <p className="mt-1 text-sm font-semibold text-[var(--c-gold)]">第{cycles.hui}会 · 第{cycles.yun}运 · 第{cycles.shi}世</p>
           </div>
           <div className="rounded-card border border-white/8 bg-white/[0.02] px-3 py-2">
             <span className="text-xs text-jade-100/45">动爻</span>
@@ -122,14 +122,14 @@ export function HuangjiWorkspace() {
               <div
                 key={key}
                 className={`rounded-card border px-3 py-2 ${
-                  isMain ? 'border-[#b87a4a]/30 bg-[#b87a4a]/8' : 'border-white/8 bg-white/[0.02]'
+                  isMain ? 'border-[rgb(var(--earth)/0.30)] bg-[rgb(var(--earth)/0.08)]' : 'border-white/8 bg-white/[0.02]'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className={`text-xs font-medium ${isMain ? 'text-[#d9a574]' : 'text-jade-100/70'}`}>{label}</span>
+                  <span className={`text-xs font-medium ${isMain ? 'text-[var(--c-gold)]' : 'text-jade-100/70'}`}>{label}</span>
                   <span className="text-[10px] text-jade-100/35">{hint}</span>
                 </div>
-                <p className={`mt-1 font-serif text-base ${isMain ? 'text-[#e8b988]' : 'text-jade-100/85'}`}>{g}</p>
+                <p className={`mt-1 font-serif text-base ${isMain ? 'text-[var(--wz-earth)]' : 'text-jade-100/85'}`}>{g}</p>
               </div>
             );
           })}
@@ -163,7 +163,7 @@ export function HuangjiWorkspace() {
       </InterpretationCard>
 
       {/* 四层报告 */}
-      <div className="console-panel rounded-[22px] border border-[#b87a4a]/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-[22px] border border-[rgb(var(--earth)/0.16)] bg-ink-950/90 p-4 shadow-instrument">
         <FourLayerReport report={fourLayer!} title="皇极经世 · 四层报告" />
       </div>
 

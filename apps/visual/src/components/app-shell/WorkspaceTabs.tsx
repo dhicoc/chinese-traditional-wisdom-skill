@@ -117,7 +117,7 @@ export function WorkspaceTabs({ activeModule, onSelectModule }: WorkspaceTabsPro
                     className={[
                       'shrink-0 rounded-full border px-2 py-1.5 text-[11px] font-semibold transition-all duration-300 ease-out sm:px-3 sm:py-2 sm:text-xs',
                       isActive
-                        ? 'border-jade-500/40 bg-jade-500/12 text-jade-50 shadow-[0_2px_12px_rgba(21,155,110,0.18)]'
+                        ? 'border-jade-500/40 bg-jade-500/12 text-jade-50 shadow-[0_2px_12px_rgb(var(--jade)/0.18)]'
                         : 'border-transparent text-jade-100/45 hover:border-jade-500/20 hover:text-jade-100 hover:bg-jade-500/5',
                     ].join(' ')}
                   >

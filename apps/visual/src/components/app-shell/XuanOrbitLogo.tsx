@@ -40,7 +40,7 @@ export function XuanOrbitLogo({ className }: XuanOrbitLogoProps) {
       <path
         data-logo-part="vertical-orbit"
         d="M50 16C67 30 67 70 50 84C33 70 33 30 50 16Z"
-        stroke="rgb(214 183 96)"
+        stroke="var(--c-gold)"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -49,14 +49,14 @@ export function XuanOrbitLogo({ className }: XuanOrbitLogoProps) {
       <path
         data-logo-part="star-core"
         d="M50 31L55.5 44.5L69 50L55.5 55.5L50 69L44.5 55.5L31 50L44.5 44.5L50 31Z"
-        fill="rgb(44 159 132 / 0.18)"
+        fill="rgb(var(--jade) / 0.18)"
         stroke="currentColor"
         strokeWidth="3"
         strokeLinejoin="round"
       />
-      <circle data-logo-part="anchor-star-left" cx="28" cy="50" r="3" fill="rgb(158 240 214)" />
-      <circle data-logo-part="anchor-star-right" cx="72" cy="50" r="3" fill="rgb(158 240 214)" />
-      <circle cx="50" cy="50" r="3.5" fill="rgb(223 253 244)" />
+      <circle data-logo-part="anchor-star-left" cx="28" cy="50" r="3" fill="var(--chart-good-soft)" />
+      <circle data-logo-part="anchor-star-right" cx="72" cy="50" r="3" fill="var(--chart-good-soft)" />
+      <circle cx="50" cy="50" r="3.5" fill="var(--chart-good-soft)" />
     </svg>
   );
 }

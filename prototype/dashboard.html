@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>观象台 · 首页</title>
+<link rel="stylesheet" href="assets/prototype.css">
+<style>
+  /* —— 首页专属 —— */
+  .today {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: center;
+    padding: 1.8rem 0 2.2rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 2rem;
+  }
+  .today-gz {
+    display: flex;
+    gap: 1.4rem;
+  }
+  .today-gz .pillar { text-align: center; }
+  .today-gz .pillar .gz-char {
+    font-family: var(--font-serif);
+    font-size: 2.3rem;
+    line-height: 1.3;
+    display: block;
+  }
+  .today-gz .pillar .lbl {
+    font-size: var(--t-xs);
+    color: var(--ink-3);
+    letter-spacing: 0.3em;
+    display: block;
+    margin-top: 0.3rem;
+  }
+  .today-info h1 {
+    font-family: var(--font-serif);
+    font-size: var(--t-xl);
+    letter-spacing: 0.08em;
+    margin: 0 0 0.4rem;
+    font-weight: 600;
+  }
+  .today-info p { margin: 0; color: var(--ink-2); font-size: var(--t-sm); }
+  .today-side { text-align: right; color: var(--ink-3); font-size: var(--t-xs); letter-spacing: 0.15em; line-height: 2; }
+
+  /* 生辰条 */
+  .birth-strip {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--cinnabar);
+    padding: 1rem 1.4rem;
+    margin-bottom: 2.6rem;
+  }
+  .birth-strip .b-gz { font-family: var(--font-serif); font-size: var(--t-lg); letter-spacing: 0.2em; }
+  .birth-strip .b-meta { font-size: var(--t-xs); color: var(--ink-3); letter-spacing: 0.1em; }
+  .birth-strip .spacer { flex: 1; }
+
+  /* 常用 */
+  .favs { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-bottom: 0.5rem; }
+  .fav {
+    background: var(--paper-2);
+    padding: 1.1rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    transition: background var(--dur) var(--ease-out);
+  }
+  .fav:hover { background: var(--cinnabar-wash); }
+  .fav .f-name { font-family: var(--font-serif); font-size: var(--t-md); letter-spacing: 0.1em; }
+  .fav .f-sub { font-size: var(--t-xs); color: var(--ink-3); margin-top: 0.15rem; }
+  .fav .f-glyph {
+    width: 2.2rem; height: 2.2rem;
+    border: 1px solid var(--line);
+    display: grid; place-items: center;
+    font-family: var(--font-serif);
+    color: var(--gold);
+    flex: none;
+  }
+
+  /* 模块分组 */
+  .mod-group { margin-bottom: 2.4rem; }
+  .mod-group-head {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .mod-group-head .g-title { font-family: var(--font-serif); font-size: var(--t-lg); letter-spacing: 0.12em; margin: 0; font-weight: 600; }
+  .mod-group-head .g-desc { font-size: var(--t-xs); color: var(--ink-3); letter-spacing: 0.1em; }
+  .mod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr)); gap: 1.1rem; }
+  .mod {
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    padding: 1.1rem 1.2rem 1rem;
+    position: relative;
+    transition: border-color var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+  }
+  .mod:hover { border-color: var(--ink-3); transform: translateY(-2px); }
+  .mod .m-name { font-family: var(--font-serif); font-size: var(--t-md); letter-spacing: 0.12em; display: flex; align-items:baseline; gap:0.5rem; }
+  .mod .m-en { font-size: var(--t-xs); color: var(--ink-3); letter-spacing: 0.08em; }
+  .mod .m-desc { font-size: var(--t-sm); color: var(--ink-2); margin-top: 0.45rem; line-height: 1.6; }
+  .mod .m-star {
+    position: absolute; top: 0.9rem; right: 1rem;
+    color: var(--line); font-size: 0.9rem;
+    transition: color var(--dur) var(--ease-out);
+  }
+  .mod .m-star.on, .mod:hover .m-star { color: var(--gold); }
+  .mod .m-new { color: var(--pine); font-size: var(--t-xs); letter-spacing: 0.2em; margin-left: 0.5em; }
+  @media (max-width: 720px) { .today { grid-template-columns: 1fr; } .today-side { text-align: left; } }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- ============ 侧边栏 ============ -->
+  <aside class="rail">
+    <a class="rail-brand" href="index.html">
+      <span class="seal sm">观</span>
+      <span><span class="name">观象台</span><span class="sub" style="display:block">中华传统智慧</span></span>
+    </a>
+    <div class="rail-groups">
+      <div class="rail-group">
+        <div class="g-label"><span class="g-num">壹</span>易学源流</div>
+        <a class="rail-link" href="#g1"><span class="dot"></span>易经六十四卦</a>
+        <a class="rail-link" href="#g1"><span class="dot"></span>河图洛书</a>
+        <a class="rail-link" href="#g1"><span class="dot"></span>太极源流</a>
+      </div>
+      <div class="rail-group">
+        <div class="g-label"><span class="g-num">贰</span>术数排盘</div>
+        <a class="rail-link" href="bazi.html"><span class="dot"></span>八字排盘</a>
+        <a class="rail-link" href="ziwei.html"><span class="dot"></span>紫微斗数</a>
+        <a class="rail-link" href="#g2"><span class="dot"></span>奇门遁甲</a>
+        <a class="rail-link" href="#g2"><span class="dot"></span>六爻纳甲</a>
+        <a class="rail-link" href="#g2"><span class="dot"></span>梅花易数</a>
+        <a class="rail-link" href="#g2"><span class="dot"></span>大六壬</a>
+        <a class="rail-link" href="#g2"><span class="dot"></span>金口诀</a>
+      </div>
+      <div class="rail-group">
+        <div class="g-label"><span class="g-num">叁</span>堪舆风水</div>
+        <a class="rail-link" href="#g3"><span class="dot"></span>罗盘定向</a>
+        <a class="rail-link" href="#g3"><span class="dot"></span>玄空飞星</a>
+        <a class="rail-link" href="#g3"><span class="dot"></span>阳宅三要</a>
+      </div>
+      <div class="rail-group">
+        <div class="g-label"><span class="g-num">肆</span>医道运气</div>
+        <a class="rail-link" href="#g4"><span class="dot"></span>五运六气</a>
+        <a class="rail-link" href="#g4"><span class="dot"></span>子午流注</a>
+        <a class="rail-link" href="#g4"><span class="dot"></span>体质养生</a>
+      </div>
+      <div class="rail-group">
+        <div class="g-label"><span class="g-num">伍</span>日用工具</div>
+        <a class="rail-link" href="#g5"><span class="dot"></span>万年历</a>
+        <a class="rail-link" href="#g5"><span class="dot"></span>择吉择日</a>
+        <a class="rail-link" href="#g5"><span class="dot"></span>姓名五行</a>
+        <a class="rail-link" href="#g5"><span class="dot"></span>合婚配对</a>
+      </div>
+      <div class="rail-group">
+        <div class="g-label"><span class="g-num">陆</span>知识检索</div>
+        <a class="rail-link" href="#g6"><span class="dot"></span>典籍检索</a>
+        <a class="rail-link" href="#g6"><span class="dot"></span>术语辞典</a>
+        <a class="rail-link" href="#g6"><span class="dot"></span>智慧问答</a>
+      </div>
+      <div class="rail-group">
+        <div class="g-label"><span class="g-num">柒</span>开发者</div>
+        <a class="rail-link" href="#g7"><span class="dot"></span>API 调试</a>
+        <a class="rail-link" href="#g7"><span class="dot"></span>MCP 服务</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ 主区 ============ -->
+  <main>
+    <div class="topbar">
+      <nav class="crumbs"><span class="here">观象台 · 首页</span></nav>
+      <div class="spacer"></div>
+      <button class="birth-chip"><span>命造</span><span class="gz">庚午 辛巳 庚辰 癸未</span></button>
+      <button class="kbtn">检索典籍 <kbd>⌘K</kbd></button>
+    </div>
+
+    <div class="content">
+      <!-- 今日 -->
+      <section class="today rise">
+        <div class="today-gz tnum">
+          <div class="pillar"><span class="gz-char">丙<br>午</span><span class="lbl">年</span></div>
+          <div class="pillar"><span class="gz-char">乙<br>未</span><span class="lbl">月</span></div>
+          <div class="pillar"><span class="gz-char">丁<br>酉</span><span class="lbl">日</span></div>
+        </div>
+        <div class="today-info">
+          <h1>丙午年 · 乙未月 · 丁酉日</h1>
+          <p>二〇二六年七月廿二日 · 农历六月初九 · 火旺土相之日，宜研读、订计划、复盘过往；忌冲动决断。</p>
+        </div>
+        <div class="today-side">
+          五行纳音 · 山下火<br>
+          冲煞 · 冲兔煞东<br>
+          胎神 · 仓库门房内北
+        </div>
+      </section>
+
+      <!-- 全局生辰条 -->
+      <section class="birth-strip rise" style="animation-delay:60ms">
+        <span class="juan">命造</span>
+        <span class="b-gz tnum">庚午 辛巳 庚辰 癸未</span>
+        <span class="b-meta">一九九〇年五月十五日 未时 · 男 · 庚金日主</span>
+        <div class="spacer"></div>
+        <button class="btn ghost">修改生辰</button>
+      </section>
+
+      <!-- 常用 -->
+      <div class="rule"><span class="fish">常 用</span></div>
+      <section class="favs rise" style="animation-delay:120ms">
+        <a class="fav" href="bazi.html"><span class="f-glyph">八</span><span><span class="f-name">八字排盘</span><span class="f-sub" style="display:block">四柱 · 十神 · 大运</span></span></a>
+        <a class="fav" href="ziwei.html"><span class="f-glyph">紫</span><span><span class="f-name">紫微斗数</span><span class="f-sub" style="display:block">命宫在戌 · 土五局</span></span></a>
+        <a class="fav" href="#"><span class="f-glyph">历</span><span><span class="f-name">万年历</span><span class="f-sub" style="display:block">今日丁酉 · 宜忌</span></span></a>
+        <a class="fav" href="#"><span class="f-glyph">合</span><span><span class="f-name">合婚配对</span><span class="f-sub" style="display:block">双盘合参</span></span></a>
+      </section>
+
+      <!-- 卷贰 -->
+      <div class="rule"><span class="fish">卷 贰 · 术 数 排 盘</span></div>
+      <section class="mod-group rise" style="animation-delay:180ms">
+        <div class="mod-group-head">
+          <h2 class="g-title">术数排盘</h2>
+          <span class="g-desc">以生辰起盘，七术并参</span>
+        </div>
+        <div class="mod-grid">
+          <a class="mod" href="bazi.html"><span class="m-star on">★</span><div class="m-name">八字排盘</div><div class="m-en">BAZI · FOUR PILLARS</div><p class="m-desc">四柱十神、五行旺衰、大运流年，子平正法。</p></a>
+          <a class="mod" href="ziwei.html"><span class="m-star on">★</span><div class="m-name">紫微斗数</div><div class="m-en">ZIWEI · DOUSHU</div><p class="m-desc">十二宫垣、十四主星、四化飞星，斗数全貌。</p></a>
+          <a class="mod" href="#"><span class="m-star">☆</span><div class="m-name">奇门遁甲</div><div class="m-en">QIMEN · DUNJIA</div><p class="m-desc">时家奇门转盘，九宫八门九星，用事择时。</p></a>
+          <a class="mod" href="#"><span class="m-star">☆</span><div class="m-name">六爻纳甲</div><div class="m-en">LIUYAO · NAJIA</div><p class="m-desc">摇卦成课，世应六亲，占断百事吉凶。</p></a>
+          <a class="mod" href="#"><span class="m-star">☆</span><div class="m-name">梅花易数</div><div class="m-en">MEIHUA · YISHU</div><p class="m-desc">时间起卦、体用生克，随机而断，简而验。</p></a>
+          <a class="mod" href="#"><span class="m-star">☆</span><div class="m-name">大六壬</div><div class="m-en">DALIUREN</div><p class="m-desc">四课三传，天地盘将，人事精微之占。</p></a>
+          <a class="mod" href="#"><span class="m-star">☆</span><div class="m-name">金口诀</div><div class="m-en">JINKOUJUE</div><p class="m-desc">四位起课，神将钤诀，直指事机。</p></a>
+        </div>
+      </section>
+
+      <!-- 其余分组（精简呈现） -->
+      <div class="rule"><span class="fish">博 览</span></div>
+      <section class="mod-group rise" style="animation-delay:240ms">
+        <div class="mod-grid">
+          <a class="mod" href="#"><div class="m-name">易学源流<span class="m-new">叁</span></div><p class="m-desc">易经六十四卦 · 河图洛书 · 太极源流</p></a>
+          <a class="mod" href="#"><div class="m-name">堪舆风水<span class="m-new">叁</span></div><p class="m-desc">罗盘定向 · 玄空飞星 · 阳宅三要</p></a>
+          <a class="mod" href="#"><div class="m-name">医道运气<span class="m-new">叁</span></div><p class="m-desc">五运六气 · 子午流注 · 体质养生</p></a>
+          <a class="mod" href="#"><div class="m-name">日用工具<span class="m-new">肆</span></div><p class="m-desc">万年历 · 择吉择日 · 姓名五行 · 合婚配对</p></a>
+          <a class="mod" href="#"><div class="m-name">知识检索<span class="m-new">叁</span></div><p class="m-desc">典籍检索 · 术语辞典 · 智慧问答</p></a>
+          <a class="mod" href="#"><div class="m-name">开发者<span class="m-new">贰</span></div><p class="m-desc">API 调试 · MCP 服务</p></a>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

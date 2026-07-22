@@ -16,20 +16,20 @@ interface YunqiChartProps {
 
 // 六气 → 颜色（对齐 legacy health.js QI_COLORS / QI_COLORS_LIGHT）
 const QI_COLORS: Record<string, string> = {
-  厥阴风木: '#4CAF50',
-  少阴君火: '#F44336',
-  少阳相火: '#B71C1C',
-  太阴湿土: '#FF9800',
-  阳明燥金: '#9E9E9E',
-  太阳寒水: '#2196F3',
+  厥阴风木: 'var(--wz-wood)',
+  少阴君火: 'var(--wz-fire)',
+  少阳相火: 'var(--c-cinnabar-deep)',
+  太阴湿土: 'var(--wz-earth)',
+  阳明燥金: 'var(--chart-text-faint)',
+  太阳寒水: 'var(--wz-water)',
 };
 const QI_COLORS_LIGHT: Record<string, string> = {
-  厥阴风木: '#E8F5E9',
-  少阴君火: '#FFEBEE',
-  少阳相火: '#FFCDD2',
-  太阴湿土: '#FFF3E0',
-  阳明燥金: '#F5F5F5',
-  太阳寒水: '#E3F2FD',
+  厥阴风木: 'rgb(var(--wood) / 0.12)',
+  少阴君火: 'rgb(var(--cinnabar) / 0.10)',
+  少阳相火: 'rgb(var(--cinnabar-700) / 0.10)',
+  太阴湿土: 'rgb(var(--earth) / 0.12)',
+  阳明燥金: 'rgb(var(--metal) / 0.14)',
+  太阳寒水: 'rgb(var(--water) / 0.12)',
 };
 
 // 六气 → 五行归类（图例）
@@ -45,12 +45,12 @@ const QI_WUXING_MAP: Record<string, string> = {
 // 五行图例顺序与配色（对齐 legacy QI_WUXING_ORDER / QI_WUXING_COLORS）
 const QI_WUXING_ORDER = ['风', '寒', '暑', '湿', '燥', '火'];
 const QI_WUXING_COLORS: Record<string, string> = {
-  风: '#4CAF50',
-  寒: '#2196F3',
-  暑: '#F44336',
-  湿: '#FF9800',
-  燥: '#9E9E9E',
-  火: '#B71C1C',
+  风: 'var(--wz-wood)',
+  寒: 'var(--wz-water)',
+  暑: 'var(--wz-fire)',
+  湿: 'var(--wz-earth)',
+  燥: 'var(--chart-text-faint)',
+  火: 'var(--c-cinnabar-deep)',
 };
 
 /** 从岁运名提取五行（如 "水运太过" → "水"） */
@@ -62,8 +62,8 @@ function extractWuxing(dayun: string): string {
   return '土';
 }
 
-const WX_COLOR: Record<string, string> = { 金: '#F5D742', 木: '#4CAF50', 水: '#2196F3', 火: '#F44336', 土: '#FF9800' };
-const WX_COLOR_LIGHT: Record<string, string> = { 金: '#FFF8E1', 木: '#E8F5E9', 水: '#E3F2FD', 火: '#FFEBEE', 土: '#FFF3E0' };
+const WX_COLOR: Record<string, string> = { 金: 'var(--wz-metal)', 木: 'var(--wz-wood)', 水: 'var(--wz-water)', 火: 'var(--wz-fire)', 土: 'var(--wz-earth)' };
+const WX_COLOR_LIGHT: Record<string, string> = { 金: 'rgb(var(--metal) / 0.14)', 木: 'rgb(var(--wood) / 0.12)', 水: 'rgb(var(--water) / 0.12)', 火: 'rgb(var(--cinnabar) / 0.10)', 土: 'rgb(var(--earth) / 0.12)' };
 
 /** 病势倾向按「，」断点换行，每行不超过 maxChars 字符 */
 function wrapTendency(text: string, maxChars: number): string[] {
@@ -95,8 +95,8 @@ export function YunqiChart({ data, size = 550 }: YunqiChartProps) {
 
   const yearChars = tiangan + dizhi;
   const dayunWx = extractWuxing(wuyun.dayun);
-  const wxColor = WX_COLOR[dayunWx] ?? '#888';
-  const wxLight = WX_COLOR_LIGHT[dayunWx] ?? '#222';
+  const wxColor = WX_COLOR[dayunWx] ?? 'var(--chart-text-faint)';
+  const wxLight = WX_COLOR_LIGHT[dayunWx] ?? 'var(--chart-inset)';
 
   const steps = liuqi.zhuke || [];
   const segGap = 4;
@@ -132,21 +132,21 @@ export function YunqiChart({ data, size = 550 }: YunqiChartProps) {
       {/* 背景 */}
       <defs>
         <linearGradient id="yunqi-bg" x1="0" y1="0" x2="0" y2={H}>
-          <stop offset="0" stopColor="#0b1410" />
-          <stop offset="0.5" stopColor="#0f1c16" />
-          <stop offset="1" stopColor="#0b1410" />
+          <stop offset="0" stopColor="var(--chart-surface)" />
+          <stop offset="0.5" stopColor="var(--chart-inset)" />
+          <stop offset="1" stopColor="var(--chart-surface)" />
         </linearGradient>
       </defs>
-      <rect x={3} y={3} width={W - 6} height={H - 6} rx={10} fill="url(#yunqi-bg)" stroke="#2a4a3e" strokeWidth={1} />
+      <rect x={3} y={3} width={W - 6} height={H - 6} rx={10} fill="url(#yunqi-bg)" stroke="var(--chart-line-strong)" strokeWidth={1} />
 
       {/* 标题栏 */}
-      <rect x={3} y={3} width={W - 6} height={34} rx={10} fill="#1a2a22" />
-      <text x={W / 2} y={20} textAnchor="middle" dominantBaseline="middle" fill="#EAD7A4" style={{ fontSize: 15, fontWeight: 700 }}>
+      <rect x={3} y={3} width={W - 6} height={34} rx={10} fill="var(--chart-deep)" />
+      <text x={W / 2} y={20} textAnchor="middle" dominantBaseline="middle" fill="var(--c-gold)" style={{ fontSize: 15, fontWeight: 700 }}>
         五运六气 · {year}年
       </text>
 
       {/* 干支大字 */}
-      <text x={W / 2} y={70} textAnchor="middle" dominantBaseline="middle" fill="#cfe9dc" style={{ fontSize: 42, fontWeight: 700, fontFamily: '"Noto Serif SC","SimSun",serif' }}>
+      <text x={W / 2} y={70} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text)" style={{ fontSize: 42, fontWeight: 700, fontFamily: '"Noto Serif SC","SimSun",serif' }}>
         {yearChars}
       </text>
 
@@ -157,27 +157,27 @@ export function YunqiChart({ data, size = 550 }: YunqiChartProps) {
       </text>
 
       {/* 分隔虚线 1 */}
-      <line x1={30} y1={126} x2={W - 30} y2={126} stroke="#2a4a3e" strokeWidth={0.5} strokeDasharray="3 3" />
-      <text x={W / 2} y={138} textAnchor="middle" dominantBaseline="middle" fill="#7a8a7a" style={{ fontSize: 10 }}>
+      <line x1={30} y1={126} x2={W - 30} y2={126} stroke="var(--chart-line-strong)" strokeWidth={0.5} strokeDasharray="3 3" />
+      <text x={W / 2} y={138} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 10 }}>
         司天 · 在泉
       </text>
 
       {/* 司天 */}
-      <rect x={W / 2 - 90} y={150} width={180} height={28} rx={6} fill="#1a1212" stroke="#E53935" strokeWidth={1.5} />
-      <text x={W / 2} y={164} textAnchor="middle" dominantBaseline="middle" fill="#ef5350" style={{ fontSize: 12, fontWeight: 700 }}>
+      <rect x={W / 2 - 90} y={150} width={180} height={28} rx={6} fill="var(--chart-deep)" stroke="var(--wz-fire)" strokeWidth={1.5} />
+      <text x={W / 2} y={164} textAnchor="middle" dominantBaseline="middle" fill="var(--wz-fire)" style={{ fontSize: 12, fontWeight: 700 }}>
         司天　{liuqi.sitian}
       </text>
       {/* 箭头 */}
-      <line x1={W / 2} y1={180} x2={W / 2} y2={196} stroke="#E53935" strokeWidth={1.5} markerEnd="url(#yunqi-arrow)" />
+      <line x1={W / 2} y1={180} x2={W / 2} y2={196} stroke="var(--wz-fire)" strokeWidth={1.5} markerEnd="url(#yunqi-arrow)" />
       {/* 在泉 */}
-      <rect x={W / 2 - 90} y={198} width={180} height={28} rx={6} fill="#1a1410" stroke="#F57C00" strokeWidth={1.5} />
-      <text x={W / 2} y={212} textAnchor="middle" dominantBaseline="middle" fill="#FF9800" style={{ fontSize: 12, fontWeight: 700 }}>
+      <rect x={W / 2 - 90} y={198} width={180} height={28} rx={6} fill="var(--chart-deep)" stroke="var(--wz-earth)" strokeWidth={1.5} />
+      <text x={W / 2} y={212} textAnchor="middle" dominantBaseline="middle" fill="var(--wz-earth)" style={{ fontSize: 12, fontWeight: 700 }}>
         在泉　{liuqi.zaiquan}
       </text>
 
       {/* 分隔虚线 2 */}
-      <line x1={30} y1={234} x2={W - 30} y2={234} stroke="#2a4a3e" strokeWidth={0.5} strokeDasharray="3 3" />
-      <text x={W / 2} y={246} textAnchor="middle" dominantBaseline="middle" fill="#7a8a7a" style={{ fontSize: 10 }}>
+      <line x1={30} y1={234} x2={W - 30} y2={234} stroke="var(--chart-line-strong)" strokeWidth={0.5} strokeDasharray="3 3" />
+      <text x={W / 2} y={246} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 10 }}>
         客气六步
       </text>
 
@@ -185,8 +185,8 @@ export function YunqiChart({ data, size = 550 }: YunqiChartProps) {
       {steps.map((step, i) => {
         const sX = segX0 + i * (segW + segGap);
         const qiName = step.qi;
-        const fullColor = QI_COLORS[qiName] ?? '#9E9E9E';
-        const lightColor = QI_COLORS_LIGHT[qiName] ?? '#222';
+        const fullColor = QI_COLORS[qiName] ?? 'var(--chart-text-faint)';
+        const lightColor = QI_COLORS_LIGHT[qiName] ?? 'var(--chart-inset)';
         const wxLabel = QI_WUXING_MAP[qiName] ?? '';
         return (
           <g key={i}>
@@ -204,11 +204,11 @@ export function YunqiChart({ data, size = 550 }: YunqiChartProps) {
               </text>
             )}
             {/* 步名 */}
-            <text x={sX + segW / 2} y={segY + 64} textAnchor="middle" dominantBaseline="middle" fill="#8a9a8a" style={{ fontSize: 10 }}>
+            <text x={sX + segW / 2} y={segY + 64} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-mid)" style={{ fontSize: 10 }}>
               {step.step}
             </text>
             {/* 节气范围 */}
-            <text x={sX + segW / 2} y={segY + 80} textAnchor="middle" dominantBaseline="middle" fill="#6a7a6a" style={{ fontSize: 8 }}>
+            <text x={sX + segW / 2} y={segY + 80} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 8 }}>
               {step.start}→{step.end}
             </text>
             {/* 底部圆点 */}
@@ -226,8 +226,8 @@ export function YunqiChart({ data, size = 550 }: YunqiChartProps) {
             width={Math.min(W - 40, 200)}
             height={tendencyLines.length * tendLineH + 10}
             rx={11}
-            fill="#2a1610"
-            stroke="#E65100"
+            fill="var(--chart-deep)"
+            stroke="var(--wz-earth)"
             strokeWidth={1}
           />
           {tendencyLines.map((line, li) => (
@@ -237,7 +237,7 @@ export function YunqiChart({ data, size = 550 }: YunqiChartProps) {
               y={tendY + 10 + li * tendLineH}
               textAnchor="middle"
               dominantBaseline="middle"
-              fill="#FFAB91"
+              fill="var(--chart-text)"
               style={{ fontSize: 10, fontWeight: 700 }}
             >
               {li === 0 ? `病势倾向  ${line}` : line}
@@ -253,7 +253,7 @@ export function YunqiChart({ data, size = 550 }: YunqiChartProps) {
         return (
           <g key={label}>
             <circle cx={lx - 14} cy={legendY} r={4} fill={lColor} />
-            <text x={lx} y={legendY} textAnchor="middle" dominantBaseline="middle" fill="#6a7a6a" style={{ fontSize: 9 }}>
+            <text x={lx} y={legendY} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 9 }}>
               {label}
             </text>
           </g>
@@ -262,7 +262,7 @@ export function YunqiChart({ data, size = 550 }: YunqiChartProps) {
 
       <defs>
         <marker id="yunqi-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="userSpaceOnUse">
-          <path d="M0,0 L8,4 L0,8 Z" fill="#E53935" />
+          <path d="M0,0 L8,4 L0,8 Z" fill="var(--wz-fire)" />
         </marker>
       </defs>
     </svg>

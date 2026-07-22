@@ -42,10 +42,10 @@ function collectEnvInfo(): EnvInfo {
 
 /* ── 类型标签 ─────────────────────────────────────────── */
 
-const TYPE_META: Record<TestSuiteType, { label: string; color: string }> = {
-  node: { label: 'Node CLI', color: '#a78bfa' },
-  browser: { label: 'Browser', color: '#0a9396' },
-  verify: { label: 'Verify', color: '#e9c46a' },
+const TYPE_META: Record<TestSuiteType, { label: string; color: string; border: string }> = {
+  node: { label: 'Node CLI', color: 'var(--chart-text-faint)', border: 'var(--chart-text-faint)' },
+  browser: { label: 'Browser', color: 'var(--wz-water)', border: 'rgb(var(--water) / 0.2)' },
+  verify: { label: 'Verify', color: 'var(--wz-earth)', border: 'rgb(var(--earth) / 0.2)' },
 };
 
 /* ── 测试套件卡片 ─────────────────────────────────────── */
@@ -62,7 +62,7 @@ function SuiteCard({ suite }: { suite: TestSuite }) {
         </div>
         <span
           className="shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-semibold"
-          style={{ borderColor: `${meta.color}33`, color: meta.color }}
+          style={{ borderColor: meta.border, color: meta.color }}
         >
           {meta.label}
         </span>

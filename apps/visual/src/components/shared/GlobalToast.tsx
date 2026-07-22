@@ -44,7 +44,7 @@ export function GlobalToast() {
   return (
     <div
       key={toast._id}
-      className={`pointer-events-none fixed bottom-6 left-1/2 z-[10000] -translate-x-1/2 rounded-full border px-5 py-2.5 text-sm shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-md transition-opacity duration-200 ${
+      className={`pointer-events-none fixed bottom-6 left-1/2 z-[10000] -translate-x-1/2 rounded-full border px-5 py-2.5 text-sm shadow-[0_12px_40px_rgb(var(--shadow-rgb)/0.5)] backdrop-blur-md transition-opacity duration-200 ${
         leaving ? 'opacity-0' : 'opacity-100'
       } ct-animate-fade-in ${
         toast.tone === 'success'

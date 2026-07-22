@@ -46,11 +46,11 @@ export const MERIDIAN_HOURS: MeridianHour[] = [
 
 /** 五行颜色映射 */
 export const WUXING_COLORS: Record<string, string> = {
-  '金': '#e5e5e5',
-  '木': '#2a9d75',
-  '水': '#2f80c8',
-  '火': '#dd5836',
-  '土': '#c9b27a',
+  '金': 'var(--wz-metal)',
+  '木': 'var(--wz-wood)',
+  '水': 'var(--wz-water)',
+  '火': 'var(--wz-fire)',
+  '土': 'var(--wz-earth)',
 };
 
 /** 按小时（0-23）取当令时辰经络 */

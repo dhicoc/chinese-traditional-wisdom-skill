@@ -30,11 +30,11 @@ const DEFAULT_PILLARS: BaziPillars = {
 
 const DEFAULT_WUXING: WuxingStats = { 木: 2, 火: 3, 土: 1, 金: 0, 水: 2 };
 const WUXING_COLORS: Record<keyof WuxingStats, string> = {
-  木: '#2c9f84',
-  火: '#c6301f',
-  土: '#c9b27a',
-  金: '#e9e4d8',
-  水: '#2f4f55',
+  木: 'var(--c-jade)',
+  火: 'var(--wz-fire)',
+  土: 'var(--wz-earth)',
+  金: 'var(--wz-metal)',
+  水: 'var(--wz-water)',
 };
 
 interface BaziResult {
@@ -145,7 +145,7 @@ export function BaziWorkspace() {
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-400">Bazi Plate</p>
-            <h2 className="mt-1 text-2xl font-semibold text-jade-50">八字排盘工作台</h2>
+            <h2 className="mt-1 font-serif text-2xl font-semibold tracking-[0.08em] text-jade-50">八字排盘工作台</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               读取顶部全局生辰，生成四柱、五行与喜用神分析。
             </p>

@@ -55,9 +55,9 @@ export interface HuangjiGuaCircleProps {
 
 // 高亮类型配色
 const HIGHLIGHT: Record<string, { ring: string; label: string; text: string; bg: string }> = {
-  zheng: { ring: '#d4a857', label: '正卦', text: '#e8b988', bg: 'rgba(212,168,87,0.12)' },   // 金
-  shi: { ring: '#5fb8a8', label: '世卦', text: '#7fd0c0', bg: 'rgba(95,184,168,0.12)' },      // 玉
-  year: { ring: '#c95a4a', label: '年卦', text: '#d97565', bg: 'rgba(201,90,74,0.12)' },     // 朱砂
+  zheng: { ring: 'var(--c-gold)', label: '正卦', text: 'var(--wz-earth)', bg: 'rgb(var(--earth) / 0.12)' },   // 金
+  shi: { ring: 'var(--c-jade)', label: '世卦', text: 'var(--wz-wood)', bg: 'rgb(var(--wood) / 0.12)' },      // 玉
+  year: { ring: 'var(--c-cinnabar-deep)', label: '年卦', text: 'var(--wz-fire)', bg: 'rgb(var(--cinnabar) / 0.12)' },     // 朱砂
 };
 
 export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acumYear, size = 520 }: HuangjiGuaCircleProps) {
@@ -103,15 +103,15 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
     >
       <defs>
         <radialGradient id="hj-center-bg" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#121a16" />
-          <stop offset="100%" stopColor="#0d1410" />
+          <stop offset="0%" stopColor="var(--chart-surface)" />
+          <stop offset="100%" stopColor="var(--chart-inset)" />
         </radialGradient>
       </defs>
 
       {/* 外圈装饰双环 */}
-      <circle cx={cx} cy={cy} r={nameRadius + 8} fill="none" stroke="#b87a4a" strokeWidth={0.8} strokeOpacity={0.3} />
-      <circle cx={cx} cy={cy} r={nameRadius - 6} fill="none" stroke="#b87a4a" strokeWidth={0.4} strokeOpacity={0.18} />
-      <circle cx={cx} cy={cy} r={guaRadius + 10} fill="none" stroke="#b87a4a" strokeWidth={0.4} strokeOpacity={0.15} />
+      <circle cx={cx} cy={cy} r={nameRadius + 8} fill="none" stroke="var(--wz-earth)" strokeWidth={0.8} strokeOpacity={0.3} />
+      <circle cx={cx} cy={cy} r={nameRadius - 6} fill="none" stroke="var(--wz-earth)" strokeWidth={0.4} strokeOpacity={0.18} />
+      <circle cx={cx} cy={cy} r={guaRadius + 10} fill="none" stroke="var(--wz-earth)" strokeWidth={0.4} strokeOpacity={0.15} />
 
       {/* 64卦围圈 */}
       {XIANTIAN_64.map((name, i) => {
@@ -166,7 +166,7 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
                   dominantBaseline="middle"
                   fontSize={12}
                   fontWeight={700}
-                  fill={hl ? HIGHLIGHT[hl].text : '#c9b2d6'}
+                  fill={hl ? HIGHLIGHT[hl].text : 'var(--chart-text)'}
                   style={{ fontFamily: '"Noto Serif SC","Songti SC",serif' }}
                 >
                   {name}
@@ -185,7 +185,7 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
                 // yi=0 初爻在最内（靠近圆心，局部 y 负方向），yi=5 上爻在最外
                 const yy = -(5 - yi) * (yaoThick + yaoGap) + (5 * (yaoThick + yaoGap)) / 2 - (yaoThick + yaoGap) / 2;
                 const isYang = c === '7';
-                const fill = hl ? HIGHLIGHT[hl].ring : isSel ? '#9d7ad6' : '#6a7a6e';
+                const fill = hl ? HIGHLIGHT[hl].ring : isSel ? 'var(--wz-water)' : 'var(--chart-text-faint)';
                 const op = hl ? 1 : isSel ? 0.9 : 0.65;
                 return isYang ? (
                   <rect key={yi} x={-yaoLen / 2} y={yy} width={yaoLen} height={yaoThick} fill={fill} fillOpacity={op} rx={0.3} />
@@ -206,25 +206,25 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
       })}
 
       {/* 中心信息圆 */}
-      <circle cx={cx} cy={cy} r={innerRadius} fill="url(#hj-center-bg)" stroke="#b87a4a" strokeWidth={1} strokeOpacity={0.4} />
-      <circle cx={cx} cy={cy} r={innerRadius - 4} fill="none" stroke="#b87a4a" strokeWidth={0.4} strokeOpacity={0.2} />
+      <circle cx={cx} cy={cy} r={innerRadius} fill="url(#hj-center-bg)" stroke="var(--wz-earth)" strokeWidth={1} strokeOpacity={0.4} />
+      <circle cx={cx} cy={cy} r={innerRadius - 4} fill="none" stroke="var(--wz-earth)" strokeWidth={0.4} strokeOpacity={0.2} />
 
       {/* 中心文字：分区固定间距，字号梯级 */}
-      <text x={cx} y={cy - 34} textAnchor="middle" fontSize={13} fontWeight={700} fill="#d9a574"
+      <text x={cx} y={cy - 34} textAnchor="middle" fontSize={13} fontWeight={700} fill="var(--wz-earth)"
         style={{ fontFamily: '"Noto Serif SC","Songti SC",serif' }}>
         皇极经世
       </text>
-      <line x1={cx - 22} y1={cy - 24} x2={cx + 22} y2={cy - 24} stroke="#b87a4a" strokeWidth={0.5} strokeOpacity={0.4} />
-      <text x={cx} y={cy - 8} textAnchor="middle" fontSize={10} fill="#9fb0a4">
+      <line x1={cx - 22} y1={cy - 24} x2={cx + 22} y2={cy - 24} stroke="var(--wz-earth)" strokeWidth={0.5} strokeOpacity={0.4} />
+      <text x={cx} y={cy - 8} textAnchor="middle" fontSize={10} fill="var(--chart-text-mid)">
         第 {hui} 会 · 第 {yun} 运 · 第 {shi} 世
       </text>
-      <text x={cx} y={cy + 8} textAnchor="middle" fontSize={9} fill="#7a8a7e" letterSpacing={0.5}>
+      <text x={cx} y={cy + 8} textAnchor="middle" fontSize={9} fill="var(--chart-text-faint)" letterSpacing={0.5}>
         积年 {acumYear}
       </text>
-      <line x1={cx - 22} y1={cy + 18} x2={cx + 22} y2={cy + 18} stroke="#b87a4a" strokeWidth={0.5} strokeOpacity={0.4} />
+      <line x1={cx - 22} y1={cy + 18} x2={cx + 22} y2={cy + 18} stroke="var(--wz-earth)" strokeWidth={0.5} strokeOpacity={0.4} />
       {/* 选中卦名 */}
       <text x={cx} y={cy + 36} textAnchor="middle" fontSize={16} fontWeight={700}
-        fill={selectedHL ? HIGHLIGHT[selectedHL].text : '#c9b2d6'}
+        fill={selectedHL ? HIGHLIGHT[selectedHL].text : 'var(--chart-text)'}
         style={{ fontFamily: '"Noto Serif SC","Songti SC",serif' }}>
         {selected}
       </text>
@@ -249,17 +249,17 @@ export function HuangjiGuaCircle({ zhengGua, shiGua, yearGua, hui, yun, shi, acu
       </g>
 
       {/* 图例（圆外底部居中，三列等距，避开卦名环） */}
-      <g transform={`translate(${cx} ${size + 26})`} fontSize={8} fill="#7a8a7e">
+      <g transform={`translate(${cx} ${size + 26})`} fontSize={8} fill="var(--chart-text-faint)">
         <g transform="translate(-92 0)">
-          <circle cx={0} cy={0} r={4.5} fill="none" stroke="#d4a857" strokeWidth={1.3} />
+          <circle cx={0} cy={0} r={4.5} fill="none" stroke="var(--c-gold)" strokeWidth={1.3} />
           <text x={9} y={3.2}>正卦·主运</text>
         </g>
         <g transform="translate(-28 0)">
-          <circle cx={0} cy={0} r={4.5} fill="none" stroke="#5fb8a8" strokeWidth={1.3} />
+          <circle cx={0} cy={0} r={4.5} fill="none" stroke="var(--c-jade)" strokeWidth={1.3} />
           <text x={9} y={3.2}>世卦·主世</text>
         </g>
         <g transform="translate(36 0)">
-          <circle cx={0} cy={0} r={4.5} fill="none" stroke="#c95a4a" strokeWidth={1.3} />
+          <circle cx={0} cy={0} r={4.5} fill="none" stroke="var(--c-cinnabar-deep)" strokeWidth={1.3} />
           <text x={9} y={3.2}>年卦·本年</text>
         </g>
       </g>

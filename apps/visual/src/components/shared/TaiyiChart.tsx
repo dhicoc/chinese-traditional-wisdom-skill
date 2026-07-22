@@ -42,19 +42,19 @@ const PALACE_POS: Array<{ gong: string; row: number; col: number }> = [
 
 /** 八门吉凶色 */
 const DOOR_COLOR: Record<string, string> = {
-  '开': '#3cb4a0', '休': '#3cb4a0', '生': '#3cb4a0',
-  '伤': '#e0504a', '死': '#e0504a', '惊': '#e0504a',
-  '杜': '#9a8a7a', '景': '#c9b27a',
+  '开': 'var(--wz-wood)', '休': 'var(--wz-wood)', '生': 'var(--wz-wood)',
+  '伤': 'var(--wz-fire)', '死': 'var(--wz-fire)', '惊': 'var(--wz-fire)',
+  '杜': 'var(--chart-text-mid)', '景': 'var(--c-gold)',
 };
 
 /** 各星将标记色 */
 const MARK_COLOR: Record<string, string> = {
-  '太乙': '#e8c668',
-  '文昌': '#7fb8d4',
-  '始击': '#d48a7a',
-  '定目': '#a89bd4',
-  '主将': '#3cb4a0',
-  '客将': '#e0504a',
+  '太乙': 'var(--wz-earth)',
+  '文昌': 'var(--wz-water)',
+  '始击': 'var(--wz-fire)',
+  '定目': 'var(--chart-text-sub)',
+  '主将': 'var(--wz-wood)',
+  '客将': 'var(--wz-fire)',
 };
 
 export function TaiyiChart(props: TaiyiChartProps) {
@@ -105,12 +105,12 @@ export function TaiyiChart(props: TaiyiChartProps) {
         const isTaiyi = gong === taiyiGong;
         const isCenter = gong === '中';
         const door = eightDoors[num];
-        const doorColor = door ? DOOR_COLOR[door] : '#555';
+        const doorColor = door ? DOOR_COLOR[door] : 'var(--chart-text-faint)';
         const palaceMarks = marks[gong] ?? [];
 
         // 太乙宫金色高亮边框，其余用门色淡边框
-        const borderColor = isTaiyi ? '#e8c668' : 'rgba(255,255,255,0.12)';
-        const bgColor = isTaiyi ? 'rgba(232,198,104,0.10)' : isCenter ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.25)';
+        const borderColor = isTaiyi ? 'var(--wz-earth)' : 'rgb(var(--foreground) / 0.12)';
+        const bgColor = isTaiyi ? 'rgb(var(--earth) / 0.12)' : isCenter ? 'var(--chart-surface)' : 'var(--chart-inset)';
 
         return (
           <g key={gong}>
@@ -168,7 +168,7 @@ export function TaiyiChart(props: TaiyiChartProps) {
 
       {/* 底部图例 */}
       <g>
-        <text x={gridX} y={H - 10} style={{ fontSize: 10, fontFamily: 'serif', fill: '#e8c668' }}>★太乙</text>
+        <text x={gridX} y={H - 10} style={{ fontSize: 10, fontFamily: 'serif', fill: 'var(--wz-earth)' }}>★太乙</text>
         <text x={gridX + 56} y={H - 10} style={{ fontSize: 10, fontFamily: 'serif', fill: MARK_COLOR['主将'] }}>●主将</text>
         <text x={gridX + 112} y={H - 10} style={{ fontSize: 10, fontFamily: 'serif', fill: MARK_COLOR['客将'] }}>●客将</text>
         <text x={gridX + 168} y={H - 10} style={{ fontSize: 10, fontFamily: 'serif', fill: MARK_COLOR['文昌'] }}>●文昌</text>

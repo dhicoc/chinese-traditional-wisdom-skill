@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>观象台 · 八字排盘</title>
+<link rel="stylesheet" href="assets/prototype.css">
+<style>
+  /* —— 四柱盘 —— */
+  .pan { overflow-x: auto; }
+  .pan-grid {
+    display: grid;
+    grid-template-columns: 4.2rem repeat(4, minmax(8.5rem, 1fr));
+    min-width: 40rem;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+  }
+  .pg-cell {
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid var(--line-soft);
+    border-left: 1px solid var(--line-soft);
+    text-align: center;
+    position: relative;
+  }
+  .pg-cell:first-child { border-left: none; }
+  .pg-label {
+    font-size: var(--t-xs);
+    color: var(--ink-3);
+    letter-spacing: 0.24em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    writing-mode: horizontal-tb;
+  }
+  .pg-head { border-bottom: 1px solid var(--line); background: var(--paper); }
+  .pg-head .pg-cell { padding: 0.55rem 0.9rem; font-family: var(--font-serif); letter-spacing: 0.3em; font-size: var(--t-sm); color: var(--ink-2); }
+  .pg-char {
+    font-family: var(--font-serif);
+    font-size: 2.5rem;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .pg-char .wuxing { transform: translateY(-0.4em); }
+  .pg-sub { font-size: var(--t-xs); color: var(--ink-3); letter-spacing: 0.12em; }
+  .pg-ten { font-size: var(--t-sm); color: var(--cinnabar-deep); font-family: var(--font-serif); letter-spacing: 0.2em; }
+  .pg-cang { font-size: var(--t-xs); color: var(--ink-2); line-height: 1.9; }
+  .pg-cang em { font-style: normal; color: var(--ink-3); margin-left: 0.2em; }
+  /* 日柱高亮 */
+  .pg-day { background: color-mix(in oklab, var(--cinnabar-wash) 55%, var(--paper-2)); }
+  .pg-day::before {
+    content: "日主";
+    position: absolute;
+    top: 0.35rem; right: 0.45rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--cinnabar);
+    border: 1px solid color-mix(in oklab, var(--cinnabar) 45%, var(--line));
+    padding: 0 0.25em;
+  }
+
+  /* —— 五行能量 —— */
+  .wx-bar { display: flex; height: 0.55rem; border: 1px solid var(--line); }
+  .wx-bar span { display: block; height: 100%; }
+  .wx-legend { display: flex; gap: 1.6rem; margin-top: 0.8rem; flex-wrap: wrap; }
+  .wx-legend .it { display: flex; align-items: center; gap: 0.5em; font-size: var(--t-sm); }
+  .wx-legend .sw { width: 0.7rem; height: 0.7rem; transform: rotate(45deg); }
+  .wx-legend .pct { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .wx-note { font-size: var(--t-xs); color: var(--ink-3); margin-top: 0.7rem; letter-spacing: 0.06em; }
+
+  /* —— 解读卡片 —— */
+  .readings { display: grid; grid-template-columns: 1fr 1fr; gap: 1.3rem; }
+  @media (max-width: 860px) { .readings { grid-template-columns: 1fr; } }
+  .reading p { font-size: var(--t-sm); color: var(--ink-2); margin: 0; }
+  .reading .kv { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+
+  /* —— 大运 —— */
+  .luck { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); min-width: 42rem; }
+  .luck-col { background: var(--paper-2); padding: 1rem 0.8rem 0.9rem; text-align: center; position: relative; }
+  .luck-col .l-age { font-size: var(--t-xs); color: var(--ink-3); letter-spacing: 0.15em; font-variant-numeric: tabular-nums; }
+  .luck-col .l-gz { font-family: var(--font-serif); font-size: var(--t-xl); line-height: 1.35; margin-top: 0.4rem; }
+  .luck-col .l-ten { font-size: var(--t-xs); color: var(--ink-3); margin-top: 0.3rem; letter-spacing: 0.1em; }
+  .luck-col.now { background: var(--cinnabar-wash); box-shadow: inset 0 2px 0 var(--cinnabar); }
+  .luck-col.now .l-gz { color: var(--cinnabar-deep); }
+  .luck-col.now::after {
+    content: "当运";
+    position: absolute; top: 0.4rem; right: 0.5rem;
+    font-size: 0.6rem; letter-spacing: 0.2em; color: var(--cinnabar);
+  }
+  .years { display: flex; gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: 1.1rem; min-width: 42rem; }
+  .year-col { flex: 1; background: var(--paper-2); text-align: center; padding: 0.55rem 0.3rem; font-size: var(--t-xs); }
+  .year-col .y { color: var(--ink-3); font-variant-numeric: tabular-nums; letter-spacing: 0.1em; }
+  .year-col .g { font-family: var(--font-serif); font-size: var(--t-md); margin-top: 0.15rem; }
+  .year-col.now { background: var(--paper-3); box-shadow: inset 0 2px 0 var(--gold); }
+  .scroll-x { overflow-x: auto; }
+
+  .tabpane { display: none; }
+  .tabpane.show { display: block; animation: rise 320ms var(--ease-out) both; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="rail">
+    <a class="rail-brand" href="index.html">
+      <span class="seal sm">观</span>
+      <span><span class="name">观象台</span><span class="sub" style="display:block">中华传统智慧</span></span>
+    </a>
+    <div class="rail-groups">
+      <div class="rail-group">
+        <div class="g-label"><span class="g-num">壹</span>易学源流</div>
+        <a class="rail-link" href="dashboard.html"><span class="dot"></span>易经六十四卦</a>
+        <a class="rail-link" href="dashboard.html"><span class="dot"></span>河图洛书</a>
+        <a class="rail-link" href="dashboard.html"><span class="dot"></span>太极源流</a>
+      </div>
+      <div class="rail-group">
+        <div class="g-label"><span class="g-num">贰</span>术数排盘</div>
+        <a class="rail-link active" href="bazi.html"><span class="dot"></span>八字排盘</a>
+        <a class="rail-link" href="ziwei.html"><span class="dot"></span>紫微斗数</a>
+        <a class="rail-link" href="#"><span class="dot"></span>奇门遁甲</a>
+        <a class="rail-link" href="#"><span class="dot"></span>六爻纳甲</a>
+        <a class="rail-link" href="#"><span class="dot"></span>梅花易数</a>
+        <a class="rail-link" href="#"><span class="dot"></span>大六壬</a>
+        <a class="rail-link" href="#"><span class="dot"></span>金口诀</a>
+      </div>
+      <div class="rail-group">
+        <div class="g-label"><span class="g-num">叁</span>堪舆风水</div>
+        <a class="rail-link" href="#"><span class="dot"></span>罗盘定向</a>
+        <a class="rail-link" href="#"><span class="dot"></span>玄空飞星</a>
+        <a class="rail-link" href="#"><span class="dot"></span>阳宅三要</a>
+      </div>
+      <div class="rail-group">
+        <div class="g-label"><span class="g-num">肆</span>医道运气</div>
+        <a class="rail-link" href="#"><span class="dot"></span>五运六气</a>
+        <a class="rail-link" href="#"><span class="dot"></span>子午流注</a>
+        <a class="rail-link" href="#"><span class="dot"></span>体质养生</a>
+      </div>
+      <div class="rail-group">
+        <div class="g-label"><span class="g-num">伍</span>日用工具</div>
+        <a class="rail-link" href="#"><span class="dot"></span>万年历</a>
+        <a class="rail-link" href="#"><span class="dot"></span>择吉择日</a>
+        <a class="rail-link" href="#"><span class="dot"></span>姓名五行</a>
+        <a class="rail-link" href="#"><span class="dot"></span>合婚配对</a>
+      </div>
+      <div class="rail-group">
+        <div class="g-label"><span class="g-num">陆</span>知识检索</div>
+        <a class="rail-link" href="#"><span class="dot"></span>典籍检索</a>
+        <a class="rail-link" href="#"><span class="dot"></span>术语辞典</a>
+        <a class="rail-link" href="#"><span class="dot"></span>智慧问答</a>
+      </div>
+      <div class="rail-group">
+        <div class="g-label"><span class="g-num">柒</span>开发者</div>
+        <a class="rail-link" href="#"><span class="dot"></span>API 调试</a>
+        <a class="rail-link" href="#"><span class="dot"></span>MCP 服务</a>
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <nav class="crumbs"><span>观象台</span><span>／</span><span>术数排盘</span><span>／</span><span class="here">八字排盘</span></nav>
+      <div class="spacer"></div>
+      <button class="birth-chip"><span>命造</span><span class="gz">庚午 辛巳 庚辰 癸未</span></button>
+      <button class="kbtn">检索典籍 <kbd>⌘K</kbd></button>
+    </div>
+
+    <div class="content">
+      <header class="page-head rise">
+        <span class="juan">卷贰 · 子平正法</span>
+        <h1 class="page-title">庚金日元 · 伤官驾杀格</h1>
+        <p class="page-note">一九九〇年五月十五日未时 · 男 · 农历四月廿一。庚金生于巳月，长生得地，比劫成林；火土两旺，财星伏藏。</p>
+        <div style="display:flex; gap:0.8rem; margin-top:1.2rem; flex-wrap:wrap;">
+          <button class="btn">导出解读报告</button>
+          <button class="btn ghost">复制 AI 上下文</button>
+          <button class="btn ghost">修改生辰</button>
+        </div>
+      </header>
+
+      <div class="tabs rise" style="animation-delay:60ms">
+        <button class="tab active" data-tab="t1">排 盘</button>
+        <button class="tab" data-tab="t2">大 运 流 年</button>
+        <button class="tab" data-tab="t3">神 煞</button>
+      </div>
+
+      <!-- ===== 排盘 ===== -->
+      <section id="t1" class="tabpane show">
+        <div class="pan rise" style="animation-delay:100ms">
+          <div class="pan-grid">
+            <!-- 表头 -->
+            <div class="pg-cell pg-label pg-head"></div>
+            <div class="pg-cell pg-head">年 柱</div>
+            <div class="pg-cell pg-head">月 柱</div>
+            <div class="pg-cell pg-head">日 柱</div>
+            <div class="pg-cell pg-head">时 柱</div>
+            <!-- 十神（干） -->
+            <div class="pg-cell pg-label">十神</div>
+            <div class="pg-cell"><span class="pg-ten">比肩</span></div>
+            <div class="pg-cell"><span class="pg-ten">劫财</span></div>
+            <div class="pg-cell pg-day"><span class="pg-ten" style="color:var(--ink-3)">元男</span></div>
+            <div class="pg-cell"><span class="pg-ten">伤官</span></div>
+            <!-- 天干 -->
+            <div class="pg-cell pg-label">天干</div>
+            <div class="pg-cell"><span class="pg-char">庚<span class="wuxing j">金</span></span></div>
+            <div class="pg-cell"><span class="pg-char">辛<span class="wuxing j">金</span></span></div>
+            <div class="pg-cell pg-day"><span class="pg-char" style="color:var(--cinnabar-deep)">庚<span class="wuxing j">金</span></span></div>
+            <div class="pg-cell"><span class="pg-char">癸<span class="wuxing s">水</span></span></div>
+            <!-- 地支 -->
+            <div class="pg-cell pg-label">地支</div>
+            <div class="pg-cell"><span class="pg-char">午<span class="wuxing h">火</span></span></div>
+            <div class="pg-cell"><span class="pg-char">巳<span class="wuxing h">火</span></span></div>
+            <div class="pg-cell pg-day"><span class="pg-char">辰<span class="wuxing t">土</span></span></div>
+            <div class="pg-cell"><span class="pg-char">未<span class="wuxing t">土</span></span></div>
+            <!-- 藏干 -->
+            <div class="pg-cell pg-label">藏干</div>
+            <div class="pg-cell"><div class="pg-cang">丁<em>正官</em><br>己<em>正印</em></div></div>
+            <div class="pg-cell"><div class="pg-cang">丙<em>七杀</em><br>戊<em>偏印</em><br>庚<em>比肩</em></div></div>
+            <div class="pg-cell pg-day"><div class="pg-cang">戊<em>偏印</em><br>乙<em>正财</em><br>癸<em>伤官</em></div></div>
+            <div class="pg-cell"><div class="pg-cang">己<em>正印</em><br>丁<em>正官</em><br>乙<em>正财</em></div></div>
+            <!-- 纳音 -->
+            <div class="pg-cell pg-label">纳音</div>
+            <div class="pg-cell"><span class="pg-sub">路旁土</span></div>
+            <div class="pg-cell"><span class="pg-sub">白蜡金</span></div>
+            <div class="pg-cell pg-day"><span class="pg-sub">白蜡金</span></div>
+            <div class="pg-cell"><span class="pg-sub">杨柳木</span></div>
+            <!-- 星运 -->
+            <div class="pg-cell pg-label">星运</div>
+            <div class="pg-cell"><span class="pg-sub">沐浴</span></div>
+            <div class="pg-cell"><span class="pg-sub">长生</span></div>
+            <div class="pg-cell pg-day"><span class="pg-sub">养</span></div>
+            <div class="pg-cell"><span class="pg-sub">冠带</span></div>
+            <!-- 神煞 -->
+            <div class="pg-cell pg-label">神煞</div>
+            <div class="pg-cell"><span class="pg-sub">—</span></div>
+            <div class="pg-cell"><span class="pg-sub">—</span></div>
+            <div class="pg-cell pg-day"><span class="chip c-gold" style="font-size:0.65rem">华盖</span></div>
+            <div class="pg-cell"><span class="chip c-pine" style="font-size:0.65rem">天乙贵人</span></div>
+          </div>
+        </div>
+
+        <!-- 五行能量 -->
+        <div class="rule"><span class="fish">五 行 能 量</span></div>
+        <div class="card card-pad rise" style="animation-delay:140ms">
+          <div class="wx-bar">
+            <span style="width:32%; background:var(--wu-jin)"></span>
+            <span style="width:24%; background:var(--wu-huo)"></span>
+            <span style="width:22%; background:var(--wu-tu)"></span>
+            <span style="width:13%; background:var(--wu-shui)"></span>
+            <span style="width:9%;  background:repeating-linear-gradient(45deg, var(--wu-mu), var(--wu-mu) 2px, transparent 2px, transparent 5px); border-right:1px solid var(--wu-mu)"></span>
+          </div>
+          <div class="wx-legend tnum">
+            <span class="it"><span class="sw" style="background:var(--wu-jin)"></span>金 <span class="pct">32%</span></span>
+            <span class="it"><span class="sw" style="background:var(--wu-huo)"></span>火 <span class="pct">24%</span></span>
+            <span class="it"><span class="sw" style="background:var(--wu-tu)"></span>土 <span class="pct">22%</span></span>
+            <span class="it"><span class="sw" style="background:var(--wu-shui)"></span>水 <span class="pct">13%</span></span>
+            <span class="it"><span class="sw" style="border:1px solid var(--wu-mu)"></span>木 <span class="pct">9% · 伏藏不透</span></span>
+          </div>
+          <p class="wx-note">金火相战，土为媒介；木明面缺位，仅辰未两点乙木伏藏——财星有根而不露，富贵需待岁运引发。</p>
+        </div>
+
+        <!-- 解读 -->
+        <div class="rule"><span class="fish">解 读 · 简 繁 两 便</span></div>
+        <div class="readings">
+          <article class="card card-pad reading rise" style="animation-delay:180ms">
+            <div class="card-head"><h3 class="card-title" style="font-size:var(--t-md);">命格总论</h3><span class="chip c-cinnabar">七杀格</span></div>
+            <div class="kv"><span class="chip">日主偏强</span><span class="chip">用神 · 癸水</span><span class="chip">喜 · 水木</span></div>
+            <p>庚金日元生于巳月，金逢长生，坐辰得养，年时庚辛癸相助，日主偏强。巳中丙火七杀当令，幸得时干癸水伤官透制，成「伤官驾杀」之势——杀为我用，主权谋决断，宜专业技术、管理、司法军警之途。</p>
+            <details class="pro">
+              <summary>专业数据</summary>
+              <div class="pro-body">
+                <table class="data">
+                  <tr><th>旺衰评分</th><td class="tnum">日主 +2.5（得令 0 / 得地 +1 / 得势 +1.5）</td></tr>
+                  <tr><th>格局判定</th><td>巳中丙火当令透制，取七杀格；癸水伤官高透，驾杀有功</td></tr>
+                  <tr><th>调候用神</th><td>癸水为先，壬水次之；忌戊己燥土夺水</td></tr>
+                </table>
+              </div>
+            </details>
+          </article>
+
+          <article class="card card-pad reading rise" style="animation-delay:220ms">
+            <div class="card-head"><h3 class="card-title" style="font-size:var(--t-md);">性格才华</h3><span class="chip c-dai">金水相涵</span></div>
+            <div class="kv"><span class="chip">刚健果决</span><span class="chip">重义轻财</span><span class="chip">孤高好学</span></div>
+            <p>庚金带煞，性情刚健，临事果断，不喜拖泥带水。伤官透时，聪颖外露，能言善辩，常有惊人之见；比劫成林则重朋友、轻财货，好胜而不服输。华盖坐日，内心孤高，亲近玄学、艺术、技术之境。</p>
+            <details class="pro">
+              <summary>专业数据</summary>
+              <div class="pro-body">
+                <table class="data">
+                  <tr><th>十神结构</th><td>比劫 3 · 食伤 1 · 财星 0（藏 3）· 官杀 2（藏）· 印 3（藏）</td></tr>
+                  <tr><th>华盖</th><td>日支辰，申子辰见辰——主清静寡欲、好学深思</td></tr>
+                </table>
+              </div>
+            </details>
+          </article>
+
+          <article class="card card-pad reading rise" style="animation-delay:260ms">
+            <div class="card-head"><h3 class="card-title" style="font-size:var(--t-md);">事业财帛</h3><span class="chip c-gold">财伏有根</span></div>
+            <div class="kv"><span class="chip">技术立身</span><span class="chip">中年渐开</span></div>
+            <p>正财两点伏藏于辰、未库中，财不外露——不宜投机逐利，宜以专长立业，积厚而发。现行乙酉大运（三十三至四十二），乙木正财透出坐旺，正是财星引发之期，十年间财路渐开，唯酉金劫财同宫，合作须防分夺。</p>
+            <details class="pro">
+              <summary>专业数据</summary>
+              <div class="pro-body">
+                <table class="data">
+                  <tr><th>财星状态</th><td>乙木正财 ×2，分藏辰未，余气根；无明财，暗财可聚</td></tr>
+                  <tr><th>乙酉大运</th><td class="tnum">33–42 虚岁 · 正财透干，酉为羊刃，财刃并见，防合伙破财</td></tr>
+                </table>
+              </div>
+            </details>
+          </article>
+
+          <article class="card card-pad reading rise" style="animation-delay:300ms">
+            <div class="card-head"><h3 class="card-title" style="font-size:var(--t-md);">婚姻六亲</h3><span class="chip c-pine">妻宫藏财</span></div>
+            <div class="kv"><span class="chip">妻贤内助</span><span class="chip">婚宜稍缓</span></div>
+            <p>日支辰为妻宫，中藏乙木正财，妻贤淑持家，有内助之德。然比劫重重，财星受克，早年情缘多波折，婚配宜缓不宜急。时支未为天乙贵人临子女宫，晚年得子女之福。</p>
+            <details class="pro">
+              <summary>专业数据</summary>
+              <div class="pro-body">
+                <table class="data">
+                  <tr><th>妻宫</th><td>辰 · 藏戊乙癸；乙为妻星入墓库，情深藏而不显</td></tr>
+                  <tr><th>桃花</th><td>四柱不见子午卯酉全桃花，情感专一少外缘</td></tr>
+                </table>
+              </div>
+            </details>
+          </article>
+        </div>
+      </section>
+
+      <!-- ===== 大运流年 ===== -->
+      <section id="t2" class="tabpane">
+        <div class="scroll-x">
+          <div class="luck tnum">
+            <div class="luck-col"><div class="l-age">3–12</div><div class="l-gz">壬<br>午</div><div class="l-ten">食神 · 正官</div></div>
+            <div class="luck-col"><div class="l-age">13–22</div><div class="l-gz">癸<br>未</div><div class="l-ten">伤官 · 正印</div></div>
+            <div class="luck-col"><div class="l-age">23–32</div><div class="l-gz">甲<br>申</div><div class="l-ten">偏财 · 比肩</div></div>
+            <div class="luck-col now"><div class="l-age">33–42</div><div class="l-gz">乙<br>酉</div><div class="l-ten">正财 · 劫财</div></div>
+            <div class="luck-col"><div class="l-age">43–52</div><div class="l-gz">丙<br>戌</div><div class="l-ten">七杀 · 偏印</div></div>
+            <div class="luck-col"><div class="l-age">53–62</div><div class="l-gz">丁<br>亥</div><div class="l-ten">正官 · 食神</div></div>
+          </div>
+          <div class="years tnum">
+            <div class="year-col"><div class="y">二〇二四</div><div class="g">甲辰</div></div>
+            <div class="year-col"><div class="y">二〇二五</div><div class="g">乙巳</div></div>
+            <div class="year-col now"><div class="y">二〇二六</div><div class="g">丙午</div></div>
+            <div class="year-col"><div class="y">二〇二七</div><div class="g">丁未</div></div>
+            <div class="year-col"><div class="y">二〇二八</div><div class="g">戊申</div></div>
+            <div class="year-col"><div class="y">二〇二九</div><div class="g">己酉</div></div>
+          </div>
+        </div>
+        <div class="rule"><span class="fish">当 运 提 要</span></div>
+        <div class="card card-pad">
+          <p style="font-size:var(--t-sm); color:var(--ink-2); margin:0; max-width:68ch;">乙酉大运 · 正财透干而刃劫同宫：财门已开而争夺亦至，宜独营专技、慎与人合伙大钱。二〇二六丙午流年，七杀透干坐刃，事业压力与机遇并至，秋后金旺生水，局面转顺。</p>
+        </div>
+      </section>
+
+      <!-- ===== 神煞 ===== -->
+      <section id="t3" class="tabpane">
+        <div class="card card-pad">
+          <table class="data">
+            <tr><th>神煞</th><th>柱位</th><th>吉凶</th><th>释义</th></tr>
+            <tr><td class="serif">天乙贵人</td><td>时支 · 未</td><td><span class="chip c-pine">吉</span></td><td>庚日见未，一生贵人扶助，危难有解；临子女宫，晚运得晚辈之力。</td></tr>
+            <tr><td class="serif">华盖</td><td>日支 · 辰</td><td><span class="chip c-gold">平</span></td><td>申子辰见辰，主孤高好学、亲近玄学与技艺；过则孤芳自赏。</td></tr>
+            <tr><td class="serif">驿马</td><td>不现</td><td><span class="chip">—</span></td><td>申子辰马在寅，四柱无寅——主安稳，少奔波迁徙之苦。</td></tr>
+            <tr><td class="serif">桃花</td><td>不现</td><td><span class="chip">—</span></td><td>申子辰桃花在酉，原局不见；乙酉大运引动，中年人缘转旺。</td></tr>
+          </table>
+          <details class="pro">
+            <summary>查法出处</summary>
+            <div class="pro-body">
+              <p style="font-size:var(--t-sm); color:var(--ink-2); margin:0;">天乙贵人：甲戊庚牛羊（丑未）——《渊海子平》；华盖：寅午戌见戌、申子辰见辰——《三命通会》。所有神煞均由干支规则实时推算，非静态标注。</p>
+            </div>
+          </details>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+  document.querySelectorAll('.tab').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.tab').forEach(function (b) { b.classList.remove('active'); });
+      document.querySelectorAll('.tabpane').forEach(function (p) { p.classList.remove('show'); });
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('show');
+    });
+  });
+</script>
+
+</body>
+</html>

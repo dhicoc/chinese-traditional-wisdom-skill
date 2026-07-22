@@ -24,7 +24,6 @@ import {
 import { routeQuery, type AgentRoute } from '@/lib/agentRouter';
 import { AgentConfirmPanel } from './AgentConfirmPanel';
 import { openSearchModal } from '@/features/search/SearchModal';
-
 /* ── 类型 ─────────────────────────────────────────────── */
 
 export interface CommandItem {

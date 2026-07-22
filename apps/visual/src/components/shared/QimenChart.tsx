@@ -43,13 +43,13 @@ const POS_GRID: Record<number, [number, number]> = {
 
 /** 吉凶→色 */
 const LUCK_COLOR: Record<string, string> = {
-  大吉: '#3cb4a0', 吉: '#3cb4a0',
-  大凶: '#e0504a', 凶: '#e0504a',
-  中: '#c9b27a', 平: '#9a8a7a',
+  大吉: 'var(--wz-wood)', 吉: 'var(--wz-wood)',
+  大凶: 'var(--wz-fire)', 凶: 'var(--wz-fire)',
+  中: 'var(--c-gold)', 平: 'var(--chart-text-mid)',
 };
 
 function luckColor(luck: string): string {
-  return LUCK_COLOR[luck] ?? '#7a8a8a';
+  return LUCK_COLOR[luck] ?? 'var(--chart-text-faint)';
 }
 
 export function QimenChart({ palaces, dunJu }: QimenChartProps) {
@@ -88,13 +88,13 @@ export function QimenChart({ palaces, dunJu }: QimenChartProps) {
         if (!p) {
           return (
             <g key={posStr}>
-              <rect x={x} y={y} width={cell} height={cell} rx={10} fill="rgba(0,0,0,0.2)" stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
+              <rect x={x} y={y} width={cell} height={cell} rx={10} fill="var(--chart-inset)" stroke="var(--chart-line)" strokeWidth={1} />
             </g>
           );
         }
         const isCenter = pos === 5;
-        const borderColor = p.isZhiFu ? '#3cb4a0' : p.isZhiShi ? '#e8c668' : 'rgba(255,255,255,0.12)';
-        const bgColor = p.isZhiFu ? 'rgba(60,180,160,0.10)' : p.isZhiShi ? 'rgba(232,198,104,0.10)' : isCenter ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.25)';
+        const borderColor = p.isZhiFu ? 'var(--wz-wood)' : p.isZhiShi ? 'var(--wz-earth)' : 'var(--chart-line)';
+        const bgColor = p.isZhiFu ? 'rgb(var(--wood)/0.10)' : p.isZhiShi ? 'rgb(var(--earth)/0.10)' : isCenter ? 'var(--chart-inset)' : 'var(--chart-surface)';
         const borderW = p.isZhiFu || p.isZhiShi ? 2 : 1;
 
         // 吉格/凶格计数
@@ -121,26 +121,26 @@ export function QimenChart({ palaces, dunJu }: QimenChartProps) {
               {p.star}
             </text>
             {/* 八神（小字） */}
-            <text x={x + cell / 2} y={y + cell * 0.74} textAnchor="middle" style={{ fontSize: 10, fontFamily: 'serif', fill: '#c9b27a', opacity: 0.7 }}>
+            <text x={x + cell / 2} y={y + cell * 0.74} textAnchor="middle" style={{ fontSize: 10, fontFamily: 'serif', fill: 'var(--c-gold)', opacity: 0.7 }}>
               {p.deity}
             </text>
             {/* 天盘·地盘干（底部） */}
-            <text x={x + cell / 2} y={y + cell * 0.88} textAnchor="middle" style={{ fontSize: 10, fontFamily: 'monospace', fill: '#7fb8d4', opacity: 0.85 }}>
+            <text x={x + cell / 2} y={y + cell * 0.88} textAnchor="middle" style={{ fontSize: 10, fontFamily: 'monospace', fill: 'var(--wz-water)', opacity: 0.85 }}>
               {p.heavenlyStem}{p.earthlyStem ? `·${p.earthlyStem}` : ''}
             </text>
 
             {/* 左上角标记：符/使/马/空 */}
             <g>
-              {p.isZhiFu && <circle cx={x + 8} cy={y + cell - 8} r={3} fill="#3cb4a0" />}
-              {p.isZhiShi && <circle cx={x + 16} cy={y + cell - 8} r={3} fill="#e8c668" />}
-              {p.horse && <circle cx={x + 24} cy={y + cell - 8} r={3} fill="#e0504a" />}
-              {p.voidness?.hasVoidness && <circle cx={x + 32} cy={y + cell - 8} r={3} fill="rgba(255,255,255,0.35)" />}
+              {p.isZhiFu && <circle cx={x + 8} cy={y + cell - 8} r={3} fill="var(--wz-wood)" />}
+              {p.isZhiShi && <circle cx={x + 16} cy={y + cell - 8} r={3} fill="var(--wz-earth)" />}
+              {p.horse && <circle cx={x + 24} cy={y + cell - 8} r={3} fill="var(--wz-fire)" />}
+              {p.voidness?.hasVoidness && <circle cx={x + 32} cy={y + cell - 8} r={3} fill="var(--chart-text-faint)" />}
             </g>
             {/* 右下角吉凶格计数 */}
             {(auspCount > 0 || inauspCount > 0) && (
               <text x={x + cell - 8} y={y + cell - 6} textAnchor="end" style={{ fontSize: 9, fontFamily: 'serif' }}>
-                {auspCount > 0 && <tspan fill="#3cb4a0">★{auspCount} </tspan>}
-                {inauspCount > 0 && <tspan fill="#e0504a">✗{inauspCount}</tspan>}
+                {auspCount > 0 && <tspan fill="var(--wz-wood)">★{auspCount} </tspan>}
+                {inauspCount > 0 && <tspan fill="var(--wz-fire)">✗{inauspCount}</tspan>}
               </text>
             )}
           </g>
@@ -149,13 +149,13 @@ export function QimenChart({ palaces, dunJu }: QimenChartProps) {
 
       {/* 底部图例 */}
       <g>
-        <text x={gridX} y={H - footerH + 18} style={{ fontSize: 10, fontFamily: 'serif', fill: '#3cb4a0' }}>●值符</text>
-        <text x={gridX + 50} y={H - footerH + 18} style={{ fontSize: 10, fontFamily: 'serif', fill: '#e8c668' }}>●值使</text>
-        <text x={gridX + 100} y={H - footerH + 18} style={{ fontSize: 10, fontFamily: 'serif', fill: '#e0504a' }}>●马星</text>
-        <text x={gridX + 150} y={H - footerH + 18} style={{ fontSize: 10, fontFamily: 'serif', fill: 'rgba(255,255,255,0.5)' }}>●空亡</text>
-        <text x={gridX + 210} y={H - footerH + 18} style={{ fontSize: 10, fontFamily: 'serif', fill: '#3cb4a0' }}>★吉格</text>
-        <text x={gridX + 260} y={H - footerH + 18} style={{ fontSize: 10, fontFamily: 'serif', fill: '#e0504a' }}>✗凶格</text>
-        <text x={gridX} y={H - footerH + 38} style={{ fontSize: 10, fontFamily: 'serif', fill: 'rgba(255,255,255,0.45)' }}>
+        <text x={gridX} y={H - footerH + 18} style={{ fontSize: 10, fontFamily: 'serif', fill: 'var(--wz-wood)' }}>●值符</text>
+        <text x={gridX + 50} y={H - footerH + 18} style={{ fontSize: 10, fontFamily: 'serif', fill: 'var(--wz-earth)' }}>●值使</text>
+        <text x={gridX + 100} y={H - footerH + 18} style={{ fontSize: 10, fontFamily: 'serif', fill: 'var(--wz-fire)' }}>●马星</text>
+        <text x={gridX + 150} y={H - footerH + 18} style={{ fontSize: 10, fontFamily: 'serif', fill: 'var(--chart-text-faint)' }}>●空亡</text>
+        <text x={gridX + 210} y={H - footerH + 18} style={{ fontSize: 10, fontFamily: 'serif', fill: 'var(--wz-wood)' }}>★吉格</text>
+        <text x={gridX + 260} y={H - footerH + 18} style={{ fontSize: 10, fontFamily: 'serif', fill: 'var(--wz-fire)' }}>✗凶格</text>
+        <text x={gridX} y={H - footerH + 38} style={{ fontSize: 10, fontFamily: 'serif', fill: 'var(--chart-text-mid)' }}>
           每宫：八卦·宫数 / 八门 / 九星 / 八神 / 天盘·地盘干
         </text>
       </g>

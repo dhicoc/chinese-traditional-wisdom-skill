@@ -80,7 +80,7 @@ export function RadarChart({
       aria-label={title ?? '雷达图'}
     >
       {/* 暗色底，保证文字与数据区对比一致 */}
-      <rect x={0} y={0} width={size} height={size} rx={12} fill="#0b1410" stroke="rgba(44,159,132,0.16)" strokeWidth={1} />
+      <rect x={0} y={0} width={size} height={size} rx={12} fill="var(--chart-surface)" stroke="rgb(var(--jade) / 0.16)" strokeWidth={1} />
 
       {/* 同心环 */}
       {ringRadii.map((r, i) => (
@@ -89,8 +89,8 @@ export function RadarChart({
           cx={cx}
           cy={cy}
           r={r}
-          fill={i === 0 ? 'rgba(44,159,132,0.04)' : 'none'}
-          stroke="rgba(44,159,132,0.18)"
+          fill={i === 0 ? 'rgb(var(--jade) / 0.04)' : 'none'}
+          stroke="rgb(var(--jade) / 0.18)"
           strokeWidth={1}
           strokeDasharray={i === rings - 1 ? '0' : '2 3'}
         />
@@ -104,7 +104,7 @@ export function RadarChart({
           y1={cy}
           x2={p.axisX}
           y2={p.axisY}
-          stroke="rgba(44,159,132,0.22)"
+          stroke="rgb(var(--jade) / 0.22)"
           strokeWidth={1}
         />
       ))}
@@ -113,8 +113,8 @@ export function RadarChart({
       <polygon
         data-testid="radar-polygon"
         points={polygonPoints}
-        fill="rgba(44,159,132,0.22)"
-        stroke="rgb(44,159,132)"
+        fill="rgb(var(--jade) / 0.22)"
+        stroke="rgb(var(--jade))"
         strokeWidth={2}
         strokeLinejoin="round"
       />
@@ -126,8 +126,8 @@ export function RadarChart({
           cx={p.x}
           cy={p.y}
           r={highlightIndex === i ? 5 : 3}
-          fill={highlightIndex === i ? 'rgb(214,183,96)' : 'rgb(158,240,214)'}
-          stroke={highlightIndex === i ? 'rgb(214,183,96)' : 'rgb(44,159,132)'}
+          fill={highlightIndex === i ? 'rgb(var(--gold))' : 'rgb(var(--wood))'}
+          stroke={highlightIndex === i ? 'rgb(var(--gold))' : 'rgb(var(--jade))'}
           strokeWidth={1.5}
         >
           <title>{axes[i].label}：{axes[i].value}{highlightIndex === i ? '（主要体质）' : ''}</title>
@@ -142,8 +142,8 @@ export function RadarChart({
           y={p.labelY}
           textAnchor={Math.abs(p.labelX - cx) < 8 ? 'middle' : p.labelX > cx ? 'start' : 'end'}
           dominantBaseline="middle"
-          fill={highlightIndex === i ? 'rgb(214,183,96)' : '#e6f2ec'}
-          stroke="#0b1410"
+          fill={highlightIndex === i ? 'rgb(var(--gold))' : 'var(--chart-text)'}
+          stroke="var(--chart-surface)"
           strokeWidth={3}
           paintOrder="stroke"
           style={{ fontSize: 11, fontWeight: highlightIndex === i ? 700 : 500 }}
@@ -153,7 +153,7 @@ export function RadarChart({
       ))}
 
       {/* 中心点 */}
-      <circle cx={cx} cy={cy} r={2} fill="rgba(44,159,132,0.5)" />
+      <circle cx={cx} cy={cy} r={2} fill="rgb(var(--jade) / 0.5)" />
     </svg>
   );
 }

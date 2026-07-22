@@ -174,7 +174,7 @@ export function ZiweiWorkspace() {
             items={data.mainStars.slice(0, 14).map((star, index) => ({
               label: star,
               value: index < 6 ? '北斗/中天系' : '南斗/辅曜系',
-              color: index < 6 ? '#ae2012' : '#0a9396',
+              color: index < 6 ? 'var(--wz-fire)' : 'var(--wz-water)',
             }))}
           />
 

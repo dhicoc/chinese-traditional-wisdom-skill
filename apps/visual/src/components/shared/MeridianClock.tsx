@@ -55,17 +55,17 @@ export function MeridianClock({ current, selected, onSelect }: MeridianClockProp
       data-testid="meridian-clock"
     >
       {/* 外环底色 */}
-      <circle cx={CENTER} cy={CENTER} r={OUTER_R + 6} fill="#06110d" stroke="rgba(44,159,132,0.18)" strokeWidth={1} />
-      <circle cx={CENTER} cy={CENTER} r={INNER_R - 6} fill="#0a1512" stroke="rgba(44,159,132,0.12)" strokeWidth={1} />
+      <circle cx={CENTER} cy={CENTER} r={OUTER_R + 6} fill="var(--chart-page)" stroke="rgb(var(--jade) / 0.18)" strokeWidth={1} />
+      <circle cx={CENTER} cy={CENTER} r={INNER_R - 6} fill="var(--chart-bg)" stroke="rgb(var(--jade) / 0.12)" strokeWidth={1} />
 
       {/* 12 扇区 */}
       {MERIDIAN_HOURS.map((sc, i) => {
         const isCurrent = current?.name === sc.name;
         const isSelected = selected?.name === sc.name;
-        const color = WUXING_COLORS[sc.wuxing] ?? '#888';
+        const color = WUXING_COLORS[sc.wuxing] ?? 'var(--chart-text-faint)';
         const [lx, ly] = polar(hourAngle(i), LABEL_R);
         const fillOpacity = isCurrent ? 0.22 : isSelected ? 0.16 : 0.08;
-        const strokeColor = isCurrent ? '#c9b27a' : isSelected ? 'rgba(44,159,132,0.55)' : 'rgba(255,255,255,0.1)';
+        const strokeColor = isCurrent ? 'var(--c-gold)' : isSelected ? 'rgb(var(--jade) / 0.55)' : 'rgb(var(--foreground) / 0.1)';
         const strokeWidth = isCurrent ? 2 : isSelected ? 1.5 : 1;
 
         return (
@@ -97,7 +97,7 @@ export function MeridianClock({ current, selected, onSelect }: MeridianClockProp
               dominantBaseline="middle"
               fontSize={13}
               fontWeight={isCurrent ? 700 : 500}
-              fill={isCurrent ? '#e8dcb0' : '#cfe8df'}
+              fill={isCurrent ? 'var(--c-gold)' : 'var(--chart-text)'}
               fontFamily="'Noto Serif CJK SC', serif"
             >
               {sc.name}
@@ -124,7 +124,7 @@ export function MeridianClock({ current, selected, onSelect }: MeridianClockProp
         textAnchor="middle"
         dominantBaseline="middle"
         fontSize={11}
-        fill="rgba(207,232,223,0.55)"
+        fill="rgb(var(--foreground) / 0.55)"
       >
         {current ? '当前时辰' : '经络时钟'}
       </text>
@@ -137,7 +137,7 @@ export function MeridianClock({ current, selected, onSelect }: MeridianClockProp
             dominantBaseline="middle"
             fontSize={26}
             fontWeight={700}
-            fill="#e8dcb0"
+            fill="var(--c-gold)"
             fontFamily="'Noto Serif CJK SC', serif"
           >
             {current.name}
@@ -148,7 +148,7 @@ export function MeridianClock({ current, selected, onSelect }: MeridianClockProp
             textAnchor="middle"
             dominantBaseline="middle"
             fontSize={12}
-            fill={WUXING_COLORS[current.wuxing] ?? '#888'}
+            fill={WUXING_COLORS[current.wuxing] ?? 'var(--chart-text-faint)'}
           >
             {current.meridian} · {current.wuxing}
           </text>
@@ -158,7 +158,7 @@ export function MeridianClock({ current, selected, onSelect }: MeridianClockProp
             textAnchor="middle"
             dominantBaseline="middle"
             fontSize={9}
-            fill="rgba(207,232,223,0.5)"
+            fill="rgb(var(--foreground) / 0.5)"
           >
             {current.time}
           </text>
@@ -170,7 +170,7 @@ export function MeridianClock({ current, selected, onSelect }: MeridianClockProp
           textAnchor="middle"
           dominantBaseline="middle"
           fontSize={11}
-          fill="rgba(207,232,223,0.4)"
+          fill="rgb(var(--foreground) / 0.4)"
         >
           12 时辰当令
         </text>
@@ -187,7 +187,7 @@ export function MeridianClock({ current, selected, onSelect }: MeridianClockProp
             y1={CENTER}
             x2={px}
             y2={py}
-            stroke="#c9b27a"
+            stroke="var(--c-gold)"
             strokeWidth={2}
             strokeLinecap="round"
             opacity={0.7}

@@ -21,7 +21,7 @@ export function InterpretationCard({ title, badge, subtitle, items = [], childre
     <section className={`rounded-card border border-white/10 bg-ink-950/90 shadow-instrument ${className ?? 'p-4'}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-jade-100">{title}</p>
+          <p className="font-serif text-sm font-semibold tracking-[0.12em] text-jade-100">{title}</p>
           {subtitle && <p className="mt-1 text-xs leading-5 text-jade-100/45">{subtitle}</p>}
         </div>
         {badge && (

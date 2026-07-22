@@ -58,9 +58,21 @@ const PALACE_TO_DIR: Record<string, string> = {
 };
 
 const LUCK_COLOR: Record<string, string> = {
-  '大吉': '#2a9d8f', '吉': '#2a9d8f',
-  '大凶': '#e76f51', '凶': '#e76f51',
-  '中平': '#9a8a7a',
+  '大吉': 'var(--wz-wood)', '吉': 'var(--wz-wood)',
+  '大凶': 'var(--wz-fire)', '凶': 'var(--wz-fire)', '次凶': 'var(--wz-fire)',
+  '中平': 'var(--chart-text-mid)', '中性': 'var(--chart-text-mid)',
+};
+
+// 平行映射：luckColor + '20' / '18' / '15' 的 hex-alpha 拼接等价 rgb(var(--triplet) / alpha)。
+// '20' → 0x20/255≈0.125；'18' → 0x18/255≈0.094；'15' → 0x15/255≈0.082。
+const LUCK_COLOR_ALPHA: Record<string, Record<string, string>> = {
+  '大吉': { '20': 'rgb(var(--wood) / 0.125)', '18': 'rgb(var(--wood) / 0.094)', '15': 'rgb(var(--wood) / 0.082)' },
+  '吉':   { '20': 'rgb(var(--wood) / 0.125)', '18': 'rgb(var(--wood) / 0.094)', '15': 'rgb(var(--wood) / 0.082)' },
+  '大凶': { '20': 'rgb(var(--cinnabar) / 0.125)', '18': 'rgb(var(--cinnabar) / 0.094)', '15': 'rgb(var(--cinnabar) / 0.082)' },
+  '凶':   { '20': 'rgb(var(--cinnabar) / 0.125)', '18': 'rgb(var(--cinnabar) / 0.094)', '15': 'rgb(var(--cinnabar) / 0.082)' },
+  '次凶': { '20': 'rgb(var(--cinnabar) / 0.125)', '18': 'rgb(var(--cinnabar) / 0.094)', '15': 'rgb(var(--cinnabar) / 0.082)' },
+  '中平': { '20': 'rgb(var(--spirit) / 0.125)', '18': 'rgb(var(--spirit) / 0.094)', '15': 'rgb(var(--spirit) / 0.082)' },
+  '中性': { '20': 'rgb(var(--spirit) / 0.125)', '18': 'rgb(var(--spirit) / 0.094)', '15': 'rgb(var(--spirit) / 0.082)' },
 };
 
 const MOUNTAIN_TO_DIR: Record<string, string> = {
@@ -141,7 +153,7 @@ export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompass
       {/* 旋转组：按坐向旋转整个罗盘 */}
       <g transform={`rotate(${facingRotation} ${cx} ${cy})`}>
         {/* 背景 */}
-        <circle cx={cx} cy={cy} r={R1 + 4} fill="#0b1410" stroke="#2a4a3e" strokeWidth={1.5} />
+        <circle cx={cx} cy={cy} r={R1 + 4} fill="var(--chart-surface)" stroke="var(--chart-line-strong)" strokeWidth={1.5} />
 
         {/* 外环：二十四山 */}
         {MOUNTAINS.map((mtn, i) => {
@@ -151,18 +163,19 @@ export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompass
           const dir = MOUNTAIN_TO_DIR[mtn] || '';
           const ov = overlay?.[dir];
           // 飞星叠加：如果该方位有飞星数据，用吉凶色填充扇区
-          const luckColor = ov?.starLuck ? LUCK_COLOR[ov.starLuck] : null;
+          const luckKey = ov?.starLuck ?? null;
+          const luckColor = luckKey ? LUCK_COLOR[luckKey] : null;
           return (
             <g key={mtn}>
               <path
                 d={sectorPath(cx, cy, R1i, R1, centerDeg, 7.5)}
-                fill={luckColor ? luckColor + '20' : (isYang ? '#3a2818' : '#152a3a')}
-                stroke="#3a4a3a"
+                fill={luckKey ? LUCK_COLOR_ALPHA[luckKey]['20'] : (isYang ? 'var(--chart-deep)' : 'var(--chart-band)')}
+                stroke="var(--chart-line)"
                 strokeWidth={0.6}
               />
               <g transform={`translate(${p.x.toFixed(2)} ${p.y.toFixed(2)}) rotate(${p.rotate})`}>
                 <text textAnchor="middle" dominantBaseline="middle"
-                  fill={luckColor ?? (isYang ? '#FFB74D' : '#64B5F6')}
+                  fill={luckColor ?? (isYang ? 'var(--wz-earth)' : 'var(--wz-water)')}
                   style={{ fontSize: 12 }}
                 >
                   {mtn}
@@ -171,8 +184,8 @@ export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompass
             </g>
           );
         })}
-        <circle cx={cx} cy={cy} r={R1} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
-        <circle cx={cx} cy={cy} r={R1i} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
+        <circle cx={cx} cy={cy} r={R1} fill="none" stroke="var(--chart-line-faint)" strokeWidth={1.5} />
+        <circle cx={cx} cy={cy} r={R1i} fill="none" stroke="var(--chart-line-faint)" strokeWidth={1.5} />
 
         {/* 中环：八卦符号 + 卦名 + 游年星（首字） */}
         {TRIGRAMS.map((t) => {
@@ -181,30 +194,31 @@ export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompass
           const pStar = radial(cx, cy, t.deg, R2i + 6);
           const dir = t.label;
           const ov = overlay?.[dir];
-          const luckColor = ov?.mansionLuck ? LUCK_COLOR[ov.mansionLuck] : null;
+          const luckKey = ov?.mansionLuck ?? null;
+          const luckColor = luckKey ? LUCK_COLOR[luckKey] : null;
           // 游年星只显示首字避免超出中环边界，完整名称在侧栏
           const starShort = ov?.mansionStar ? ov.mansionStar.charAt(0) : '';
           return (
             <g key={t.tri}>
               <path
                 d={sectorPath(cx, cy, R2i, R2, t.deg, 22.5)}
-                fill={luckColor ? luckColor + '18' : '#16241c'}
-                stroke="#3a4a3a"
+                fill={luckKey ? LUCK_COLOR_ALPHA[luckKey]['18'] : 'var(--chart-inset)'}
+                stroke="var(--chart-line)"
                 strokeWidth={0.6}
               />
               <g transform={`translate(${pSym.x.toFixed(2)} ${pSym.y.toFixed(2)}) rotate(${pSym.rotate})`}>
-                <text textAnchor="middle" dominantBaseline="middle" fill="#EAD7A4" style={{ fontSize: 15 }}>
+                <text textAnchor="middle" dominantBaseline="middle" fill="var(--c-gold)" style={{ fontSize: 15 }}>
                   {t.symbol}
                 </text>
               </g>
               <g transform={`translate(${pName.x.toFixed(2)} ${pName.y.toFixed(2)}) rotate(${pName.rotate})`}>
-                <text textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? '#9a8a7a'} style={{ fontSize: 10 }}>
+                <text textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? 'var(--chart-text-mid)'} style={{ fontSize: 10 }}>
                   {t.tri}
                 </text>
               </g>
               {starShort && (
                 <g transform={`translate(${pStar.x.toFixed(2)} ${pStar.y.toFixed(2)}) rotate(${pStar.rotate})`}>
-                  <text textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? '#7a8a7a'} style={{ fontSize: 9 }} >
+                  <text textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? 'var(--chart-text-faint)'} style={{ fontSize: 9 }} >
                     {starShort}
                     <title>{ov?.mansionStar}</title>
                   </text>
@@ -213,8 +227,8 @@ export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompass
             </g>
           );
         })}
-        <circle cx={cx} cy={cy} r={R2} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
-        <circle cx={cx} cy={cy} r={R2i} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
+        <circle cx={cx} cy={cy} r={R2} fill="none" stroke="var(--chart-line-faint)" strokeWidth={1.5} />
+        <circle cx={cx} cy={cy} r={R2i} fill="none" stroke="var(--chart-line-faint)" strokeWidth={1.5} />
 
         {/* 内环：八方向 + 飞星编号 */}
         {TRIGRAMS.map((t) => {
@@ -222,23 +236,24 @@ export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompass
           const pStar = radial(cx, cy, t.deg, R3 - 8);
           const dir = t.label;
           const ov = overlay?.[dir];
-          const luckColor = ov?.starLuck ? LUCK_COLOR[ov.starLuck] : null;
+          const luckKey = ov?.starLuck ?? null;
+          const luckColor = luckKey ? LUCK_COLOR[luckKey] : null;
           return (
             <g key={`dir-${t.tri}`}>
               <path
                 d={sectorPath(cx, cy, R3i, R3, t.deg, 22.5)}
-                fill={luckColor ? luckColor + '15' : '#101f18'}
-                stroke="#3a4a3a"
+                fill={luckKey ? LUCK_COLOR_ALPHA[luckKey]['15'] : 'var(--chart-inset)'}
+                stroke="var(--chart-line)"
                 strokeWidth={0.6}
               />
               <g transform={`translate(${pDir.x.toFixed(2)} ${pDir.y.toFixed(2)}) rotate(${pDir.rotate})`}>
-                <text textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? '#cfe9dc'} style={{ fontSize: 11, fontWeight: 700 }}>
+                <text textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? 'var(--chart-text)'} style={{ fontSize: 11, fontWeight: 700 }}>
                   {t.label}
                 </text>
               </g>
               {ov?.starNum && (
                 <g transform={`translate(${pStar.x.toFixed(2)} ${pStar.y.toFixed(2)}) rotate(${pStar.rotate})`}>
-                  <text textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? '#9a8a7a'} style={{ fontSize: 10 }}>
+                  <text textAnchor="middle" dominantBaseline="middle" fill={luckColor ?? 'var(--chart-text-mid)'} style={{ fontSize: 10 }}>
                     {ov.starNum}{ov.starName?.slice(0,2) ?? ''}
                   </text>
                 </g>
@@ -246,16 +261,16 @@ export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompass
             </g>
           );
         })}
-        <circle cx={cx} cy={cy} r={R3} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
-        <circle cx={cx} cy={cy} r={R3i} fill="none" stroke="#5a6a5a" strokeWidth={1.5} />
+        <circle cx={cx} cy={cy} r={R3} fill="none" stroke="var(--chart-line-faint)" strokeWidth={1.5} />
+        <circle cx={cx} cy={cy} r={R3i} fill="none" stroke="var(--chart-line-faint)" strokeWidth={1.5} />
 
         {/* 中心十字 */}
-        <circle cx={cx} cy={cy} r={RC} fill="#0b1410" stroke="#5a6a5a" strokeWidth={1.5} />
+        <circle cx={cx} cy={cy} r={RC} fill="var(--chart-surface)" stroke="var(--chart-line-faint)" strokeWidth={1.5} />
         {[
-          { label: '北', angle: -90, color: '#D32F2F' },
-          { label: '南', angle: 90, color: '#cfe9dc' },
-          { label: '东', angle: 0, color: '#cfe9dc' },
-          { label: '西', angle: 180, color: '#cfe9dc' },
+          { label: '北', angle: -90, color: 'var(--wz-fire)' },
+          { label: '南', angle: 90, color: 'var(--chart-text)' },
+          { label: '东', angle: 0, color: 'var(--chart-text)' },
+          { label: '西', angle: 180, color: 'var(--chart-text)' },
         ].map((d) => {
           const rad = d.angle * (Math.PI / 180);
           const x2 = cx + RC * 0.64 * Math.cos(rad);
@@ -272,7 +287,7 @@ export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompass
             </g>
           );
         })}
-        <circle cx={cx} cy={cy} r={3} fill="#cfe9dc" />
+        <circle cx={cx} cy={cy} r={3} fill="var(--chart-text)" />
 
         {/* 坐向标识：在朝向方位画一个箭头 */}
         {facing && facing.length >= 2 && (
@@ -285,10 +300,10 @@ export function FengshuiCompass({ size = 500, facing, overlay }: FengshuiCompass
               const sr = radial(cx, cy, sittingDeg, R1 + 28);
               return (
                 <>
-                  <text x={fr.x} y={fr.y} textAnchor="middle" dominantBaseline="middle" fill="#e76f51" style={{ fontSize: 14, fontWeight: 700 }}>
+                  <text x={fr.x} y={fr.y} textAnchor="middle" dominantBaseline="middle" fill="var(--wz-fire)" style={{ fontSize: 14, fontWeight: 700 }}>
                     ▲向
                   </text>
-                  <text x={sr.x} y={sr.y} textAnchor="middle" dominantBaseline="middle" fill="#2a9d8f" style={{ fontSize: 14, fontWeight: 700 }}>
+                  <text x={sr.x} y={sr.y} textAnchor="middle" dominantBaseline="middle" fill="var(--wz-wood)" style={{ fontSize: 14, fontWeight: 700 }}>
                     ▼坐
                   </text>
                 </>

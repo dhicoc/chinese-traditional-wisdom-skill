@@ -30,20 +30,20 @@ const BRANCH_WUXING: Record<string, string> = {
 
 // 五行低饱和色（对齐 TASTE_SKILL_UI 五行 token）
 const WX_COLOR: Record<string, string> = {
-  木: '#2a9d8f',
-  火: '#e76f51',
-  土: '#e9c46a',
-  金: '#e5e5e5',
-  水: '#264653',
+  木: 'var(--wz-wood)',
+  火: 'var(--wz-fire)',
+  土: 'var(--wz-earth)',
+  金: 'var(--wz-metal)',
+  水: 'var(--wz-water)',
 };
 
 // 五行浅色（用于极轻底纹，保持暗主题基调）
 const WX_TINT: Record<string, string> = {
-  木: 'rgba(42,157,143,0.10)',
-  火: 'rgba(231,111,81,0.10)',
-  土: 'rgba(233,196,106,0.10)',
-  金: 'rgba(229,229,229,0.08)',
-  水: 'rgba(38,70,83,0.18)',
+  木: 'rgb(var(--wood) / 0.10)',
+  火: 'rgb(var(--cinnabar) / 0.10)',
+  土: 'rgb(var(--earth) / 0.10)',
+  金: 'rgb(var(--metal) / 0.08)',
+  水: 'rgb(var(--water) / 0.18)',
 };
 
 function stemWuxing(stem: string): string {
@@ -53,7 +53,7 @@ function branchWuxing(branch: string): string {
   return BRANCH_WUXING[branch] ?? '';
 }
 
-const DAY_ACCENT = '#d6b760'; // 日柱金色点缀
+const DAY_ACCENT = 'var(--c-gold)'; // 日柱金色点缀
 
 export function BaziPillarsChart({ pillars, size = 620 }: BaziPillarsChartProps) {
   const W = size;
@@ -86,23 +86,23 @@ export function BaziPillarsChart({ pillars, size = 620 }: BaziPillarsChartProps)
     >
       <defs>
         <linearGradient id="bazi-bg-v2" x1="0" y1="0" x2={0} y2={H}>
-          <stop offset="0" stopColor="#0b1410" />
-          <stop offset="1" stopColor="#0a120e" />
+          <stop offset="0" stopColor="var(--chart-surface)" />
+          <stop offset="1" stopColor="var(--chart-bg)" />
         </linearGradient>
         <linearGradient id="bazi-day-tint" x1="0" y1="0" x2={0} y2={1}>
-          <stop offset="0" stopColor="rgba(214,183,96,0.14)" />
-          <stop offset="1" stopColor="rgba(214,183,96,0.04)" />
+          <stop offset="0" stopColor="rgb(var(--gold) / 0.14)" />
+          <stop offset="1" stopColor="rgb(var(--gold) / 0.04)" />
         </linearGradient>
       </defs>
 
       {/* 背景 */}
-      <rect x={0} y={0} width={W} height={H} rx={12} fill="url(#bazi-bg-v2)" stroke="rgba(44,159,132,0.16)" strokeWidth={1} />
+      <rect x={0} y={0} width={W} height={H} rx={12} fill="url(#bazi-bg-v2)" stroke="rgb(var(--jade) / 0.16)" strokeWidth={1} />
 
       {/* 标题 */}
-      <text x={W / 2} y={26} textAnchor="middle" dominantBaseline="middle" fill="#e6f2ec" style={{ fontSize: 16, fontWeight: 700, letterSpacing: 2 }}>
+      <text x={W / 2} y={26} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text)" style={{ fontSize: 16, fontWeight: 700, letterSpacing: 2 }}>
         八字四柱
       </text>
-      <line x1={W / 2 - 40} y1={40} x2={W / 2 + 40} y2={40} stroke="rgba(44,159,132,0.35)" strokeWidth={1} />
+      <line x1={W / 2 - 40} y1={40} x2={W / 2 + 40} y2={40} stroke="rgb(var(--jade) / 0.35)" strokeWidth={1} />
 
       {/* 逐柱 */}
       {cols.map((col, i) => {
@@ -111,9 +111,9 @@ export function BaziPillarsChart({ pillars, size = 620 }: BaziPillarsChartProps)
         const x = startX + i * (cellW + cellGap);
         const stemWx = stemWuxing(d.stem);
         const branchWx = branchWuxing(d.branch);
-        const stemColor = WX_COLOR[stemWx] ?? '#8a9a8a';
+        const stemColor = WX_COLOR[stemWx] ?? 'var(--chart-text-mid)';
         const stemTint = WX_TINT[stemWx] ?? 'transparent';
-        const branchColor = WX_COLOR[branchWx] ?? '#8a9a8a';
+        const branchColor = WX_COLOR[branchWx] ?? 'var(--chart-text-mid)';
         const branchTint = WX_TINT[branchWx] ?? 'transparent';
         const accent = col.isDay ? DAY_ACCENT : null;
 
@@ -125,12 +125,12 @@ export function BaziPillarsChart({ pillars, size = 620 }: BaziPillarsChartProps)
         return (
           <g key={col.label}>
             {/* 柱标签 */}
-            <text x={x + cellW / 2} y={startY - 16} textAnchor="middle" dominantBaseline="middle" fill={accent ?? '#7a8a7a'} style={{ fontSize: 11, fontWeight: accent ? 700 : 400, letterSpacing: 1 }}>
+            <text x={x + cellW / 2} y={startY - 16} textAnchor="middle" dominantBaseline="middle" fill={accent ?? 'var(--chart-text-faint)'} style={{ fontSize: 11, fontWeight: accent ? 700 : 400, letterSpacing: 1 }}>
               {col.label}
             </text>
 
             {/* 天干格 */}
-            <rect x={x} y={startY} width={cellW} height={stemH} rx={8} fill={accent ? 'url(#bazi-day-tint)' : stemTint} stroke={accent ?? 'rgba(44,159,132,0.22)'} strokeWidth={accent ? 1.5 : 1} />
+            <rect x={x} y={startY} width={cellW} height={stemH} rx={8} fill={accent ? 'url(#bazi-day-tint)' : stemTint} stroke={accent ?? 'rgb(var(--jade) / 0.22)'} strokeWidth={accent ? 1.5 : 1} />
             {/* 左侧五行色竖条 */}
             <rect x={x} y={startY + 8} width={barW} height={stemH - 16} rx={2} fill={stemColor} />
             {/* 五行小标（右上角） */}
@@ -138,17 +138,17 @@ export function BaziPillarsChart({ pillars, size = 620 }: BaziPillarsChartProps)
               {stemWx}
             </text>
             {/* 天干大字（衬线） */}
-            <text x={x + cellW / 2 + 4} y={startY + stemH / 2 + 2} textAnchor="middle" dominantBaseline="middle" fill="#e6f2ec" style={{ fontSize: 48, fontWeight: 700, fontFamily: '"Noto Serif SC","SimSun","KaiTi",serif' }}>
+            <text x={x + cellW / 2 + 4} y={startY + stemH / 2 + 2} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text)" style={{ fontSize: 48, fontWeight: 700, fontFamily: '"Noto Serif SC","SimSun","KaiTi",serif' }}>
               {d.stem}
             </text>
 
             {/* 地支格 */}
-            <rect x={x} y={branchY} width={cellW} height={branchH} rx={8} fill={branchTint} stroke={accent ?? 'rgba(44,159,132,0.22)'} strokeWidth={accent ? 1.5 : 1} />
+            <rect x={x} y={branchY} width={cellW} height={branchH} rx={8} fill={branchTint} stroke={accent ?? 'rgb(var(--jade) / 0.22)'} strokeWidth={accent ? 1.5 : 1} />
             <rect x={x} y={branchY + 8} width={barW} height={branchH - 16} rx={2} fill={branchColor} />
             <text x={x + cellW - 10} y={branchY + 12} textAnchor="end" dominantBaseline="middle" fill={branchColor} style={{ fontSize: 9, fontWeight: 600, opacity: 0.7 }}>
               {branchWx}
             </text>
-            <text x={x + cellW / 2 + 4} y={branchY + branchH / 2 + 2} textAnchor="middle" dominantBaseline="middle" fill="#e6f2ec" style={{ fontSize: 48, fontWeight: 700, fontFamily: '"Noto Serif SC","SimSun","KaiTi",serif' }}>
+            <text x={x + cellW / 2 + 4} y={branchY + branchH / 2 + 2} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text)" style={{ fontSize: 48, fontWeight: 700, fontFamily: '"Noto Serif SC","SimSun","KaiTi",serif' }}>
               {d.branch}
             </text>
 
@@ -159,17 +159,17 @@ export function BaziPillarsChart({ pillars, size = 620 }: BaziPillarsChartProps)
                   const hw = cellW - 16;
                   const slot = hw / hidden.length;
                   const hx = x + 8 + slot * hi + slot / 2;
-                  const hwColor = WX_COLOR[stemWuxing(h)] ?? '#8a9a8a';
+                  const hwColor = WX_COLOR[stemWuxing(h)] ?? 'var(--chart-text-mid)';
                   return (
                     <g key={hi}>
                       <circle cx={hx - slot / 2 + 4} cy={hiddenY + 8} r={3} fill={hwColor} />
-                      <text x={hx + 2} y={hiddenY + 8} textAnchor="middle" dominantBaseline="middle" fill="#b6c9bf" style={{ fontSize: 11, fontFamily: '"Noto Serif SC","SimSun",serif' }}>
+                      <text x={hx + 2} y={hiddenY + 8} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-sub)" style={{ fontSize: 11, fontFamily: '"Noto Serif SC","SimSun",serif' }}>
                         {h}
                       </text>
                     </g>
                   );
                 })}
-                <text x={x + cellW / 2} y={hiddenY + 24} textAnchor="middle" dominantBaseline="middle" fill="#5a6a5a" style={{ fontSize: 8 }}>
+                <text x={x + cellW / 2} y={hiddenY + 24} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-line-faint)" style={{ fontSize: 8 }}>
                   藏干
                 </text>
               </g>

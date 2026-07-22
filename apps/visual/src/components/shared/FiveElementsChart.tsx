@@ -28,13 +28,13 @@ const WUXING_ORDER = ['木', '火', '土', '金', '水'] as const;
 
 // 配色对齐 legacy CORE.wuxingColor / Light / Dark
 const WX_COLOR: Record<string, string> = {
-  金: '#F5D742', 木: '#4CAF50', 水: '#2196F3', 火: '#F44336', 土: '#FF9800',
+  金: 'var(--wz-metal)', 木: 'var(--wz-wood)', 水: 'var(--wz-water)', 火: 'var(--wz-fire)', 土: 'var(--wz-earth)',
 };
 const WX_COLOR_LIGHT: Record<string, string> = {
-  金: '#FFF8E1', 木: '#E8F5E9', 水: '#E3F2FD', 火: '#FFEBEE', 土: '#FFF3E0',
+  金: 'var(--chart-surface)', 木: 'var(--chart-inset)', 水: 'var(--chart-band)', 火: 'var(--chart-bg)', 土: 'var(--chart-deep)',
 };
 const WX_COLOR_DARK: Record<string, string> = {
-  金: '#F9A825', 木: '#2E7D32', 水: '#1565C0', 火: '#C62828', 土: '#E65100',
+  金: 'var(--wz-metal)', 木: 'var(--wz-wood)', 水: 'var(--wz-water)', 火: 'var(--wz-fire)', 土: 'var(--wz-earth)',
 };
 
 // 箭头标记 id 前缀，避免多实例冲突
@@ -99,7 +99,7 @@ export function FiveElementsChart({ stats, size = 420 }: FiveElementsChartProps)
           orient="auto"
           markerUnits="userSpaceOnUse"
         >
-          <path d="M0,0 L9,4.5 L0,9 Z" fill="rgba(216,208,173,0.7)" />
+          <path d="M0,0 L9,4.5 L0,9 Z" fill="rgb(var(--gold) / 0.7)" />
         </marker>
         <marker
           id={`${arrowId}-ke`}
@@ -110,7 +110,7 @@ export function FiveElementsChart({ stats, size = 420 }: FiveElementsChartProps)
           orient="auto"
           markerUnits="userSpaceOnUse"
         >
-          <path d="M0,0 L9,4.5 L0,9 Z" fill="#C62828" />
+          <path d="M0,0 L9,4.5 L0,9 Z" fill="var(--wz-fire)" />
         </marker>
       </defs>
 
@@ -118,7 +118,7 @@ export function FiveElementsChart({ stats, size = 420 }: FiveElementsChartProps)
       <polygon
         points={pts.map((p) => `${p.x},${p.y}`).join(' ')}
         fill="none"
-        stroke="rgba(219,176,83,0.18)"
+        stroke="rgb(var(--gold) / 0.18)"
         strokeWidth={1}
         strokeDasharray="4 4"
       />
@@ -131,7 +131,7 @@ export function FiveElementsChart({ stats, size = 420 }: FiveElementsChartProps)
           y1={e.from.y}
           x2={e.to.x}
           y2={e.to.y}
-          stroke="#C62828"
+          stroke="var(--wz-fire)"
           strokeWidth={1.5}
           strokeOpacity={0.45}
           markerEnd={`url(#${arrowId}-ke)`}
@@ -146,7 +146,7 @@ export function FiveElementsChart({ stats, size = 420 }: FiveElementsChartProps)
           y1={e.from.y}
           x2={e.to.x}
           y2={e.to.y}
-          stroke="rgba(216,208,173,0.55)"
+          stroke="rgb(var(--gold) / 0.55)"
           strokeWidth={2}
           strokeDasharray="5 4"
           markerEnd={`url(#${arrowId}-sheng)`}
@@ -161,7 +161,7 @@ export function FiveElementsChart({ stats, size = 420 }: FiveElementsChartProps)
           y={e.my - 12}
           textAnchor="middle"
           dominantBaseline="middle"
-          fill="#9CA39C"
+          fill="var(--chart-text-faint)"
           style={{ fontSize: 10 }}
         >
           生
@@ -174,7 +174,7 @@ export function FiveElementsChart({ stats, size = 420 }: FiveElementsChartProps)
           y={e.my - 10}
           textAnchor="middle"
           dominantBaseline="middle"
-          fill="#B71C1C"
+          fill="var(--c-cinnabar-deep)"
           style={{ fontSize: 10 }}
         >
           克
@@ -223,7 +223,7 @@ export function FiveElementsChart({ stats, size = 420 }: FiveElementsChartProps)
         y={cy}
         textAnchor="middle"
         dominantBaseline="middle"
-        fill="#EAD7A4"
+        fill="var(--c-gold)"
         style={{ fontSize: 13, fontWeight: 700, pointerEvents: 'none' }}
       >
         <tspan x={cx} dy="-0.6em">五行</tspan>
@@ -237,15 +237,15 @@ export function FiveElementsChart({ stats, size = 420 }: FiveElementsChartProps)
           y1={10}
           x2={cx - 90}
           y2={10}
-          stroke="rgba(216,208,173,0.55)"
+          stroke="rgb(var(--gold) / 0.55)"
           strokeWidth={2}
           strokeDasharray="5 4"
         />
-        <text x={cx - 70} y={10} textAnchor="start" dominantBaseline="middle" fill="#D8D0AD" style={{ fontSize: 11 }}>
+        <text x={cx - 70} y={10} textAnchor="start" dominantBaseline="middle" fill="var(--c-gold)" style={{ fontSize: 11 }}>
           相生
         </text>
-        <line x1={cx + 10} y1={10} x2={cx + 70} y2={10} stroke="#C62828" strokeWidth={1.5} />
-        <text x={cx + 90} y={10} textAnchor="start" dominantBaseline="middle" fill="#B71C1C" style={{ fontSize: 11 }}>
+        <line x1={cx + 10} y1={10} x2={cx + 70} y2={10} stroke="var(--wz-fire)" strokeWidth={1.5} />
+        <text x={cx + 90} y={10} textAnchor="start" dominantBaseline="middle" fill="var(--c-cinnabar-deep)" style={{ fontSize: 11 }}>
           相克
         </text>
       </g>

@@ -18,10 +18,10 @@ import type { ToolEnvelope } from '@/legacy/baseTypes';
 
 const XIANG_ORDER = ['东方青龙', '南方朱雀', '西方白虎', '北方玄武'] as const;
 const XIANG_COLOR: Record<string, string> = {
-  '东方青龙': '#2c9d8f',
-  '南方朱雀': '#c6301f',
-  '西方白虎': '#e9e4d8',
-  '北方玄武': '#2f4f55',
+  '东方青龙': 'var(--wz-wood)',
+  '南方朱雀': 'var(--wz-fire)',
+  '西方白虎': 'var(--wz-metal)',
+  '北方玄武': 'var(--wz-water)',
 };
 
 export function XingXiuWorkspace() {
@@ -115,7 +115,7 @@ export function XingXiuWorkspace() {
           <div className="rounded-card border border-gold-500/25 bg-gold-500/8 p-4 text-center">
             <p className="text-xs text-gold-400/60">当日值宿</p>
             <p className="mt-2 font-serif text-3xl text-gold-200">{data.zhiXiuFull}</p>
-            <p className="mt-1 text-sm" style={{ color: XIANG_COLOR[data.xiang] ?? '#888' }}>{data.xiang}</p>
+            <p className="mt-1 text-sm" style={{ color: XIANG_COLOR[data.xiang] ?? 'var(--chart-text-faint)' }}>{data.xiang}</p>
             <p className="mt-2 text-xs text-jade-100/55">{data.wuxing}宿 · 七曜{data.yao} · 禽星{data.animal}</p>
             <span className={`mt-2 inline-block rounded-full border px-3 py-1 text-xs font-semibold ${data.luck === '吉' ? 'border-jade-500/40 bg-jade-500/10 text-jade-300' : data.luck === '凶' ? 'border-cinnabar-500/40 bg-cinnabar-500/10 text-cinnabar-300' : 'border-white/15 text-jade-100/45'}`}>
               {data.luck}
@@ -125,7 +125,7 @@ export function XingXiuWorkspace() {
           <div className="rounded-card border border-purple-500/25 bg-purple-500/8 p-4 text-center">
             <p className="text-xs text-purple-400/60">本命星宿</p>
             <p className="mt-2 font-serif text-2xl text-purple-200">{data.benMingXiuFull}</p>
-            <p className="mt-1 text-sm" style={{ color: XIANG_COLOR[data.benMingXiang] ?? '#888' }}>{data.benMingXiang}</p>
+            <p className="mt-1 text-sm" style={{ color: XIANG_COLOR[data.benMingXiang] ?? 'var(--chart-text-faint)' }}>{data.benMingXiang}</p>
             <p className="mt-2 text-xs text-jade-100/45">{data.benMingSymbol}</p>
           </div>
           <InterpretationCard

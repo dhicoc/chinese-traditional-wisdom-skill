@@ -116,7 +116,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
           <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-3">
             <div>
               <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-400">Birth Input</p>
-              <h2 className="mt-1 text-lg font-semibold text-jade-50">排盘信息</h2>
+              <h2 className="mt-1 font-serif text-lg font-semibold tracking-[0.1em] text-jade-50">排盘信息</h2>
             </div>
             <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2.5 py-1 text-[10px] text-jade-400">已同步</span>
           </div>
@@ -147,7 +147,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-400">Core Plate</p>
-              <h2 className="mt-1 text-xl font-semibold text-jade-50">四柱 / 九宫工作台</h2>
+              <h2 className="mt-1 font-serif text-xl font-semibold tracking-[0.1em] text-jade-50">四柱 / 九宫工作台</h2>
             </div>
             <CopyContextButton
               commandScope="home"
@@ -178,7 +178,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
         <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/8 pb-3">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-100/45">Primary Tools</p>
-            <h2 className="mt-1 text-lg font-semibold text-jade-50">常用排盘入口</h2>
+            <h2 className="mt-1 font-serif text-lg font-semibold tracking-[0.1em] text-jade-50">常用排盘入口</h2>
           </div>
           <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-jade-100/45">{primaryTools.length} 个核心入口</span>
         </div>
@@ -216,7 +216,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
         {Object.entries(grouped).map(([group, groupTools]) => (
           <section key={group} className="console-panel rounded-[22px] border border-ink-700 bg-ink-950/82 p-4">
             <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/8 pb-3">
-              <h3 className="text-base font-semibold text-jade-100">{group}</h3>
+              <h3 className="font-serif text-base font-semibold tracking-[0.12em] text-jade-100">{group}</h3>
               <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-jade-100/45">{groupTools.length} 个入口</span>
             </div>
             <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">

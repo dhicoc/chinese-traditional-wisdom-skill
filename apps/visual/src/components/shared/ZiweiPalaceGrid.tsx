@@ -46,10 +46,10 @@ const ROWS = 4;
 
 // 四化配色（与 legacy Canvas COLORS.sihua 对齐）
 const SIHUA_COLOR: Record<string, string> = {
-  禄: '#e76f51', // 朱砂红
-  权: '#e9c46a', // 土黄
-  科: '#2a9d8f', // 碧玉青
-  忌: '#8d99ae', // 灰青
+  禄: 'var(--wz-fire)', // 朱砂红
+  权: 'var(--wz-earth)', // 土黄
+  科: 'var(--wz-wood)', // 碧玉青
+  忌: 'var(--chart-text-faint)', // 灰青
 };
 
 // 确定性星曜色值（HSL），同一星名始终同色——与 legacy starColor 算法一致
@@ -111,7 +111,7 @@ export function ZiweiPalaceGrid({ data, size = 640 }: ZiweiPalaceGridProps) {
       aria-label="紫微斗数十二宫命盘"
     >
       {/* 全盘背景 */}
-      <rect x={0} y={0} width={size} height={size} rx={10} fill="#0b1410" stroke="#1f3a32" strokeWidth={2} />
+      <rect x={0} y={0} width={size} height={size} rx={10} fill="var(--chart-surface)" stroke="var(--chart-line)" strokeWidth={2} />
 
       {/* 外环 12 宫 */}
       {Object.entries(BRANCH_TO_GRID).map(([branch, { col, row }]) => {
@@ -131,8 +131,8 @@ export function ZiweiPalaceGrid({ data, size = 640 }: ZiweiPalaceGridProps) {
               y={y}
               width={cell}
               height={cell}
-              fill={isAlt ? '#0f1c16' : '#0d1813'}
-              stroke="#1f3a32"
+              fill={isAlt ? 'var(--chart-inset)' : 'var(--chart-bg)'}
+              stroke="var(--chart-line)"
               strokeWidth={0.75}
             />
             {/* 宫名（左上） */}
@@ -141,7 +141,7 @@ export function ZiweiPalaceGrid({ data, size = 640 }: ZiweiPalaceGridProps) {
               y={y + 16}
               textAnchor="start"
               dominantBaseline="middle"
-              fill="#d6f5e6"
+              fill="var(--chart-text)"
               style={{ fontSize: 13, fontWeight: 600 }}
             >
               {info.name}
@@ -152,7 +152,7 @@ export function ZiweiPalaceGrid({ data, size = 640 }: ZiweiPalaceGridProps) {
               y={y + 16}
               textAnchor="end"
               dominantBaseline="middle"
-              fill="#5f8a7a"
+              fill="var(--chart-text-mid)"
               style={{ fontSize: 11 }}
             >
               {branch}
@@ -166,13 +166,13 @@ export function ZiweiPalaceGrid({ data, size = 640 }: ZiweiPalaceGridProps) {
               const sColorTag = sType ? SIHUA_COLOR[sType] : null;
               return (
                 <g key={`${star}-${i}`}>
-                  <circle cx={x + 12} cy={sy + 8} r={3.5} fill={sColor} stroke="rgba(0,0,0,0.25)" strokeWidth={0.5} />
+                  <circle cx={x + 12} cy={sy + 8} r={3.5} fill={sColor} stroke="rgb(var(--shadow-rgb) / 0.25)" strokeWidth={0.5} />
                   <text
                     x={x + 21}
                     y={sy + 8}
                     textAnchor="start"
                     dominantBaseline="middle"
-                    fill="#cfe9dc"
+                    fill="var(--chart-text)"
                     style={{ fontSize: 11 }}
                   >
                     {star}
@@ -185,7 +185,7 @@ export function ZiweiPalaceGrid({ data, size = 640 }: ZiweiPalaceGridProps) {
                         y={sy + 9}
                         textAnchor="middle"
                         dominantBaseline="middle"
-                        fill="#0b1410"
+                        fill="var(--chart-surface)"
                         style={{ fontSize: 9, fontWeight: 700 }}
                       >
                         {sType}
@@ -202,7 +202,7 @@ export function ZiweiPalaceGrid({ data, size = 640 }: ZiweiPalaceGridProps) {
                 y={y + cell - 9}
                 textAnchor="end"
                 dominantBaseline="auto"
-                fill="#7a6a52"
+                fill="var(--chart-text-mid)"
                 style={{ fontSize: 10 }}
               >
                 （{info.miaoxian}）
@@ -218,8 +218,8 @@ export function ZiweiPalaceGrid({ data, size = 640 }: ZiweiPalaceGridProps) {
         y={center.y}
         width={center.w}
         height={center.h}
-        fill="#101f18"
-        stroke="#2a4a3e"
+        fill="var(--chart-inset)"
+        stroke="var(--chart-line-strong)"
         strokeWidth={1}
       />
       {/* 中心十字分隔 */}
@@ -228,7 +228,7 @@ export function ZiweiPalaceGrid({ data, size = 640 }: ZiweiPalaceGridProps) {
         y1={center.y + 8}
         x2={center.x + center.w / 2}
         y2={center.y + center.h - 8}
-        stroke="#1f3a32"
+        stroke="var(--chart-line)"
         strokeWidth={0.5}
         strokeDasharray="3 3"
       />
@@ -237,36 +237,36 @@ export function ZiweiPalaceGrid({ data, size = 640 }: ZiweiPalaceGridProps) {
         y1={center.y + center.h / 2}
         x2={center.x + center.w - 8}
         y2={center.y + center.h / 2}
-        stroke="#1f3a32"
+        stroke="var(--chart-line)"
         strokeWidth={0.5}
         strokeDasharray="3 3"
       />
 
       {/* 左上：命卦 */}
-      <text x={tlCX} y={tlCY - 28} textAnchor="middle" dominantBaseline="middle" fill="#5f8a7a" style={{ fontSize: 12, fontWeight: 600 }}>
+      <text x={tlCX} y={tlCY - 28} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-mid)" style={{ fontSize: 12, fontWeight: 600 }}>
         命 卦
       </text>
-      <text x={tlCX} y={tlCY} textAnchor="middle" dominantBaseline="middle" fill="#e76f51" style={{ fontSize: 24, fontWeight: 700 }}>
+      <text x={tlCX} y={tlCY} textAnchor="middle" dominantBaseline="middle" fill="var(--wz-fire)" style={{ fontSize: 24, fontWeight: 700 }}>
         {mingGua.trigram || '?'}卦
       </text>
       {mingGua.group && (
-        <text x={tlCX} y={tlCY + 24} textAnchor="middle" dominantBaseline="middle" fill="#7a8a7a" style={{ fontSize: 12 }}>
+        <text x={tlCX} y={tlCY + 24} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 12 }}>
           {mingGua.group}
         </text>
       )}
 
       {/* 右上：四化 */}
-      <text x={trCX} y={trCY - 34} textAnchor="middle" dominantBaseline="middle" fill="#5f8a7a" style={{ fontSize: 12, fontWeight: 600 }}>
+      <text x={trCX} y={trCY - 34} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-mid)" style={{ fontSize: 12, fontWeight: 600 }}>
         四 化
       </text>
       {sihuaKeys.map((star, j) => {
         const type = sihua[star];
         const sy = trCY - 14 + j * 20;
-        const tagColor = SIHUA_COLOR[type] || '#8d99ae';
+        const tagColor = SIHUA_COLOR[type] || 'var(--chart-text-faint)';
         return (
           <g key={`sihua-${star}`}>
             <circle cx={trCX - 32} cy={sy} r={3.5} fill={starColor(star)} />
-            <text x={trCX - 24} y={sy} textAnchor="start" dominantBaseline="middle" fill="#cfe9dc" style={{ fontSize: 11 }}>
+            <text x={trCX - 24} y={sy} textAnchor="start" dominantBaseline="middle" fill="var(--chart-text)" style={{ fontSize: 11 }}>
               {star} 化{type}
             </text>
             <rect x={trCX + 22} y={sy - 7} width={15} height={13} rx={3} fill={tagColor} />
@@ -275,22 +275,22 @@ export function ZiweiPalaceGrid({ data, size = 640 }: ZiweiPalaceGridProps) {
       })}
 
       {/* 左下：生辰 */}
-      <text x={blCX} y={blCY - 28} textAnchor="middle" dominantBaseline="middle" fill="#5f8a7a" style={{ fontSize: 12, fontWeight: 600 }}>
+      <text x={blCX} y={blCY - 28} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-mid)" style={{ fontSize: 12, fontWeight: 600 }}>
         生 辰
       </text>
       {bi.year ? (
-        <text x={blCX} y={blCY - 4} textAnchor="middle" dominantBaseline="middle" fill="#9ec9b8" style={{ fontSize: 12 }}>
+        <text x={blCX} y={blCY - 4} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-sub)" style={{ fontSize: 12 }}>
           {bi.year}年{bi.month}月{bi.day}日
         </text>
       ) : null}
       {bi.hour !== undefined && (
-        <text x={blCX} y={blCY + 16} textAnchor="middle" dominantBaseline="middle" fill="#7a8a7a" style={{ fontSize: 11 }}>
+        <text x={blCX} y={blCY + 16} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 11 }}>
           {bi.hour}时 {bi.gender === '男' ? '男命' : '女命'}
         </text>
       )}
 
       {/* 右下：主星概览 */}
-      <text x={brCX} y={brCY - 28} textAnchor="middle" dominantBaseline="middle" fill="#5f8a7a" style={{ fontSize: 12, fontWeight: 600 }}>
+      <text x={brCX} y={brCY - 28} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-mid)" style={{ fontSize: 12, fontWeight: 600 }}>
         主 星
       </text>
       {mainStars.slice(0, 5).map((star, ms) => (
@@ -300,14 +300,14 @@ export function ZiweiPalaceGrid({ data, size = 640 }: ZiweiPalaceGridProps) {
           y={brCY - 10 + ms * 15}
           textAnchor="middle"
           dominantBaseline="middle"
-          fill="#cfe9dc"
+          fill="var(--chart-text)"
           style={{ fontSize: 11 }}
         >
           {star}
         </text>
       ))}
       {mainStars.length === 0 && (
-        <text x={brCX} y={brCY} textAnchor="middle" dominantBaseline="middle" fill="#7a8a7a" style={{ fontSize: 11 }}>
+        <text x={brCX} y={brCY} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 11 }}>
           —
         </text>
       )}

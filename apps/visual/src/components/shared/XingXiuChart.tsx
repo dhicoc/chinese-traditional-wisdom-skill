@@ -18,10 +18,10 @@ interface XingXiuChartProps {
 }
 
 const XIANG_COLOR: Record<string, string> = {
-  '东方青龙': '#3cb4a0',
-  '南方朱雀': '#e0504a',
-  '西方白虎': '#d4c8a0',
-  '北方玄武': '#5a82b8',
+  '东方青龙': 'var(--wz-wood)',
+  '南方朱雀': 'var(--wz-fire)',
+  '西方白虎': 'var(--c-gold)',
+  '北方玄武': 'var(--wz-water)',
 };
 
 const XIANG_LABEL: Record<string, string> = {
@@ -73,9 +73,9 @@ export function XingXiuChart({ allXiu, zhiXiu, benMingXiu }: XingXiuChartProps) 
   function renderCell(x: XingXiuEntry, cx: number, cy: number, color: string, vertical: boolean) {
     const isZhi = x.name === zhiXiu;
     const isMing = x.name === benMingXiu && !isZhi;
-    const bg = isZhi ? 'rgba(212,175,55,0.18)' : isMing ? 'rgba(157,122,214,0.15)' : 'rgba(10,18,15,0.7)';
-    const border = isZhi ? '#d4af37' : isMing ? '#9d7ad6' : 'rgba(60,70,65,0.4)';
-    const textColor = isZhi ? '#e8c547' : isMing ? '#b88df0' : color;
+    const bg = isZhi ? 'rgb(var(--gold) / 0.18)' : isMing ? 'rgb(var(--water) / 0.12)' : 'rgb(var(--ink-900) / 0.7)';
+    const border = isZhi ? 'var(--c-gold)' : isMing ? 'var(--wz-water)' : 'rgb(var(--ink-700) / 0.4)';
+    const textColor = isZhi ? 'var(--wz-earth)' : isMing ? 'var(--wz-water)' : color;
     const w = vertical ? CELL - 8 : CELL;
     const h = vertical ? CELL : CELL - 8;
 
@@ -118,10 +118,10 @@ export function XingXiuChart({ allXiu, zhiXiu, benMingXiu }: XingXiuChartProps) 
         </text>
         {/* 标记 */}
         {isZhi && (
-          <text x={cx} y={cy - h / 2 - 4} textAnchor="middle" fill="#e8c547" fontSize="8" fontWeight="700">★ 值日</text>
+          <text x={cx} y={cy - h / 2 - 4} textAnchor="middle" fill="var(--wz-earth)" fontSize="8" fontWeight="700">★ 值日</text>
         )}
         {isMing && (
-          <text x={cx} y={cy - h / 2 - 4} textAnchor="middle" fill="#b88df0" fontSize="8" fontWeight="700">◆ 本命</text>
+          <text x={cx} y={cy - h / 2 - 4} textAnchor="middle" fill="var(--wz-water)" fontSize="8" fontWeight="700">◆ 本命</text>
         )}
       </g>
     );
@@ -136,10 +136,10 @@ export function XingXiuChart({ allXiu, zhiXiu, benMingXiu }: XingXiuChartProps) 
       aria-label="二十八星宿四象方位图"
     >
       {/* 背景 */}
-      <rect x="0" y="0" width={SIZE} height={SIZE} rx="16" fill="rgba(5,10,8,0.7)" />
+      <rect x="0" y="0" width={SIZE} height={SIZE} rx="16" fill="rgb(var(--ink-900) / 0.7)" />
 
       {/* 四象分区色块（淡） */}
-      <polygon points={`${CENTER},52 ${SIZE-52},${CENTER} ${CENTER},${SIZE-52} 52,${CENTER}`} fill="none" stroke="rgba(44,159,132,0.08)" strokeWidth="1" strokeDasharray="6 6" />
+      <polygon points={`${CENTER},52 ${SIZE-52},${CENTER} ${CENTER},${SIZE-52} 52,${CENTER}`} fill="none" stroke="rgb(var(--jade) / 0.08)" strokeWidth="1" strokeDasharray="6 6" />
 
       {/* 方位标注 */}
       <text x={CENTER} y="20" textAnchor="middle" fill={XIANG_COLOR['南方朱雀']} fontSize="13" fontWeight="700" fontFamily="'Noto Serif CJK SC', serif">{XIANG_LABEL['南方朱雀']}</text>
@@ -148,17 +148,17 @@ export function XingXiuChart({ allXiu, zhiXiu, benMingXiu }: XingXiuChartProps) 
       <text x={CENTER} y={SIZE - 12} textAnchor="middle" fill={XIANG_COLOR['北方玄武']} fontSize="13" fontWeight="700" fontFamily="'Noto Serif CJK SC', serif">{XIANG_LABEL['北方玄武']}</text>
 
       {/* 中心圆 */}
-      <circle cx={CENTER} cy={CENTER} r="68" fill="rgba(5,10,8,0.9)" stroke="rgba(44,159,132,0.2)" strokeWidth="1.2" />
-      <text x={CENTER} y={CENTER - 22} textAnchor="middle" fill="rgba(44,159,132,0.5)" fontSize="10">二十八宿</text>
-      <text x={CENTER} y={CENTER - 4} textAnchor="middle" fill="rgba(44,159,132,0.7)" fontSize="11" fontWeight="600">值日 · {zhiXiu}</text>
+      <circle cx={CENTER} cy={CENTER} r="68" fill="rgb(var(--ink-900) / 0.9)" stroke="rgb(var(--jade) / 0.2)" strokeWidth="1.2" />
+      <text x={CENTER} y={CENTER - 22} textAnchor="middle" fill="rgb(var(--jade) / 0.5)" fontSize="10">二十八宿</text>
+      <text x={CENTER} y={CENTER - 4} textAnchor="middle" fill="rgb(var(--jade) / 0.7)" fontSize="11" fontWeight="600">值日 · {zhiXiu}</text>
       {benMingXiu !== zhiXiu && (
-        <text x={CENTER} y={CENTER + 14} textAnchor="middle" fill="rgba(157,122,214,0.7)" fontSize="11" fontWeight="600">本命 · {benMingXiu}</text>
+        <text x={CENTER} y={CENTER + 14} textAnchor="middle" fill="rgb(var(--water) / 0.7)" fontSize="11" fontWeight="600">本命 · {benMingXiu}</text>
       )}
-      <text x={CENTER} y={CENTER + 32} textAnchor="middle" fill="rgba(44,159,132,0.3)" fontSize="8">四象七宿</text>
+      <text x={CENTER} y={CENTER + 32} textAnchor="middle" fill="rgb(var(--jade) / 0.3)" fontSize="8">四象七宿</text>
 
       {/* 四象宿格 */}
       {Object.entries(groups).map(([xiang, xius]) => {
-        const color = XIANG_COLOR[xiang] ?? '#888';
+        const color = XIANG_COLOR[xiang] ?? 'var(--chart-text-faint)';
         const side = XIANG_SIDE[xiang];
         const vertical = side === 'left' || side === 'right';
         return xius.map((x, i) => {

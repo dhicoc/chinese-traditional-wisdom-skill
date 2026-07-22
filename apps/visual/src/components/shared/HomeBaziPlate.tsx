@@ -29,14 +29,14 @@ const BRANCH_WUXING: Record<string, string> = {
 
 // 五行低饱和色（对齐 TASTE_SKILL_UI 五行 token）
 const WX_COLOR: Record<string, string> = {
-  木: '#2a9d8f',
-  火: '#e76f51',
-  土: '#e9c46a',
-  金: '#e5e5e5',
-  水: '#3a6b78',
+  木: 'var(--wz-wood)',
+  火: 'var(--wz-fire)',
+  土: 'var(--wz-earth)',
+  金: 'var(--wz-metal)',
+  水: 'var(--wz-water)',
 };
 
-const DAY_ACCENT = '#d6b760';
+const DAY_ACCENT = 'var(--c-gold)';
 
 function stemWuxing(stem: string): string {
   return STEM_WUXING[stem] ?? '';
@@ -69,7 +69,7 @@ export function HomeBaziPlate({ pillars, size = 360 }: HomeBaziPlateProps) {
 
   const dayMaster = pillars.dayMaster ?? pillars.day?.stem ?? '?';
   const dmWx = stemWuxing(dayMaster);
-  const dmColor = WX_COLOR[dmWx] ?? '#8a9a8a';
+  const dmColor = WX_COLOR[dmWx] ?? 'var(--chart-text-mid)';
 
   return (
     <svg
@@ -83,20 +83,20 @@ export function HomeBaziPlate({ pillars, size = 360 }: HomeBaziPlateProps) {
     >
       <defs>
         <radialGradient id="home-plate-bg" cx="0.5" cy="0.5" r="0.62">
-          <stop offset="0" stopColor="#0e1814" />
-          <stop offset="1" stopColor="#0a120e" />
+          <stop offset="0" stopColor="var(--chart-surface)" />
+          <stop offset="1" stopColor="var(--chart-bg)" />
         </radialGradient>
         <linearGradient id="home-day-tint" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="rgba(214,183,96,0.16)" />
-          <stop offset="1" stopColor="rgba(214,183,96,0.04)" />
+          <stop offset="0" stopColor="rgb(var(--gold) / 0.16)" />
+          <stop offset="1" stopColor="rgb(var(--gold) / 0.04)" />
         </linearGradient>
       </defs>
 
       {/* 底盘 */}
-      <circle cx={C} cy={C} r={176} fill="url(#home-plate-bg)" stroke="rgba(44,159,132,0.18)" strokeWidth={1} />
+      <circle cx={C} cy={C} r={176} fill="url(#home-plate-bg)" stroke="rgb(var(--jade) / 0.18)" strokeWidth={1} />
       {/* 外装饰环 */}
-      <circle cx={C} cy={C} r={170} fill="none" stroke="rgba(44,159,132,0.22)" strokeWidth={1} strokeDasharray="2 6" />
-      <circle cx={C} cy={C} r={158} fill="none" stroke="rgba(44,159,132,0.10)" strokeWidth={1} />
+      <circle cx={C} cy={C} r={170} fill="none" stroke="rgb(var(--jade) / 0.22)" strokeWidth={1} strokeDasharray="2 6" />
+      <circle cx={C} cy={C} r={158} fill="none" stroke="rgb(var(--jade) / 0.10)" strokeWidth={1} />
 
       {/* 四角四柱 */}
       {cells.map((c) => {
@@ -106,8 +106,8 @@ export function HomeBaziPlate({ pillars, size = 360 }: HomeBaziPlateProps) {
         const y = c.cy - half;
         const stemWx = stemWuxing(p.stem);
         const branchWx = branchWuxing(p.branch);
-        const stemColor = WX_COLOR[stemWx] ?? '#8a9a8a';
-        const branchColor = WX_COLOR[branchWx] ?? '#8a9a8a';
+        const stemColor = WX_COLOR[stemWx] ?? 'var(--chart-text-mid)';
+        const branchColor = WX_COLOR[branchWx] ?? 'var(--chart-text-mid)';
         const accent = c.isDay ? DAY_ACCENT : null;
 
         return (
@@ -118,26 +118,26 @@ export function HomeBaziPlate({ pillars, size = 360 }: HomeBaziPlateProps) {
               width={cell}
               height={cell}
               rx={12}
-              fill={accent ? 'url(#home-day-tint)' : 'rgba(255,255,255,0.025)'}
-              stroke={accent ?? 'rgba(44,159,132,0.22)'}
+              fill={accent ? 'url(#home-day-tint)' : 'rgb(var(--foreground) / 0.025)'}
+              stroke={accent ?? 'rgb(var(--jade) / 0.22)'}
               strokeWidth={accent ? 1.5 : 1}
             />
             {/* 柱标签 */}
-            <text x={c.cx} y={y + 16} textAnchor="middle" dominantBaseline="middle" fill={accent ?? '#7a8a7a'} style={{ fontSize: 11, fontWeight: accent ? 700 : 400, letterSpacing: 1 }}>
+            <text x={c.cx} y={y + 16} textAnchor="middle" dominantBaseline="middle" fill={accent ?? 'var(--chart-text-faint)'} style={{ fontSize: 11, fontWeight: accent ? 700 : 400, letterSpacing: 1 }}>
               {c.label}
             </text>
             {/* 左侧五行色竖条（天干） */}
             <rect x={x + 6} y={y + 24} width={3} height={32} rx={1.5} fill={stemColor} />
             {/* 天干大字 */}
-            <text x={c.cx + 2} y={y + 44} textAnchor="middle" dominantBaseline="middle" fill="#e6f2ec" style={{ fontSize: 30, fontWeight: 700, fontFamily: '"Noto Serif SC","SimSun","KaiTi",serif' }}>
+            <text x={c.cx + 2} y={y + 44} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text)" style={{ fontSize: 30, fontWeight: 700, fontFamily: '"Noto Serif SC","SimSun","KaiTi",serif' }}>
               {p.stem}
             </text>
             {/* 分隔线 */}
-            <line x1={x + 18} y1={y + 62} x2={x + cell - 18} y2={y + 62} stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
+            <line x1={x + 18} y1={y + 62} x2={x + cell - 18} y2={y + 62} stroke="rgb(var(--foreground) / 0.08)" strokeWidth={1} />
             {/* 左侧五行色竖条（地支） */}
             <rect x={x + 6} y={y + 66} width={3} height={32} rx={1.5} fill={branchColor} />
             {/* 地支大字 */}
-            <text x={c.cx + 2} y={y + 86} textAnchor="middle" dominantBaseline="middle" fill="#e6f2ec" style={{ fontSize: 30, fontWeight: 700, fontFamily: '"Noto Serif SC","SimSun","KaiTi",serif' }}>
+            <text x={c.cx + 2} y={y + 86} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text)" style={{ fontSize: 30, fontWeight: 700, fontFamily: '"Noto Serif SC","SimSun","KaiTi",serif' }}>
               {p.branch}
             </text>
           </g>
@@ -145,12 +145,12 @@ export function HomeBaziPlate({ pillars, size = 360 }: HomeBaziPlateProps) {
       })}
 
       {/* 中心日主圆 */}
-      <circle cx={C} cy={C} r={48} fill="#0a120e" stroke={dmColor} strokeWidth={2} />
+      <circle cx={C} cy={C} r={48} fill="var(--chart-bg)" stroke={dmColor} strokeWidth={2} />
       <circle cx={C} cy={C} r={42} fill="none" stroke={dmColor} strokeWidth={1} opacity={0.4} />
-      <text x={C} y={C - 20} textAnchor="middle" dominantBaseline="middle" fill="#7a8a7a" style={{ fontSize: 9, letterSpacing: 2 }}>
+      <text x={C} y={C - 20} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 9, letterSpacing: 2 }}>
         日主
       </text>
-      <text x={C - 9} y={C + 6} textAnchor="middle" dominantBaseline="middle" fill="#e6f2ec" style={{ fontSize: 24, fontWeight: 700, fontFamily: '"Noto Serif SC","SimSun","KaiTi",serif' }}>
+      <text x={C - 9} y={C + 6} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text)" style={{ fontSize: 24, fontWeight: 700, fontFamily: '"Noto Serif SC","SimSun","KaiTi",serif' }}>
         {dayMaster}
       </text>
       <text x={C + 14} y={C + 8} textAnchor="middle" dominantBaseline="middle" fill={dmColor} style={{ fontSize: 13, fontWeight: 600, fontFamily: '"Noto Serif SC","SimSun","KaiTi",serif' }}>

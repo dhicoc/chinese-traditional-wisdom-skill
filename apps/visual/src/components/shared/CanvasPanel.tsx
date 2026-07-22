@@ -68,7 +68,7 @@ export function CanvasPanel<TData>({ title, description, data, width, height, re
             id={canvasId}
             width={width}
             height={height}
-            className="theme-canvas mx-auto block h-auto max-w-full cursor-zoom-in rounded-[14px] transition duration-200 hover:shadow-[0_0_36px_rgba(44,159,132,0.18)]"
+            className="theme-canvas mx-auto block h-auto max-w-full cursor-zoom-in rounded-[14px] transition duration-200 hover:shadow-[0_0_36px_rgb(var(--jade)/0.18)]"
             title="双击放大查看"
             onDoubleClick={openZoom}
           />
@@ -88,7 +88,7 @@ export function CanvasPanel<TData>({ title, description, data, width, height, re
             role="dialog"
             aria-modal="true"
             aria-labelledby={`${canvasId}-zoom-title`}
-            className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-[min(1040px,calc(100vw-2rem))] flex-col overflow-hidden rounded-[26px] border border-jade-500/25 bg-ink-950/95 shadow-[0_32px_100px_rgba(0,0,0,0.58)]"
+            className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-[min(1040px,calc(100vw-2rem))] flex-col overflow-hidden rounded-[26px] border border-jade-500/25 bg-ink-950/95 shadow-[0_32px_100px_rgb(var(--shadow-rgb)/0.58)]"
           >
             <div className="flex items-center justify-between gap-4 border-b border-white/10 bg-ink-900/92 px-5 py-4">
               <div>
@@ -104,11 +104,11 @@ export function CanvasPanel<TData>({ title, description, data, width, height, re
                 ×
               </button>
             </div>
-            <div className="min-h-0 flex-1 overflow-auto bg-[radial-gradient(circle_at_top_left,rgba(44,159,132,0.12),transparent_22rem),rgba(3,8,5,0.78)] p-4 text-center">
+            <div className="min-h-0 flex-1 overflow-auto bg-[radial-gradient(circle_at_top_left,rgb(var(--jade)/0.12),transparent_22rem),rgb(var(--shadow-rgb)/0.78)] p-4 text-center">
               <img
                 src={zoomSrc}
                 alt={`${title} 放大图像`}
-                className="mx-auto block h-auto max-w-full rounded-[18px] bg-ink-950 shadow-[0_22px_56px_rgba(0,0,0,0.38)]"
+                className="mx-auto block h-auto max-w-full rounded-[18px] bg-ink-950 shadow-[0_22px_56px_rgb(var(--shadow-rgb)/0.38)]"
               />
             </div>
             <p className="border-t border-white/10 bg-ink-900/92 px-4 py-3 text-center text-xs text-jade-100/45">

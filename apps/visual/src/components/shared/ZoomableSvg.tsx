@@ -58,7 +58,9 @@ async function svgToPngBlob(svg: SVGSVGElement, scale = 2): Promise<Blob | null>
         resolve(null);
         return;
       }
-      ctx.fillStyle = '#0b1410'; // 暗底，避免透明背景在粘贴时丢失
+      // 纸面/夜面底色（Canvas 不能用 var()，读 CSS 变量计算值）
+      const surfaceColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-surface').trim() || '#f7f3e8';
+      ctx.fillStyle = surfaceColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       canvas.toBlob((blob) => resolve(blob), 'image/png');
@@ -158,7 +160,7 @@ export function ZoomableSvg({ title, children, className }: ZoomableSvgProps) {
               role="dialog"
               aria-modal="true"
               aria-labelledby={`${zoomId}-title`}
-              className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-[min(1040px,calc(100vw-2rem))] flex-col overflow-hidden rounded-[26px] border border-jade-500/25 bg-ink-950/95 shadow-[0_32px_100px_rgba(0,0,0,0.58)]"
+              className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-[min(1040px,calc(100vw-2rem))] flex-col overflow-hidden rounded-[26px] border border-jade-500/25 bg-ink-950/95 shadow-[0_32px_100px_rgb(var(--shadow-rgb)/0.58)]"
             >
               <div className="flex items-center justify-between gap-4 border-b border-white/10 bg-ink-900/92 px-5 py-4">
                 <div>
@@ -174,11 +176,11 @@ export function ZoomableSvg({ title, children, className }: ZoomableSvgProps) {
                   ×
                 </button>
               </div>
-              <div className="min-h-0 flex-1 overflow-auto bg-[radial-gradient(circle_at_top_left,rgba(44,159,132,0.12),transparent_22rem),rgba(3,8,5,0.78)] p-4 text-center">
+              <div className="min-h-0 flex-1 overflow-auto bg-[radial-gradient(circle_at_top_left,rgb(var(--jade)/0.12),transparent_22rem),rgb(var(--ink-900)/0.78)] p-4 text-center">
                 <div
                   // eslint-disable-next-line react/no-danger -- markup 来自本项目自有 SVG 组件的克隆，无外部输入
                   dangerouslySetInnerHTML={{ __html: zoomMarkup }}
-                  className="mx-auto block h-auto w-full max-w-full rounded-[18px] bg-ink-950 shadow-[0_22px_56px_rgba(0,0,0,0.38)]"
+                  className="mx-auto block h-auto w-full max-w-full rounded-[18px] bg-ink-950 shadow-[0_22px_56px_rgb(var(--shadow-rgb)/0.38)]"
                 />
               </div>
               <p className="border-t border-white/10 bg-ink-900/92 px-4 py-3 text-center text-xs text-jade-100/45">
@@ -190,7 +192,7 @@ export function ZoomableSvg({ title, children, className }: ZoomableSvgProps) {
         )}
       {toast &&
         createPortal(
-          <div className="pointer-events-none fixed bottom-6 left-1/2 z-[10000] -translate-x-1/2 rounded-full border border-jade-500/30 bg-ink-900/95 px-5 py-2.5 text-sm text-jade-100 shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-md">
+          <div className="pointer-events-none fixed bottom-6 left-1/2 z-[10000] -translate-x-1/2 rounded-full border border-jade-500/30 bg-ink-900/95 px-5 py-2.5 text-sm text-jade-100 shadow-[0_12px_40px_rgb(var(--shadow-rgb)/0.5)] backdrop-blur-md">
             {toast}
           </div>,
           document.body,

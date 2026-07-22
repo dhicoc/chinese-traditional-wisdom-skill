@@ -16,11 +16,20 @@ export type { DreamEntry, DreamClassic };
 
 /** 吉凶 → 显示色（对齐 TASTE_SKILL_UI） */
 export const LUCK_COLOR: Record<string, string> = {
-  大吉: '#388E3C',
-  吉: '#A5D6A7',
-  中平: '#9E9E9E',
-  凶: '#E76F51',
-  大凶: '#B71C1C',
+  大吉: 'var(--wz-wood)',
+  吉: 'var(--chart-good-soft)',
+  中平: 'var(--chart-text-faint)',
+  凶: 'var(--wz-fire)',
+  大凶: 'var(--c-cinnabar-deep)',
+};
+
+/** 吉凶 → alpha 用的 RGB triplet 变量（用于 rgb(var(--triplet) / a) 形式） */
+export const LUCK_ALPHA: Record<string, string> = {
+  大吉: 'var(--wood)',
+  吉: 'var(--wood)',
+  中平: 'var(--spirit)',
+  凶: 'var(--cinnabar)',
+  大凶: 'var(--cinnabar-700)',
 };
 
 /** 现代大类（10类，来自 zg_dreams biglx） */

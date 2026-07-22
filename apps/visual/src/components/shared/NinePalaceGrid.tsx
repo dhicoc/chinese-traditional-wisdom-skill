@@ -18,29 +18,29 @@ interface NinePalaceGridProps {
 
 // 吉凶背景色（对齐 legacy fengshui.js STAR_LUCK_COLORS）
 const STAR_LUCK_COLORS: Record<string, string> = {
-  大凶: '#D32F2F',
-  凶: '#F48FB1',
-  吉: '#A5D6A7',
-  大吉: '#388E3C',
-  中性: '#FFD54F',
-  次凶: '#FFAB91',
+  大凶: 'var(--wz-fire)',
+  凶: 'var(--wz-fire)',
+  吉: 'var(--chart-good-soft)',
+  大吉: 'var(--wz-wood)',
+  中性: 'var(--chart-text-faint)',
+  次凶: 'var(--wz-fire)',
+};
+
+// 中心格高亮用：同名吉凶的 triplet 变量，配合 alpha 产生半透明背景
+const STAR_LUCK_TRIPLETS: Record<string, string> = {
+  大凶: '--cinnabar',
+  凶: '--cinnabar',
+  吉: '--wood',
+  大吉: '--wood',
+  中性: '--spirit',
+  次凶: '--cinnabar',
 };
 
 // 深色吉凶用白字，浅色用深字（对齐 legacy luckTextColor）
 const DARK_LUCK = new Set(['大凶', '大吉']);
 
 function textColor(luck: string): string {
-  return DARK_LUCK.has(luck) ? '#FFFFFF' : '#1a2a22';
-}
-
-/** 颜色与白色混合，模拟 legacy lighten() */
-function lighten(hex: string, alpha: number): string {
-  const num = parseInt(hex.replace('#', ''), 16);
-  const r = (num >> 16) & 0xff;
-  const g = (num >> 8) & 0xff;
-  const b = num & 0xff;
-  const mix = (c: number) => Math.round(c + (255 - c) * alpha);
-  return `rgb(${mix(r)},${mix(g)},${mix(b)})`;
+  return DARK_LUCK.has(luck) ? 'var(--chart-surface)' : 'var(--chart-text)';
 }
 
 export function NinePalaceGrid({ grid, year, size = 350 }: NinePalaceGridProps) {
@@ -79,7 +79,7 @@ export function NinePalaceGrid({ grid, year, size = 350 }: NinePalaceGridProps) 
       aria-label={`公元 ${year} 年 九宫飞星图`}
     >
       {/* 标题 */}
-      <text x={W / 2} y={18} textAnchor="middle" dominantBaseline="middle" fill="#cfe9dc" style={{ fontSize: 14, fontWeight: 700 }}>
+      <text x={W / 2} y={18} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text)" style={{ fontSize: 14, fontWeight: 700 }}>
         公元 {year} 年 九宫飞星图
       </text>
 
@@ -89,13 +89,14 @@ export function NinePalaceGrid({ grid, year, size = 350 }: NinePalaceGridProps) 
           const x = gridX + ci * (cell + gap);
           const y = gridY + ri * (cell + gap);
           const isCenter = ri === 1 && ci === 1;
-          const bgHex = STAR_LUCK_COLORS[c.luck] || '#FFFFFF';
-          const bg = isCenter ? lighten(bgHex, 0.35) : bgHex;
+          const bgHex = STAR_LUCK_COLORS[c.luck] || 'var(--chart-surface)';
+          const triplet = STAR_LUCK_TRIPLETS[c.luck];
+          const bg = isCenter && triplet ? `rgb(var(${triplet}) / 0.35)` : bgHex;
           const tColor = textColor(c.luck);
           const starLabel = `${c.starNum}${c.starName}`;
           return (
             <g key={`${ri}-${ci}`}>
-              <rect x={x} y={y} width={cell} height={cell} rx={4} fill={bg} stroke="#5a4a3a" strokeWidth={isCenter ? 2 : 0.8} />
+              <rect x={x} y={y} width={cell} height={cell} rx={4} fill={bg} stroke="var(--chart-line-strong)" strokeWidth={isCenter ? 2 : 0.8} />
               {/* 宫位名 */}
               <text
                 x={x + cell / 2}
@@ -120,7 +121,7 @@ export function NinePalaceGrid({ grid, year, size = 350 }: NinePalaceGridProps) 
               </text>
               {/* 中心格高亮外框 */}
               {isCenter && (
-                <rect x={x + 1.5} y={y + 1.5} width={cell - 3} height={cell - 3} fill="none" stroke="#E65100" strokeWidth={3} />
+                <rect x={x + 1.5} y={y + 1.5} width={cell - 3} height={cell - 3} fill="none" stroke="var(--wz-earth)" strokeWidth={3} />
               )}
             </g>
           );
@@ -128,10 +129,10 @@ export function NinePalaceGrid({ grid, year, size = 350 }: NinePalaceGridProps) 
       )}
 
       {/* 五黄煞 / 二黑煞 警告 */}
-      <text x={W / 2} y={H - 22} textAnchor="middle" dominantBaseline="middle" fill="#ef5350" style={{ fontSize: 11 }}>
+      <text x={W / 2} y={H - 22} textAnchor="middle" dominantBaseline="middle" fill="var(--wz-fire)" style={{ fontSize: 11 }}>
         五黄杀入{wuHuang}宫（大凶）─ 宜静不宜动
       </text>
-      <text x={W / 2} y={H - 8} textAnchor="middle" dominantBaseline="middle" fill="#F48FB1" style={{ fontSize: 11 }}>
+      <text x={W / 2} y={H - 8} textAnchor="middle" dominantBaseline="middle" fill="var(--wz-fire)" style={{ fontSize: 11 }}>
         二黑杀入{erHei}宫（病符星）─ 注意健康
       </text>
     </svg>

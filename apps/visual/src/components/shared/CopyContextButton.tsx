@@ -76,9 +76,9 @@ export function CopyContextButton({ label = 'Copy context for AI', title, payloa
       data-copy-status={status}
       style={
         status === 'copied'
-          ? { borderColor: 'rgba(44, 159, 132, 0.4)', color: '#2c9f84' }
+          ? { borderColor: 'rgb(var(--jade) / 0.4)', color: 'var(--c-jade)' }
           : status === 'error'
-            ? { borderColor: 'rgba(174, 32, 18, 0.4)', color: '#e76f51' }
+            ? { borderColor: 'rgb(var(--cinnabar) / 0.4)', color: 'var(--wz-fire)' }
             : undefined
       }
     >

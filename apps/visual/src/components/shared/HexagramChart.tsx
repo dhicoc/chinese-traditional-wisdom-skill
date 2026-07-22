@@ -35,16 +35,23 @@ interface HexagramChartProps {
 
 // 六神顺序与配色（对齐 legacy CORE.sixGods / sixGodsColor）
 const SIX_GODS = ['青龙', '朱雀', '勾陈', '螣蛇', '白虎', '玄武'];
-const SIX_GODS_COLOR = ['#4CAF50', '#F44336', '#FF9800', '#9C27B0', '#9E9E9E', '#2196F3'];
+const SIX_GODS_COLOR = [
+  'var(--wz-wood)',
+  'var(--wz-fire)',
+  'var(--wz-earth)',
+  'var(--c-jade)',
+  'var(--chart-text-faint)',
+  'var(--wz-water)',
+];
 
 function godColor(god: string): string {
   const idx = SIX_GODS.indexOf(god);
-  return idx >= 0 ? SIX_GODS_COLOR[idx] : '#8d99ae';
+  return idx >= 0 ? SIX_GODS_COLOR[idx] : 'var(--chart-text-faint)';
 }
 
 // 世/应配色（对齐 legacy COLORS.labelShi / labelYing）
-const SHI_COLOR = '#D32F2F';
-const YING_COLOR = '#1565C0';
+const SHI_COLOR = 'var(--wz-fire)';
+const YING_COLOR = 'var(--wz-water)';
 
 export function HexagramChart({ data, size = 450 }: HexagramChartProps) {
   const lines = data.lines || [];
@@ -66,8 +73,8 @@ export function HexagramChart({ data, size = 450 }: HexagramChartProps) {
   // 传统六爻：上爻在顶、初爻在底。lines 为初爻→上爻，渲染从上爻起。
   const renderOrder = lines.slice(0, 6).map((line, i) => ({ line, yaoNum: i + 1 })).reverse();
 
-  const titleColor = isOriginal ? '#EAD7A4' : '#B39DDB'; // 本卦金 / 变卦紫
-  const barColor = '#3E2723';
+  const titleColor = isOriginal ? 'var(--c-gold)' : 'var(--chart-text-mid)'; // 本卦金 / 变卦紫
+  const barColor = 'var(--chart-text)';
 
   return (
     <svg
@@ -130,13 +137,13 @@ export function HexagramChart({ data, size = 450 }: HexagramChartProps) {
             {/* 动爻标记 */}
             {changing && (
               <g>
-                <circle cx={barCX + barW / 2 + 14} cy={midY} r={7} fill="#D32F2F" />
+                <circle cx={barCX + barW / 2 + 14} cy={midY} r={7} fill="var(--wz-fire)" />
                 <text
                   x={barCX + barW / 2 + 14}
                   y={midY}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  fill="#fff"
+                  fill="var(--chart-surface)"
                   style={{ fontSize: 9, fontWeight: 700 }}
                 >
                   动
@@ -147,7 +154,7 @@ export function HexagramChart({ data, size = 450 }: HexagramChartProps) {
             {/* 世 / 应 标记 */}
             {data.shiYao === yaoNum && (
               <g>
-                <rect x={shiYingX - 10} y={midY - 10} width={20} height={20} rx={4} fill="#FFCDD2" stroke={SHI_COLOR} strokeWidth={1.5} />
+                <rect x={shiYingX - 10} y={midY - 10} width={20} height={20} rx={4} fill="var(--chart-inset)" stroke={SHI_COLOR} strokeWidth={1.5} />
                 <text x={shiYingX} y={midY} textAnchor="middle" dominantBaseline="middle" fill={SHI_COLOR} style={{ fontSize: 13, fontWeight: 700 }}>
                   世
                 </text>
@@ -155,7 +162,7 @@ export function HexagramChart({ data, size = 450 }: HexagramChartProps) {
             )}
             {data.yingYao === yaoNum && (
               <g>
-                <rect x={shiYingX - 10} y={midY - 10} width={20} height={20} rx={4} fill="#BBDEFB" stroke={YING_COLOR} strokeWidth={1.5} />
+                <rect x={shiYingX - 10} y={midY - 10} width={20} height={20} rx={4} fill="var(--chart-band)" stroke={YING_COLOR} strokeWidth={1.5} />
                 <text x={shiYingX} y={midY} textAnchor="middle" dominantBaseline="middle" fill={YING_COLOR} style={{ fontSize: 13, fontWeight: 700 }}>
                   应
                 </text>
@@ -169,7 +176,7 @@ export function HexagramChart({ data, size = 450 }: HexagramChartProps) {
                 y={midY}
                 textAnchor="start"
                 dominantBaseline="middle"
-                fill="#cfe9dc"
+                fill="var(--chart-text)"
                 style={{ fontSize: 13 }}
               >
                 {line.branch}
@@ -203,7 +210,7 @@ export function HexagramChart({ data, size = 450 }: HexagramChartProps) {
                 y={bottomY + 36}
                 textAnchor="middle"
                 dominantBaseline="middle"
-                fill="#9ec9b8"
+                fill="var(--chart-text-sub)"
                 style={{ fontSize: 13 }}
               >
                 用神: {data.yongShen}

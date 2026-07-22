@@ -8,6 +8,7 @@ import {
   getDreamLinks,
   loadFullDictionary,
   LUCK_COLOR,
+  LUCK_ALPHA,
   BIG_CATEGORIES,
   CATEGORY_DESC,
   type DreamEntry,
@@ -224,9 +225,9 @@ export function DreamWorkspace() {
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-serif text-sm text-jade-100">{e.title}</span>
-                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: LUCK_COLOR[e.luck] ?? '#888' }} />
+                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: LUCK_COLOR[e.luck] ?? 'var(--chart-text-faint)' }} />
                     </div>
-                    <span className="mt-0.5 block text-[11px]" style={{ color: LUCK_COLOR[e.luck] ?? '#888' }}>{e.luck} · {e.smalllx}</span>
+                    <span className="mt-0.5 block text-[11px]" style={{ color: LUCK_COLOR[e.luck] ?? 'var(--chart-text-faint)' }}>{e.luck} · {e.smalllx}</span>
                   </button>
                 ))}
               </div>
@@ -246,9 +247,9 @@ export function DreamWorkspace() {
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-serif text-base text-jade-100">{d.title}</span>
-                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: LUCK_COLOR[d.luck] ?? '#888' }} />
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: LUCK_COLOR[d.luck] ?? 'var(--chart-text-faint)' }} />
                     </div>
-                    <span className="mt-1 block text-[11px]" style={{ color: LUCK_COLOR[d.luck] ?? '#888' }}>{d.luck}</span>
+                    <span className="mt-1 block text-[11px]" style={{ color: LUCK_COLOR[d.luck] ?? 'var(--chart-text-faint)' }}>{d.luck}</span>
                     <span className="mt-0.5 block text-[10px] text-jade-100/40">{d.biglx}</span>
                   </button>
                 ))}
@@ -278,7 +279,8 @@ const GRADIENT_BLUR_LAYERS = [
 ];
 
 function DreamEntryCard({ entry }: { entry: DreamEntry }) {
-  const color = LUCK_COLOR[entry.luck] ?? '#888';
+  const color = LUCK_COLOR[entry.luck] ?? 'var(--chart-text-faint)';
+  const alphaTriplet = LUCK_ALPHA[entry.luck] ?? 'var(--spirit)';
   const [expanded, setExpanded] = useState(false);
   const [isOverflow, setIsOverflow] = useState(false);
   const textRef = useRef<HTMLParagraphElement | null>(null);
@@ -306,7 +308,7 @@ function DreamEntryCard({ entry }: { entry: DreamEntry }) {
           <span className="font-serif text-2xl font-bold" style={{ color }}>{entry.title}</span>
           <span className="rounded-full border border-white/10 bg-ink-900/50 px-2 py-0.5 text-xs text-jade-100/55">{entry.biglx} · {entry.smalllx}</span>
         </div>
-        <span className="rounded-full px-3 py-1 text-sm font-semibold" style={{ color, backgroundColor: `${color}1a`, border: `1px solid ${color}40` }}>
+        <span className="rounded-full px-3 py-1 text-sm font-semibold" style={{ color, backgroundColor: `rgb(${alphaTriplet} / 0.1)`, border: `1px solid rgb(${alphaTriplet} / 0.25)` }}>
           {entry.luck}
         </span>
       </div>
@@ -345,7 +347,7 @@ function DreamEntryCard({ entry }: { entry: DreamEntry }) {
             {/* 底部墨色渐隐，让模糊与按钮区自然衔接 */}
             <div
               className="pointer-events-none absolute inset-x-0 bottom-0 h-24 rounded-b"
-              style={{ background: 'linear-gradient(to bottom, rgba(7,13,11,0) 0%, rgba(7,13,11,0.55) 55%, rgba(7,13,11,0.95) 100%)' }}
+              style={{ background: 'linear-gradient(to bottom, rgb(var(--background) / 0) 0%, rgb(var(--background) / 0.55) 55%, rgb(var(--background) / 0.95) 100%)' }}
             />
           </>
         )}

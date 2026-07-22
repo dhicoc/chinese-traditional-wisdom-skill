@@ -17,18 +17,50 @@ import { useEffect, useRef } from 'react';
  *  - 性能：单 Canvas + rAF，粒子 ~150，星点预生成，DPR 自适应
  */
 
-// ─── 配色（与 design-tokens 一致）─────────────────
+// ─── 配色（从 CSS 变量读取，宣纸主题分派）─────────────────
+// Canvas 2D 不解析 var()，需经 getComputedStyle 取计算值；
+// 初始化读取一次即可，单一主题无需监听变化。
 const COLORS = {
-  bg: '#050c0a',
-  cinnabar: '#c6301f',
-  jade: '#2c9f84',
-  gold: '#c9b27a',
-  wood: '#2c9f84',
-  fire: '#c6301f',
-  earth: '#c9b27a',
-  metal: '#e9e4d8',
-  water: '#2f4f55',
+  bg: '#f3eee1',
+  bgInner: '#f6f2e7',
+  cinnabar: '#b23a26',
+  jade: '#3d6053',
+  gold: '#8a6d35',
+  wood: '#4a7250',
+  fire: '#b23a26',
+  earth: '#a67c44',
+  metal: '#857c6c',
+  water: '#3d5a6e',
+};
+
+const COLOR_VAR_MAP = {
+  bg: '--chart-page',
+  bgInner: '--chart-bg',
+  cinnabar: '--c-cinnabar',
+  jade: '--c-jade',
+  gold: '--c-gold',
+  wood: '--wz-wood',
+  fire: '--wz-fire',
+  earth: '--wz-earth',
+  metal: '--wz-metal',
+  water: '--wz-water',
 } as const;
+
+/** 从 CSS 变量刷新调色板；返回是否有实际变化 */
+function refreshThemeColors(): void {
+  const style = getComputedStyle(document.documentElement);
+  (Object.keys(COLOR_VAR_MAP) as Array<keyof typeof COLOR_VAR_MAP>).forEach((key) => {
+    const value = style.getPropertyValue(COLOR_VAR_MAP[key]).trim();
+    if (value) COLORS[key] = value;
+  });
+}
+
+/** 读取三元组变量（如 --gold: "138 109 53"）并合成 rgba() 字符串 */
+function cssRgba(varName: string, alpha: number): string {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  const triplet = raw ? raw.split(/\s+/).join(',') : '138,109,53';
+  return `rgba(${triplet},${alpha})`;
+}
 
 // ─── 二十八宿（简化选取，凑成星图）─────────────────
 const STARS_28 = [
@@ -53,13 +85,13 @@ const BAGUA = [
   { name: '坤', lines: [false, false, false] }, // ☷ 三阴
 ];
 
-// ─── 五行相生顺序 ─────────────────
+// ─── 五行相生顺序（存 key，绘制时实时解析 COLORS，主题切换即时生效）─────────────────
 const WUXING_CYCLE = [
-  { key: 'wood', color: COLORS.wood },
-  { key: 'fire', color: COLORS.fire },
-  { key: 'earth', color: COLORS.earth },
-  { key: 'metal', color: COLORS.metal },
-  { key: 'water', color: COLORS.water },
+  { key: 'wood' },
+  { key: 'fire' },
+  { key: 'earth' },
+  { key: 'metal' },
+  { key: 'water' },
 ] as const;
 
 interface Star {
@@ -109,7 +141,7 @@ interface InkBlot {
   maxRadius: number;
   life: number;
   maxLife: number;
-  color: string;
+  colorKey: 'cinnabar' | 'gold' | 'jade';
 }
 
 function rand(min: number, max: number) {
@@ -334,7 +366,7 @@ export function DynamicTianPanBackground() {
     }
 
     function spawnInk() {
-      const colors = [COLORS.cinnabar, COLORS.gold, COLORS.jade];
+      const colorKeys = ['cinnabar', 'gold', 'jade'] as const;
       inks.push({
         x: rand(w * 0.1, w * 0.9),
         y: rand(h * 0.1, h * 0.9),
@@ -342,7 +374,7 @@ export function DynamicTianPanBackground() {
         maxRadius: rand(60, 140),
         life: 0,
         maxLife: rand(200, 400),
-        color: colors[Math.floor(rand(0, colors.length))],
+        colorKey: colorKeys[Math.floor(rand(0, colorKeys.length))],
       });
     }
 
@@ -399,7 +431,7 @@ export function DynamicTianPanBackground() {
         ink.radius = ink.maxRadius * (1 - Math.pow(1 - p, 3));
         const a = (1 - p) * 0.08;
         ctx.globalAlpha = a;
-        ctx.fillStyle = ink.color;
+        ctx.fillStyle = COLORS[ink.colorKey];
         ctx.beginPath();
         ctx.arc(ink.x, ink.y, ink.radius, 0, Math.PI * 2);
         ctx.fill();
@@ -421,8 +453,8 @@ export function DynamicTianPanBackground() {
         const a = (1 - m.life / m.maxLife) * 0.7;
         const tailLen = 40;
         const grad = ctx.createLinearGradient(m.x, m.y, m.x - m.vx * tailLen / 4, m.y - m.vy * tailLen / 4);
-        grad.addColorStop(0, `rgba(219,176,83,${a})`);
-        grad.addColorStop(1, 'rgba(219,176,83,0)');
+        grad.addColorStop(0, cssRgba('--gold', a));
+        grad.addColorStop(1, cssRgba('--gold', 0));
         ctx.strokeStyle = grad;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
@@ -463,7 +495,7 @@ export function DynamicTianPanBackground() {
         const a = Math.sin(lifeP * Math.PI) * 0.5;
         const el = WUXING_CYCLE[p.elementIndex];
         ctx.globalAlpha = a;
-        ctx.fillStyle = el.color;
+        ctx.fillStyle = COLORS[el.key];
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
@@ -475,9 +507,9 @@ export function DynamicTianPanBackground() {
 
     function frame(t: number) {
       if (!ctx || !canvas) return;
-      // 清屏（带渐变底）
+      // 清屏（带渐变底，色值随主题）
       const bgGrad = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) / 1.2);
-      bgGrad.addColorStop(0, '#0a120e');
+      bgGrad.addColorStop(0, COLORS.bgInner);
       bgGrad.addColorStop(1, COLORS.bg);
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, w, h);
@@ -516,6 +548,9 @@ export function DynamicTianPanBackground() {
 
     resize();
     window.addEventListener('resize', resize);
+
+    // 初始化读取一次 CSS 变量（单一主题，无需监听变化）
+    refreshThemeColors();
 
     function onVisibility() {
       if (document.hidden) {

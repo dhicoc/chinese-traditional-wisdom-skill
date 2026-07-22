@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>观象台 · 设计方案总览 — 宋韵极简</title>
+<link rel="stylesheet" href="assets/prototype.css">
+<style>
+  .hero {
+    min-height: 62vh;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: clamp(2rem, 6vw, 5rem);
+    align-items: center;
+    padding: clamp(2.5rem, 6vw, 5rem) clamp(1.5rem, 5vw, 4.5rem);
+    border-bottom: 1px solid var(--line);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-vertical {
+    display: flex;
+    gap: 1.1rem;
+    align-items: flex-start;
+  }
+  .hero-vertical .v-line {
+    writing-mode: vertical-rl;
+    font-family: var(--font-serif);
+    font-size: clamp(2.2rem, 5.5vw, 4.2rem);
+    letter-spacing: 0.18em;
+    line-height: 1.15;
+    color: var(--ink);
+  }
+  .hero-vertical .v-line em {
+    font-style: normal;
+    color: var(--cinnabar-deep);
+  }
+  .hero-meta { max-width: 34rem; }
+  .hero-meta h1 {
+    font-family: var(--font-serif);
+    font-size: var(--t-sm);
+    letter-spacing: 0.4em;
+    color: var(--ink-3);
+    font-weight: 400;
+    margin: 0 0 1.2rem;
+  }
+  .hero-meta p { color: var(--ink-2); font-size: var(--t-md); margin: 0 0 1.8rem; max-width: 56ch; }
+  .hero-seal { position: absolute; right: clamp(1.5rem, 5vw, 4.5rem); top: 2.2rem; }
+
+  .section { padding: clamp(2.2rem, 5vw, 3.8rem) clamp(1.5rem, 5vw, 4.5rem); border-bottom: 1px solid var(--line); }
+  .section-head { display: flex; align-items: baseline; gap: 1.2rem; margin-bottom: 2rem; }
+  .section-head h2 { font-family: var(--font-serif); font-size: var(--t-xl); letter-spacing: 0.1em; margin: 0; font-weight: 600; }
+
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .swatch { background: var(--paper-2); padding: 0.9rem 1rem 0.75rem; }
+  .swatch .block { height: 3.2rem; border: 1px solid var(--line-soft); margin-bottom: 0.6rem; }
+  .swatch .n { font-family: var(--font-serif); font-size: var(--t-sm); letter-spacing: 0.1em; }
+  .swatch .v { font-size: var(--t-xs); color: var(--ink-3); font-variant-numeric: tabular-nums; margin-top: 0.1rem; }
+
+  .type-demo { display: grid; gap: 0; border-top: 1px solid var(--line); }
+  .type-row { display: grid; grid-template-columns: 8rem 1fr auto; gap: 1.5rem; align-items: baseline; padding: 1.1rem 0; border-bottom: 1px solid var(--line-soft); }
+  .type-row .spec { font-size: var(--t-xs); color: var(--ink-3); letter-spacing: 0.12em; }
+
+  .principles { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); counter-reset: p; }
+  .principle { background: var(--paper-2); padding: 1.5rem 1.4rem 1.3rem; counter-increment: p; }
+  .principle::before {
+    content: counter(p, cjk-ideographic);
+    font-family: var(--font-serif);
+    color: var(--gold);
+    font-size: var(--t-sm);
+    letter-spacing: 0.3em;
+    display: block;
+    margin-bottom: 0.8rem;
+  }
+  .principle h3 { font-family: var(--font-serif); font-size: var(--t-md); letter-spacing: 0.12em; margin: 0 0 0.5rem; }
+  .principle p { font-size: var(--t-sm); color: var(--ink-2); margin: 0; }
+
+  .screens { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1.4rem; }
+  .screen-link {
+    display: block;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    padding: 1.6rem 1.5rem;
+    transition: border-color var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+  }
+  .screen-link:hover { border-color: var(--cinnabar); transform: translateY(-2px); }
+  .screen-link .no { font-family: var(--font-serif); color: var(--cinnabar-deep); font-size: var(--t-xs); letter-spacing: 0.3em; }
+  .screen-link h3 { font-family: var(--font-serif); font-size: var(--t-lg); letter-spacing: 0.1em; margin: 0.7rem 0 0.4rem; }
+  .screen-link p { font-size: var(--t-sm); color: var(--ink-2); margin: 0 0 1rem; }
+  .screen-link .go { font-size: var(--t-xs); color: var(--ink-3); letter-spacing: 0.2em; }
+  .screen-link:hover .go { color: var(--cinnabar-deep); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; }
+  .compare .pane { border: 1px solid var(--line); padding: 1.4rem 1.5rem; }
+  .compare .pane.old { background: oklch(18% 0.02 160); color: oklch(80% 0.01 90); }
+  .compare .pane.old .tag { color: oklch(60% 0.02 90); }
+  .compare .pane.new { background: var(--paper-2); }
+  .compare .tag { font-size: var(--t-xs); letter-spacing: 0.3em; color: var(--ink-3); display: block; margin-bottom: 0.8rem; font-family: var(--font-serif); }
+  .compare ul { margin: 0; padding-left: 1.2em; font-size: var(--t-sm); line-height: 2; }
+  @media (max-width: 720px) { .hero { grid-template-columns: 1fr; } .compare { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-seal"><span class="seal">观</span></div>
+  <div class="hero-vertical">
+    <span class="v-line">观乎天文</span>
+    <span class="v-line"><em>以察时变</em></span>
+  </div>
+  <div class="hero-meta">
+    <h1>观象台 · UI/UX 重新设计方案</h1>
+    <p>为「中华传统智慧」工作台确立新视觉语言：<strong>宋韵极简 · 暖纸光</strong>。以宣纸为底、墨色为骨、朱砂点睛，取代现行暗色仪器风——让二十五术数模块从「科学终端」回归「可沉静研读的经典」。</p>
+    <div style="display:flex; gap:0.8rem; flex-wrap:wrap;">
+      <a class="btn" href="dashboard.html">进入首页原型</a>
+      <a class="btn ghost" href="#tokens">查看设计语言</a>
+    </div>
+  </div>
+</header>
+
+<section class="section">
+  <div class="section-head"><span class="juan">卷壹</span><h2>转向：从仪器到纸墨</h2></div>
+  <div class="compare">
+    <div class="pane old">
+      <span class="tag">现行 · 暗色仪器风</span>
+      <ul>
+        <li>墨黑底 + 发光粒子天盘，偏「科技终端」</li>
+        <li>朱砂 / 碧玉 / 鎏金三色并置，视觉喧闹</li>
+        <li>卡片套卡片，玻璃拟态，层级依赖投影</li>
+        <li>爱好者面对高密度数据无从下手</li>
+      </ul>
+    </div>
+    <div class="pane new">
+      <span class="tag">提案 · 宋韵极简暖纸光</span>
+      <ul>
+        <li>宣纸暖白底，发丝线分隔，层级靠留白与字排</li>
+        <li>朱砂单屏不过三处，只给最关键动作</li>
+        <li>宋体衬线 + 竖排 + 印章 + 卷次编号，字即装饰</li>
+        <li>简繁两便：默认解读层，专业数据一展开即得</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="tokens">
+  <div class="section-head"><span class="juan">卷贰</span><h2>色彩 · 矿物暖色（OKLCH）</h2></div>
+  <div class="swatches">
+    <div class="swatch"><div class="block" style="background:oklch(95.3% 0.014 88)"></div><div class="n">宣纸</div><div class="v">95.3% .014 88 · 底</div></div>
+    <div class="swatch"><div class="block" style="background:oklch(97.2% 0.011 90)"></div><div class="n">浮纸</div><div class="v">97.2% .011 90 · 卡面</div></div>
+    <div class="swatch"><div class="block" style="background:oklch(27% 0.02 62)"></div><div class="n">墨色</div><div class="v">27% .02 62 · 正文</div></div>
+    <div class="swatch"><div class="block" style="background:oklch(55% 0.013 70)"></div><div class="n">淡墨</div><div class="v">55% .013 70 · 辅助</div></div>
+    <div class="swatch"><div class="block" style="background:oklch(47% 0.135 33)"></div><div class="n">朱砂</div><div class="v">47% .135 33 · 点睛</div></div>
+    <div class="swatch"><div class="block" style="background:oklch(56% 0.082 78)"></div><div class="n">鎏金</div><div class="v">56% .082 78 · 序号</div></div>
+    <div class="swatch"><div class="block" style="background:oklch(43% 0.052 158)"></div><div class="n">松烟绿</div><div class="v">43% .052 158 · 辅助</div></div>
+    <div class="swatch"><div class="block" style="background:oklch(40% 0.055 235)"></div><div class="n">黛蓝</div><div class="v">40% .055 235 · 辅助</div></div>
+  </div>
+  <p style="font-size:var(--t-sm); color:var(--ink-2); max-width:62ch; margin-top:1.2rem;">五行色取低饱和矿物色：木 <span style="color:var(--wu-mu)">■</span> 火 <span style="color:var(--wu-huo)">■</span> 土 <span style="color:var(--wu-tu)">■</span> 金 <span style="color:var(--wu-jin)">■</span> 水 <span style="color:var(--wu-shui)">■</span> —— 火即朱砂、水即黛蓝，全局色彩同源，避免「彩虹命盘」。</p>
+</section>
+
+<section class="section">
+  <div class="section-head"><span class="juan">卷叁</span><h2>字排 · 宋体衬线为魂</h2></div>
+  <div class="type-demo">
+    <div class="type-row"><span class="spec">展示 / 2rem Serif 600</span><span class="serif" style="font-size:var(--t-2xl); letter-spacing:0.06em; font-weight:600;">四柱八字排盘</span><span class="spec">标题</span></div>
+    <div class="type-row"><span class="spec">大 / 1.6rem Serif 600</span><span class="serif" style="font-size:var(--t-xl); letter-spacing:0.1em; font-weight:600;">紫微斗数 · 命宫在寅</span><span class="spec">卡题</span></div>
+    <div class="type-row"><span class="spec">中 / 1rem Sans 400</span><span style="font-size:var(--t-md);">日主丙火生于寅月，得长生之气，木火通明之象。</span><span class="spec">正文</span></div>
+    <div class="type-row"><span class="spec">小 / .875rem Serif</span><span class="serif" style="font-size:var(--t-sm); letter-spacing:0.14em; color:var(--ink-2);">甲子　丙寅　戊午　庚申</span><span class="spec">数据</span></div>
+    <div class="type-row"><span class="spec">微 / .75rem + 字距</span><span style="font-size:var(--t-xs); letter-spacing:0.28em; color:var(--ink-3);">卷肆 · 神煞　︱　十神　︱　藏干</span><span class="spec">标注</span></div>
+  </div>
+  <p style="font-size:var(--t-sm); color:var(--ink-2); max-width:62ch; margin-top:1.2rem;">字阶 1.25 比率共五档，宁缺毋滥。汉字留白的法门是<strong>字距</strong>：标注级加 .28em 字距，立刻生出刻本气。数字统一 tabular-nums，排盘数据纵向对齐。</p>
+</section>
+
+<section class="section">
+  <div class="section-head"><span class="juan">卷肆</span><h2>组件 · 方角与发丝线</h2></div>
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(16rem,1fr)); gap:1.4rem;">
+    <div class="card card-pad">
+      <div class="card-head" style="margin-bottom:0.9rem;"><h3 class="card-title" style="font-size:var(--t-md);">印记与标记</h3></div>
+      <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+        <span class="seal">观</span>
+        <span class="seal sm">易</span>
+        <span class="chip">默认</span>
+        <span class="chip c-cinnabar">化忌</span>
+        <span class="chip c-gold">化禄</span>
+        <span class="chip c-dai">化科</span>
+        <span class="chip c-pine">化权</span>
+      </div>
+      <p style="font-size:var(--t-sm); color:var(--ink-2); margin:1rem 0 0;">印章只出现于品牌位与「已定盘」确认态；四化以四色 chip 区分，化忌用朱砂——全屏唯一的红。</p>
+    </div>
+    <div class="card card-pad">
+      <div class="card-head" style="margin-bottom:0.9rem;"><h3 class="card-title" style="font-size:var(--t-md);">按钮层级</h3></div>
+      <div style="display:flex; gap:0.8rem; flex-wrap:wrap; align-items:center;">
+        <button class="btn">开始排盘</button>
+        <button class="btn ghost">导出报告</button>
+        <button class="kbtn">搜索 <kbd>⌘K</kbd></button>
+      </div>
+      <p style="font-size:var(--t-sm); color:var(--ink-2); margin:1rem 0 0;">一屏仅一个主按钮。墨底按钮悬浮时转为朱砂——「落印」一刻的仪式感。</p>
+    </div>
+    <div class="card card-pad">
+      <div class="card-head" style="margin-bottom:0.9rem;"><h3 class="card-title" style="font-size:var(--t-md);">五行徽记</h3></div>
+      <div style="display:flex; gap:0.9rem; align-items:center; font-family:var(--font-serif); font-size:var(--t-lg);">
+        <span>甲<span class="wuxing m">木</span></span>
+        <span>丙<span class="wuxing h">火</span></span>
+        <span>戊<span class="wuxing t">土</span></span>
+        <span>庚<span class="wuxing j">金</span></span>
+        <span>壬<span class="wuxing s">水</span></span>
+      </div>
+      <p style="font-size:var(--t-sm); color:var(--ink-2); margin:1rem 0 0;">干支旁的五行以圆圈小字呈现，颜色即五行色，扫一眼便知全局能量分布。</p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head"><span class="juan">卷伍</span><h2>五条设计原则</h2></div>
+  <div class="principles">
+    <div class="principle"><h3>纸为底，墨为骨</h3><p>细线、留白、方角；禁厚重投影、玻璃拟态与圆角卡片堆叠。</p></div>
+    <div class="principle"><h3>朱砂不过三</h3><p>强调色单屏至多三处：主按钮、当前态、化忌。滥用即失效。</p></div>
+    <div class="principle"><h3>简繁两便</h3><p>默认解读层（爱好者），专业数据一键展开（命理师），两层同源。</p></div>
+    <div class="principle"><h3>字即装饰</h3><p>衬线、竖排、印章、卷次编号营造东方气质，不靠图标与插画堆砌。</p></div>
+    <div class="principle"><h3>静而微动</h3><p>动效仅服务状态变化，指数缓出 150–250ms，无回弹、无漂浮装饰。</p></div>
+  </div>
+</section>
+
+<section class="section" style="border-bottom:none;">
+  <div class="section-head"><span class="juan">卷陆</span><h2>三屏高保真原型</h2></div>
+  <div class="screens">
+    <a class="screen-link" href="dashboard.html">
+      <span class="no">屏 · 壹</span>
+      <h3>首页 · 观象台</h3>
+      <p>今日干支、全局生辰条、二十五模块按七卷分组——门面与导航中枢。</p>
+      <span class="go">进入原型 →</span>
+    </a>
+    <a class="screen-link" href="bazi.html">
+      <span class="no">屏 · 贰</span>
+      <h3>八字工作台</h3>
+      <p>四柱排盘、五行能量、大运时间轴、解读卡片渐进式披露专业数据。</p>
+      <span class="go">进入原型 →</span>
+    </a>
+    <a class="screen-link" href="ziwei.html">
+      <span class="no">屏 · 叁</span>
+      <h3>紫微工作台</h3>
+      <p>十二宫格命盘、中宫总览、点宫出抽屉详情、四化标记一目了然。</p>
+      <span class="go">进入原型 →</span>
+    </a>
+  </div>
+</section>
+
+</body>
+</html>

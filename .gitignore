@@ -30,3 +30,14 @@ venv/
 .env
 .env.local
 
+# WorkBuddy agent state (local only, not project code)
+.workbuddy/
+
+# Local UI dev artifacts / logs / screenshots / test reports
+*.png
+apps/visual/_final-*.png
+apps/visual/playwright-report*/
+apps/visual/test-results*/
+apps/visual/pw_*.log
+artifacts/tmp/
+

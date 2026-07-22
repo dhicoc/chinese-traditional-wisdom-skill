@@ -45,12 +45,12 @@ function TrigramBars({ cx, startY, name, barW, barH, gap }: { cx: number; startY
           const segW = (barW - g) / 2;
           return (
             <g key={i}>
-              <rect x={leftX} y={y} width={segW} height={barH} fill="#EAD7A4" rx={2} />
-              <rect x={leftX + segW + g} y={y} width={segW} height={barH} fill="#EAD7A4" rx={2} />
+              <rect x={leftX} y={y} width={segW} height={barH} fill="var(--c-gold)" rx={2} />
+              <rect x={leftX + segW + g} y={y} width={segW} height={barH} fill="var(--c-gold)" rx={2} />
             </g>
           );
         }
-        return <rect key={i} x={leftX} y={y} width={barW} height={barH} fill="#EAD7A4" rx={2} />;
+        return <rect key={i} x={leftX} y={y} width={barW} height={barH} fill="var(--c-gold)" rx={2} />;
       })}
     </g>
   );
@@ -124,7 +124,7 @@ export function MeihuaChart({ data, size = 500 }: MeihuaChartProps) {
       aria-label={`梅花易数 ${data.hexagramName}`}
     >
       {/* 背景 */}
-      <rect x={0} y={0} width={W} height={H} rx={8} fill="#0b1410" stroke="#1f3a32" strokeWidth={1.5} />
+      <rect x={0} y={0} width={W} height={H} rx={8} fill="var(--chart-surface)" stroke="var(--chart-line)" strokeWidth={1.5} />
 
       {/* ── 左栏：本卦卦画 ── */}
       <TrigramBars cx={barCX} startY={upperStartY} name={upperTri.name} barW={barW} barH={barH} gap={lineGap} />
@@ -133,8 +133,8 @@ export function MeihuaChart({ data, size = 500 }: MeihuaChartProps) {
       {/* 动爻标记 */}
       {changingDotY !== null && (
         <g>
-          <circle cx={barCX + barW / 2 + 14} cy={changingDotY + barH / 2} r={7} fill="#D32F2F" />
-          <text x={barCX + barW / 2 + 14} y={changingDotY + barH / 2} textAnchor="middle" dominantBaseline="middle" fill="#fff" style={{ fontSize: 9, fontWeight: 700 }}>
+          <circle cx={barCX + barW / 2 + 14} cy={changingDotY + barH / 2} r={7} fill="var(--wz-fire)" />
+          <text x={barCX + barW / 2 + 14} y={changingDotY + barH / 2} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text)" style={{ fontSize: 9, fontWeight: 700 }}>
             变
           </text>
         </g>
@@ -142,27 +142,27 @@ export function MeihuaChart({ data, size = 500 }: MeihuaChartProps) {
 
       {/* ── 右栏：卦名 + 上下卦 + 变卦 + 动爻 ── */}
       {data.hexagramName && (
-        <text x={infoX} y={56} textAnchor="start" dominantBaseline="middle" fill="#EAD7A4" style={{ fontSize: 24, fontWeight: 700 }}>
+        <text x={infoX} y={56} textAnchor="start" dominantBaseline="middle" fill="var(--c-gold)" style={{ fontSize: 24, fontWeight: 700 }}>
           {data.hexagramName}
         </text>
       )}
       {upperTri.name && (
-        <text x={infoX} y={86} textAnchor="start" dominantBaseline="middle" fill="#9ec9b8" style={{ fontSize: 15 }}>
+        <text x={infoX} y={86} textAnchor="start" dominantBaseline="middle" fill="var(--chart-text-sub)" style={{ fontSize: 15 }}>
           上: {upperTri.symbol} {upperTri.name}
         </text>
       )}
       {lowerTri.name && (
-        <text x={infoX} y={110} textAnchor="start" dominantBaseline="middle" fill="#9ec9b8" style={{ fontSize: 15 }}>
+        <text x={infoX} y={110} textAnchor="start" dominantBaseline="middle" fill="var(--chart-text-sub)" style={{ fontSize: 15 }}>
           下: {lowerTri.symbol} {lowerTri.name}
         </text>
       )}
       {data.changingHexagramName && (
-        <text x={infoX} y={142} textAnchor="start" dominantBaseline="middle" fill="#B39DDB" style={{ fontSize: 15 }}>
+        <text x={infoX} y={142} textAnchor="start" dominantBaseline="middle" fill="var(--chart-text)" style={{ fontSize: 15 }}>
           变卦: {data.changingHexagramName}
         </text>
       )}
       {ch && (
-        <text x={infoX} y={172} textAnchor="start" dominantBaseline="middle" fill="#7a8a7a" style={{ fontSize: 13 }}>
+        <text x={infoX} y={172} textAnchor="start" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 13 }}>
           动爻: {ch}爻
         </text>
       )}
@@ -176,30 +176,30 @@ export function MeihuaChart({ data, size = 500 }: MeihuaChartProps) {
             width={120}
             height={mutualBoxH}
             rx={6}
-            fill="#16241c"
-            stroke="#3a5a4a"
+            fill="var(--chart-inset)"
+            stroke="var(--chart-line-strong)"
             strokeWidth={1}
           />
-          <text x={mutualX + 54} y={mutualY + 6} textAnchor="middle" dominantBaseline="middle" fill="#7a8a7a" style={{ fontSize: 12 }}>
+          <text x={mutualX + 54} y={mutualY + 6} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 12 }}>
             互卦
           </text>
           {mu?.symbol && (
-            <text x={mutualX + 54} y={mutualY + 32} textAnchor="middle" dominantBaseline="middle" fill="#EAD7A4" style={{ fontSize: 26 }}>
+            <text x={mutualX + 54} y={mutualY + 32} textAnchor="middle" dominantBaseline="middle" fill="var(--c-gold)" style={{ fontSize: 26 }}>
               {mu.symbol}
             </text>
           )}
           {mu?.name && (
-            <text x={mutualX + 54} y={mutualY + 56} textAnchor="middle" dominantBaseline="middle" fill="#7a8a7a" style={{ fontSize: 11 }}>
+            <text x={mutualX + 54} y={mutualY + 56} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 11 }}>
               {mu.name}
             </text>
           )}
           {ml?.symbol && (
-            <text x={mutualX + 54} y={mutualY + 78} textAnchor="middle" dominantBaseline="middle" fill="#EAD7A4" style={{ fontSize: 26 }}>
+            <text x={mutualX + 54} y={mutualY + 78} textAnchor="middle" dominantBaseline="middle" fill="var(--c-gold)" style={{ fontSize: 26 }}>
               {ml.symbol}
             </text>
           )}
           {ml?.name && (
-            <text x={mutualX + 54} y={mutualY + 102} textAnchor="middle" dominantBaseline="middle" fill="#7a8a7a" style={{ fontSize: 11 }}>
+            <text x={mutualX + 54} y={mutualY + 102} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 11 }}>
               {ml.name}
             </text>
           )}
@@ -207,50 +207,50 @@ export function MeihuaChart({ data, size = 500 }: MeihuaChartProps) {
       )}
 
       {/* ── 体用生克 ── */}
-      <text x={infoX} y={tiYongY} textAnchor="start" dominantBaseline="middle" fill="#EAD7A4" style={{ fontSize: 16, fontWeight: 700 }}>
+      <text x={infoX} y={tiYongY} textAnchor="start" dominantBaseline="middle" fill="var(--c-gold)" style={{ fontSize: 16, fontWeight: 700 }}>
         体用生克
       </text>
 
       {/* 体卦（蓝） */}
       <g>
-        <rect x={infoX} y={boxY} width={boxW} height={boxH} rx={8} fill="#16243a" stroke="#1565C0" strokeWidth={2} />
-        <text x={infoX + boxW / 2} y={boxY + boxH / 2 - 2} textAnchor="middle" dominantBaseline="middle" fill="#64b5f6" style={{ fontSize: 24, fontWeight: 700 }}>
+        <rect x={infoX} y={boxY} width={boxW} height={boxH} rx={8} fill="var(--chart-band)" stroke="var(--wz-water)" strokeWidth={2} />
+        <text x={infoX + boxW / 2} y={boxY + boxH / 2 - 2} textAnchor="middle" dominantBaseline="middle" fill="var(--wz-water)" style={{ fontSize: 24, fontWeight: 700 }}>
           {bodyName}
         </text>
-        <text x={infoX + boxW / 2} y={boxY - 6} textAnchor="middle" dominantBaseline="middle" fill="#64b5f6" style={{ fontSize: 10 }}>
+        <text x={infoX + boxW / 2} y={boxY - 6} textAnchor="middle" dominantBaseline="middle" fill="var(--wz-water)" style={{ fontSize: 10 }}>
           体卦
         </text>
       </g>
 
       {/* 关系箭头 + 标签 */}
-      <line x1={arrX1} y1={boxY + boxH / 2} x2={arrX2} y2={boxY + boxH / 2} stroke="#795548" strokeWidth={2} markerEnd="url(#meihua-arrow)" />
+      <line x1={arrX1} y1={boxY + boxH / 2} x2={arrX2} y2={boxY + boxH / 2} stroke="var(--chart-text-faint)" strokeWidth={2} markerEnd="url(#meihua-arrow)" />
       {relation && (
-        <text x={(arrX1 + arrX2) / 2} y={boxY + boxH / 2 - 8} textAnchor="middle" dominantBaseline="middle" fill="#D32F2F" style={{ fontSize: 15, fontWeight: 700 }}>
+        <text x={(arrX1 + arrX2) / 2} y={boxY + boxH / 2 - 8} textAnchor="middle" dominantBaseline="middle" fill="var(--wz-fire)" style={{ fontSize: 15, fontWeight: 700 }}>
           {relation}
         </text>
       )}
 
       {/* 用卦（红） */}
       <g>
-        <rect x={infoX + boxW + 28} y={boxY} width={boxW} height={boxH} rx={8} fill="#3a1620" stroke="#D32F2F" strokeWidth={2} />
-        <text x={infoX + boxW + 28 + boxW / 2} y={boxY + boxH / 2 - 2} textAnchor="middle" dominantBaseline="middle" fill="#ef5350" style={{ fontSize: 24, fontWeight: 700 }}>
+        <rect x={infoX + boxW + 28} y={boxY} width={boxW} height={boxH} rx={8} fill="var(--chart-deep)" stroke="var(--wz-fire)" strokeWidth={2} />
+        <text x={infoX + boxW + 28 + boxW / 2} y={boxY + boxH / 2 - 2} textAnchor="middle" dominantBaseline="middle" fill="var(--wz-fire)" style={{ fontSize: 24, fontWeight: 700 }}>
           {useName}
         </text>
-        <text x={infoX + boxW + 28 + boxW / 2} y={boxY - 6} textAnchor="middle" dominantBaseline="middle" fill="#ef5350" style={{ fontSize: 10 }}>
+        <text x={infoX + boxW + 28 + boxW / 2} y={boxY - 6} textAnchor="middle" dominantBaseline="middle" fill="var(--wz-fire)" style={{ fontSize: 10 }}>
           用卦
         </text>
       </g>
 
       {/* 释义 */}
       {relHint && (
-        <text x={infoX} y={boxY + boxH + 18} textAnchor="start" dominantBaseline="middle" fill="#9ec9b8" style={{ fontSize: 12 }}>
+        <text x={infoX} y={boxY + boxH + 18} textAnchor="start" dominantBaseline="middle" fill="var(--chart-text-sub)" style={{ fontSize: 12 }}>
           释义: {relHint}
         </text>
       )}
 
       <defs>
         <marker id="meihua-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse">
-          <path d="M0,0 L10,5 L0,10 Z" fill="#795548" />
+          <path d="M0,0 L10,5 L0,10 Z" fill="var(--chart-text-faint)" />
         </marker>
       </defs>
     </svg>

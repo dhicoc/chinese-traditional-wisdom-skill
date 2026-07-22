@@ -17,12 +17,23 @@ interface EightMansionsChartProps {
 
 // 八宅吉凶颜色（对齐 legacy fengshui.js MANSION_COLORS）
 const MANSION_COLORS: Record<string, string> = {
-  大吉: '#388E3C',
-  吉: '#A5D6A7',
-  中性: '#9E9E9E',
-  次凶: '#FF9800',
-  凶: '#D32F2F',
-  大凶: '#B71C1C',
+  大吉: 'var(--wz-wood)',
+  吉: 'var(--chart-good-soft)',
+  中性: 'var(--chart-text-faint)',
+  次凶: 'var(--wz-earth)',
+  凶: 'var(--wz-fire)',
+  大凶: 'var(--c-cinnabar-deep)',
+};
+
+// 平行 triplet 映射：用于 rgb(var(--triplet) / alpha) 形式的 alpha 背景
+// 吉类→--wood（兜底），凶类→--cinnabar/-700（精确），中性→--spirit（兜底）
+const MANSION_TRIPLET: Record<string, string> = {
+  大吉: '--wood',
+  吉: '--wood',
+  中性: '--spirit',
+  次凶: '--earth',
+  凶: '--cinnabar',
+  大凶: '--cinnabar-700',
 };
 
 /** 将 hex 颜色转为指定透明度的 rgba（用于扇区低透明背景） */
@@ -78,7 +89,7 @@ export function EightMansionsChart({ grid, year, gender, size = 500 }: EightMans
   // 顶部留出标题带，避免扇区顶部与标题文字重叠
   const ringOut = Math.min(W, H) / 2 - 40;
 
-  const masterColor = MANSION_COLORS['大吉'] || '#388E3C';
+  const masterColor = MANSION_COLORS['大吉'] || 'var(--wz-wood)';
 
   return (
     <svg
@@ -89,13 +100,14 @@ export function EightMansionsChart({ grid, year, gender, size = 500 }: EightMans
       aria-label={`八宅命盘 ${grid.trigram}卦 ${grid.group}`}
     >
       {/* 标题 */}
-      <text x={cx} y={18} textAnchor="middle" dominantBaseline="middle" fill="#cfe9dc" style={{ fontSize: 15, fontWeight: 700 }}>
+      <text x={cx} y={18} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text)" style={{ fontSize: 15, fontWeight: 700 }}>
         八宅命盘 — {year}年 {gender}命
       </text>
 
       {/* 8 方向扇区 */}
       {grid.sectors.map((s: EightMansionSector) => {
-        const color = MANSION_COLORS[s.luck] || '#9E9E9E';
+        const color = MANSION_COLORS[s.luck] || 'var(--chart-text-faint)';
+        const triplet = MANSION_TRIPLET[s.luck] || '--spirit';
         const dirLabel = radialLabel(cx, cy, s.deg, ringIn + 18);
         const starLabel = radialLabel(cx, cy, s.deg, ringIn + 52);
         const luckLabel = radialLabel(cx, cy, s.deg, ringIn + 84);
@@ -105,13 +117,13 @@ export function EightMansionsChart({ grid, year, gender, size = 500 }: EightMans
             {/* 扇区背景 */}
             <path
               d={sectorPath(cx, cy, ringIn, ringOut, s.deg)}
-              fill={hexAlpha(color, 0.18)}
-              stroke="#3a4a3a"
+              fill={`rgb(var(${triplet}) / 0.18)`}
+              stroke="var(--chart-line)"
               strokeWidth={0.6}
             />
             {/* 方向名 */}
             <g transform={`translate(${dirLabel.x.toFixed(2)} ${dirLabel.y.toFixed(2)}) rotate(${dirLabel.rotate})`}>
-              <text textAnchor="middle" dominantBaseline="middle" fill="#cfe9dc" style={{ fontSize: 13, fontWeight: 700 }}>
+              <text textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text)" style={{ fontSize: 13, fontWeight: 700 }}>
                 {s.direction}
               </text>
             </g>
@@ -129,7 +141,7 @@ export function EightMansionsChart({ grid, year, gender, size = 500 }: EightMans
             </g>
             {/* 含义（小字） */}
             <g transform={`translate(${meaningLabel.x.toFixed(2)} ${meaningLabel.y.toFixed(2)}) rotate(${meaningLabel.rotate})`}>
-              <text textAnchor="middle" dominantBaseline="middle" fill="#9a8a7a" style={{ fontSize: 10 }}>
+              <text textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-mid)" style={{ fontSize: 10 }}>
                 {s.meaning}
               </text>
             </g>
@@ -138,8 +150,8 @@ export function EightMansionsChart({ grid, year, gender, size = 500 }: EightMans
       })}
 
       {/* 扇区环边框 */}
-      <circle cx={cx} cy={cy} r={ringOut} fill="none" stroke="#5a6a5a" strokeWidth={1} />
-      <circle cx={cx} cy={cy} r={ringIn} fill="none" stroke="#5a6a5a" strokeWidth={1} />
+      <circle cx={cx} cy={cy} r={ringOut} fill="none" stroke="var(--chart-line-faint)" strokeWidth={1} />
+      <circle cx={cx} cy={cy} r={ringIn} fill="none" stroke="var(--chart-line-faint)" strokeWidth={1} />
 
       {/* 分隔线（每 45°） */}
       {grid.sectors.map((s) => {
@@ -151,21 +163,21 @@ export function EightMansionsChart({ grid, year, gender, size = 500 }: EightMans
             y1={cy + ringIn * Math.sin(rad)}
             x2={cx + ringOut * Math.cos(rad)}
             y2={cy + ringOut * Math.sin(rad)}
-            stroke="#3a4a3a"
+            stroke="var(--chart-line)"
             strokeWidth={0.5}
           />
         );
       })}
 
       {/* 中心：命卦 */}
-      <circle cx={cx} cy={cy} r={52} fill="#0b1410" stroke={masterColor} strokeWidth={3} />
+      <circle cx={cx} cy={cy} r={52} fill="var(--chart-surface)" stroke={masterColor} strokeWidth={3} />
       <text x={cx} y={cy - 8} textAnchor="middle" dominantBaseline="middle" fill={masterColor} style={{ fontSize: 28, fontWeight: 700 }}>
         {grid.trigramSymbol}
       </text>
-      <text x={cx} y={cy + 14} textAnchor="middle" dominantBaseline="middle" fill="#cfe9dc" style={{ fontSize: 13 }}>
+      <text x={cx} y={cy + 14} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text)" style={{ fontSize: 13 }}>
         {grid.trigram}
       </text>
-      <text x={cx} y={cy + 32} textAnchor="middle" dominantBaseline="middle" fill="#7a8a7a" style={{ fontSize: 11 }}>
+      <text x={cx} y={cy + 32} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 11 }}>
         {grid.group}
       </text>
     </svg>

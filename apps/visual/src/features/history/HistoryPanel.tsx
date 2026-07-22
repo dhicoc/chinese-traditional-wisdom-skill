@@ -16,13 +16,13 @@ const MODULE_LABELS: Record<string, string> = {
   tizhi: '体质辨识',
 };
 
-const MODE_COLORS: Record<string, string> = {
-  'local-exact': '#0a9396',
-  'local': '#2a9d8f',
-  'local-approx': '#2a9d8f',
-  'demo': '#e76f51',
-  'knowledge': '#e9c46a',
-  'derived': '#a78bfa',
+const MODE_COLORS: Record<string, { color: string; border: string }> = {
+  'local-exact': { color: 'var(--wz-water)', border: 'rgb(var(--water) / 0.2)' },
+  'local': { color: 'var(--wz-wood)', border: 'rgb(var(--wood) / 0.2)' },
+  'local-approx': { color: 'var(--wz-wood)', border: 'rgb(var(--wood) / 0.2)' },
+  'demo': { color: 'var(--wz-fire)', border: 'rgb(var(--cinnabar) / 0.2)' },
+  'knowledge': { color: 'var(--wz-earth)', border: 'rgb(var(--earth) / 0.2)' },
+  'derived': { color: 'var(--chart-text-faint)', border: 'var(--chart-text-faint)' },
 };
 
 function formatTime(iso: string): string {
@@ -47,7 +47,7 @@ function EntryCard({
   onToggleFav: (id: string) => void;
   onRemove: (id: string) => void;
 }) {
-  const modeColor = MODE_COLORS[entry.mode] ?? '#666';
+  const modeStyle = MODE_COLORS[entry.mode] ?? { color: 'var(--chart-text-faint)', border: 'var(--chart-text-faint)' };
   const moduleLabel = MODULE_LABELS[entry.module] ?? entry.module;
 
   return (
@@ -79,7 +79,7 @@ function EntryCard({
         <div className="flex shrink-0 flex-col items-end gap-2">
           <span
             className="rounded-full border px-2 py-0.5 text-[10px] font-semibold"
-            style={{ borderColor: `${modeColor}33`, color: modeColor }}
+            style={{ borderColor: modeStyle.border, color: modeStyle.color }}
           >
             {moduleLabel}
           </span>
