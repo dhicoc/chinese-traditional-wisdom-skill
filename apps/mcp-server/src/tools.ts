@@ -27,6 +27,7 @@ import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo, calcSans
 import { calcMarriageCombo } from '../../visual/src/legacy/marriageCombo';
 import { calcCeziEnveloped } from '../../visual/src/legacy/ceziEngine';
 import { calcChenguzEnveloped } from '../../visual/src/legacy/chenguzEngine';
+import { getAlmanacEnveloped } from '../../visual/src/legacy/almanacData';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
 const solarEntry: unknown = (() => {
@@ -409,6 +410,17 @@ export const TOOLS: ToolDef[] = [
       birth: (i as { birth: unknown }).birth as never,
       solar: solarEntry,
       version: (i as { version?: 'standard' | 'folk' | 'full' }).version,
+    }),
+  },
+  {
+    name: 'get_almanac',
+    description: '每日黄历：按公历日期返回完整黄历——干支纳音、宜忌、吉神凶煞、彭祖百忌、喜福财神方位、冲煞、十二时辰吉凶、节气节日。基于内置 lunar-javascript 真实历法推算，民俗参考。不传 date 默认今天。',
+    schema: z.object({
+      date: z.string().optional().describe('公历日期 yyyy-mm-dd，不传默认今天'),
+    }),
+    handler: (i) => getAlmanacEnveloped({
+      date: (i as { date?: string }).date,
+      solar: solarEntry as never,
     }),
   },
 ];

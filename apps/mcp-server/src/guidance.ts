@@ -277,6 +277,16 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     doNotAssume: ['question', 'birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
     workflow: '确认生辰 + 求测事项 → 调 combo_sanshi → 看三式一致性，以大六壬三传为主断事态。',
   },
+  get_almanac: {
+    tool: 'get_almanac',
+    purpose: '每日黄历：干支纳音、宜忌、吉神凶煞、神位方位、冲煞、时辰吉凶。按公历日期查。',
+    requiredParams: [
+      { name: 'date', required: true, description: '公历日期 yyyy-mm-dd', promptToUser: '请提供要查询的公历日期（如 2026-08-01）；若查今天可不传。' },
+    ],
+    safeDefaults: {},
+    doNotAssume: ['date'],
+    workflow: '确认日期（不传默认今天）→ 调 get_almanac → 解读宜忌、神位方位、时辰吉凶。',
+  },
 };
 
 /** 取某工具的参数引导。未注册工具返回 null。 */

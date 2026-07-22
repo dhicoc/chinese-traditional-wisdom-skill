@@ -6,6 +6,8 @@
  * 纳音星宿等均为真实历法推算。引擎未加载时返回 null，由 UI 显示降级提示。
  */
 
+import type { ToolEnvelope, ExportSnapshot } from './baseTypes';
+
 export interface AlmanacTimeHour {
   /** 时辰干支，如「壬子」 */
   ganZhi: string;
@@ -218,4 +220,68 @@ export function getAlmanacData(dateStr: string, solar?: SolarLike | null): Alman
     // 任一 getter 抛错时降级，避免整页黑屏
     return null;
   }
+}
+
+// ─── ToolEnvelope 包装（供 MCP server 注册为工具）──
+
+export interface AlmanacInput {
+  /** 公历日期 yyyy-mm-dd，缺省取今天 */
+  date?: string;
+  /** 可选 lunar-javascript Solar 入口（MCP 端传入 ESM 版） */
+  solar?: SolarLike | null;
+}
+
+/**
+ * 每日黄历（enveloped 版）：按公历日期返回完整黄历数据 + 四层报告快照。
+ * 供 MCP server 注册为 get_almanac 工具，AI 对话直接调用。
+ */
+export function getAlmanacEnveloped(input: AlmanacInput = {}): ToolEnvelope<AlmanacData> {
+  const today = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  })();
+  const dateStr = input.date?.trim() || today;
+  const data = getAlmanacData(dateStr, input.solar ?? null);
+
+  if (!data) {
+    return {
+      ok: false,
+      tool: 'get_almanac',
+      version: '1.0.0',
+      input_normalized: { date: dateStr },
+      data: data as unknown as AlmanacData,
+      summary: [],
+      error: { code: 'SOLAR_UNAVAILABLE', message: `无法取到 ${dateStr} 的黄历数据，可能精确历法入口（lunar-javascript）未加载。` },
+    };
+  }
+
+  const yiStr = data.yi.length ? data.yi.join('、') : '无';
+  const jiStr = data.ji.length ? data.ji.join('、') : '无';
+  const synthesis = `${data.solarDate}（${data.lunarDate}）${data.dayGanZhi}日，${data.zodiac}年。宜：${yiStr}；忌：${jiStr}。${data.dayTianShenType}（${data.dayTianShen}），冲${data.chong}煞${data.sha}。喜神${data.xiPosition}、财神${data.caiPosition}。`;
+
+  const snapshot: ExportSnapshot = {
+    summary: synthesis,
+    tags: ['黄历', data.dayGanZhi, data.zodiac, data.dayTianShenType],
+    sections: [
+      { heading: '干支纳音', body: `${data.yearGanZhi}年 ${data.monthGanZhi}月 ${data.dayGanZhi}日（${data.dayNaYin}），生肖${data.zodiac}，星宿${data.dayXiu}。` },
+      { heading: '宜忌', body: `宜：${yiStr}。忌：${jiStr}。` },
+      { heading: '吉神凶煞', body: `吉神宜趋：${data.jiShen.join('、') || '无'}。凶煞宜忌：${data.xiongSha.join('、') || '无'}。彭祖百忌：${data.pengZu}。` },
+      { heading: '神位方位', body: `喜神${data.xiPosition}、福神${data.fuPosition}、财神${data.caiPosition}、阳贵${data.yangGuiPosition}、阴贵${data.yinGuiPosition}。` },
+      { heading: '冲煞', body: `冲：${data.chong}；煞：${data.sha}。` },
+      { heading: '时辰吉凶', body: data.hours.map((h) => `${h.label} ${h.ganZhi}（${h.tianShenType}/${h.luck}）宜${h.yi.join('、') || '无'}忌${h.ji.join('、') || '无'}`).join('；') + '。' },
+      ...(data.jieQi ? [{ heading: '节气', body: `今日为${data.jieQi}。` }] : []),
+      ...(data.festivals.length ? [{ heading: '节日', body: data.festivals.join('、') + '。' }] : []),
+    ],
+    sourceNotes: data.confidenceNote,
+  };
+
+  return {
+    ok: true,
+    tool: 'get_almanac',
+    version: '1.0.0',
+    input_normalized: { date: dateStr },
+    data,
+    summary: [synthesis],
+    warnings: [data.confidenceNote],
+  };
 }

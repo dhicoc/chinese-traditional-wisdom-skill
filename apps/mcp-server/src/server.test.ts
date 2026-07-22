@@ -91,12 +91,12 @@ describe('MCP Server 端到端协议', () => {
     expect(result.protocolVersion).toBe('2024-11-05');
   }, 30000);
 
-  it('tools/list 返回 27 个工具（25 计算 + 2 元工具）且 inputSchema 完整', async () => {
+  it('tools/list 返回 28 个工具（26 计算 + 2 元工具）且 inputSchema 完整', async () => {
     const responses = await runMcpSession([INIT_MSG, INITIALIZED_MSG, TOOLS_LIST_MSG]);
     const list = responses.find((r) => r.id === 2);
     expect(list).toBeDefined();
     const tools = (list!.result as { tools: Array<{ name: string; description: string; inputSchema: { type: string; properties: unknown } }> }).tools;
-    expect(tools.length).toBe(27);
+    expect(tools.length).toBe(28);
     tools.forEach((t) => {
       expect(t.name).toMatch(/^[a-z][a-z0-9_]*$/);
       expect(t.description.length).toBeGreaterThan(10);
@@ -136,6 +136,35 @@ describe('MCP Server 端到端协议', () => {
     expect(payload.hit).toBe(true);
     expect(payload.tool).toBe('bazi_calculate');
     expect(payload.arguments.birth.year).toBe(1990);
+  }, 30000);
+
+  it('tools/call wisdom_dispatch 路由"今天黄历宜什么"到 get_almanac', async () => {
+    const responses = await runMcpSession([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(22, 'wisdom_dispatch', { text: '今天黄历宜什么' }),
+    ]);
+    const call = responses.find((r) => r.id === 22);
+    const result = call!.result as { content: Array<{ type: string; text: string }> };
+    const payload = JSON.parse(result.content[0].text) as { tool: string; hit: boolean };
+    expect(payload.hit).toBe(true);
+    expect(payload.tool).toBe('get_almanac');
+  }, 30000);
+
+  it('tools/call get_almanac 返回 ToolEnvelope 黄历数据', async () => {
+    const responses = await runMcpSession([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(11, 'get_almanac', { date: '2026-08-01' }),
+    ]);
+    const call = responses.find((r) => r.id === 11);
+    expect(call).toBeDefined();
+    const result = call!.result as { content: Array<{ type: string; text: string }>; isError?: boolean };
+    expect(result.isError).toBeFalsy();
+    const envelope = JSON.parse(result.content[0].text) as { ok: boolean; tool: string; data: { solarDate: string; dayGanZhi: string; yi: string[]; ji: string[]; hours: unknown[] } };
+    expect(envelope.ok).toBe(true);
+    expect(envelope.tool).toBe('get_almanac');
+    expect(envelope.data.solarDate).toContain('2026年8月1日');
+    expect(envelope.data.dayGanZhi).toBeTruthy();
+    expect(envelope.data.hours.length).toBeGreaterThan(0);
   }, 30000);
 
   it('tools/call bazi_calculate 返回 ToolEnvelope 内容', async () => {
