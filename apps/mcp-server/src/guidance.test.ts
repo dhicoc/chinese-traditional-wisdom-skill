@@ -23,9 +23,9 @@ describe('agent_guidance 参数引导', () => {
     expect(getToolGuidance('nonexistent')).toBeNull();
   });
 
-  it('listToolGuidance 返回 24 个工具摘要', () => {
+  it('listToolGuidance 返回 25 个工具摘要', () => {
     const list = listToolGuidance();
-    expect(list.length).toBe(24);
+    expect(list.length).toBe(25);
     list.forEach((g) => {
       expect(g.tool).toMatch(/^[a-z_]+$/);
       expect(g.purpose).toBeTruthy();

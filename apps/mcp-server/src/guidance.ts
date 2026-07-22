@@ -297,6 +297,17 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     doNotAssume: ['year', 'gender', 'birthYear'],
     workflow: '确认年份（+可选性别/出生年推命卦方位）→ 调 calc_feixing → 解读中宫飞星、凶位化解、命卦吉方。',
   },
+  calc_bazhai: {
+    tool: 'calc_bazhai',
+    purpose: '八宅大游年：命卦+个人八方吉凶+太岁三煞，可算门主灶配合。需出生年+性别。',
+    requiredParams: [
+      { name: 'birthYear', required: true, description: '出生年', promptToUser: '请提供您的出生年份（如 1990）。' },
+      { name: 'gender', required: true, description: '性别', promptToUser: '请提供性别（男/女），用于推命卦。' },
+    ],
+    safeDefaults: {},
+    doNotAssume: ['birthYear', 'gender', 'door', 'bedroom', 'kitchen'],
+    workflow: '确认出生年+性别 → 调 calc_bazhai 得命卦与八方吉凶；若用户问门主灶则补问 door/bedroom/kitchen 方位再调。',
+  },
 };
 
 /** 取某工具的参数引导。未注册工具返回 null。 */

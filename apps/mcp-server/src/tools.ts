@@ -29,6 +29,7 @@ import { calcCeziEnveloped } from '../../visual/src/legacy/ceziEngine';
 import { calcChenguzEnveloped } from '../../visual/src/legacy/chenguzEngine';
 import { getAlmanacEnveloped } from '../../visual/src/legacy/almanacData';
 import { calcFeixingEnveloped } from '../../visual/src/legacy/feixingEngine';
+import { calcBazhaiEnveloped } from '../../visual/src/legacy/bazhaiEngine';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
 const solarEntry: unknown = (() => {
@@ -436,6 +437,26 @@ export const TOOLS: ToolDef[] = [
       year: (i as { year?: number }).year,
       gender: (i as { gender?: '男' | '女' }).gender,
       birthYear: (i as { birthYear?: number }).birthYear,
+    }),
+  },
+  {
+    name: 'calc_bazhai',
+    description: '八宅大游年：按出生年+性别推命卦（东四/西四命）+ 个人八方吉凶（生气/天医/延年/伏位/绝命/五鬼/六煞/祸害）+ 太岁三煞。可选传 door/bedroom/kitchen 方位算门主灶配合。阳宅风水民俗参考。',
+    schema: z.object({
+      birthYear: z.number().int().min(1900).max(2100).describe('出生年（推命卦，必填）'),
+      gender: z.enum(['男', '女']).describe('性别（推命卦，必填）'),
+      door: z.string().optional().describe('大门方位（北/东北/东/东南/南/西南/西/西北，传则算门主灶）'),
+      bedroom: z.string().optional().describe('主卧方位'),
+      kitchen: z.string().optional().describe('厨房灶位方位'),
+      year: z.number().int().min(1900).max(2100).optional().describe('查太岁三煞的年份，默认今年'),
+    }),
+    handler: (i) => calcBazhaiEnveloped({
+      birthYear: (i as { birthYear: number }).birthYear,
+      gender: (i as { gender: '男' | '女' }).gender,
+      door: (i as { door?: string }).door,
+      bedroom: (i as { bedroom?: string }).bedroom,
+      kitchen: (i as { kitchen?: string }).kitchen,
+      year: (i as { year?: number }).year,
     }),
   },
 ];
