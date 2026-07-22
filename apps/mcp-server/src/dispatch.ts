@@ -54,6 +54,7 @@ const ROUTE_RULES: RouteRule[] = [
   { tool: 'calc_yunqi', keywords: ['五运六气', '岁运', '司天', '在泉', '运气', '六气'], priority: 70 },
   { tool: 'calc_xiyong', keywords: ['喜用神', '用神', '喜神', '身强身弱', '强弱'], priority: 65 },
   { tool: 'get_constitution_tendency', keywords: ['体质', '九种体质', '体质倾向', '中医体质'], priority: 60 },
+  { tool: 'assess_constitution', keywords: ['体质自评', '体质问卷', '测体质', '体质测试', '我做题测体质', '自测体质'], priority: 62 },
   { tool: 'bazi_calculate', keywords: ['八字', '四柱', '排盘', '命理', '生辰', '算命', '大运', '日主', '五行'], priority: 50 },
   { tool: 'get_almanac', keywords: ['黄历', '每日黄历', '今天宜', '今日宜', '宜忌', '吉时', '老黄历', '万年历'], priority: 55 },
   { tool: 'calc_feixing', keywords: ['飞星', '流年飞星', '九星', '九宫飞星', '玄空', '中宫', '五黄', '财位在哪', '文昌位', '今年风水'], priority: 58 },

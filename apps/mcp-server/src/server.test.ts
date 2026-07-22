@@ -91,12 +91,12 @@ describe('MCP Server 端到端协议', () => {
     expect(result.protocolVersion).toBe('2024-11-05');
   }, 30000);
 
-  it('tools/list 返回 31 个工具（29 计算 + 2 元工具）且 inputSchema 完整', async () => {
+  it('tools/list 返回 33 个工具（31 计算 + 2 元工具）且 inputSchema 完整', async () => {
     const responses = await runMcpSession([INIT_MSG, INITIALIZED_MSG, TOOLS_LIST_MSG]);
     const list = responses.find((r) => r.id === 2);
     expect(list).toBeDefined();
     const tools = (list!.result as { tools: Array<{ name: string; description: string; inputSchema: { type: string; properties: unknown } }> }).tools;
-    expect(tools.length).toBe(31);
+    expect(tools.length).toBe(33);
     tools.forEach((t) => {
       expect(t.name).toMatch(/^[a-z][a-z0-9_]*$/);
       expect(t.description.length).toBeGreaterThan(10);
@@ -218,6 +218,29 @@ describe('MCP Server 端到端协议', () => {
     expect(envelope.data.jieqi).toBeTruthy();
     expect(envelope.data.wellness.principle).toBeTruthy();
     expect(envelope.data.meridian).toBeTruthy();
+  }, 30000);
+
+  it('tools/call assess_constitution 按答题算体质', async () => {
+    const responses = await runMcpSession([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(15, 'assess_constitution', {
+        answers: [
+          { type: '气虚质', score: 5 }, { type: '气虚质', score: 4 },
+          { type: '阳虚质', score: 2 }, { type: '阳虚质', score: 2 },
+          { type: '平和质', score: 3 },
+        ],
+      }),
+    ]);
+    const call = responses.find((r) => r.id === 15);
+    expect(call).toBeDefined();
+    const result = call!.result as { content: Array<{ type: string; text: string }>; isError?: boolean };
+    expect(result.isError).toBeFalsy();
+    const envelope = JSON.parse(result.content[0].text) as { ok: boolean; tool: string; data: { dominantType: string; scores: Record<string, number>; advices: Array<{ type: string }> } };
+    expect(envelope.ok).toBe(true);
+    expect(envelope.tool).toBe('assess_constitution');
+    expect(envelope.data.dominantType).toBeTruthy();
+    expect(Object.keys(envelope.data.scores).length).toBeGreaterThan(0);
+    expect(envelope.data.advices.length).toBeGreaterThan(0);
   }, 30000);
 
   it('tools/call bazi_calculate 返回 ToolEnvelope 内容', async () => {

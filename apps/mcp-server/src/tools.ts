@@ -31,6 +31,7 @@ import { getAlmanacEnveloped } from '../../visual/src/legacy/almanacData';
 import { calcFeixingEnveloped } from '../../visual/src/legacy/feixingEngine';
 import { calcBazhaiEnveloped } from '../../visual/src/legacy/bazhaiEngine';
 import { getDailyRhythmEnveloped } from '../../visual/src/legacy/rhythmEngine';
+import { assessConstitutionEnveloped, listConstitutionQuestionnaire } from '../../visual/src/legacy/constitutionAssessEngine';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
 const solarEntry: unknown = (() => {
@@ -474,5 +475,34 @@ export const TOOLS: ToolDef[] = [
       constitution: (i as { constitution?: string }).constitution,
       solar: solarEntry as never,
     }),
+  },
+  {
+    name: 'assess_constitution',
+    description: '中医九种体质问卷自评：传入用户答题（answers: {type, score}[]，score 1-5）算九种体质转化分 + 主体质 + 调养建议（方向/食疗/穴位）。与 get_constitution_tendency（按出生年推断）互补，本工具按实际答题更贴近真实体质。答题前可调 list_constitution_questionnaire 取题目问用户。',
+    schema: z.object({
+      answers: z.array(z.object({
+        type: z.string().describe('体质类型（如气虚质/阳虚质等，对应题目分组）'),
+        score: z.number().int().min(1).max(5).describe('该题得分 1-5（1没有/2很少/3有时/4经常/5总是）'),
+      })).describe('用户答题数组'),
+    }),
+    handler: (i) => assessConstitutionEnveloped({
+      answers: (i as { answers: Array<{ type: string; score: number }> }).answers,
+    }),
+  },
+  {
+    name: 'list_constitution_questionnaire',
+    description: '列出中医九种体质问卷全部题目（按体质分组），供 AI 取题问用户后调 assess_constitution 自评。无入参。',
+    schema: z.object({}),
+    handler: () => {
+      const list = listConstitutionQuestionnaire();
+      return {
+        ok: true,
+        tool: 'list_constitution_questionnaire',
+        version: '1.0.0',
+        input_normalized: {},
+        data: { groups: list },
+        summary: [`九种体质问卷共 ${list.length} 组、${list.reduce((s, g) => s + g.questions.length, 0)} 题`],
+      } as never;
+    },
   },
 ];

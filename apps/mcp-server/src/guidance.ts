@@ -318,6 +318,16 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     doNotAssume: ['date', 'hour', 'constitution'],
     workflow: '确认日期（+可选体质）→ 调 get_daily_rhythm → 解读节气调养与时辰经络养生。',
   },
+  assess_constitution: {
+    tool: 'assess_constitution',
+    purpose: '中医九种体质问卷自评：传答题算转化分+主体质+调养建议。',
+    requiredParams: [
+      { name: 'answers', required: true, description: '用户答题数组', promptToUser: '请先调 list_constitution_questionnaire 取题目，逐题问用户得分（1-5），再传 answers 调本工具。' },
+    ],
+    safeDefaults: {},
+    doNotAssume: ['answers'],
+    workflow: '调 list_constitution_questionnaire 取题 → 逐题问用户得分（1-5）→ 汇总 answers → 调 assess_constitution → 解读主体质与调养方向。',
+  },
 };
 
 /** 取某工具的参数引导。未注册工具返回 null。 */
