@@ -141,7 +141,7 @@ export function BaziWorkspace() {
 
   return (
     <section className="space-y-5">
-      <div className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-panel border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-400">Bazi Plate</p>
@@ -215,14 +215,14 @@ export function BaziWorkspace() {
             description="点击术语查看通俗解释与命理含义。"
           />
           {fourLayer && (
-            <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+            <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
               <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
             </div>
           )}
         </aside>
 
         <div className="space-y-4">
-          <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <section className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-jade-50">四柱主盘</h3>
@@ -231,7 +231,7 @@ export function BaziWorkspace() {
                 </p>
               </div>
             </div>
-            <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
+            <div className="canvas-stage overflow-x-auto rounded-card border border-jade-500/18 bg-ink-950/92 p-3">
               {ready ? (
                 <ZoomableSvg title="四柱主盘">
                   <BaziPillarsChart pillars={pillars} />
@@ -241,12 +241,12 @@ export function BaziWorkspace() {
               )}
             </div>
           </section>
-          <div className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4">
+          <div className="console-panel rounded-panel border border-jade-500/20 bg-ink-950/90 p-4">
             <div className="mb-4 flex items-center justify-between border-b border-white/8 pb-3">
               <h3 className="text-lg font-semibold text-jade-50">八字明细</h3>
               <span className="rounded-full border border-white/10 bg-black/30 px-2.5 py-1 text-[10px] text-jade-100/45">四柱</span>
             </div>
-            <div className="grid grid-cols-4 overflow-hidden rounded-[18px] border border-white/10 text-center text-sm">
+            <div className="grid grid-cols-4 overflow-hidden rounded-card border border-white/10 text-center text-sm">
               {pillarRows.map(([label]) => (
                 <div key={label} className="border-b border-white/10 bg-white/[0.035] px-2 py-2 text-xs text-jade-100/45">{label}</div>
               ))}
@@ -261,7 +261,7 @@ export function BaziWorkspace() {
         </div>
 
         <aside className="space-y-4">
-          <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
+          <section className="console-panel rounded-panel border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
             <div className="mb-4 flex items-center justify-between border-b border-white/8 pb-3">
               <h3 className="text-lg font-semibold text-jade-50">五行能量</h3>
               <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2.5 py-1 text-[10px] text-jade-400">统计</span>
@@ -283,7 +283,7 @@ export function BaziWorkspace() {
               })}
             </div>
           </section>
-          <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <section className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-jade-50">五行平衡</h3>
@@ -292,7 +292,7 @@ export function BaziWorkspace() {
                 </p>
               </div>
             </div>
-            <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
+            <div className="canvas-stage overflow-x-auto rounded-card border border-jade-500/18 bg-ink-950/92 p-3">
               {ready ? (
                 <ZoomableSvg title="五行平衡">
                   <FiveElementsChart stats={wuxing} />

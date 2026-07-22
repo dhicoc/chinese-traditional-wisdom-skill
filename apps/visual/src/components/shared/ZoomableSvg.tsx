@@ -160,7 +160,7 @@ export function ZoomableSvg({ title, children, className }: ZoomableSvgProps) {
               role="dialog"
               aria-modal="true"
               aria-labelledby={`${zoomId}-title`}
-              className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-[min(1040px,calc(100vw-2rem))] flex-col overflow-hidden rounded-[26px] border border-jade-500/25 bg-ink-950/95 shadow-[0_32px_100px_rgb(var(--shadow-rgb)/0.58)]"
+              className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-[min(1040px,calc(100vw-2rem))] flex-col overflow-hidden rounded-panel border border-jade-500/25 bg-ink-950/95 shadow-[0_32px_100px_rgb(var(--shadow-rgb)/0.58)]"
             >
               <div className="flex items-center justify-between gap-4 border-b border-white/10 bg-ink-900/92 px-5 py-4">
                 <div>
@@ -180,7 +180,7 @@ export function ZoomableSvg({ title, children, className }: ZoomableSvgProps) {
                 <div
                   // eslint-disable-next-line react/no-danger -- markup 来自本项目自有 SVG 组件的克隆，无外部输入
                   dangerouslySetInnerHTML={{ __html: zoomMarkup }}
-                  className="mx-auto block h-auto w-full max-w-full rounded-[18px] bg-ink-950 shadow-[0_22px_56px_rgb(var(--shadow-rgb)/0.38)]"
+                  className="mx-auto block h-auto w-full max-w-full rounded-card bg-ink-950 shadow-[0_22px_56px_rgb(var(--shadow-rgb)/0.38)]"
                 />
               </div>
               <p className="border-t border-white/10 bg-ink-900/92 px-4 py-3 text-center text-xs text-jade-100/45">

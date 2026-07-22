@@ -423,14 +423,14 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
 
   return (
     <>
-      <header className="app-topbar sticky top-4 z-20 rounded-[24px] border border-jade-500/18 bg-ink-950/90 p-3 shadow-instrument backdrop-blur-xl">
+      <header className="app-topbar sticky top-4 z-20 rounded-panel border border-jade-500/18 bg-ink-950/90 p-3 shadow-instrument backdrop-blur-xl">
         <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
           <button
             ref={inputRef}
             type="button"
             onClick={() => setPaletteOpen(true)}
             data-testid="command-bar"
-            className="flex min-h-12 items-center gap-3 rounded-[18px] border border-white/10 bg-black/30 px-4 text-left text-jade-100/55 transition hover:border-jade-500/30 hover:text-jade-100 active:scale-[0.99]"
+            className="flex min-h-12 items-center gap-3 rounded-card border border-white/10 bg-black/30 px-4 text-left text-jade-100/55 transition hover:border-jade-500/30 hover:text-jade-100 active:scale-[0.99]"
             aria-label="打开命令面板 (⌘K)"
           >
             <span className="font-mono text-jade-400">⌘K</span>

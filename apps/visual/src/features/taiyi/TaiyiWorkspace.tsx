@@ -160,7 +160,7 @@ export function TaiyiWorkspace() {
             ]}
           />
           {fourLayer && (
-            <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+            <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
               <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
             </div>
           )}
@@ -169,7 +169,7 @@ export function TaiyiWorkspace() {
         {/* 右侧：太乙式盘 + 落宫 + 主客算 + 格局 */}
         <div className="space-y-4">
           {/* 太乙九宫落宫 SVG 式盘 */}
-          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <h3 className="mb-2 text-sm font-semibold text-jade-50">太乙九宫式盘</h3>
             <ZoomableSvg title="太乙九宫落宫">
               <TaiyiChart
@@ -186,7 +186,7 @@ export function TaiyiWorkspace() {
           </div>
 
           {/* 太乙落宫 + 文昌始击定目 */}
-          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <h3 className="mb-3 text-sm font-semibold text-jade-50">太乙落宫与二目</h3>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <div className="rounded-card border border-gold-500/25 bg-gold-500/8 p-3 text-center">
@@ -213,7 +213,7 @@ export function TaiyiWorkspace() {
           </div>
 
           {/* 主客算 */}
-          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <h3 className="mb-3 text-sm font-semibold text-jade-50">主客算与四将</h3>
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-card border border-jade-500/20 bg-jade-500/6 p-3">
@@ -233,7 +233,7 @@ export function TaiyiWorkspace() {
           </div>
 
           {/* 格局 */}
-          <div className="console-panel rounded-[22px] border border-gold-500/20 bg-gold-500/6 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-gold-500/20 bg-gold-500/6 p-4 shadow-instrument">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-jade-50">格局</h3>
               <span className={`rounded-full border px-3 py-1 text-xs ${hasGeju ? 'border-cinnabar-500/30 bg-cinnabar-500/10 text-cinnabar-400' : 'border-jade-500/30 bg-jade-500/10 text-jade-400'}`}>
@@ -255,7 +255,7 @@ export function TaiyiWorkspace() {
           </div>
 
           {/* 八门三将 */}
-          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <h3 className="mb-3 text-sm font-semibold text-jade-50">八门与三将</h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>

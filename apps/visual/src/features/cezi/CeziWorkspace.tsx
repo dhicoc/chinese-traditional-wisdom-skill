@@ -51,7 +51,7 @@ export function CeziWorkspace() {
   return (
     <div className="space-y-4">
       {/* 头部 */}
-      <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-jade-50">测字 · 字占</h2>
@@ -65,7 +65,7 @@ export function CeziWorkspace() {
       </div>
 
       {/* 输入区 */}
-      <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-3">
           <p className="text-sm font-semibold text-jade-100">输入</p>
         </div>

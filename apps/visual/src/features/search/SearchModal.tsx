@@ -79,7 +79,7 @@ export function SearchModal({ onSelectModule }: { onSelectModule: (id: ModuleId)
       />
 
       {/* 对话框 */}
-      <div className="absolute left-1/2 top-20 flex max-h-[70vh] w-[640px] max-w-[90vw] -translate-x-1/2 flex-col overflow-hidden rounded-xl border border-white/10 bg-ink-900/95 shadow-[0_8px_40px_rgb(var(--shadow-rgb)/0.5)] backdrop-blur-md ct-animate-fade-in">
+      <div className="absolute left-1/2 top-20 flex max-h-[70vh] w-[640px] max-w-[90vw] -translate-x-1/2 flex-col overflow-hidden rounded-card border border-white/10 bg-ink-900/95 shadow-[0_8px_40px_rgb(var(--shadow-rgb)/0.5)] backdrop-blur-md ct-animate-fade-in">
         {/* 输入栏 */}
         <div className="flex items-center gap-2.5 border-b border-white/10 px-5 py-3.5">
           <span className="text-lg">🔍</span>

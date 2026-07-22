@@ -71,7 +71,7 @@ export function TermExplanationPanel({ initialTerm, terms, description, ready = 
         ))}
       </div>
       {selected && (
-        <div className="mt-3 rounded-[14px] border border-white/8 bg-black/20 p-3 text-sm leading-6 text-jade-100/70">
+        <div className="mt-3 rounded-card border border-white/8 bg-black/20 p-3 text-sm leading-6 text-jade-100/70">
           {notFound ? (
             <span className="text-jade-100/45">「{selected}」暂无内置解释。</span>
           ) : (

@@ -162,7 +162,7 @@ export function MeihuaWorkspace() {
           </ControlField>
         </aside>
 
-        <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+        <section className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
           <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
             <div>
               <h3 className="text-lg font-semibold text-jade-50">本卦 · 互卦 · 变卦</h3>
@@ -171,7 +171,7 @@ export function MeihuaWorkspace() {
               </p>
             </div>
           </div>
-          <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
+          <div className="canvas-stage overflow-x-auto rounded-card border border-jade-500/18 bg-ink-950/92 p-3">
             {ready ? (
               <ZoomableSvg title="梅花易数 本卦·互卦·变卦">
                 <MeihuaChart data={data} />

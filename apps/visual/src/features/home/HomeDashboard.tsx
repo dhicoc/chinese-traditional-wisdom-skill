@@ -106,7 +106,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
         ))}
       </div>
 
-      <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
+      <section className="console-panel rounded-panel border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="font-serif text-xl font-semibold tracking-[0.1em] text-jade-50">四柱 / 九宫工作台</h2>
@@ -137,7 +137,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
 
       <div className="grid gap-4">
         {Object.entries(grouped).map(([group, groupTools]) => (
-          <section key={group} className="console-panel rounded-[22px] border border-ink-700 bg-ink-950/82 p-4">
+          <section key={group} className="console-panel rounded-panel border border-ink-700 bg-ink-950/82 p-4">
             <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/8 pb-3">
               <h3 className="font-serif text-base font-semibold tracking-[0.12em] text-jade-100">{group}</h3>
               <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-jade-100/45">{groupTools.length} 个入口</span>
@@ -145,7 +145,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
             <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
               {groupTools.map((tool) => {
                 return (
-                  <button key={tool.id} type="button" onClick={() => isModuleId(tool.entryTab) && onSelectModule(tool.entryTab)} className="flex items-center justify-between gap-3 rounded-[16px] border border-white/8 bg-black/25 px-3 py-3 text-left transition hover:border-jade-500/25 hover:bg-white/[0.04]">
+                  <button key={tool.id} type="button" onClick={() => isModuleId(tool.entryTab) && onSelectModule(tool.entryTab)} className="flex items-center justify-between gap-3 rounded-card border border-white/8 bg-black/25 px-3 py-3 text-left transition hover:border-jade-500/25 hover:bg-white/[0.04]">
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-medium text-jade-100">{tool.title}</span>
                       <span className="mt-0.5 block truncate text-xs text-jade-100/55">{tool.questionTypes.slice(0, 2).join(' / ')}</span>

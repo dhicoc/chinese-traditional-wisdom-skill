@@ -130,14 +130,14 @@ export function ConstitutionWorkspace() {
             <button
               type="button"
               onClick={() => setQuestionMode(true)}
-              className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium transition ${questionMode ? 'bg-jade-500/15 text-jade-300' : 'text-jade-100/45 hover:text-jade-100'}`}
+              className={`flex-1 rounded-card px-3 py-2 text-xs font-medium transition ${questionMode ? 'bg-jade-500/15 text-jade-300' : 'text-jade-100/45 hover:text-jade-100'}`}
             >
               问卷模式
             </button>
             <button
               type="button"
               onClick={() => setQuestionMode(false)}
-              className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium transition ${!questionMode ? 'bg-jade-500/15 text-jade-300' : 'text-jade-100/45 hover:text-jade-100'}`}
+              className={`flex-1 rounded-card px-3 py-2 text-xs font-medium transition ${!questionMode ? 'bg-jade-500/15 text-jade-300' : 'text-jade-100/45 hover:text-jade-100'}`}
             >
               手动调整
             </button>
@@ -181,7 +181,7 @@ export function ConstitutionWorkspace() {
                             key={opt.value}
                             type="button"
                             onClick={() => handleAnswer(key, opt.value)}
-                            className={`rounded-lg px-2.5 py-1 text-xs transition ${
+                            className={`rounded-card px-2.5 py-1 text-xs transition ${
                               answers[key] === opt.value
                                 ? 'border border-jade-500/40 bg-jade-500/15 text-jade-300'
                                 : 'border border-white/8 text-jade-100/55 hover:text-jade-100'
@@ -204,7 +204,7 @@ export function ConstitutionWorkspace() {
                     type="button"
                     onClick={() => setActiveGroupIdx(Math.max(0, activeGroupIdx - 1))}
                     disabled={activeGroupIdx === 0}
-                    className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-jade-100/55 transition hover:text-jade-100 disabled:opacity-30"
+                    className="rounded-card border border-white/10 px-3 py-1.5 text-xs text-jade-100/55 transition hover:text-jade-100 disabled:opacity-30"
                   >
                     上一组
                   </button>
@@ -212,7 +212,7 @@ export function ConstitutionWorkspace() {
                     <button
                       type="button"
                       onClick={() => setActiveGroupIdx(activeGroupIdx + 1)}
-                      className="rounded-lg border border-jade-500/30 bg-jade-500/10 px-3 py-1.5 text-xs text-jade-400 transition hover:bg-jade-500/20"
+                      className="rounded-card border border-jade-500/30 bg-jade-500/10 px-3 py-1.5 text-xs text-jade-400 transition hover:bg-jade-500/20"
                     >
                       下一组
                     </button>
@@ -221,7 +221,7 @@ export function ConstitutionWorkspace() {
                       type="button"
                       onClick={calculateFromAnswers}
                       disabled={answeredCount === 0}
-                      className="rounded-lg border border-jade-500/40 bg-jade-500/15 px-3 py-1.5 text-xs font-medium text-jade-300 transition hover:bg-jade-500/25 disabled:opacity-30"
+                      className="rounded-card border border-jade-500/40 bg-jade-500/15 px-3 py-1.5 text-xs font-medium text-jade-300 transition hover:bg-jade-500/25 disabled:opacity-30"
                     >
                       计算体质 →
                     </button>
@@ -243,7 +243,7 @@ export function ConstitutionWorkspace() {
                     value={draftScores[type] ?? ''}
                     onChange={(e) => setDraftScores((prev) => ({ ...prev, [type]: e.target.value }))}
                     onBlur={() => commitScoreDraft(type)}
-                    className="w-full min-w-0 rounded-lg border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
+                    className="w-full min-w-0 rounded-card border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
                   />
                 </ControlField>
               ))}

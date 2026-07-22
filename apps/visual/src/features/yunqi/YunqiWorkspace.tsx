@@ -110,7 +110,7 @@ export function YunqiWorkspace() {
           </p>
         </aside>
 
-        <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+        <section className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
           <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
             <div>
               <h3 className="text-lg font-semibold text-jade-50">岁运 · 司天 · 在泉</h3>
@@ -119,7 +119,7 @@ export function YunqiWorkspace() {
               </p>
             </div>
           </div>
-          <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
+          <div className="canvas-stage overflow-x-auto rounded-card border border-jade-500/18 bg-ink-950/92 p-3">
             {ready && data ? (
               <ZoomableSvg title="岁运 · 司天 · 在泉">
                 <YunqiChart data={data} />
@@ -140,7 +140,7 @@ export function YunqiWorkspace() {
         />
       )}
       {fourLayer && (
-        <div className="console-panel mt-4 rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+        <div className="console-panel mt-4 rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
           <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
         </div>
       )}

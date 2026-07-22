@@ -152,7 +152,7 @@ export function LiurenWorkspace() {
             ]}
           />
           {fourLayer && (
-            <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+            <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
               <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
             </div>
           )}
@@ -161,7 +161,7 @@ export function LiurenWorkspace() {
         {/* 右侧：天地盘 SVG 式盘 + 四课 + 三传 */}
         <div className="space-y-4">
           {/* SVG 式盘 */}
-          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <h3 className="mb-2 text-sm font-semibold text-jade-50">天地盘式盘</h3>
             <ZoomableSvg title="大六壬天地盘">
               <DaliurenChart
@@ -178,7 +178,7 @@ export function LiurenWorkspace() {
           </div>
 
           {/* 四课详情 */}
-          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <h3 className="mb-3 text-sm font-semibold text-jade-50">四课</h3>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {siKe.list.map((ke) => (
@@ -196,7 +196,7 @@ export function LiurenWorkspace() {
           </div>
 
           {/* 三传详情 */}
-          <div className="console-panel rounded-[22px] border border-gold-500/20 bg-gold-500/6 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-gold-500/20 bg-gold-500/6 p-4 shadow-instrument">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-jade-50">三传</h3>
               <span className="rounded-full border border-gold-500/30 bg-gold-500/10 px-3 py-1 text-xs text-gold-400">

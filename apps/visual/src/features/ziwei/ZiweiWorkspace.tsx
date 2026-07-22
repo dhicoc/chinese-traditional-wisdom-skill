@@ -188,13 +188,13 @@ export function ZiweiWorkspace() {
             description="点击星曜或术语查看通俗解释。"
           />
           {fourLayer && (
-            <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+            <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
               <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
             </div>
           )}
         </aside>
 
-        <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+        <section className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
           <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
             <div>
               <h3 className="text-lg font-semibold text-jade-50">十二宫命盘</h3>
@@ -203,7 +203,7 @@ export function ZiweiWorkspace() {
               </p>
             </div>
           </div>
-          <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
+          <div className="canvas-stage overflow-x-auto rounded-card border border-jade-500/18 bg-ink-950/92 p-3">
             {!ready ? (
               <LoadingSkeleton label="正在排盘" />
             ) : (

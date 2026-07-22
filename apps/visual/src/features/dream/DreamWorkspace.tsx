@@ -58,7 +58,7 @@ export function DreamWorkspace() {
   return (
     <div className="space-y-6">
       {/* 头部 */}
-      <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-jade-50">周公解梦</h2>
@@ -77,7 +77,7 @@ export function DreamWorkspace() {
       </div>
 
       {/* 搜索区 */}
-      <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <ControlField label="搜索梦象" hint="如：蛇、水、棺材、牙齿、飞、结婚">
           <div className="flex gap-2">
             <input
@@ -85,12 +85,12 @@ export function DreamWorkspace() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="输入梦境中的事物（如：蛇、水、棺材、飞...）"
-              className="flex-1 rounded-lg border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
+              className="flex-1 rounded-card border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             />
             <button
               onClick={handleSearch}
-              className="rounded-lg bg-purple-500/20 px-4 py-2 text-sm font-medium text-purple-400 transition-colors hover:bg-purple-500/30"
+              className="rounded-card bg-purple-500/20 px-4 py-2 text-sm font-medium text-purple-400 transition-colors hover:bg-purple-500/30"
             >
               解梦
             </button>
@@ -114,7 +114,7 @@ export function DreamWorkspace() {
         </div>
 
         {/* 全量库开关 */}
-        <div className="mt-4 flex items-center gap-3 rounded-lg border border-white/5 bg-ink-900/50 p-3">
+        <div className="mt-4 flex items-center gap-3 rounded-card border border-white/5 bg-ink-900/50 p-3">
           <span className="text-xs text-jade-100/55">数据范围：</span>
           <button
             onClick={enableFull}
@@ -141,7 +141,7 @@ export function DreamWorkspace() {
           </h3>
 
           {!result.hit && (
-            <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 text-sm text-jade-100/55">
+            <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 text-sm text-jade-100/55">
               未在周公解梦库中找到「{query}」。可尝试更通用的关键词（如用"蛇"代替"梦见蛇咬我"），或
               <button onClick={enableFull} className="mx-1 text-jade-400 underline">载入全量库</button>
               后再查。
@@ -159,7 +159,7 @@ export function DreamWorkspace() {
 
           {/* 古文原典卡片 */}
           {result.classics.length > 0 && (
-            <div className="console-panel rounded-[22px] border border-gold-500/20 bg-gold-500/6 p-4">
+            <div className="console-panel rounded-panel border border-gold-500/20 bg-gold-500/6 p-4">
               <h4 className="mb-2 text-sm font-semibold text-gold-300">原版周公解梦古文</h4>
               <div className="space-y-1.5">
                 {result.classics.slice(0, 6).map((c, i) => (
@@ -178,7 +178,7 @@ export function DreamWorkspace() {
 
           {/* 方位联动 */}
           {links.length > 0 && (
-            <div className="console-panel rounded-[22px] border border-jade-500/20 bg-jade-500/6 p-4">
+            <div className="console-panel rounded-panel border border-jade-500/20 bg-jade-500/6 p-4">
               <h4 className="mb-2 text-sm font-semibold text-jade-300">方位联动提示</h4>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {links.map((l) => (
@@ -196,7 +196,7 @@ export function DreamWorkspace() {
 
       {/* 大类浏览 */}
       {!query && (
-        <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+        <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
           <h3 className="mb-3 text-base font-semibold text-jade-50">按类别浏览梦象</h3>
           <div className="flex flex-wrap gap-2">
             {BIG_CATEGORIES.map((cat) => (
@@ -221,7 +221,7 @@ export function DreamWorkspace() {
                   <button
                     key={e.title}
                     onClick={() => { setSearchTerm(e.title); setQuery(e.title); }}
-                    className="rounded-lg border border-white/8 bg-white/[0.03] p-2.5 text-left transition hover:border-jade-500/30"
+                    className="rounded-card border border-white/8 bg-white/[0.03] p-2.5 text-left transition hover:border-jade-500/30"
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-serif text-sm text-jade-100">{e.title}</span>
@@ -243,7 +243,7 @@ export function DreamWorkspace() {
                   <button
                     key={d.title}
                     onClick={() => { setSearchTerm(d.title); setQuery(d.title); }}
-                    className="rounded-lg border border-white/8 bg-white/[0.03] p-3 text-left transition hover:border-jade-500/30"
+                    className="rounded-card border border-white/8 bg-white/[0.03] p-3 text-left transition hover:border-jade-500/30"
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-serif text-base text-jade-100">{d.title}</span>
@@ -302,7 +302,7 @@ function DreamEntryCard({ entry }: { entry: DreamEntry }) {
   // 折叠态：文字带朦胧模糊，渐变遮罩淡出底部，营造"未揭晓"质感；展开时揭幕清晰
   const collapsed = !expanded && isOverflow;
   return (
-    <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+    <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="font-serif text-2xl font-bold" style={{ color }}>{entry.title}</span>

@@ -142,7 +142,7 @@ export function XingXiuWorkspace() {
             </InterpretationCard>
           )}
           {fourLayer && (
-            <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+            <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
               <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
             </div>
           )}
@@ -150,7 +150,7 @@ export function XingXiuWorkspace() {
 
         {/* 右侧：四象方位图 + 四象分组 */}
         <div className="space-y-3">
-          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <h3 className="mb-2 text-sm font-semibold text-jade-50">四象方位图</h3>
             <ZoomableSvg title="二十八星宿四象方位图">
               <XingXiuChart allXiu={data.allXiu} zhiXiu={data.zhiXiu} benMingXiu={data.benMingXiu} />
@@ -161,7 +161,7 @@ export function XingXiuWorkspace() {
             </div>
           </div>
           {XIANG_ORDER.map((xiang) => (
-            <div key={xiang} className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+            <div key={xiang} className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
               <div className="flex items-center gap-2 border-b border-white/8 pb-2">
                 <span className="h-3 w-3 rounded-full" style={{ backgroundColor: XIANG_COLOR[xiang] }} />
                 <h3 className="text-sm font-semibold text-jade-50">{xiang}</h3>

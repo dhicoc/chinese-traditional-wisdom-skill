@@ -229,7 +229,7 @@ export function ComboWorkspace() {
   return (
     <div className="space-y-4">
       {/* 头部 */}
-      <div className="console-panel rounded-[22px] border border-purple-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-panel border border-purple-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-jade-50">联合分析</h2>
@@ -271,7 +271,7 @@ export function ComboWorkspace() {
       </div>
 
       {/* 输入区 */}
-      <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-3">
           <p className="text-sm font-semibold text-jade-100">输入参数</p>
         </div>
@@ -289,7 +289,7 @@ export function ComboWorkspace() {
                 value={draftTargetYear}
                 onChange={(e) => setDraftTargetYear(e.target.value)}
                 onBlur={() => commitComboDraft('targetYear', draftTargetYear)}
-                className="w-24 rounded-lg border border-jade-500/20 bg-ink-900/80 px-2 py-1 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
+                className="w-24 rounded-card border border-jade-500/20 bg-ink-900/80 px-2 py-1 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
               />
             </label>
           )}
@@ -304,7 +304,7 @@ export function ComboWorkspace() {
                   value={draftTargetYear}
                   onChange={(e) => setDraftTargetYear(e.target.value)}
                   onBlur={() => commitComboDraft('targetYear', draftTargetYear)}
-                  className="w-24 rounded-lg border border-jade-500/20 bg-ink-900/80 px-2 py-1 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
+                  className="w-24 rounded-card border border-jade-500/20 bg-ink-900/80 px-2 py-1 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
                 />
               </label>
               <label className="flex items-center gap-2 text-jade-100/70">
@@ -316,7 +316,7 @@ export function ComboWorkspace() {
                   value={draftTargetMonth}
                   onChange={(e) => setDraftTargetMonth(e.target.value)}
                   onBlur={() => commitComboDraft('targetMonth', draftTargetMonth)}
-                  className="w-16 rounded-lg border border-jade-500/20 bg-ink-900/80 px-2 py-1 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
+                  className="w-16 rounded-card border border-jade-500/20 bg-ink-900/80 px-2 py-1 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
                 />
               </label>
               <label className="flex flex-col gap-1 text-sm sm:min-w-[220px] sm:flex-1">
@@ -566,7 +566,7 @@ export function ComboWorkspace() {
           )}
 
           {/* 四层报告 */}
-          <div className="console-panel rounded-[22px] border border-purple-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-purple-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <FourLayerReport report={fourLayer} title={`${data.comboName} · 四层报告`} />
           </div>
 

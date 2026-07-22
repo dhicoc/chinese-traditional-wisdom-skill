@@ -61,7 +61,7 @@ export function NamewuxingWorkspace() {
   return (
     <div className="space-y-6">
       {/* 头部说明 */}
-      <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold text-jade-50">姓名五行</h2>
@@ -77,7 +77,7 @@ export function NamewuxingWorkspace() {
       </div>
 
       {/* 输入区 */}
-      <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <div className="grid gap-4 md:grid-cols-3">
           <ControlField label="姓氏" hint="支持复姓">
             <input
@@ -86,7 +86,7 @@ export function NamewuxingWorkspace() {
               onChange={(e) => setSurname(e.target.value)}
               placeholder="如：张 / 司马"
               maxLength={2}
-              className="w-full min-w-0 rounded-lg border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
+              className="w-full min-w-0 rounded-card border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
             />
           </ControlField>
           <ControlField label="名字" hint="单字或双字">
@@ -96,7 +96,7 @@ export function NamewuxingWorkspace() {
               onChange={(e) => setGivenName(e.target.value)}
               placeholder="如：伟 / 子涵"
               maxLength={2}
-              className="w-full min-w-0 rounded-lg border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
+              className="w-full min-w-0 rounded-card border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
             />
           </ControlField>
           <ControlField label="出生年" hint="可选，用于生肖契合度">
@@ -108,7 +108,7 @@ export function NamewuxingWorkspace() {
               min={1900}
               max={2100}
               inputMode="numeric"
-              className="w-full min-w-0 rounded-lg border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
+              className="w-full min-w-0 rounded-card border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
             />
           </ControlField>
           <div className="flex items-center gap-2 self-end pb-1">
@@ -128,7 +128,7 @@ export function NamewuxingWorkspace() {
         <button
           onClick={handleAnalyze}
           disabled={!surname.trim() || !givenName.trim()}
-          className="mt-4 rounded-lg bg-jade-500/20 px-4 py-2 text-sm font-medium text-jade-400 transition-colors hover:bg-jade-500/30 disabled:opacity-50"
+          className="mt-4 rounded-card bg-jade-500/20 px-4 py-2 text-sm font-medium text-jade-400 transition-colors hover:bg-jade-500/30 disabled:opacity-50"
         >
           分析五行
         </button>
@@ -145,7 +145,7 @@ export function NamewuxingWorkspace() {
           )}
 
           {/* 字元笔画明细 */}
-          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <h3 className="mb-3 text-base font-semibold text-jade-50">字元笔画</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -201,7 +201,7 @@ export function NamewuxingWorkspace() {
 
           <div className="grid gap-4 md:grid-cols-2">
             {/* 五格数理 */}
-            <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+            <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
               <h3 className="mb-3 text-base font-semibold text-jade-50">五格数理</h3>
               <div className="space-y-2">
                 {analysis.wuGeEntries.map((e) => (
@@ -243,13 +243,13 @@ export function NamewuxingWorkspace() {
             </div>
 
             {/* 三才配置 */}
-            <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+            <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
               <h3 className="mb-3 text-base font-semibold text-jade-50">三才配置</h3>
               <div className="grid grid-cols-3 gap-2">
                 {['天格', '人格', '地格'].map((label, i) => {
                   const wx = analysis.sanCai.config[i];
                   return (
-                    <div key={label} className="rounded-xl border border-white/8 bg-white/[0.03] p-3 text-center">
+                    <div key={label} className="rounded-card border border-white/8 bg-white/[0.03] p-3 text-center">
                       <div className="mb-1 text-xs text-jade-100/45">{label}</div>
                       <div className="font-serif text-2xl text-jade-300">{wx}</div>
                     </div>
@@ -270,7 +270,7 @@ export function NamewuxingWorkspace() {
 
           {/* 五维评分（fate P3 简化版） */}
           {rating && (
-            <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument md:col-span-2">
+            <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument md:col-span-2">
               <div className="mb-4 flex items-center justify-between border-b border-white/8 pb-3">
                 <div>
                   <h3 className="text-base font-semibold text-jade-50">五维评分</h3>
@@ -304,7 +304,7 @@ export function NamewuxingWorkspace() {
           )}
 
           {/* 五行平衡（复用 FiveElementsChart） */}
-          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <h3 className="mb-3 text-base font-semibold text-jade-50">五行平衡</h3>
             <ZoomableSvg title="姓名五行平衡">
               <FiveElementsChart stats={wuxingStats} />

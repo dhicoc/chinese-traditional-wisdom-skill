@@ -288,7 +288,7 @@ export function LiuyaoWorkspace() {
             description="点击术语查看通俗解释。"
           />
           {fourLayer && (
-            <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+            <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
               <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
             </div>
           )}
@@ -296,7 +296,7 @@ export function LiuyaoWorkspace() {
 
         <div className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+            <section className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
               <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
                 <div>
                   <h3 className="text-base font-semibold text-jade-50">本卦</h3>
@@ -305,7 +305,7 @@ export function LiuyaoWorkspace() {
                   </p>
                 </div>
               </div>
-              <div className="canvas-stage overflow-x-auto rounded-[18px] border border-jade-500/18 bg-ink-950/92 p-3">
+              <div className="canvas-stage overflow-x-auto rounded-card border border-jade-500/18 bg-ink-950/92 p-3">
                 {ready ? (
                   <ZoomableSvg title="本卦">
                     <HexagramChart data={result as LiuyaoData} />
@@ -316,7 +316,7 @@ export function LiuyaoWorkspace() {
               </div>
             </section>
             {changedLines ? (
-              <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+              <section className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
                 <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
                   <div>
                     <h3 className="text-base font-semibold text-jade-50">变卦</h3>
@@ -324,7 +324,7 @@ export function LiuyaoWorkspace() {
                   </div>
                   <span className="rounded-full border border-cinnabar-500/30 bg-cinnabar-500/10 px-2.5 py-1 text-[10px] text-cinnabar-400">变卦</span>
                 </div>
-                <div className="canvas-stage overflow-x-auto rounded-[18px] border border-jade-500/18 bg-ink-950/92 p-3">
+                <div className="canvas-stage overflow-x-auto rounded-card border border-jade-500/18 bg-ink-950/92 p-3">
                   <ZoomableSvg title="变卦">
                     <HexagramChart data={changedLines} />
                   </ZoomableSvg>

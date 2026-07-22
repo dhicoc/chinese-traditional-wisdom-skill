@@ -279,7 +279,7 @@ export function TestRunnerConsole() {
               type="button"
               onClick={handleRunInlineTests}
               disabled={inlineRunning || !legacyReady}
-              className="rounded-lg border border-jade-500/40 bg-jade-500/15 px-4 py-2 text-sm font-medium text-jade-300 transition hover:bg-jade-500/25 disabled:opacity-40"
+              className="rounded-card border border-jade-500/40 bg-jade-500/15 px-4 py-2 text-sm font-medium text-jade-300 transition hover:bg-jade-500/25 disabled:opacity-40"
             >
               {inlineRunning ? '运行中…' : '运行页内测试'}
             </button>

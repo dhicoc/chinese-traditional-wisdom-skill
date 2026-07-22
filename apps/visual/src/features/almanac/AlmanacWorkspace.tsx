@@ -27,7 +27,7 @@ export function AlmanacWorkspace() {
   return (
     <div className="space-y-6">
       {/* 头部说明 */}
-      <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold text-jade-50">每日黄历</h2>
@@ -43,13 +43,13 @@ export function AlmanacWorkspace() {
       </div>
 
       {/* 日期选择 */}
-      <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <ControlField label="选择日期">
           <input
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="rounded-lg border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
+            className="rounded-card border border-jade-500/20 bg-ink-900/80 px-3 py-2 text-sm text-jade-100/80 outline-none focus:border-jade-500/50"
           />
         </ControlField>
       </div>
@@ -60,7 +60,7 @@ export function AlmanacWorkspace() {
       {almanac && (
         <div className="grid gap-4 md:grid-cols-2">
           {/* 基本信息 */}
-          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <h3 className="mb-3 text-base font-semibold text-jade-50">基本信息</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between border-b border-white/5 py-2">
@@ -111,7 +111,7 @@ export function AlmanacWorkspace() {
           </div>
 
           {/* 宜忌 */}
-          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <div className="mb-3 flex items-center gap-3">
               <h3 className="text-base font-semibold text-jade-500">宜</h3>
               <span className="text-xs text-jade-100/45">适宜之事</span>
@@ -143,7 +143,7 @@ export function AlmanacWorkspace() {
           </div>
 
           {/* 吉神凶煞 */}
-          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <h3 className="mb-3 text-base font-semibold text-jade-50">吉神凶煞</h3>
             <div className="mb-3">
               <p className="mb-2 text-xs text-jade-100/45">吉神宜趋</p>
@@ -168,7 +168,7 @@ export function AlmanacWorkspace() {
           </div>
 
           {/* 神位方位 */}
-          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <h3 className="mb-3 text-base font-semibold text-jade-50">神位方位</h3>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="flex justify-between rounded-card border border-white/5 bg-white/[0.03] px-3 py-2">
@@ -195,7 +195,7 @@ export function AlmanacWorkspace() {
           </div>
 
           {/* 时辰吉凶 */}
-          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument md:col-span-2">
+          <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument md:col-span-2">
             <h3 className="mb-3 text-base font-semibold text-jade-50">十二时辰吉凶</h3>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {almanac.hours.map((h) => (

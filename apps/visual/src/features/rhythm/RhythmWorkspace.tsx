@@ -33,7 +33,7 @@ export function RhythmWorkspace() {
   return (
     <div className="space-y-6">
       {/* 头部说明 */}
-      <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold text-jade-50">每日节律</h2>
@@ -49,7 +49,7 @@ export function RhythmWorkspace() {
       </div>
 
       {/* 当前节气调养条带 */}
-      <div className="console-panel rounded-[22px] border border-gold-500/20 bg-gold-500/5 p-4 shadow-instrument">
+      <div className="console-panel rounded-panel border border-gold-500/20 bg-gold-500/5 p-4 shadow-instrument">
         <div className="mb-3 flex items-center justify-between">
           <div>
             <span className="text-xs text-gold-400/70">当前节气</span>
@@ -61,19 +61,19 @@ export function RhythmWorkspace() {
         </div>
         <p className="mb-3 text-xs text-gold-400/60">{jieqi.wellness.feature}</p>
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-lg border border-white/5 bg-ink-900/50 p-3">
+          <div className="rounded-card border border-white/5 bg-ink-900/50 p-3">
             <h4 className="mb-1 text-sm text-gold-400/70">饮食</h4>
             <p className="text-xs leading-5 text-jade-100/75">{jieqi.wellness.diet}</p>
           </div>
-          <div className="rounded-lg border border-white/5 bg-ink-900/50 p-3">
+          <div className="rounded-card border border-white/5 bg-ink-900/50 p-3">
             <h4 className="mb-1 text-sm text-gold-400/70">起居</h4>
             <p className="text-xs leading-5 text-jade-100/75">{jieqi.wellness.lifestyle}</p>
           </div>
-          <div className="rounded-lg border border-white/5 bg-ink-900/50 p-3">
+          <div className="rounded-card border border-white/5 bg-ink-900/50 p-3">
             <h4 className="mb-1 text-sm text-gold-400/70">运动</h4>
             <p className="text-xs leading-5 text-jade-100/75">{jieqi.wellness.exercise}</p>
           </div>
-          <div className="rounded-lg border border-white/5 bg-ink-900/50 p-3">
+          <div className="rounded-card border border-white/5 bg-ink-900/50 p-3">
             <h4 className="mb-1 text-sm text-gold-400/70">穴位</h4>
             <p className="text-xs leading-5 text-jade-100/75">{jieqi.wellness.acupoints}</p>
           </div>
@@ -85,7 +85,7 @@ export function RhythmWorkspace() {
 
       {/* 经络钟 + 当前时辰 */}
       <div className="grid gap-4 lg:grid-cols-[420px_minmax(0,1fr)]">
-        <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+        <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
           <h3 className="mb-3 text-base font-semibold text-jade-50">子午流注经络钟</h3>
           <ZoomableSvg title="子午流注经络钟">
             <MeridianClock
@@ -101,7 +101,7 @@ export function RhythmWorkspace() {
 
         {/* 当前时辰详情 */}
         {currentShiChen && (
-          <div className="console-panel rounded-[22px] border border-jade-500/30 bg-jade-500/5 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-jade-500/30 bg-jade-500/5 p-4 shadow-instrument">
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <span className="text-xs text-jade-500">当前时辰</span>
@@ -121,11 +121,11 @@ export function RhythmWorkspace() {
               </div>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-lg border border-white/5 bg-ink-900/50 p-3">
+              <div className="rounded-card border border-white/5 bg-ink-900/50 p-3">
                 <h4 className="mb-1 text-sm text-jade-100/55">生理活动</h4>
                 <p className="text-sm text-jade-100/80">{currentShiChen.function}</p>
               </div>
-              <div className="rounded-lg border border-white/5 bg-ink-900/50 p-3">
+              <div className="rounded-card border border-white/5 bg-ink-900/50 p-3">
                 <h4 className="mb-1 text-sm text-jade-100/55">养生建议</h4>
                 <p className="text-sm text-jade-500">{currentShiChen.advice}</p>
               </div>
@@ -135,7 +135,7 @@ export function RhythmWorkspace() {
 
         {/* 选中时辰详情 */}
         {selectedShiChen && (
-          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-bold text-jade-50">{selectedShiChen.name}</h3>
@@ -152,19 +152,19 @@ export function RhythmWorkspace() {
               </div>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-lg border border-white/5 bg-ink-900/50 p-3">
+              <div className="rounded-card border border-white/5 bg-ink-900/50 p-3">
                 <h4 className="mb-1 text-sm text-jade-100/55">当令经络</h4>
                 <p className="text-base font-medium text-jade-100/80">{selectedShiChen.meridian}</p>
               </div>
-              <div className="rounded-lg border border-white/5 bg-ink-900/50 p-3">
+              <div className="rounded-card border border-white/5 bg-ink-900/50 p-3">
                 <h4 className="mb-1 text-sm text-jade-100/55">对应脏腑</h4>
                 <p className="text-base font-medium text-jade-100/80">{selectedShiChen.organ}</p>
               </div>
-              <div className="rounded-lg border border-white/5 bg-ink-900/50 p-3">
+              <div className="rounded-card border border-white/5 bg-ink-900/50 p-3">
                 <h4 className="mb-1 text-sm text-jade-100/55">生理功能</h4>
                 <p className="text-sm text-jade-100/70">{selectedShiChen.function}</p>
               </div>
-              <div className="rounded-lg border border-jade-500/20 bg-jade-500/5 p-3">
+              <div className="rounded-card border border-jade-500/20 bg-jade-500/5 p-3">
                 <h4 className="mb-1 text-sm text-jade-500">养生建议</h4>
                 <p className="text-sm text-jade-400">{selectedShiChen.advice}</p>
               </div>
@@ -174,14 +174,14 @@ export function RhythmWorkspace() {
       </div>
 
       {/* 时辰列表（紧凑网格，辅助钟面） */}
-      <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <h3 className="mb-4 text-base font-semibold text-jade-50">十二时辰</h3>
         <div className="grid grid-cols-3 gap-2 md:grid-cols-4 lg:grid-cols-6">
           {MERIDIAN_HOURS.map((sc) => (
             <button
               key={sc.name}
               onClick={() => setSelectedShiChen(sc)}
-              className={`rounded-lg border p-3 text-left transition-all ${
+              className={`rounded-card border p-3 text-left transition-all ${
                 selectedShiChen?.name === sc.name
                   ? 'border-jade-500/50 bg-jade-500/10'
                   : 'border-jade-500/20 bg-ink-900/50 hover:border-jade-500/40'
@@ -204,18 +204,18 @@ export function RhythmWorkspace() {
       </div>
 
       {/* 养生原则 */}
-      <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <h3 className="mb-3 text-base font-semibold text-jade-50">养生节律原则</h3>
         <div className="grid gap-3 md:grid-cols-3">
-          <div className="rounded-lg border border-white/5 bg-ink-900/50 p-3">
+          <div className="rounded-card border border-white/5 bg-ink-900/50 p-3">
             <h4 className="mb-2 text-sm font-medium text-jade-500">顺应天时</h4>
             <p className="text-xs text-jade-100/55">日出而作，日落而息。白天阳气盛宜活动，夜晚阴气盛宜休息。</p>
           </div>
-          <div className="rounded-lg border border-white/5 bg-ink-900/50 p-3">
+          <div className="rounded-card border border-white/5 bg-ink-900/50 p-3">
             <h4 className="mb-2 text-sm font-medium text-jade-500">因时养生</h4>
             <p className="text-xs text-jade-100/55">不同时辰对应不同脏腑，在当令时辰养护对应脏腑效果最佳。</p>
           </div>
-          <div className="rounded-lg border border-white/5 bg-ink-900/50 p-3">
+          <div className="rounded-card border border-white/5 bg-ink-900/50 p-3">
             <h4 className="mb-2 text-sm font-medium text-jade-500">平衡作息</h4>
             <p className="text-xs text-jade-100/55">保持规律作息，避免长期熬夜或饮食不节，维护气血正常运行。</p>
           </div>

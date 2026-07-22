@@ -52,7 +52,7 @@ export function CanvasPanel<TData>({ title, description, data, width, height, re
 
   return (
     <>
-      <section className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <section className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
         <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
           <div>
             <h3 className="text-lg font-semibold text-jade-50">{title}</h3>
@@ -62,13 +62,13 @@ export function CanvasPanel<TData>({ title, description, data, width, height, re
             Legacy Canvas
           </span>
         </div>
-        <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
+        <div className="canvas-stage overflow-x-auto rounded-card border border-jade-500/18 bg-ink-950/92 p-3">
           <canvas
             ref={canvasRef}
             id={canvasId}
             width={width}
             height={height}
-            className="theme-canvas mx-auto block h-auto max-w-full cursor-zoom-in rounded-[14px] transition duration-200 hover:shadow-[0_0_36px_rgb(var(--jade)/0.18)]"
+            className="theme-canvas mx-auto block h-auto max-w-full cursor-zoom-in rounded-card transition duration-200 hover:shadow-[0_0_36px_rgb(var(--jade)/0.18)]"
             title="双击放大查看"
             onDoubleClick={openZoom}
           />
@@ -88,7 +88,7 @@ export function CanvasPanel<TData>({ title, description, data, width, height, re
             role="dialog"
             aria-modal="true"
             aria-labelledby={`${canvasId}-zoom-title`}
-            className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-[min(1040px,calc(100vw-2rem))] flex-col overflow-hidden rounded-[26px] border border-jade-500/25 bg-ink-950/95 shadow-[0_32px_100px_rgb(var(--shadow-rgb)/0.58)]"
+            className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-[min(1040px,calc(100vw-2rem))] flex-col overflow-hidden rounded-panel border border-jade-500/25 bg-ink-950/95 shadow-[0_32px_100px_rgb(var(--shadow-rgb)/0.58)]"
           >
             <div className="flex items-center justify-between gap-4 border-b border-white/10 bg-ink-900/92 px-5 py-4">
               <div>
@@ -108,7 +108,7 @@ export function CanvasPanel<TData>({ title, description, data, width, height, re
               <img
                 src={zoomSrc}
                 alt={`${title} 放大图像`}
-                className="mx-auto block h-auto max-w-full rounded-[18px] bg-ink-950 shadow-[0_22px_56px_rgb(var(--shadow-rgb)/0.38)]"
+                className="mx-auto block h-auto max-w-full rounded-card bg-ink-950 shadow-[0_22px_56px_rgb(var(--shadow-rgb)/0.38)]"
               />
             </div>
             <p className="border-t border-white/10 bg-ink-900/92 px-4 py-3 text-center text-xs text-jade-100/45">

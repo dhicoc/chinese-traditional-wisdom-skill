@@ -230,7 +230,7 @@ export function BazhaiWorkspace() {
 
         {/* 右侧：命盘 + 合参 + 太岁 + 门主灶 */}
         <section className="space-y-4">
-        <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+        <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
           <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
             <div>
               <h3 className="text-lg font-semibold text-jade-50">八宅命盘</h3>
@@ -239,7 +239,7 @@ export function BazhaiWorkspace() {
               </p>
             </div>
           </div>
-          <div className="canvas-stage overflow-x-auto rounded-[20px] border border-jade-500/18 bg-ink-950/92 p-3">
+          <div className="canvas-stage overflow-x-auto rounded-card border border-jade-500/18 bg-ink-950/92 p-3">
             {grid ? (
               <ZoomableSvg title="八宅命盘">
                 <EightMansionsChart grid={grid} year={year} gender={gender} />

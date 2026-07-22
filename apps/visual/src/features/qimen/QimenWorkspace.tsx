@@ -222,7 +222,7 @@ export function QimenWorkspace() {
           </InterpretationCard>
 
           {/* 九宫式盘 */}
-          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <h3 className="mb-2 text-base font-semibold text-jade-50">九宫式盘</h3>
             <ZoomableSvg title="奇门九宫式盘">
               <QimenChart
@@ -233,7 +233,7 @@ export function QimenWorkspace() {
           </div>
 
           {/* 各宫格局详情 */}
-          <div className="console-panel rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+          <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <h3 className="mb-3 text-sm font-semibold text-jade-50">各宫格局详情</h3>
             <div className="grid gap-2 sm:grid-cols-2">
               {result.palaces.filter((p) => p.auspiciousPatterns.length > 0 || p.inauspiciousPatterns.length > 0 || p.tenStemResponse?.heavenlyToEarthly || p.tenStemResponse?.timeToDay).map((p) => (
@@ -272,7 +272,7 @@ export function QimenWorkspace() {
         />
       )}
       {fourLayer && (
-        <div className="console-panel mt-4 rounded-[22px] border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+        <div className="console-panel mt-4 rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
           <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
         </div>
       )}

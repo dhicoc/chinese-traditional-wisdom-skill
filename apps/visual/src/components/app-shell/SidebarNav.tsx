@@ -9,8 +9,8 @@ interface SidebarNavProps {
 
 export function SidebarNav(_props: SidebarNavProps) {
   return (
-    <aside data-testid="sidebar-nav" className="app-sidebar flex h-full min-h-0 flex-col rounded-[26px] border border-jade-500/18 bg-ink-950/94 p-4 shadow-instrument">
-      <div className="sidebar-brand relative shrink-0 overflow-hidden rounded-[22px] border border-jade-500/18 bg-black/30 p-3.5">
+    <aside data-testid="sidebar-nav" className="app-sidebar flex h-full min-h-0 flex-col rounded-panel border border-jade-500/18 bg-ink-950/94 p-4 shadow-instrument">
+      <div className="sidebar-brand relative shrink-0 overflow-hidden rounded-panel border border-jade-500/18 bg-black/30 p-3.5">
         <div className="flex items-center gap-3">
           <div className="brand-seal grid h-11 w-11 shrink-0 place-items-center rounded-full border border-jade-500/30 bg-jade-500/10 text-jade-400">
             <XuanOrbitLogo className="h-9 w-9" />
@@ -29,7 +29,7 @@ export function SidebarNav(_props: SidebarNavProps) {
 
       {/* 页脚：隐私说明，贴底填充留白 */}
       <div className="mt-auto pt-3">
-        <div className="rounded-[18px] border border-jade-500/12 bg-black/20 p-2.5">
+        <div className="rounded-card border border-jade-500/12 bg-black/20 p-2.5">
           <div className="flex items-center justify-between text-[11px] text-jade-100/55">
             <span>本地坛场</span>
             <span className="flex items-center gap-1 text-jade-400">
