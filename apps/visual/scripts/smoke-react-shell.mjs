@@ -445,15 +445,18 @@ const appShell = read(path.join(srcRoot, 'components/app-shell/AppShell.tsx'));
 check(appShell.includes("resolveWorkspace(activeModule)"), 'AppShell 应使用统一 workspace registry 解析工作区');
 
 const workspaceRegistry = read(path.join(srcRoot, 'components/app-shell/workspaceRegistry.tsx'));
-check(workspaceRegistry.includes("meihua: MeihuaWorkspace"), 'workspaceRegistry 应注册 meihua 工作区');
-check(workspaceRegistry.includes("liuyao: LiuyaoWorkspace"), 'workspaceRegistry 应注册 liuyao 工作区');
-check(workspaceRegistry.includes("ziwei: ZiweiWorkspace"), 'workspaceRegistry 应注册 ziwei 工作区');
-check(workspaceRegistry.includes("fengshui: FengshuiWorkspace"), 'workspaceRegistry 应注册 fengshui 工作区');
-check(workspaceRegistry.includes("testing: TestRunnerConsole"), 'workspaceRegistry 应注册 testing 工作区');
-check(workspaceRegistry.includes("reader: AncientTextSplitReader"), 'workspaceRegistry 应注册 reader 工作区');
-check(workspaceRegistry.includes("bazi: BaziWorkspace"), 'workspaceRegistry 应注册 bazi 工作区');
-check(workspaceRegistry.includes("yunqi: YunqiWorkspace"), 'workspaceRegistry 应注册 yunqi 工作区');
-check(workspaceRegistry.includes("tizhi: ConstitutionWorkspace"), 'workspaceRegistry 应注册 tizhi 工作区');
+// 懒加载形式：`bazi: lazy(() => import(...).then((m) => ({ default: m.BaziWorkspace })))`
+// 断言匹配 `m.<Workspace>` 与 `lazy(` 标识，确认注册存在且为懒加载
+check(workspaceRegistry.includes('lazy('), 'workspaceRegistry 应使用懒加载注册工作区');
+check(workspaceRegistry.includes("m.MeihuaWorkspace"), 'workspaceRegistry 应注册 meihua 工作区');
+check(workspaceRegistry.includes("m.LiuyaoWorkspace"), 'workspaceRegistry 应注册 liuyao 工作区');
+check(workspaceRegistry.includes("m.ZiweiWorkspace"), 'workspaceRegistry 应注册 ziwei 工作区');
+check(workspaceRegistry.includes("m.FengshuiWorkspace"), 'workspaceRegistry 应注册 fengshui 工作区');
+check(workspaceRegistry.includes("m.TestRunnerConsole"), 'workspaceRegistry 应注册 testing 工作区');
+check(workspaceRegistry.includes("m.AncientTextSplitReader"), 'workspaceRegistry 应注册 reader 工作区');
+check(workspaceRegistry.includes("m.BaziWorkspace"), 'workspaceRegistry 应注册 bazi 工作区');
+check(workspaceRegistry.includes("m.YunqiWorkspace"), 'workspaceRegistry 应注册 yunqi 工作区');
+check(workspaceRegistry.includes("m.ConstitutionWorkspace"), 'workspaceRegistry 应注册 tizhi 工作区');
 check(workspaceRegistry.includes("resolveWorkspace"), 'workspaceRegistry 应导出 resolveWorkspace');
 
 // ── 3k. BirthPanel 接入（侧边栏） ────────────────────────

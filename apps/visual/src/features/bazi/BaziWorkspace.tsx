@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { getSolarEntry } from '@/legacy/solarEntry';
 import { BaziPillarsChart } from '@/components/shared/BaziPillarsChart';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
@@ -10,9 +10,11 @@ import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { calculateBazi as calculateBaziPure, calcBaziEnveloped } from '@/legacy/baziEngine';
+import type { TrineSource } from '@/legacy/shensha';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { type BaziPillars, type WuxingStats } from '@/legacy/canvasRenderers';
+import type { ShenShaItem } from '@/legacy/shensha';
 import { calcXiYong } from '@/legacy/xiyong';
 import type { SolarBirth } from '@/legacy/birthBridge';
 import { useBirth } from '@/lib/birthContext';
@@ -43,16 +45,18 @@ interface BaziResult {
   engineName?: string;
   mode?: string;
   confidenceNote?: string;
+  shenSha?: ShenShaItem[];
+  shenShaTrineSource?: TrineSource;
 }
 
-function calculateBazi(solarBirth: SolarBirth, ready: boolean) {
+function calculateBazi(solarBirth: SolarBirth, ready: boolean, trineSource: TrineSource) {
   if (!ready) {
     return { result: null, pillars: { ...DEFAULT_PILLARS, gender: solarBirth.gender }, wuxing: DEFAULT_WUXING, envelope: null };
   }
   try {
     const solarEntry = getSolarEntry();
-    const env = calcBaziEnveloped({ birth: solarBirth, solar: solarEntry });
-    const pure = calculateBaziPure({ birth: solarBirth, solar: solarEntry });
+    const env = calcBaziEnveloped({ birth: solarBirth, solar: solarEntry, shenShaTrineSource: trineSource });
+    const pure = calculateBaziPure({ birth: solarBirth, solar: solarEntry, shenShaTrineSource: trineSource });
     const pillars: BaziPillars = {
       year: { stem: pure.pillars.year.stem, branch: pure.pillars.year.branch, hidden: pure.hiddenStems.year },
       month: { stem: pure.pillars.month.stem, branch: pure.pillars.month.branch, hidden: pure.hiddenStems.month },
@@ -78,9 +82,10 @@ function birthSummary(solarBirth: SolarBirth) {
 
 export function BaziWorkspace() {
   const { birth, solarBirth } = useBirth();
+  const [trineSource, setTrineSource] = useState<TrineSource>('year');
 
   const ready = true;
-  const { result, pillars, wuxing, envelope } = useMemo(() => calculateBazi(solarBirth, ready), [solarBirth, ready]);
+  const { result, pillars, wuxing, envelope } = useMemo(() => calculateBazi(solarBirth, ready, trineSource), [solarBirth, ready, trineSource]);
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!envelope) return null;
     return toFourLayer(envelope.data.export_snapshot as ReadingLike);
@@ -151,6 +156,38 @@ export function BaziWorkspace() {
               ] : []),
             ]}
           />
+          <InterpretationCard
+            title="神煞"
+            badge={result?.shenSha?.length ? `${result.shenSha.length} 项` : '无'}
+            subtitle="按日干 / 日支 / 月支推算的常见神煞，文化参考。"
+            items={(result?.shenSha ?? []).map((s) => ({
+              label: s.name,
+              value: `${s.branch}·${s.pillar}`,
+              description: s.meaning,
+            }))}
+          />
+          <div className="rounded-card border border-white/8 bg-ink-900/40 px-3 py-2">
+            <p className="mb-1.5 text-xs font-semibold text-jade-100/70">桃花·驿马·华盖·将星 查法</p>
+            <div className="flex flex-wrap gap-1.5">
+              {([['year', '按年支查（传统主流）'], ['day', '按日支查（流派之一）']] as Array<[TrineSource, string]>).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setTrineSource(id)}
+                  className={`rounded-full px-3 py-1 text-xs transition-colors ${
+                    id === trineSource
+                      ? 'border border-jade-500/50 bg-jade-500/20 text-jade-100'
+                      : 'border border-white/10 bg-ink-900/60 text-jade-100/55 hover:border-jade-500/30 hover:text-jade-100/80'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1.5 text-[11px] leading-4 text-jade-100/45">
+              {trineSource === 'year' ? '以年支所在三合局查取，多数子平书采用此法。' : '以日支所在三合局查取，部分流派采用。'} 切换后神煞列表会相应变化。
+            </p>
+          </div>
           <TermExplanationPanel
             ready={ready}
             initialTerm="日主"

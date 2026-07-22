@@ -11,6 +11,7 @@
  */
 
 import type { ToolEnvelope, ExportSnapshot } from './baseTypes';
+import { calcShenSha, type ShenShaItem, type TrineSource } from './shensha';
 
 const TG = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
 const DZ = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
@@ -71,6 +72,8 @@ export interface BaziInput {
   birth: BaziBirth;
   /** 可选 lunar-javascript Solar 入口（精确节气干支） */
   solar?: SolarLike | null;
+  /** 神煞三合局查取口径：'year' 年支查（传统主流，默认）/ 'day' 日支查（流派之一） */
+  shenShaTrineSource?: TrineSource;
 }
 
 export interface BaziPillar {
@@ -108,6 +111,9 @@ export interface BaziResult {
   shishenList: Record<string, string>;
   elements: Record<string, number>;
   luck: BaziLuck[];
+  shenSha: ShenShaItem[];
+  /** 本命局神煞所用的三合局查取口径 */
+  shenShaTrineSource: TrineSource;
   calendar?: { provider: string; exactSolarTerms: boolean };
 }
 
@@ -226,7 +232,7 @@ function calcLuck(pillars: BaziPillars, gender: string): BaziLuck[] {
 }
 
 // ─── 由 pillars 构建完整结果（对齐 engine-adapters buildBaziResultFromPillars）──
-function buildResultFromPillars(pillars: BaziPillars, birth: BaziBirth, luck: BaziLuck[], mode: 'local-exact' | 'local-approx', confidenceNote: string, sourceProject?: string): BaziResult {
+function buildResultFromPillars(pillars: BaziPillars, birth: BaziBirth, luck: BaziLuck[], mode: 'local-exact' | 'local-approx', confidenceNote: string, sourceProject: string | undefined, trineSource: TrineSource): BaziResult {
   const dm = pillars.day.stemIndex;
   const hiddenStems: Record<string, string[]> = {};
   const shishenList: Record<string, string> = {};
@@ -252,6 +258,8 @@ function buildResultFromPillars(pillars: BaziPillars, birth: BaziBirth, luck: Ba
     shishenList,
     elements: calcElements(pillars),
     luck,
+    shenSha: calcShenSha(pillars, trineSource),
+    shenShaTrineSource: trineSource,
   };
   if (mode === 'local-exact') result.calendar = { provider: 'lunar-javascript', exactSolarTerms: true };
   return result;
@@ -303,6 +311,7 @@ function calcPillarsWithLunar(birth: BaziBirth, solar: SolarLike): BaziPillars |
 export function calculateBazi(input: BaziInput): BaziResult {
   const birth = input.birth;
   const gender = birth.gender || '男';
+  const trineSource: TrineSource = input.shenShaTrineSource ?? 'year';
 
   // 精确路径
   if (birth.useExactCalendar !== false && input.solar) {
@@ -315,6 +324,7 @@ export function calculateBazi(input: BaziInput): BaziResult {
           pillars, birth, luck, 'local-exact',
           '已通过 lunar-javascript/Solar 全局对象读取节气干支；起运仍沿用本地简化大运。',
           '6tail/lunar-javascript',
+          trineSource,
         );
       }
     } catch {
@@ -328,6 +338,8 @@ export function calculateBazi(input: BaziInput): BaziResult {
   return buildResultFromPillars(
     pillars, birth, luck, 'local-approx',
     '纯 JS 本地快速排盘；月柱使用近似节气，起运按 3 岁简化，适合可视化与学习参考。',
+    undefined,
+    trineSource,
   );
 }
 
@@ -358,6 +370,7 @@ export function calcBaziEnveloped(input: BaziInput): ToolEnvelope<BaziData> {
       { heading: '十神', body: (['year', 'month', 'day', 'hour'] as const).map((k) => `${PILLAR_CN[k]}柱${result.shishenList[k]}`).join('、') + '。' },
       { heading: '日主强弱', body: `日主${dm}为${dmYy}${dmWx}，五行总量${Object.values(els).reduce((s, v) => s + v, 0)}，判断为${isStrong ? '偏强' : '偏弱'}。此判断基于五行计数近似，仅供参考。` },
       { heading: '大运', body: result.luck.map((l) => `${l.ageStart}岁起 ${l.stem}${l.branch}(${l.stemWuxing})`).join('；') + '。起运按3岁简化。' },
+      { heading: '神煞', body: (result.shenSha.length ? result.shenSha.map((s) => `${s.name}(${s.branch}·${s.pillar})`).join('、') + '。' : '本命局未检出常见神煞。') + `（桃花/驿马/华盖/将星按${result.shenShaTrineSource === 'year' ? '年支' : '日支'}三合查）` },
       { heading: '边界说明', body: result.confidenceNote },
     ],
     sourceNotes: result.confidenceNote,

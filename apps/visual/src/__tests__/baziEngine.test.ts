@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { calculateBazi, calcBaziEnveloped } from '@/legacy/baziEngine';
 import type { ToolEnvelope } from '@/legacy/baseTypes';
+import { calcShenSha } from '@/legacy/shensha';
+import type { ShenShaItem } from '@/legacy/shensha';
 
 /**
  * 八字纯 TS 引擎测试（C 类迁移第四步）。
@@ -106,6 +108,49 @@ describe('calculateBazi 精确路径（传 solar mock）', () => {
   });
 });
 
+describe('calcShenSha 神煞推算（甲日干 · 午日支 · 年支子 fixture）', () => {
+  const fixture = {
+    year: { stem: '甲', branch: '子' },
+    month: { stem: '丙', branch: '寅' },
+    day: { stem: '甲', branch: '午' },
+    hour: { stem: '庚', branch: '申' },
+  };
+  it('默认年支查：禄神(寅·月)、驿马(寅·月)、将星(子·年)、月德贵人(丙·月)', () => {
+    // 年支子 → 三合申子辰 → 将星子、驿马寅、华盖辰、桃花酉
+    const ss = calcShenSha(fixture);
+    const names = ss.map((s) => s.name);
+    expect(names).toContain('禄神');
+    expect(names).toContain('驿马');
+    expect(names).toContain('将星');
+    expect(names).toContain('月德贵人');
+    expect(ss.find((s) => s.name === '将星')?.pillar).toBe('年');
+    expect(ss.find((s) => s.name === '驿马')?.pillar).toBe('月');
+    expect(ss.find((s) => s.name === '禄神')?.pillar).toBe('月');
+  });
+  it('日支查口径：将星(午·日)、驿马(申·时)', () => {
+    // 日支午 → 三合寅午戌 → 将星午、驿马申、华盖戌、桃花卯
+    const ss = calcShenSha(fixture, 'day');
+    expect(ss.find((s) => s.name === '将星')?.pillar).toBe('日');
+    expect(ss.find((s) => s.name === '驿马')?.pillar).toBe('时');
+  });
+  it('年支查与日支查将星落柱不同（口径切换有效）', () => {
+    const yearBased = calcShenSha(fixture, 'year');
+    const dayBased = calcShenSha(fixture, 'day');
+    expect(yearBased.find((s) => s.name === '将星')?.pillar).toBe('年');
+    expect(dayBased.find((s) => s.name === '将星')?.pillar).toBe('日');
+  });
+  it('甲午日柱不计魁罡，庚戌等四日才计', () => {
+    expect(calcShenSha(fixture).some((s) => s.name === '魁罡')).toBe(false);
+    const kg = calcShenSha({
+      year: { stem: '庚', branch: '子' },
+      month: { stem: '庚', branch: '寅' },
+      day: { stem: '庚', branch: '戌' },
+      hour: { stem: '庚', branch: '子' },
+    });
+    expect(kg.some((s) => s.name === '魁罡')).toBe(true);
+  });
+});
+
 describe('calcBaziEnveloped envelope 适配', () => {
   it('返回完整 ToolEnvelope，data 含 export_snapshot', () => {
     const env: ToolEnvelope = calcBaziEnveloped({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
@@ -116,6 +161,9 @@ describe('calcBaziEnveloped envelope 适配', () => {
     expect(data.export_snapshot.summary).toContain('日主');
     expect(data.export_snapshot.sections.some((s) => s.heading === '四柱')).toBe(true);
     expect(data.export_snapshot.sections.some((s) => s.heading === '大运')).toBe(true);
+    const full = env.data as { shenSha?: ShenShaItem[]; export_snapshot: { sections: Array<{ heading: string }> } };
+    expect(Array.isArray(full.shenSha)).toBe(true);
+    expect(full.export_snapshot.sections.some((s) => s.heading === '神煞')).toBe(true);
   });
 
   it('近似模式带节气近似 warning', () => {

@@ -1,7 +1,7 @@
 /**
  * tools.ts — MCP 工具定义
  *
- * 把 apps/visual/src/legacy 的 22 个 enveloped 引擎各包成一个 MCP 工具。
+ * 把 apps/visual/src/legacy 的 25 个 enveloped 引擎各包成一个 MCP 工具。
  * 每个工具：name + description + zod input schema + handler 返回 ToolEnvelope。
  *
  * 需要精确历法的工具（bazi/yunqi/liuyao/meihua）传入 lunar-javascript 的 Solar 入口；
@@ -60,9 +60,16 @@ export interface ToolDef {
 export const TOOLS: ToolDef[] = [
   {
     name: 'bazi_calculate',
-    description: '八字排盘：四柱（年月日时）、日主、五行分布、十神、藏干、大运。传入生辰得完整命局。精确历法需 lunar-javascript（已内置）。',
-    schema: z.object({ birth: birthSchema }),
-    handler: (i) => calcBaziEnveloped({ birth: (i as { birth: unknown }).birth as never, solar: solarEntry }),
+    description: '八字排盘：四柱（年月日时）、日主、五行分布、十神、藏干、大运、神煞（天乙/文昌/禄刃/桃花/驿马/华盖/将星/月德/魁罡）。传入生辰得完整命局。精确历法需 lunar-javascript（已内置）。神煞中桃花/驿马/华盖/将星有两套查法口径，由 shenShaTrineSource 选择：year 按年支三合查（传统主流，默认）/ day 按日支三合查（流派之一）。',
+    schema: z.object({
+      birth: birthSchema,
+      shenShaTrineSource: z.enum(['year', 'day']).optional().describe('神煞三合局查取口径：year 按年支查（传统主流，默认）/ day 按日支查'),
+    }),
+    handler: (i) => calcBaziEnveloped({
+      birth: (i as { birth: unknown }).birth as never,
+      solar: solarEntry,
+      shenShaTrineSource: (i as { shenShaTrineSource?: 'year' | 'day' }).shenShaTrineSource,
+    }),
   },
   {
     name: 'ziwei_chart',
