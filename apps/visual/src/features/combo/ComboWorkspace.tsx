@@ -535,10 +535,10 @@ export function ComboWorkspace() {
           ) : (
             <InterpretationCard
               title="各术数看法"
-              subtitle={(data as ComboResult).consistency.aligned ? '各术数看法一致，结论较稳' : '各术数看法有出入，已为你标出权衡要点'}
+              subtitle={(data as ComboResult).consistency?.aligned ? '各术数看法一致，结论较稳' : '各术数看法有出入，已为你标出权衡要点'}
             >
               <div className="grid gap-2 sm:grid-cols-3">
-                {(data as ComboResult).subsystems.map((s) => {
+                {((data as ComboResult).subsystems ?? []).map((s) => {
                   const tone = (s as { tone?: string }).tone;
                   return (
                     <div key={s.name} className={`rounded-card border px-3 py-2 ${
@@ -557,7 +557,7 @@ export function ComboWorkspace() {
                   );
                 })}
               </div>
-              {!(data as ComboResult).consistency.aligned && (data as ComboResult).consistency.conflicts.length > 0 && (
+              {(data as ComboResult).consistency && !(data as ComboResult).consistency.aligned && ((data as ComboResult).consistency.conflicts?.length ?? 0) > 0 && (
                 <div className="mt-2 rounded-card border border-cinnabar-500/20 bg-cinnabar-500/8 px-3 py-2">
                   <p className="text-xs text-cinnabar-300/80">⚠️ 看法有出入：{(data as ComboResult).consistency.conflicts.join('；')}</p>
                 </div>
