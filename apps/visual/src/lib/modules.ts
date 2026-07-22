@@ -292,9 +292,9 @@ export const MODULES: WisdomModule[] = [
     status: 'knowledge',
     statusLabel: '知识映射',
     privacyLevel: '不含个人资料',
-    questionTypes: ['古籍原文', '映射 JSON', '对照'],
+    questionTypes: ['古籍原文', '规则对照', '搜索'],
     accent: '#8a6d35',
-    description: '左侧古籍 Markdown 原文与右侧映射 JSON 结构对照阅读，支持关键词搜索高亮。',
+    description: '左侧古籍原文，右侧对应的规则映射，支持关键词搜索高亮。先内置《八宅明镜》与八宅规则对照。',
   },
   {
     id: 'history',

@@ -129,7 +129,7 @@ export function AncientTextSplitReader() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">古籍 Split Reader</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              左侧显示古籍 Markdown 原文，右侧显示映射 JSON 结构，支持关键词搜索高亮。Phase 8 雏形——先内置八宅明镜与映射表对照。
+              左侧为古籍原文，右侧为对应的规则映射，支持关键词搜索高亮。先内置《八宅明镜》与八宅规则对照。
             </p>
           </div>
           <CopyContextButton commandScope="reader" title="Split Reader 上下文" payload={contextPayload} />
@@ -182,7 +182,6 @@ export function AncientTextSplitReader() {
         <div className="rounded-panel border border-ink-700 bg-ink-850/60 p-4">
           <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
             <h3 className="font-serif text-sm font-semibold text-jade-100/70">古籍原文</h3>
-            <span className="text-[10px] text-jade-100/45">{selected.source.length} 字符</span>
           </div>
           <div
             className="max-h-[60vh] overflow-y-auto pr-2 text-sm leading-7"
@@ -194,20 +193,11 @@ export function AncientTextSplitReader() {
         <div className="rounded-panel border border-ink-700 bg-ink-850/60 p-4">
           <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
             <h3 className="font-serif text-sm font-semibold text-jade-100/70">{selected.mappingName}</h3>
-            <span className="text-[10px] text-jade-100/45">{selected.mappingJson.length} 字符</span>
           </div>
           <pre className="max-h-[60vh] overflow-auto rounded-card border border-white/8 bg-black/30 p-3 text-xs leading-5">
             <code dangerouslySetInnerHTML={{ __html: highlightedJson }} />
           </pre>
         </div>
-      </div>
-
-      {/* 说明 */}
-      <div className="rounded-card border border-jade-500/20 bg-jade-500/8 p-3">
-        <p className="text-xs leading-5 text-jade-100/55">
-          Split Reader 雏形通过 Vite <code className="text-jade-500">?raw</code> 在构建时导入古籍 Markdown 和映射 JSON，
-          无需运行时文件读取。后续可扩展为 manifest 驱动的多文本选择器和 AST 级高亮关联。
-        </p>
       </div>
     </section>
   );
