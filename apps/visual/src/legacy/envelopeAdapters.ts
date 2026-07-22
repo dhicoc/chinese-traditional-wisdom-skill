@@ -81,15 +81,15 @@ export interface NameRatingData extends NameRatingResult {
  * @param givenName 名（如「伟」）
  * @param birthYear 出生年（用于生肖契合度），可选
  */
-export function calcNameRatingEnveloped(
+export async function calcNameRatingEnveloped(
   surname: string,
   givenName: string,
   birthYear?: number,
   birth?: { year: number; month: number; day: number; hour: number; minute?: number; gender: string },
   solar?: unknown,
-): ToolEnvelope<NameRatingData> {
+): Promise<ToolEnvelope<NameRatingData>> {
   const input = { surname, givenName, birthYear, birth };
-  const analysis = analyzeName(surname, givenName);
+  const analysis = await analyzeName(surname, givenName);
   const result = calcNameRating(analysis, birthYear, birth, solar);
 
   const dimDetail = result.dimensions.map((d) => `${d.name}${d.score}分(权重${d.weight}%):${d.detail}`).join('；');

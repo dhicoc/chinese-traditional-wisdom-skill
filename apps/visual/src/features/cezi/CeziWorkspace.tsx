@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getSolarEntry } from '@/legacy/solarEntry';
 import { useBirth } from '@/lib/birthContext';
 import { calcCezi, type CeziResult } from '@/legacy/ceziEngine';
@@ -20,20 +20,29 @@ export function CeziWorkspace() {
   const [aspect, setAspect] = useState<CeziAspect>('综合');
   const [useBazi, setUseBazi] = useState(true);
 
-  const result = useMemo<{ data: CeziResult | null; fourLayer: ReturnType<typeof toFourLayer> | null }>(() => {
-    if (!char.trim()) return { data: null, fourLayer: null };
-    try {
-      const solar = getSolarEntry() ?? null;
-      const data = calcCezi({
-        char,
-        aspect,
-        birth: useBazi ? { year: solarBirth.year, month: solarBirth.month, day: solarBirth.day, hour: solarBirth.hour, minute: solarBirth.minute, gender: solarBirth.gender } : undefined,
-        solar,
-      });
-      return { data, fourLayer: toFourLayer(data.export_snapshot as ReadingLike) };
-    } catch {
-      return { data: null, fourLayer: null };
+  const [result, setResult] = useState<{ data: CeziResult | null; fourLayer: ReturnType<typeof toFourLayer> | null }>({ data: null, fourLayer: null });
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!char.trim()) {
+      setResult({ data: null, fourLayer: null });
+      return;
     }
+    void (async () => {
+      try {
+        const solar = getSolarEntry() ?? null;
+        const data = await calcCezi({
+          char,
+          aspect,
+          birth: useBazi ? { year: solarBirth.year, month: solarBirth.month, day: solarBirth.day, hour: solarBirth.hour, minute: solarBirth.minute, gender: solarBirth.gender } : undefined,
+          solar,
+        });
+        if (!cancelled) setResult({ data, fourLayer: toFourLayer(data.export_snapshot as ReadingLike) });
+      } catch {
+        if (!cancelled) setResult({ data: null, fourLayer: null });
+      }
+    })();
+    return () => { cancelled = true; };
   }, [char, aspect, useBazi, solarBirth]);
 
   const r = result.data;

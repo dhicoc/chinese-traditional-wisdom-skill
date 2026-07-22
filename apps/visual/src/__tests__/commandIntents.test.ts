@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
   buildCommandFeedback,
   isRefreshAllCommand,
@@ -10,6 +10,14 @@ import {
   parseReaderSearchCommand,
   recordCommandHistory,
 } from '@/lib/commandIntents';
+
+// 隔离前置：historyStore 模块在 import 时会把 HistoryStore 挂到 window（供 e2e / 命令历史记录），
+// 但本文件的「store 不存在」断言依赖其缺位；此处还原该前置条件，并清空 localStorage
+// 避免命令历史跨用例/跨运行污染（此前一个遗留的「测试」条目导致 listCommandHistory 非空）。
+beforeEach(() => {
+  delete (window as unknown as { HistoryStore?: unknown }).HistoryStore;
+  try { localStorage.clear(); } catch { /* jsdom 无 localStorage 时忽略 */ }
+});
 
 describe('command intent parsers', () => {
   it('parses a Chinese solar birth command', () => {

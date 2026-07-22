@@ -3,7 +3,7 @@
  * index.ts — 中国传统玄学 MCP Server 主入口
  *
  * 用 @modelcontextprotocol/sdk 的 McpServer + StdioServerTransport，
- * 把 apps/visual/src/legacy 的 19 个 enveloped 引擎暴露为 MCP 工具。
+ * 把 apps/visual/src/legacy 的 25 个 enveloped 引擎暴露为 MCP 工具。
  *
  * 这是三层架构 Layer 2 的薄壳：不实现计算逻辑，只 import enveloped 函数注册成工具。
  * 所有计算引擎都是纯 TS、零 DOM 依赖，Node 可直接运行。
@@ -25,7 +25,7 @@ const server = new McpServer({
 
 const META_TOOLS_COUNT = 2;
 
-// ─── 注册 19 个计算工具（带缺参软引导）───
+// ─── 注册 25 个计算工具（带缺参软引导）───
 for (const tool of TOOLS) {
   // McpServer.tool 接受 ZodRawShape（z.object 的 .shape 属性）
   const shape = tool.schema.shape;
@@ -38,7 +38,7 @@ for (const tool of TOOLS) {
         // 软闸门：校验必填参数，缺失时仍执行但在结果旁附 prompt_to_user 引导 AI 追问
         // （horosa 是硬闸门拒绝计算；本项目用软引导，更友好，不破坏直接调用）
         const { prompts } = validateToolInput(tool.name, (input as Record<string, unknown>) || {});
-        const result = tool.handler(input);
+        const result = await tool.handler(input);
         // enveloped 函数返回 ToolEnvelope，序列化为 JSON 文本返回
         // 若有缺参提示，附在返回文本末尾
         const text = prompts.length

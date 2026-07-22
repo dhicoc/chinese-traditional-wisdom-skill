@@ -1,19 +1,25 @@
 import { test, expect } from '@playwright/test';
+import { readFileSync } from 'fs';
 
-const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:5174';
+const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
 
 /**
  * Privacy E2E Tests — 隐私测试（重写为真实校验）
  *
  * 验证：历史/收藏不保存完整生辰/姓名/地点；报告导出脱敏；
- * 30 条历史限制。所有校验使用真实存储键（FORTUNE_HISTORY /
- * FORTUNE_FAVORITES）和真实 API（HistoryStore）。
+ * 30 条历史限制；全局生辰仅收集 年/月/日/时/性别 拆分字段。
+ *
+ * 实现说明（React 迁移后）：
+ *  - 历史/收藏由 src/legacy/historyStore.ts 管理，并暴露在 window.HistoryStore
+ *    （localStorage 键 FORTUNE_HISTORY / FORTUNE_FAVORITES），真实写入即走此 API。
+ *  - 报告导出由 ExportReportButton 生成脱敏 JSON 并触发下载，不再有旧 FORTUNE.exportReportData 全局。
+ *  - 生辰由 BirthPanel 收集，仅 年/月/日/时/性别/历法/精确节气 拆分字段，无完整日期输入。
  */
 
-/** 等待 legacy 引擎加载 */
-async function waitForLegacy(page: import('@playwright/test').Page): Promise<void> {
+/** 等待历史存储就绪（window.HistoryStore 由 historyStore.ts 暴露） */
+async function waitForStore(page: import('@playwright/test').Page): Promise<void> {
   await page.waitForFunction(
-    () => typeof (window as any).HistoryStore?.add === 'function',
+    () => typeof (window as unknown as { HistoryStore?: { add?: unknown } }).HistoryStore?.add === 'function',
     { timeout: 12000 },
   );
 }
@@ -31,7 +37,6 @@ function entryHasFullBirthDate(entry: Record<string, unknown>): boolean {
     if (typeof value === 'string' && hasFullDate(value)) return true;
     if (typeof value === 'object' && value !== null) {
       const sub = JSON.stringify(value);
-      // 对嵌套对象也跳过 createdAt
       if (hasFullDate(sub) && !sub.includes('"createdAt"')) return true;
     }
   }
@@ -42,10 +47,10 @@ test.describe('Privacy - History Store', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
-    await waitForLegacy(page);
+    await waitForStore(page);
     // 清空历史与收藏
     await page.evaluate(() => {
-      const H = (window as any).HistoryStore;
+      const H = (window as unknown as { HistoryStore: { clear?: () => void; clearFavorites?: () => void } }).HistoryStore;
       if (H?.clear) H.clear();
       if (H?.clearFavorites) H.clearFavorites();
     });
@@ -54,7 +59,7 @@ test.describe('Privacy - History Store', () => {
   test('历史记录不含完整出生日期', async ({ page }) => {
     // 通过 HistoryStore.add 添加一条带年份的记录（模拟真实使用）
     await page.evaluate(() => {
-      const H = (window as any).HistoryStore;
+      const H = (window as unknown as { HistoryStore: { add: (e: unknown) => void } }).HistoryStore;
       H.add({ module: 'bazi', title: '八字测试', summary: '1990年男性命盘', tags: ['八字'], mode: 'local-exact' });
     });
 
@@ -70,7 +75,7 @@ test.describe('Privacy - History Store', () => {
 
   test('历史记录不含完整姓名', async ({ page }) => {
     await page.evaluate(() => {
-      const H = (window as any).HistoryStore;
+      const H = (window as unknown as { HistoryStore: { add: (e: unknown) => void } }).HistoryStore;
       H.add({ module: 'bazi', title: '八字测试', summary: '命盘分析', tags: ['八字'], mode: 'local-exact' });
     });
 
@@ -88,7 +93,7 @@ test.describe('Privacy - History Store', () => {
 
   test('历史记录不含地点信息', async ({ page }) => {
     await page.evaluate(() => {
-      const H = (window as any).HistoryStore;
+      const H = (window as unknown as { HistoryStore: { add: (e: unknown) => void } }).HistoryStore;
       H.add({ module: 'fengshui', title: '风水测试', summary: '坐北朝南', tags: ['风水'], mode: 'local' });
     });
 
@@ -106,7 +111,7 @@ test.describe('Privacy - History Store', () => {
 
   test('历史记录可含年份但不含月日', async ({ page }) => {
     await page.evaluate(() => {
-      const H = (window as any).HistoryStore;
+      const H = (window as unknown as { HistoryStore: { add: (e: unknown) => void } }).HistoryStore;
       H.add({ module: 'bazi', title: '1990年命盘', summary: '分析', tags: [], mode: 'local-exact' });
     });
 
@@ -130,9 +135,9 @@ test.describe('Privacy - Favorites Store', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
-    await waitForLegacy(page);
+    await waitForStore(page);
     await page.evaluate(() => {
-      const H = (window as any).HistoryStore;
+      const H = (window as unknown as { HistoryStore: { clearFavorites?: () => void } }).HistoryStore;
       if (H?.clearFavorites) H.clearFavorites();
     });
   });
@@ -140,7 +145,7 @@ test.describe('Privacy - Favorites Store', () => {
   test('收藏不含完整出生日期', async ({ page }) => {
     // 添加一条收藏
     await page.evaluate(() => {
-      const H = (window as any).HistoryStore;
+      const H = (window as unknown as { HistoryStore: { add: (e: unknown) => void } }).HistoryStore;
       H.add({ module: 'bazi', title: '收藏测试', summary: '1990年命盘', tags: ['八字'], mode: 'local-exact', favorite: true });
     });
 
@@ -158,121 +163,80 @@ test.describe('Privacy - Favorites Store', () => {
 });
 
 test.describe('Privacy - Report Export', () => {
-  test.beforeEach(async ({ page }) => {
+  test('报告导出数据脱敏——birth/solarBirth 字段白名单且无 legacy 完整日期字段', async ({ page }) => {
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
-  });
+    await page.getByRole('tab', { name: '八字命盘' }).click();
+    await page.waitForSelector('[data-testid="workspace-bazi"]', { timeout: 10000 });
 
-  test('报告导出数据脱敏——不含完整出生日期', async ({ page }) => {
-    await page.waitForFunction(
-      () => typeof (window as any).FORTUNE?.exportReportData === 'function',
-      { timeout: 12000 },
-    );
+    const [download] = await Promise.all([
+      page.waitForEvent('download', { timeout: 10000 }),
+      page.getByRole('button', { name: '导出报告' }).first().click(),
+    ]);
+    const path = await download.path();
+    expect(path).toBeTruthy();
+    const raw = readFileSync(path!, 'utf-8');
+    const report = JSON.parse(raw);
 
-    const report = await page.evaluate(() => {
-      const F = (window as any).FORTUNE;
-      if (!F || typeof F.exportReportData !== 'function') return null;
-      try {
-        return F.exportReportData() as any;
-      } catch {
-        return null;
-      }
-    });
-
-    expect(report).toBeTruthy();
-
-    // subject.label 不含完整生日
-    const label = String(report?.subject?.label ?? '');
-    expect(label).not.toMatch(/\d{4}-\d{2}-\d{2}/);
-
-    // ziwei.birthInfo 只保留 year + gender
-    const bi = report?.ziwei?.birthInfo;
-    if (bi) {
-      expect(bi.month).toBeUndefined();
-      expect(bi.day).toBeUndefined();
-      expect(bi.hour).toBeUndefined();
+    // 脱敏契约：birth 仅含允许字段，无 name/location/fullDate
+    const allowedBirth = ['year', 'month', 'day', 'hour', 'gender', 'isLunar', 'useExactCalendar'];
+    for (const k of Object.keys(report.birth ?? {})) {
+      expect(allowedBirth, `birth 含未授权字段: ${k}`).toContain(k);
     }
-
-    // 报告不含明文生日字段
-    const json = JSON.stringify(report);
-    expect(json).not.toContain('solarDate');
-    expect(json).not.toContain('lunarDate');
-    expect(json).not.toContain('queryDate');
+    const allowedSolar = ['year', 'month', 'day', 'hour', 'gender'];
+    for (const k of Object.keys(report.solarBirth ?? {})) {
+      expect(allowedSolar, `solarBirth 含未授权字段: ${k}`).toContain(k);
+    }
+    // 不应出现 legacy 完整日期字段
+    expect(raw).not.toContain('solarDate');
+    expect(raw).not.toContain('lunarDate');
+    expect(raw).not.toContain('queryDate');
   });
 
   test('报告导出数据不含完整姓名/地点', async ({ page }) => {
-    await page.waitForFunction(
-      () => typeof (window as any).FORTUNE?.exportReportData === 'function',
-      { timeout: 12000 },
-    );
+    await page.goto(BASE_URL);
+    await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
+    await page.getByRole('tab', { name: '八字命盘' }).click();
+    await page.waitForSelector('[data-testid="workspace-bazi"]', { timeout: 10000 });
 
-    const report = await page.evaluate(() => {
-      const F = (window as any).FORTUNE;
-      try {
-        return F.exportReportData() as any;
-      } catch {
-        return null;
-      }
-    });
+    const [download] = await Promise.all([
+      page.waitForEvent('download', { timeout: 10000 }),
+      page.getByRole('button', { name: '导出报告' }).first().click(),
+    ]);
+    const path = await download.path();
+    expect(path).toBeTruthy();
+    const raw = readFileSync(path!, 'utf-8');
 
-    if (report) {
-      // subject 不含 name/fullName/location
-      expect(report.subject?.name).toBeUndefined();
-      expect(report.subject?.fullName).toBeUndefined();
-      expect(report.subject?.location).toBeUndefined();
-      expect(report.subject?.birthPlace).toBeUndefined();
-    }
+    // 导出内容不应含姓名/地点相关字段（无论大小写/引号）
+    expect(raw).not.toMatch(/name|fullName|location|birthPlace|fullDate|solarDate|lunarDate/i);
   });
 });
 
 test.describe('Privacy - Birth Data Input', () => {
   test.beforeEach(async ({ page }) => {
+    // 生辰输入面板位于桌面侧边栏，移动端隐藏；强制桌面视口以校验输入字段
+    await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
   });
 
-  test('全局生辰面板可展开且有输入字段', async ({ page }) => {
-    // BirthPanel 默认折叠，点击展开
-    const toggle = page.locator('button').filter({ hasText: /全局生辰/ });
-    await expect(toggle).toBeVisible();
-    await toggle.click();
-    await page.waitForTimeout(500);
+  test('全局生辰面板默认展开且含 年/月/日/时/性别 输入', async ({ page }) => {
+    // BirthPanel 默认展开，位于侧边栏内
+    const sidebar = page.locator('aside[data-testid="sidebar-nav"]');
+    await expect(sidebar).toBeVisible();
 
-    // 展开后应有输入字段
-    const inputs = page.locator('input[type="number"], input[type="text"]');
-    const count = await inputs.count();
-    expect(count).toBeGreaterThan(0);
+    // 年/月/日/时 数字输入（ControlField type="number"）
+    const numberInputs = sidebar.locator('input[type="number"]');
+    await expect(numberInputs.first()).toBeVisible();
+    await expect(numberInputs).toHaveCount(4);
+    // 性别下拉
+    await expect(sidebar.locator('select')).toHaveCount(1);
   });
 
-  test('全局生辰数据只含 year/month/day/hour/gender，不含 fullDate', async ({ page }) => {
-    // 等待 legacy 加载，检查 FORTUNE 全局数据
-    await page.waitForFunction(
-      () => typeof (window as any).FORTUNE !== 'undefined',
-      { timeout: 12000 },
-    );
-
-    const birthData = await page.evaluate(() => {
-      const F = (window as any).FORTUNE;
-      // FORTUNE 可能有 getData / getBirth 方法
-      if (typeof F?.getData === 'function') {
-        try {
-          const d = F.getData();
-          return d?.birth || d?.birthInfo || null;
-        } catch {
-          return null;
-        }
-      }
-      return F?.birth || null;
-    });
-
-    if (birthData) {
-      // 不应有 fullDate 字段（完整日期字符串）
-      expect(birthData.fullDate).toBeUndefined();
-      // year 应是 4 位数字
-      if (birthData.year) {
-        expect(String(birthData.year)).toMatch(/^\d{4}$/);
-      }
-    }
+  test('全局生辰不收集完整日期字段', async ({ page }) => {
+    const sidebar = page.locator('aside[data-testid="sidebar-nav"]');
+    // 不应存在完整日期输入（date/datetime-local），仅 年/月/日/时 拆分字段
+    await expect(sidebar.locator('input[type="date"], input[type="datetime-local"]')).toHaveCount(0);
   });
 });
 
@@ -280,11 +244,11 @@ test.describe('Privacy - Data Retention', () => {
   test('历史限制 30 条', async ({ page }) => {
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
-    await waitForLegacy(page);
+    await waitForStore(page);
 
     // 清空后添加 35 条（不同 title 避免去重）
     await page.evaluate(() => {
-      const H = (window as any).HistoryStore;
+      const H = (window as unknown as { HistoryStore: { clear?: () => void; add: (e: unknown) => void } }).HistoryStore;
       if (H?.clear) H.clear();
       for (let i = 0; i < 35; i++) {
         H.add({ module: 'bazi', title: `test-${i}`, summary: 's', tags: [], mode: 'local' });
@@ -292,7 +256,7 @@ test.describe('Privacy - Data Retention', () => {
     });
 
     const count = await page.evaluate(() => {
-      const H = (window as any).HistoryStore;
+      const H = (window as unknown as { HistoryStore: { list?: () => unknown[] } }).HistoryStore;
       return H?.list ? H.list().length : -1;
     });
     expect(count).toBeLessThanOrEqual(30);

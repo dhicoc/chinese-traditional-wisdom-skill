@@ -186,7 +186,7 @@ function wuxingPersonality(w: string): string {
 
 // ─── 主函数 ─────────────────────────────────────────────
 
-export function calcCezi(input: CeziInput): CeziResult {
+export async function calcCezi(input: CeziInput): Promise<CeziResult> {
   const char = (input.char ?? '').trim()[0] ?? '';
   const aspect = input.aspect ?? '综合';
 
@@ -203,7 +203,7 @@ export function calcCezi(input: CeziInput): CeziResult {
 
   // 字义五行 + 本义
   const charWuxing = getCharWuxing(char);
-  const meaning = getCharMeaning(char);
+  const meaning = await getCharMeaning(char);
 
   // 结构 + 偏旁
   const structure = analyzeCharStructure(char);
@@ -303,8 +303,8 @@ function computeNameAdvice(char: string, charWuxing: string, bazi: CeziResult['b
 
 // ─── enveloped 版本 ─────────────────────────────────────
 
-export function calcCeziEnveloped(input: CeziInput): ToolEnvelope<CeziResult> {
-  const result = calcCezi(input);
+export async function calcCeziEnveloped(input: CeziInput): Promise<ToolEnvelope<CeziResult>> {
+  const result = await calcCezi(input);
   const warnings: string[] = [];
   if (result.strokesEstimated) warnings.push(`「${input.char}」未收录康熙笔画，已用估算值，数理仅供参考`);
   if (!result.charWuxing) warnings.push(`「${input.char}」未收录字义五行，五行维度降级`);

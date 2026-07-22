@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:5174';
+const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
 
 /**
  * E2E 交互测试 — Phase 11 后续扩展。
  * 覆盖 CommandBar 命令面板交互、SVG 双击放大、右键复制为图像等关键路径。
+ *
+ * 注：模块导航为 <button role="tab">（文字 = module.title），故用 getByRole('tab') 定位。
  */
 
 test.describe('CommandBar 命令面板交互', () => {
@@ -47,15 +49,15 @@ test.describe('SVG 图表双击放大与右键复制', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
-    // 等待 legacy 引擎加载（体质雷达图为 React 自包含，无需 legacy，但切到体质页稳妥）
-    await page.locator('[data-testid="nav-item"]').filter({ hasText: '体质辨识' }).click();
+    // 体质雷达图为 React 自包含，适合做放大/复制校验
+    await page.getByRole('tab', { name: '体质辨识' }).click();
     await page.waitForSelector('[data-testid="radar-chart"]', { timeout: 10000 });
   });
 
   test('双击 SVG 打开放大弹窗', async ({ page }) => {
     const chart = page.locator('[data-testid="radar-chart"]').locator('..');
     await chart.dblclick();
-    // 放大弹窗标题应出现
+    // 放大弹窗标题应出现（ZoomableSvg 传入的 title = 「九种体质雷达图」）
     await expect(page.locator('[role="dialog"]').filter({ hasText: '九种体质雷达图' })).toBeVisible();
   });
 

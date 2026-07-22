@@ -10,7 +10,6 @@
  */
 
 import kangxiData from './kangxiStrokes.json';
-import charMeaningsData from './charMeanings.json';
 
 interface CharEntry {
   /** 康熙笔画 */
@@ -20,7 +19,6 @@ interface CharEntry {
 }
 
 const KANGXI: Record<string, CharEntry> = kangxiData as Record<string, CharEntry>;
-const CHAR_MEANINGS: Record<string, string> = charMeaningsData as Record<string, string>;
 
 /**
  * 取汉字康熙笔画数。未收录时返回 null（由调用方标注「未收录」并回退估算）。
@@ -34,8 +32,22 @@ export function getCharWuxing(char: string): string {
   return KANGXI[char]?.w ?? '';
 }
 
+/**
+ * 字义出处文本（charMeanings.json，约 1.69MB）按需动态加载，避免拖入姓名五行/测字的静态 chunk。
+ * 仅用于展示（字义出处），不参与任何评分计算；评分所需的 {k,w} 来自 kangxiStrokes.json（静态 import）。
+ */
+let charMeaningsCache: Record<string, string> | null = null;
+async function loadCharMeanings(): Promise<Record<string, string>> {
+  if (!charMeaningsCache) {
+    const mod = await import('./charMeanings');
+    charMeaningsCache = mod.CHAR_MEANINGS;
+  }
+  return charMeaningsCache;
+}
+
 /** 取汉字字义出处（fate character.json 的 meaning 字段，19931 字）。未收录返回空串。 */
-export function getCharMeaning(char: string): string {
+export async function getCharMeaning(char: string): Promise<string> {
+  const CHAR_MEANINGS = await loadCharMeanings();
   return CHAR_MEANINGS[char] ?? '';
 }
 

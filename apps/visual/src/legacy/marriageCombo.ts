@@ -146,7 +146,7 @@ function relationNote(rel: ChongHeRelation): string {
 
 // ─── 主函数 ─────────────────────────────────────────────
 
-export function calcMarriageCombo(input: MarriageComboInput): ToolEnvelope<MarriageResult> {
+export async function calcMarriageCombo(input: MarriageComboInput): Promise<ToolEnvelope<MarriageResult>> {
   const scene = input.scene ?? '婚恋';
   const { personA, personB } = input;
 
@@ -184,12 +184,12 @@ export function calcMarriageCombo(input: MarriageComboInput): ToolEnvelope<Marri
   let nameScoreB: number | undefined;
   let nameGradeB: string | undefined;
   if (personA.surname && personA.givenName) {
-    const nr = calcNameRatingEnveloped(personA.surname, personA.givenName, personA.birth.year, { ...personA.birth, gender: personA.birth.gender ?? '男' }, personA.solar as never);
+    const nr = await calcNameRatingEnveloped(personA.surname, personA.givenName, personA.birth.year, { ...personA.birth, gender: personA.birth.gender ?? '男' }, personA.solar as never);
     nameScoreA = (nr.data as { totalScore?: number }).totalScore;
     nameGradeA = (nr.data as { grade?: string }).grade;
   }
   if (personB.surname && personB.givenName) {
-    const nr = calcNameRatingEnveloped(personB.surname, personB.givenName, personB.birth.year, { ...personB.birth, gender: personB.birth.gender ?? '男' }, personB.solar as never);
+    const nr = await calcNameRatingEnveloped(personB.surname, personB.givenName, personB.birth.year, { ...personB.birth, gender: personB.birth.gender ?? '男' }, personB.solar as never);
     nameScoreB = (nr.data as { totalScore?: number }).totalScore;
     nameGradeB = (nr.data as { grade?: string }).grade;
   }

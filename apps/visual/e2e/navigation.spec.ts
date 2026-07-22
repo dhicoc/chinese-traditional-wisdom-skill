@@ -1,10 +1,13 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:5174';
+const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
 
 /**
  * Navigation E2E Tests - 导航测试
  * 验证标签切换、路由、CommandBar 功能
+ *
+ * 注意：模块导航在 React 迁移后改为 <button role="tab">（文字 = module.title），
+ * 不再有 [data-testid="nav-item"]，故统一用 getByRole('tab', { name }) 定位。
  */
 
 test.describe('Tab Navigation', () => {
@@ -14,31 +17,31 @@ test.describe('Tab Navigation', () => {
   });
 
   test('should navigate to bazi tab', async ({ page }) => {
-    await page.click('[data-testid="nav-item"]:has-text("八字")');
+    await page.getByRole('tab', { name: '八字' }).click();
     await expect(page.locator('[data-testid="workspace-bazi"]')).toBeVisible();
     await expect(page.locator('[data-testid="workspace-bazi"]')).toContainText('八字排盘工作台');
   });
 
   test('should navigate to ziwei tab', async ({ page }) => {
-    await page.click('[data-testid="nav-item"]:has-text("紫微")');
+    await page.getByRole('tab', { name: '紫微' }).click();
     await expect(page.locator('[data-testid="workspace-ziwei"]')).toBeVisible();
     await expect(page.locator('[data-testid="workspace-ziwei"]')).toContainText('紫微斗数');
   });
 
   test('should navigate to liuyao tab', async ({ page }) => {
-    await page.click('[data-testid="nav-item"]:has-text("六爻")');
+    await page.getByRole('tab', { name: '六爻' }).click();
     await expect(page.locator('[data-testid="workspace-liuyao"]')).toBeVisible();
     await expect(page.locator('[data-testid="workspace-liuyao"]')).toContainText('六爻占卜');
   });
 
   test('should navigate to meihua tab', async ({ page }) => {
-    await page.click('[data-testid="nav-item"]:has-text("梅花")');
+    await page.getByRole('tab', { name: '梅花' }).click();
     await expect(page.locator('[data-testid="workspace-meihua"]')).toBeVisible();
     await expect(page.locator('[data-testid="workspace-meihua"]')).toContainText('梅花易数');
   });
 
   test('should navigate to fengshui tab', async ({ page }) => {
-    await page.click('[data-testid="nav-item"]:has-text("风水")');
+    await page.getByRole('tab', { name: '风水' }).click();
     await expect(page.locator('[data-testid="workspace-fengshui"]')).toBeVisible();
   });
 
@@ -56,7 +59,7 @@ test.describe('Tab Navigation', () => {
     ];
 
     for (const tool of tools) {
-      await page.click(`[data-testid="nav-item"]:has-text("${tool.name}")`);
+      await page.getByRole('tab', { name: tool.name }).click();
       await expect(page.locator(`[data-testid="workspace-${tool.id}"]`)).toBeVisible();
       // Small delay to ensure transition completes
       await page.waitForTimeout(200);
@@ -64,11 +67,11 @@ test.describe('Tab Navigation', () => {
   });
 
   test('should update URL hash on tab change', async ({ page }) => {
-    await page.click('[data-testid="nav-item"]:has-text("八字")');
+    await page.getByRole('tab', { name: '八字' }).click();
     await page.waitForTimeout(500);
     expect(page.url()).toContain('#bazi');
 
-    await page.click('[data-testid="nav-item"]:has-text("紫微")');
+    await page.getByRole('tab', { name: '紫微' }).click();
     await page.waitForTimeout(500);
     expect(page.url()).toContain('#ziwei');
   });
@@ -185,8 +188,10 @@ test.describe('Home Dashboard Navigation', () => {
     await expect(page.locator('[data-testid="workspace-bazi"]')).toBeVisible();
   });
 
-  test('should show all tools in directory', async ({ page }) => {
+  test('should show core tool cards in directory', async ({ page }) => {
     const toolCards = page.locator('[data-testid="tool-card"]');
-    await expect(toolCards).toHaveCount(9);
+    // 首页「常用排盘入口」展示 5 个核心工具（bazi/ziwei/liuyao/meihua/fengshui）
+    await expect(toolCards).toHaveCount(5);
+    await expect(page.locator('[data-testid="tool-card-bazi"]')).toBeVisible();
   });
 });

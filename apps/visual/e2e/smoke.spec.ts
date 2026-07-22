@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:5174';
+const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
 
 /**
  * E2E Smoke Tests - 基础冒烟测试
  * 验证应用能正常启动，核心元素可见
+ *
+ * 注：模块导航为 <button role="tab">（文字 = module.title），不再有 [data-testid="nav-item"]。
  */
 
 test.describe('Application Smoke Tests', () => {
@@ -15,14 +17,23 @@ test.describe('Application Smoke Tests', () => {
   });
 
   test('should display app shell with title', async ({ page }) => {
-    await expect(page.locator('h1').getByText('玄学排盘')).toBeVisible();
+    // 品牌标题在桌面侧边栏中渲染；移动端侧边栏隐藏，故强制桌面视口验证可见性
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto(BASE_URL);
+    await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
+    await expect(page.getByRole('heading', { name: '玄学排盘' })).toBeVisible();
   });
 
   test('should render sidebar navigation', async ({ page }) => {
+    // 侧边栏为桌面专属结构；移动端侧边栏隐藏，故强制桌面视口验证可见性
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto(BASE_URL);
+    await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
     await expect(page.locator('[data-testid="sidebar-nav"]')).toBeVisible();
-    // Verify all module nav items exist (home + 18 tools + 联合分析 = 19)
-    const navItems = page.locator('[data-testid="nav-item"]');
-    await expect(navItems).toHaveCount(21);
+    // 所有模块以 <button role="tab"> 渲染（当前共 24 个模块）。
+    // AppShell 对桌面/移动分别渲染一份 tablist（响应式双份），getByRole 默认只匹配可见的一份 → 24
+    const tabs = page.getByRole('tab');
+    await expect(tabs).toHaveCount(24);
     // 联合分析标签应在侧边栏
     await expect(page.getByRole('button', { name: /联合分析/ })).toBeVisible();
   });
@@ -64,30 +75,6 @@ test.describe('Application Smoke Tests', () => {
     );
 
     expect(criticalErrors).toHaveLength(0);
-  });
-});
-
-test.describe('Legacy Script Loading', () => {
-  test('should load legacy engine adapters', async ({ page }) => {
-    await page.goto(BASE_URL);
-    await page.waitForTimeout(3000); // Wait for legacy scripts to load
-
-    const hasEngineRegistry = await page.evaluate(() => {
-      return typeof (window as any).EngineAdapterRegistry !== 'undefined';
-    });
-
-    expect(hasEngineRegistry).toBe(true);
-  });
-
-  test('should have FORTUNE global object', async ({ page }) => {
-    await page.goto(BASE_URL);
-    await page.waitForTimeout(3000);
-
-    const hasFortune = await page.evaluate(() => {
-      return typeof (window as any).FORTUNE !== 'undefined';
-    });
-
-    expect(hasFortune).toBe(true);
   });
 });
 

@@ -40,12 +40,12 @@ function findTool(name: string) {
   return t;
 }
 
-describe('MCP TOOLS 注册完整性', () => {
-  it('注册了 25 个工具', () => {
+describe('MCP TOOLS 注册完整性', async () => {
+  it('注册了 25 个工具', async () => {
     expect(TOOLS.length).toBe(25);
   });
 
-  it('所有工具有 name/description/schema/handler', () => {
+  it('所有工具有 name/description/schema/handler', async () => {
     TOOLS.forEach((t) => {
       expect(typeof t.name).toBe('string');
       expect(t.name.length).toBeGreaterThan(0);
@@ -56,22 +56,22 @@ describe('MCP TOOLS 注册完整性', () => {
     });
   });
 
-  it('工具名唯一', () => {
+  it('工具名唯一', async () => {
     const names = TOOLS.map((t) => t.name);
     expect(new Set(names).size).toBe(names.length);
   });
 
-  it('工具名符合 horosa 风格的 snake_case', () => {
+  it('工具名符合 horosa 风格的 snake_case', async () => {
     TOOLS.forEach((t) => {
       expect(t.name).toMatch(/^[a-z][a-z0-9_]*$/);
     });
   });
 });
 
-describe('bazi_calculate', () => {
-  it('1990-6-15 12时男 返回精确排盘 envelope', () => {
+describe('bazi_calculate', async () => {
+  it('1990-6-15 12时男 返回精确排盘 envelope', async () => {
     const t = findTool('bazi_calculate');
-    const env = t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
+    const env = await t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
     const e = expectValidEnvelope(env);
     expect(e.tool).toBe('BaziLunarAdapter');
     expect(e.data.mode).toBe('local-exact');
@@ -82,10 +82,10 @@ describe('bazi_calculate', () => {
   });
 });
 
-describe('ziwei_chart', () => {
-  it('1990-6-15 12时男 返回十二宫 envelope', () => {
+describe('ziwei_chart', async () => {
+  it('1990-6-15 12时男 返回十二宫 envelope', async () => {
     const t = findTool('ziwei_chart');
-    const env = t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
+    const env = await t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
     const e = expectValidEnvelope(env);
     expect(e.tool).toBe('ZiweiIztroAdapter');
     const data = e.data as { palaces: Record<string, unknown>; mainStars: string[] };
@@ -95,10 +95,10 @@ describe('ziwei_chart', () => {
   });
 });
 
-describe('cast_liuyao', () => {
-  it('manual 起卦 777777 返回乾为天 envelope', () => {
+describe('cast_liuyao', async () => {
+  it('manual 起卦 777777 返回乾为天 envelope', async () => {
     const t = findTool('cast_liuyao');
-    const env = t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, method: 'manual', yaoValues: '777777' });
+    const env = await t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, method: 'manual', yaoValues: '777777' });
     const e = expectValidEnvelope(env);
     expect(e.tool).toBe('LocalLiuyaoNajiaAdapter');
     const data = e.data as { hexagramName: string; shiYao: number };
@@ -107,18 +107,18 @@ describe('cast_liuyao', () => {
     expectExportSnapshot(e);
   });
 
-  it('问财运自动选取用神为妻财', () => {
+  it('问财运自动选取用神为妻财', async () => {
     const t = findTool('cast_liuyao');
-    const env = t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, method: 'manual', yaoValues: '777777', question: '今年财运' });
+    const env = await t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, method: 'manual', yaoValues: '777777', question: '今年财运' });
     const data = env.data as { yongShen: string };
     expect(data.yongShen).toBe('妻财');
   });
 });
 
-describe('arrange_qimen', () => {
-  it('2024-3-15 9时 返回阳遁4局 envelope', () => {
+describe('arrange_qimen', async () => {
+  it('2024-3-15 9时 返回阳遁4局 envelope', async () => {
     const t = findTool('arrange_qimen');
-    const env = t.handler({ birth: { year: 2024, month: 3, day: 15, hour: 9, gender: '男' } });
+    const env = await t.handler({ birth: { year: 2024, month: 3, day: 15, hour: 9, gender: '男' } });
     const e = expectValidEnvelope(env);
     expect(e.tool).toBe('Qimen3metaAdapter');
     const data = e.data as { dun: string; ju: string; palaces: unknown[]; zhiFu: { star: string }; zhiShi: { gate: string } };
@@ -131,10 +131,10 @@ describe('arrange_qimen', () => {
   });
 });
 
-describe('liuren_calculate', () => {
-  it('返回含天地盘/四课/三传的大六壬 envelope', () => {
+describe('liuren_calculate', async () => {
+  it('返回含天地盘/四课/三传的大六壬 envelope', async () => {
     const t = findTool('liuren_calculate');
-    const env = t.handler({ birth: { year: 2024, month: 3, day: 15, hour: 9, gender: '男' } });
+    const env = await t.handler({ birth: { year: 2024, month: 3, day: 15, hour: 9, gender: '男' } });
     const e = expectValidEnvelope(env);
     expect(e.tool).toBe('DaliurenEngine');
     const data = e.data as { sanChuan: { geJu: string; geJuDetail: string }; siKe: { list: unknown[] }; tianDiPan: { tianPan: unknown[] }; export_snapshot: { summary: string } };
@@ -146,10 +146,10 @@ describe('liuren_calculate', () => {
   });
 });
 
-describe('taiyi_calculate', () => {
-  it('返回含太乙落宫/格局/主客算的太乙神数 envelope', () => {
+describe('taiyi_calculate', async () => {
+  it('返回含太乙落宫/格局/主客算的太乙神数 envelope', async () => {
     const t = findTool('taiyi_calculate');
-    const env = t.handler({ birth: { year: 2024, month: 3, day: 15, hour: 9, gender: '男' } });
+    const env = await t.handler({ birth: { year: 2024, month: 3, day: 15, hour: 9, gender: '男' } });
     const e = expectValidEnvelope(env);
     expect(e.tool).toBe('TaiyiEngine');
     const data = e.data as { taiyi: { gong: string }; kook: { wen: string }; geju: Record<string, string>; home: { cal: number }; export_snapshot: { summary: string } };
@@ -162,10 +162,10 @@ describe('taiyi_calculate', () => {
   });
 });
 
-describe('huangji_calculate', () => {
-  it('返回含元会运世周期+九卦配置的皇极经世 envelope', () => {
+describe('huangji_calculate', async () => {
+  it('返回含元会运世周期+九卦配置的皇极经世 envelope', async () => {
     const t = findTool('huangji_calculate');
-    const env = t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
+    const env = await t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
     const e = expectValidEnvelope(env);
     expect(e.tool).toBe('HuangjiEngine');
     const data = e.data as {
@@ -190,10 +190,10 @@ describe('huangji_calculate', () => {
   });
 });
 
-describe('cast_meihua', () => {
-  it('数字起卦 3,5 返回 envelope', () => {
+describe('cast_meihua', async () => {
+  it('数字起卦 3,5 返回 envelope', async () => {
     const t = findTool('cast_meihua');
-    const env = t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, method: 'number', numberA: 3, numberB: 5 });
+    const env = await t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, method: 'number', numberA: 3, numberB: 5 });
     const e = expectValidEnvelope(env);
     expect(e.tool).toBe('LocalMeihuaTimeAdapter');
     const data = e.data as { upperTrigram: { name: string }; lowerTrigram: { name: string }; changingLine: number; sourceMethod: string };
@@ -205,10 +205,10 @@ describe('cast_meihua', () => {
   });
 });
 
-describe('calc_yunqi', () => {
-  it('2024年 返回甲辰土运太过 envelope', () => {
+describe('calc_yunqi', async () => {
+  it('2024年 返回甲辰土运太过 envelope', async () => {
     const t = findTool('calc_yunqi');
-    const env = t.handler({ year: 2024, currentMonth: 6 });
+    const env = await t.handler({ year: 2024, currentMonth: 6 });
     const e = expectValidEnvelope(env);
     expect(e.tool).toBe('YunqiEngine');
     const data = e.data as { tiangan: string; dizhi: string; wuyun: { dayun: string }; liuqi: { sitian: string } };
@@ -220,10 +220,10 @@ describe('calc_yunqi', () => {
   });
 });
 
-describe('analyze_name', () => {
-  it('张伟1990年 返回五维评分 envelope', () => {
+describe('analyze_name', async () => {
+  it('张伟1990年 返回五维评分 envelope', async () => {
     const t = findTool('analyze_name');
-    const env = t.handler({ surname: '张', givenName: '伟', birthYear: 1990 });
+    const env = await t.handler({ surname: '张', givenName: '伟', birthYear: 1990 });
     const e = expectValidEnvelope(env);
     expect(e.tool).toBe('NameRatingAdapter');
     const data = e.data as { totalScore: number; grade: string; dimensions: unknown[] };
@@ -233,9 +233,9 @@ describe('analyze_name', () => {
     expectExportSnapshot(e);
   });
 
-  it('张伟+完整生辰 命理契合维度含八字用神补强', () => {
+  it('张伟+完整生辰 命理契合维度含八字用神补强', async () => {
     const t = findTool('analyze_name');
-    const env = t.handler({
+    const env = await t.handler({
       surname: '张', givenName: '伟',
       birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
     });
@@ -248,10 +248,10 @@ describe('analyze_name', () => {
   });
 });
 
-describe('calc_xiyong', () => {
-  it('日主金身弱 返回喜用神 envelope', () => {
+describe('calc_xiyong', async () => {
+  it('日主金身弱 返回喜用神 envelope', async () => {
     const t = findTool('calc_xiyong');
-    const env = t.handler({ dayMasterWuxing: '金', elements: { 木: 6, 火: 4, 土: 4, 金: 2, 水: 4 } });
+    const env = await t.handler({ dayMasterWuxing: '金', elements: { 木: 6, 火: 4, 土: 4, 金: 2, 水: 4 } });
     const e = expectValidEnvelope(env);
     expect(e.tool).toBe('XiYongAdapter');
     const data = e.data as { qiangRuo: string; shen: string };
@@ -261,10 +261,10 @@ describe('calc_xiyong', () => {
   });
 });
 
-describe('get_constitution_tendency', () => {
-  it('木运太过+厥阴风木 返回体质倾向 envelope', () => {
+describe('get_constitution_tendency', async () => {
+  it('木运太过+厥阴风木 返回体质倾向 envelope', async () => {
     const t = findTool('get_constitution_tendency');
-    const env = t.handler({ wuyun: { dayun: '木运太过' }, liuqi: { sitian: '厥阴风木', zaquan: '少阳相火' } });
+    const env = await t.handler({ wuyun: { dayun: '木运太过' }, liuqi: { sitian: '厥阴风木', zaquan: '少阳相火' } });
     const e = expectValidEnvelope(env);
     expect(e.tool).toBe('ConstitutionTendencyAdapter');
     const data = e.data as { tendencies: Array<{ type: string }> };
@@ -272,18 +272,18 @@ describe('get_constitution_tendency', () => {
     expectExportSnapshot(e);
   });
 
-  it('输入不足返回 ok=false 错误 envelope', () => {
+  it('输入不足返回 ok=false 错误 envelope', async () => {
     const t = findTool('get_constitution_tendency');
-    const env = t.handler({ wuyun: { dayun: '' }, liuqi: { sitian: '', zaquan: '' } }) as ToolEnvelope;
+    const env = await t.handler({ wuyun: { dayun: '' }, liuqi: { sitian: '', zaquan: '' } }) as ToolEnvelope;
     expect(env.ok).toBe(false);
     expect(env.error?.code).toBe('insufficient_input');
   });
 });
 
-describe('dream_interpret', () => {
-  it('蛇 返回周公解梦 envelope', () => {
+describe('dream_interpret', async () => {
+  it('蛇 返回周公解梦 envelope', async () => {
     const t = findTool('dream_interpret');
-    const env = t.handler({ keyword: '蛇' });
+    const env = await t.handler({ keyword: '蛇' });
     const e = expectValidEnvelope(env);
     expect(e.tool).toBe('DreamDictionaryAdapter');
     const data = e.data as { hit: boolean; entries: unknown[]; classics: unknown[] };
@@ -296,7 +296,7 @@ describe('dream_interpret', () => {
     const t = findTool('dream_interpret');
     // 全量库需 await loadFullDictionary，但 searchDreamEnveloped 同步调用；
     // useFull=true 时若未加载会退回精选库。验证不抛错即可。
-    const env = t.handler({ keyword: '水', useFull: true });
+    const env = await t.handler({ keyword: '水', useFull: true });
     const e = env as ToolEnvelope;
     expect(e.ok).toBe(true);
     expect(e.tool).toBe('DreamDictionaryAdapter');
@@ -305,10 +305,10 @@ describe('dream_interpret', () => {
 
 // ─── 跨系统联合分析（combo）handler 测试 ───
 
-describe('combo_annual_fortune', () => {
-  it('返回含4子系统(八字+五运六气+奇门+紫微流年) + 一致性的 ComboResult envelope', () => {
+describe('combo_annual_fortune', async () => {
+  it('返回含4子系统(八字+五运六气+奇门+紫微流年) + 一致性的 ComboResult envelope', async () => {
     const t = findTool('combo_annual_fortune');
-    const env = t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, targetYear: 2024, currentMonth: 6 });
+    const env = await t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, targetYear: 2024, currentMonth: 6 });
     const e = expectValidEnvelope(env);
     const data = e.data as { comboName: string; subsystems: Array<{ name: string }>; consistency: { confidence: string }; export_snapshot: { summary: string; sections: Array<{ heading: string }> } };
     expect(data.comboName).toBe('年度综合运势');
@@ -320,10 +320,10 @@ describe('combo_annual_fortune', () => {
   });
 });
 
-describe('combo_decision', () => {
-  it('返回含3卜子系统的 ComboResult envelope', () => {
+describe('combo_decision', async () => {
+  it('返回含3卜子系统的 ComboResult envelope', async () => {
     const t = findTool('combo_decision');
-    const env = t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, question: '今年适合换工作吗' });
+    const env = await t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, question: '今年适合换工作吗' });
     const e = expectValidEnvelope(env);
     const data = e.data as { comboName: string; subsystems: Array<{ name: string }> };
     expect(data.comboName).toBe('事件决策');
@@ -331,10 +331,10 @@ describe('combo_decision', () => {
   });
 });
 
-describe('combo_space_time', () => {
-  it('返回含命卦 + 奇门吉方的 ComboResult envelope', () => {
+describe('combo_space_time', async () => {
+  it('返回含命卦 + 奇门吉方的 ComboResult envelope', async () => {
     const t = findTool('combo_space_time');
-    const env = t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, targetYear: 2024 });
+    const env = await t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, targetYear: 2024 });
     const e = expectValidEnvelope(env);
     const data = e.data as { comboName: string; export_snapshot: { summary: string } };
     expect(data.comboName).toBe('空间+时间');
@@ -343,10 +343,10 @@ describe('combo_space_time', () => {
   });
 });
 
-describe('combo_sanshi', () => {
-  it('返回含大六壬+奇门+梅花的三式互参 envelope', () => {
+describe('combo_sanshi', async () => {
+  it('返回含大六壬+奇门+梅花的三式互参 envelope', async () => {
     const t = findTool('combo_sanshi');
-    const env = t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, question: '某事能否成功' });
+    const env = await t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, question: '某事能否成功' });
     const e = expectValidEnvelope(env);
     const data = e.data as { comboName: string; subsystems: Array<{ name: string }>; export_snapshot: { summary: string } };
     expect(data.comboName).toBe('三式互参');
@@ -355,10 +355,10 @@ describe('combo_sanshi', () => {
   });
 });
 
-describe('combo_sanshi_classic', () => {
-  it('返回含奇门+太乙+大六壬的三式合一 envelope', () => {
+describe('combo_sanshi_classic', async () => {
+  it('返回含奇门+太乙+大六壬的三式合一 envelope', async () => {
     const t = findTool('combo_sanshi_classic');
-    const env = t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, question: '某事能否成功' });
+    const env = await t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, question: '某事能否成功' });
     const e = expectValidEnvelope(env);
     const data = e.data as { comboName: string; subsystems: Array<{ name: string }>; export_snapshot: { summary: string } };
     expect(data.comboName).toBe('三式合一');
@@ -367,10 +367,10 @@ describe('combo_sanshi_classic', () => {
   });
 });
 
-describe('combo_daily_wellness', () => {
-  it('返回含体质+节气+时辰+方位的今日养生 envelope', () => {
+describe('combo_daily_wellness', async () => {
+  it('返回含体质+节气+时辰+方位的今日养生 envelope', async () => {
     const t = findTool('combo_daily_wellness');
-    const env = t.handler({
+    const env = await t.handler({
       birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
       constitution: '气虚质',
       now: { year: 2026, month: 7, day: 13, hour: 14 },
@@ -393,9 +393,9 @@ describe('combo_daily_wellness', () => {
     expect(data.export_snapshot.sections.some((s) => s.heading === '节气饮食')).toBe(true);
   });
 
-  it('未传 constitution 时按五运六气倾向推断', () => {
+  it('未传 constitution 时按五运六气倾向推断', async () => {
     const t = findTool('combo_daily_wellness');
-    const env = t.handler({
+    const env = await t.handler({
       birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
       now: { year: 2026, month: 7, day: 13, hour: 14 },
     });
@@ -405,10 +405,10 @@ describe('combo_daily_wellness', () => {
   });
 });
 
-describe('combo_zeri', () => {
-  it('在区间内返回排序吉日列表 envelope', () => {
+describe('combo_zeri', async () => {
+  it('在区间内返回排序吉日列表 envelope', async () => {
     const t = findTool('combo_zeri');
-    const env = t.handler({
+    const env = await t.handler({
       birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
       purpose: '开业',
       startDate: '2026-08-01',
@@ -444,9 +444,9 @@ describe('combo_zeri', () => {
     expect(data.export_snapshot.sections.some((s) => s.heading === '优选吉日')).toBe(true);
   });
 
-  it('动土用途自动剔除犯太岁岁破方位之日', () => {
+  it('动土用途自动剔除犯太岁岁破方位之日', async () => {
     const t = findTool('combo_zeri');
-    const env = t.handler({
+    const env = await t.handler({
       birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
       purpose: '动土',
       startDate: '2026-09-01',
@@ -458,9 +458,9 @@ describe('combo_zeri', () => {
     expect(data.recommendations.some((r) => r.label === '动土避煞')).toBe(true);
   });
 
-  it('topN 截断生效', () => {
+  it('topN 截断生效', async () => {
     const t = findTool('combo_zeri');
-    const env = t.handler({
+    const env = await t.handler({
       birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
       purpose: '祈福',
       startDate: '2026-10-01',
@@ -473,10 +473,10 @@ describe('combo_zeri', () => {
   });
 });
 
-describe('combo_monthly_fortune', () => {
-  it('返回含流月干支+四维度的月度运势 envelope', () => {
+describe('combo_monthly_fortune', async () => {
+  it('返回含流月干支+四维度的月度运势 envelope', async () => {
     const t = findTool('combo_monthly_fortune');
-    const env = t.handler({
+    const env = await t.handler({
       birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
       targetYear: 2026,
       targetMonth: 8,

@@ -194,7 +194,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
               >
                 <button
                   type="button"
-                  data-testid={tool.entryTab === 'bazi' ? 'tool-card-bazi' : 'tool-card'}
+                  data-testid={tool.entryTab === 'bazi' ? 'tool-card-bazi' : 'tool-card-trigger'}
                   onClick={() => isModuleId(tool.entryTab) && onSelectModule(tool.entryTab)}
                   className="flex min-h-40 w-full flex-col text-left"
                 >

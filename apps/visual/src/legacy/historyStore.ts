@@ -128,3 +128,10 @@ export const HistoryStore = {
     return getHistory().length;
   },
 };
+
+// 暴露到 window，供 e2e 测试与 commandIntents 命令历史记录使用。
+// React 迁移后原 visual/ 旧桥已移除，window.HistoryStore 不再由别处设置；
+// 此处显式挂上，恢复「命令历史/收藏」的真实写入能力（此前 commandIntents 读不到该全局，记录为死代码）。
+if (typeof window !== 'undefined') {
+  (window as unknown as { HistoryStore: typeof HistoryStore }).HistoryStore = HistoryStore;
+}

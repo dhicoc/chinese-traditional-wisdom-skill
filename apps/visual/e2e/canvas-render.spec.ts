@@ -1,23 +1,19 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:5174';
+const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
 
 /**
  * Chart Rendering E2E Tests（Phase 10 后：Canvas 已全部替换为 SVG）
  * 验证各工具的 SVG 图表能正常渲染、可见、有尺寸、无控制台致命错误。
+ *
+ * 注：React 迁移后模块导航为 <button role="tab">（文字 = module.title），
+ * 旧 legacy 引擎全局（EngineAdapterRegistry）已移除，改由纯 TS 引擎在 React 内渲染，
+ * 故不再等待 legacy 全局，直接等待工作区与图表 SVG 即可。
  */
-
-/** 等待 legacy 引擎加载完成（八字/紫微/六爻等依赖 legacy adapter） */
-async function waitForLegacy(page: import('@playwright/test').Page): Promise<void> {
-  await page.waitForFunction(
-    () => typeof (window as unknown as { EngineAdapterRegistry?: unknown }).EngineAdapterRegistry !== 'undefined',
-    { timeout: 12000 },
-  );
-}
 
 /** 切换到指定工具并等待工作区可见 */
 async function openTool(page: import('@playwright/test').Page, navText: string, workspaceTestId: string): Promise<void> {
-  await page.locator('[data-testid="nav-item"]').filter({ hasText: navText }).click();
+  await page.getByRole('tab', { name: navText }).click();
   await page.waitForSelector(`[data-testid="${workspaceTestId}"]`, { timeout: 10000 });
 }
 
@@ -36,7 +32,6 @@ test.describe('Chart Rendering - Destiny Tools', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
-    await waitForLegacy(page);
   });
 
   test('should render bazi SVG chart', async ({ page }) => {
@@ -64,7 +59,6 @@ test.describe('Chart Rendering - Feng Shui Tools', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
-    await waitForLegacy(page);
   });
 
   test('should render fengshui compass SVG', async ({ page }) => {
@@ -90,13 +84,12 @@ test.describe('Chart Rendering - Health Tools', () => {
   });
 
   test('should render yunqi SVG chart', async ({ page }) => {
-    await waitForLegacy(page);
     await openTool(page, '五运六气', 'workspace-yunqi');
     await expectSvgVisible(page, 'yunqi-chart');
   });
 
   test('should render tizhi radar SVG chart', async ({ page }) => {
-    // 体质雷达图是纯 React 自包含，不依赖 legacy
+    // 体质雷达图是纯 React 自包含
     await openTool(page, '体质', 'workspace-tizhi');
     await expectSvgVisible(page, 'radar-chart');
   });
@@ -104,7 +97,7 @@ test.describe('Chart Rendering - Health Tools', () => {
 
 test.describe('Chart Rendering - No Console Errors', () => {
   test('should not have chart-related errors across all tools', async ({ page }) => {
-    test.setTimeout(120000); // 遍历 9 工具需加载 legacy + 渲染，给足超时
+    test.setTimeout(120000); // 遍历 9 工具需加载引擎 + 渲染，给足超时
     const errors: string[] = [];
     page.on('console', (msg) => {
       if (msg.type() === 'error') errors.push(msg.text());
@@ -114,12 +107,7 @@ test.describe('Chart Rendering - No Console Errors', () => {
     for (const tool of tools) {
       await page.goto(BASE_URL);
       await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
-      try {
-        await waitForLegacy(page);
-      } catch {
-        // legacy 加载超时不阻塞：体质等不依赖 legacy 仍可校验
-      }
-      await page.locator('[data-testid="nav-item"]').filter({ hasText: tool }).click();
+      await page.getByRole('tab', { name: tool }).click();
       await page.waitForTimeout(1500);
     }
 

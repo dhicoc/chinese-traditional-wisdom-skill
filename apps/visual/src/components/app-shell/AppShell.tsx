@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { ModuleId } from '@/lib/modules';
 import { SidebarNav } from './SidebarNav';
 import { CommandBar } from './CommandBar';
@@ -7,6 +8,18 @@ import { SearchModal } from '@/features/search/SearchModal';
 import { resolveWorkspace } from './workspaceRegistry';
 import { HomeDashboard } from '@/features/home/HomeDashboard';
 import { DynamicTianPanBackground } from './DynamicTianPanBackground';
+
+/** 懒加载占位：与墨/玉主题一致的轻量骨架，避免模块 chunk 拉取时白屏 */
+function WorkspaceFallback() {
+  return (
+    <div className="grid min-h-[60vh] place-items-center">
+      <div className="flex flex-col items-center gap-3 text-jade-100/50">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-jade-500/25 border-t-jade-400" />
+        <span className="text-sm tracking-wide">正在加载模块…</span>
+      </div>
+    </div>
+  );
+}
 
 interface AppShellProps {
   activeModule: ModuleId;
@@ -36,7 +49,9 @@ export function AppShell({ activeModule, onSelectModule }: AppShellProps) {
             <WorkspaceTabs activeModule={activeModule} onSelectModule={onSelectModule} />
           </div>
           <div data-testid={`workspace-${activeModule}`} className="ct-animate-fade-in">
-            <Workspace activeModule={activeModule} onSelectModule={onSelectModule} />
+            <Suspense fallback={<WorkspaceFallback />}>
+              <Workspace activeModule={activeModule} onSelectModule={onSelectModule} />
+            </Suspense>
           </div>
         </main>
       </div>

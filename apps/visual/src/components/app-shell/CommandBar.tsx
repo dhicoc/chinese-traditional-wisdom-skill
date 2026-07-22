@@ -494,6 +494,20 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
           onCancel={() => setPendingRoute(null)}
         />
       )}
+
+      {feedback && (
+        <div
+          data-testid="command-feedback"
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-6 left-1/2 z-[60] max-w-[90vw] -translate-x-1/2 rounded-card border border-jade-500/30 bg-ink-850/95 px-4 py-2.5 text-sm text-jade-100 shadow-2xl ct-animate-fade-in"
+        >
+          <span className="font-medium text-jade-50">{feedback.title}</span>
+          {feedback.description && (
+            <span className="ml-2 text-jade-100/55">{feedback.description}</span>
+          )}
+        </div>
+      )}
     </>
   );
 }

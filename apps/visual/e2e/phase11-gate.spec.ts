@@ -1,15 +1,19 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:5174';
+const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
 
 /**
  * Phase 11 主入口切换回归 Gate
- * 切换主入口到 React Shell 前的全量验证：
- *  - 11/18 tab 全部可打开且默认数据可渲染
+ * 切换主入口到 React Shell 后的全量验证：
+ *  - 工具 tab 全部可打开且默认数据可渲染
  *  - CommandBar 可切换模块
  *  - Copy context 按钮存在
  *  - 375px 移动端不横向溢出
  *  - 暗黑模式 contrast 合格（核心文本可见）
+ *
+ * 注：React 迁移后模块导航为 <button role="tab">（文字 = module.title），
+ * 不再有 [data-testid="nav-item"]；旧 legacy 引擎全局（EngineAdapterRegistry）已移除，
+ * 故不再等待该全局，直接等待 app-shell + 工作区渲染即可。
  */
 
 const TOOL_TABS = [
@@ -32,16 +36,11 @@ test.describe('Phase 11 Gate - 所有工具 tab 可打开并渲染', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
-    // 等待 legacy 引擎加载（八字/紫微等依赖）
-    await page.waitForFunction(
-      () => typeof (window as unknown as { EngineAdapterRegistry?: unknown }).EngineAdapterRegistry !== 'undefined',
-      { timeout: 12000 },
-    );
   });
 
   for (const tab of TOOL_TABS) {
     test(`tab ${tab.nav} 可打开且工作区可见`, async ({ page }) => {
-      await page.locator('[data-testid="nav-item"]').filter({ hasText: tab.nav }).click();
+      await page.getByRole('tab', { name: tab.nav }).click();
       await page.waitForSelector(`[data-testid="${tab.workspace}"]`, { timeout: 10000 });
       await expect(page.locator(`[data-testid="${tab.workspace}"]`)).toBeVisible();
     });
@@ -67,7 +66,7 @@ test.describe('Phase 11 Gate - CommandBar 与 Copy context', () => {
   });
 
   test('每个工具页都有 Copy context 按钮', async ({ page }) => {
-    await page.locator('[data-testid="nav-item"]').filter({ hasText: '八字命盘' }).click();
+    await page.getByRole('tab', { name: '八字命盘' }).click();
     await page.waitForSelector('[data-testid="workspace-bazi"]', { timeout: 10000 });
     // CopyContextButton 默认 label 为 "Copy context for AI"
     const copyBtn = page.locator('button').filter({ hasText: /copy context for AI/i }).first();
@@ -86,6 +85,8 @@ test.describe('Phase 11 Gate - 响应式与可访问性', () => {
   });
 
   test('暗黑模式核心文本可见（contrast 合格）', async ({ page }) => {
+    // 主标题位于桌面侧边栏，移动端隐藏；强制桌面视口以校验可见性与对比度
+    await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
     // 校验主标题与正文有可计算的非透明颜色

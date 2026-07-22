@@ -217,13 +217,13 @@ export interface NameAnalysis {
 }
 
 /** 解析姓名字串为带笔画/五行的字元数组 */
-function parseChars(text: string): { chars: NameChar[]; hasUnrecorded: boolean } {
+async function parseChars(text: string): Promise<{ chars: NameChar[]; hasUnrecorded: boolean }> {
   const chars: NameChar[] = [];
   let hasUnrecorded = false;
   for (const ch of text) {
     const s = getKangxiStrokes(ch);
     const meaningWx = getCharWuxing(ch);
-    const meaning = getCharMeaning(ch);
+    const meaning = await getCharMeaning(ch);
     if (s === null) {
       hasUnrecorded = true;
       const est = estimateStrokes(ch);
@@ -266,9 +266,9 @@ function calcWuGe(surnameChars: NameChar[], givenChars: NameChar[]): WuGe {
   return { tian, ren, di, wai, zong };
 }
 
-export function analyzeName(surname: string, givenName: string): NameAnalysis {
-  const { chars: surnameChars, hasUnrecorded: sUnrec } = parseChars(surname.trim());
-  const { chars: givenChars, hasUnrecorded: gUnrec } = parseChars(givenName.trim());
+export async function analyzeName(surname: string, givenName: string): Promise<NameAnalysis> {
+  const { chars: surnameChars, hasUnrecorded: sUnrec } = await parseChars(surname.trim());
+  const { chars: givenChars, hasUnrecorded: gUnrec } = await parseChars(givenName.trim());
   const hasUnrecorded = sUnrec || gUnrec;
 
   const wg = calcWuGe(surnameChars, givenChars);

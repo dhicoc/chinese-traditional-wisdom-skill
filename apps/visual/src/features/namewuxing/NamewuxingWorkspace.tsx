@@ -31,10 +31,10 @@ export function NamewuxingWorkspace() {
   const [useBaziBoost, setUseBaziBoost] = useState(false);
   const [analysis, setAnalysis] = useState<NameAnalysis | null>(null);
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     const s = surname.trim();
     const g = givenName.trim();
-    if (s && g) setAnalysis(analyzeName(s, g));
+    if (s && g) setAnalysis(await analyzeName(s, g));
   };
 
   const wuxingStats = useMemo(() => {

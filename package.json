@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Chinese Traditional Wisdom AI Agent Workflow",
   "dependencies": {
-    "bazi-ziwei-skill": "^1.0.0",
     "lunar-javascript": "^1.7.7"
   }
 }

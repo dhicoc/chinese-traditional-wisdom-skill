@@ -142,66 +142,55 @@ export function ComboWorkspace() {
     else setPartnerHour(n);
   };
 
-  const result = useMemo<{ envelope: ToolEnvelope<ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult> | null; loading: boolean }>(() => {
-    const solar = getSolarEntry() ?? null;
-    const birthInput = {
-      year: solarBirth.year, month: solarBirth.month, day: solarBirth.day,
-      hour: solarBirth.hour, minute: solarBirth.minute, gender: solarBirth.gender,
-    };
-    try {
-      if (comboType === 'annual') {
-        return { envelope: calcAnnualFortuneCombo({ birth: birthInput, targetYear, solar, currentMonth: new Date().getMonth() + 1 }) as ToolEnvelope<ComboResult>, loading: false };
-      }
-      if (comboType === 'monthly') {
-        return {
-          envelope: calcMonthlyFortuneCombo({
+  const [result, setResult] = useState<{ envelope: ToolEnvelope<ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult> | null; loading: boolean }>({ envelope: null, loading: false });
+
+  useEffect(() => {
+    let cancelled = false;
+    setResult({ envelope: null, loading: true });
+    void (async () => {
+      let envelope: ToolEnvelope<ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult> | null = null;
+      try {
+        const solar = getSolarEntry() ?? null;
+        const birthInput = {
+          year: solarBirth.year, month: solarBirth.month, day: solarBirth.day,
+          hour: solarBirth.hour, minute: solarBirth.minute, gender: solarBirth.gender,
+        };
+        if (comboType === 'annual') {
+          envelope = calcAnnualFortuneCombo({ birth: birthInput, targetYear, solar, currentMonth: new Date().getMonth() + 1 }) as ToolEnvelope<ComboResult>;
+        } else if (comboType === 'monthly') {
+          envelope = calcMonthlyFortuneCombo({
             birth: birthInput,
             targetYear,
             targetMonth,
             constitution: constitution || undefined,
             solar,
-          }) as ToolEnvelope<MonthlyFortuneResult>,
-          loading: false,
-        };
-      }
-      if (comboType === 'decision') {
-        return { envelope: calcDecisionCombo({ birth: birthInput, question, solar }) as ToolEnvelope<ComboResult>, loading: false };
-      }
-      if (comboType === 'sanshi') {
-        return { envelope: calcSanshiCombo({ birth: birthInput, question, solar, liurenSchool: liurenSchool }) as ToolEnvelope<ComboResult>, loading: false };
-      }
-      if (comboType === 'sanshi-classic') {
-        return { envelope: calcSanshiClassicCombo({ birth: birthInput, question, solar, liurenSchool: liurenSchool }) as ToolEnvelope<ComboResult>, loading: false };
-      }
-      if (comboType === 'wellness') {
-        const d = new Date();
-        return {
-          envelope: calcDailyWellnessCombo({
+          }) as ToolEnvelope<MonthlyFortuneResult>;
+        } else if (comboType === 'decision') {
+          envelope = calcDecisionCombo({ birth: birthInput, question, solar }) as ToolEnvelope<ComboResult>;
+        } else if (comboType === 'sanshi') {
+          envelope = calcSanshiCombo({ birth: birthInput, question, solar, liurenSchool: liurenSchool }) as ToolEnvelope<ComboResult>;
+        } else if (comboType === 'sanshi-classic') {
+          envelope = calcSanshiClassicCombo({ birth: birthInput, question, solar, liurenSchool: liurenSchool }) as ToolEnvelope<ComboResult>;
+        } else if (comboType === 'wellness') {
+          const d = new Date();
+          envelope = calcDailyWellnessCombo({
             birth: birthInput,
             now: { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate(), hour: d.getHours() },
             constitution: constitution || undefined,
             targetYear: d.getFullYear(),
             solar,
-          }) as ToolEnvelope<DailyWellnessResult>,
-          loading: false,
-        };
-      }
-      if (comboType === 'zeri') {
-        return {
-          envelope: calcZeriCombo({
+          }) as ToolEnvelope<DailyWellnessResult>;
+        } else if (comboType === 'zeri') {
+          envelope = calcZeriCombo({
             birth: birthInput,
             purpose: zeriPurpose,
             startDate: zeriStart,
             endDate: zeriEnd,
             topN: zeriTopN,
             solar,
-          }) as ToolEnvelope<ZeriResult>,
-          loading: false,
-        };
-      }
-      if (comboType === 'marriage') {
-        return {
-          envelope: calcMarriageCombo({
+          }) as ToolEnvelope<ZeriResult>;
+        } else if (comboType === 'marriage') {
+          envelope = await calcMarriageCombo({
             personA: {
               birth: birthInput,
               surname: mySurname || undefined,
@@ -217,14 +206,16 @@ export function ComboWorkspace() {
             },
             scene: marriageScene,
             targetYear,
-          }) as ToolEnvelope<MarriageResult>,
-          loading: false,
-        };
+          }) as ToolEnvelope<MarriageResult>;
+        } else {
+          envelope = calcSpaceTimeCombo({ birth: birthInput, targetYear, solar }) as ToolEnvelope<ComboResult>;
+        }
+        if (!cancelled) setResult({ envelope, loading: false });
+      } catch {
+        if (!cancelled) setResult({ envelope: null, loading: false });
       }
-      return { envelope: calcSpaceTimeCombo({ birth: birthInput, targetYear, solar }) as ToolEnvelope<ComboResult>, loading: false };
-    } catch {
-      return { envelope: null, loading: false };
-    }
+    })();
+    return () => { cancelled = true; };
   }, [comboType, solarBirth, question, targetYear, targetMonth, liurenSchool, constitution, zeriPurpose, zeriStart, zeriEnd, zeriTopN, partnerYear, partnerMonth, partnerDay, partnerHour, partnerGender, partnerSurname, partnerGivenName, mySurname, myGivenName, marriageScene]);
 
   const fourLayer = useMemo<LayerReport | null>(() => {
