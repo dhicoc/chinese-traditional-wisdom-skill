@@ -45,13 +45,12 @@ test.describe('Application Smoke Tests', () => {
 
   test('should display home dashboard by default', async ({ page }) => {
     await expect(page.locator('[data-testid="home-dashboard"]')).toBeVisible();
-    await expect(page.getByTestId('home-dashboard').getByText('排盘信息')).toBeVisible();
     await expect(page.getByTestId('home-dashboard').getByText('四柱 / 九宫工作台')).toBeVisible();
   });
 
   test('should show core plate and birth input', async ({ page }) => {
-    // 面向用户的核心内容：排盘信息 + 四柱命盘
-    await expect(page.getByTestId('home-dashboard').getByText('排盘信息')).toBeVisible();
+    // 面向用户的核心内容：意图入口 + 四柱命盘（生辰由侧边栏全局控制）
+    await expect(page.getByTestId('home-dashboard').getByText('我想看运势')).toBeVisible();
     await expect(page.getByTestId('home-dashboard').getByText('四柱 / 九宫工作台')).toBeVisible();
     await expect(page.getByTestId('home-bazi-plate')).toBeVisible();
   });

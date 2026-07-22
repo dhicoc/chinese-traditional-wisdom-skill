@@ -60,12 +60,8 @@ function modeCounts(tools: LegacyTool[]) {
   return { local, demo };
 }
 
-function birthSummary(year: number, month: number, day: number, hour: number) {
-  return year + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0') + ' ' + String(hour).padStart(2, '0') + ':00';
-}
-
 export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardProps) {
-  const { birth, solarBirth } = useBirth();
+  const { solarBirth } = useBirth();
   const tools = useMemo(() => getLegacyTools(), []);
 
   const ready = true;
@@ -111,66 +107,34 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
         ))}
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
-        <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
-          <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-3">
-            <div>
-              <h2 className="font-serif text-lg font-semibold tracking-[0.1em] text-jade-50">排盘信息</h2>
-            </div>
-            <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2.5 py-1 text-[10px] text-jade-400">已同步</span>
+      <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="font-serif text-xl font-semibold tracking-[0.1em] text-jade-50">四柱 / 九宫工作台</h2>
           </div>
-          <dl className="mt-4 space-y-3 text-sm">
-            <div>
-              <dt className="text-xs text-jade-100/45">出生时间</dt>
-              <dd className="mt-1 font-mono text-jade-100">{birthSummary(solarBirth.year, solarBirth.month, solarBirth.day, solarBirth.hour)}</dd>
+          <CopyContextButton
+            commandScope="home"
+            title="首页工具目录上下文"
+            payload={{ module: selected, tools: tools.length, localCapabilities: counts.local, demoBoundaries: counts.demo, legacyReady, source: 'ToolManifest + CapabilityRegistry + React HomeDashboard' }}
+          />
+        </div>
+        <div className="mt-4">
+          {ready ? (
+            <div className="mx-auto max-w-[460px]">
+              <ZoomableSvg title="四柱 / 九宫命盘">
+                <HomeBaziPlate pillars={pillars} size={460} />
+              </ZoomableSvg>
             </div>
-            <div>
-              <dt className="text-xs text-jade-100/45">历法 / 性别</dt>
-              <dd className="mt-1 text-jade-100">{birth.isLunar ? '农历' : '公历'} · {solarBirth.gender} · {solarBirth.useExactCalendar ? '精确历法' : '近似历法'}</dd>
+          ) : (
+            <div className="mx-auto max-w-[460px]">
+              <LoadingSkeleton label="正在排盘" />
             </div>
-            <div>
-              <dt className="text-xs text-jade-100/45">隐私边界</dt>
-              <dd className="mt-1 text-jade-100/80">仅在浏览器本地计算，不保存完整姓名、完整出生地。</dd>
-            </div>
-          </dl>
-          <button
-            type="button"
-            onClick={() => onSelectModule('bazi')}
-            className="mt-5 w-full rounded-[16px] border border-cinnabar-500/50 bg-cinnabar-500 px-4 py-3 text-sm font-semibold text-jade-50 transition hover:bg-cinnabar-600 active:scale-[0.99]"
-          >
-            立即排盘
-          </button>
-        </section>
-
-        <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="font-serif text-xl font-semibold tracking-[0.1em] text-jade-50">四柱 / 九宫工作台</h2>
-            </div>
-            <CopyContextButton
-              commandScope="home"
-              title="首页工具目录上下文"
-              payload={{ module: selected, tools: tools.length, localCapabilities: counts.local, demoBoundaries: counts.demo, legacyReady, source: 'ToolManifest + CapabilityRegistry + React HomeDashboard' }}
-            />
-          </div>
-          <div className="mt-4">
-            {ready ? (
-              <div className="mx-auto max-w-[460px]">
-                <ZoomableSvg title="四柱 / 九宫命盘">
-                  <HomeBaziPlate pillars={pillars} size={460} />
-                </ZoomableSvg>
-              </div>
-            ) : (
-              <div className="mx-auto max-w-[460px]">
-                <LoadingSkeleton label="正在排盘" />
-              </div>
-            )}
-            <p className="mt-2 text-center text-[11px] text-jade-100/45">
-              {ready ? '真实四柱 · 双击放大查看 · 右键复制为图像' : '引擎加载后显示真实四柱'}
-            </p>
-          </div>
-        </section>
-      </div>
+          )}
+          <p className="mt-2 text-center text-[11px] text-jade-100/45">
+            {ready ? '真实四柱 · 双击放大查看 · 右键复制为图像' : '引擎加载后显示真实四柱'}
+          </p>
+        </div>
+      </section>
 
       <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
         <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/8 pb-3">

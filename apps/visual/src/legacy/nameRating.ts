@@ -245,6 +245,6 @@ export function calcNameRating(
     grade: scoreToGrade(totalScore),
     dimensions,
     confidenceNote:
-      '五维评分基于本项目已有数据简化计算（五格30%+三才15%+五行平衡25%+字义五行20%+命理契合10%），非 fate 令分数体系口径，仅供参考。',
+      '五维评分（五格数理、三才配置、五行平衡、字义五行、命理契合）综合得出，姓名学为传统文化参考，不构成命名决策依据。',
   };
 }
