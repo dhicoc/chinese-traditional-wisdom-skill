@@ -85,10 +85,10 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
       {/* 场景化入口（UX P1） */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: '我想看运势', desc: '八字+五运六气+奇门 联合', module: 'combo' as ModuleId, icon: '运' },
+          { label: '我想看运势', desc: '八字命盘 · 五行喜用', module: 'bazi' as ModuleId, icon: '运' },
           { label: '我想起名', desc: '姓名五行 · 五格评分', module: 'namewuxing' as ModuleId, icon: '名' },
-          { label: '我想问事', desc: '六爻+梅花+奇门 三卜交叉', module: 'combo' as ModuleId, icon: '卜' },
-          { label: '我想看风水', desc: '飞星+八宅+奇门吉方 联合', module: 'combo' as ModuleId, icon: '堪' },
+          { label: '我想问事', desc: '六爻纳甲 · 事件占断', module: 'liuyao' as ModuleId, icon: '卜' },
+          { label: '我想看风水', desc: '二十四山 · 八卦方位', module: 'fengshui' as ModuleId, icon: '堪' },
         ].map((entry, idx) => (
           <button
             key={entry.label}
