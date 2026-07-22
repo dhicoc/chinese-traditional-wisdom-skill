@@ -63,7 +63,7 @@ check(
   'SidebarNav 应导入 XuanOrbitLogo 作为侧边栏品牌图标',
 );
 check(
-  sidebarNav.includes('<XuanOrbitLogo className="h-9 w-9 drop-shadow-[0_0_10px_rgba(44,159,132,0.72)]" />'),
+  sidebarNav.includes('<XuanOrbitLogo className="h-9 w-9" />'),
   'SidebarNav 应在 brand-seal 中渲染 玄轨星核 图标',
 );
 check(

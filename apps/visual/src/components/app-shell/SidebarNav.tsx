@@ -13,11 +13,11 @@ export function SidebarNav(_props: SidebarNavProps) {
       <div className="sidebar-brand relative shrink-0 overflow-hidden rounded-[22px] border border-jade-500/18 bg-black/30 p-3.5">
         <div className="flex items-center gap-3">
           <div className="brand-seal grid h-11 w-11 shrink-0 place-items-center rounded-full border border-jade-500/30 bg-jade-500/10 text-jade-400">
-            <XuanOrbitLogo className="h-9 w-9 drop-shadow-[0_0_10px_rgba(44,159,132,0.72)]" />
+            <XuanOrbitLogo className="h-9 w-9" />
           </div>
           <div className="min-w-0">
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-jade-400">XUANTAN LOCAL</p>
-            <h1 className="mt-0.5 truncate text-base font-semibold tracking-tight text-jade-50">玄学排盘</h1>
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-jade-300">XUANTAN LOCAL</p>
+            <h1 className="mt-0.5 truncate font-serif text-base font-semibold tracking-[0.14em] text-jade-50">玄学排盘</h1>
           </div>
         </div>
         <p className="mt-2 text-[11px] leading-5 text-jade-100/55">本地引擎 · 可验证的传统智慧工具台</p>
