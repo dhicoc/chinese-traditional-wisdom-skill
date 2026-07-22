@@ -58,6 +58,7 @@ const ROUTE_RULES: RouteRule[] = [
   { tool: 'get_almanac', keywords: ['黄历', '每日黄历', '今天宜', '今日宜', '宜忌', '吉时', '老黄历', '万年历'], priority: 55 },
   { tool: 'calc_feixing', keywords: ['飞星', '流年飞星', '九星', '九宫飞星', '玄空', '中宫', '五黄', '财位在哪', '文昌位', '今年风水'], priority: 58 },
   { tool: 'calc_bazhai', keywords: ['八宅', '大游年', '命卦', '东四命', '西四命', '生气方', '天医方', '延年方', '门主灶', '宅卦', '我适合住'], priority: 60 },
+  { tool: 'get_daily_rhythm', keywords: ['节气', '经络', '子午流注', '时辰养生', '现在养生', '今日调养', '当令', '生物钟', '几点养'], priority: 52 },
 ];
 
 /** 从文本提取生辰 */

@@ -30,6 +30,7 @@ import { calcChenguzEnveloped } from '../../visual/src/legacy/chenguzEngine';
 import { getAlmanacEnveloped } from '../../visual/src/legacy/almanacData';
 import { calcFeixingEnveloped } from '../../visual/src/legacy/feixingEngine';
 import { calcBazhaiEnveloped } from '../../visual/src/legacy/bazhaiEngine';
+import { getDailyRhythmEnveloped } from '../../visual/src/legacy/rhythmEngine';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
 const solarEntry: unknown = (() => {
@@ -457,6 +458,21 @@ export const TOOLS: ToolDef[] = [
       bedroom: (i as { bedroom?: string }).bedroom,
       kitchen: (i as { kitchen?: string }).kitchen,
       year: (i as { year?: number }).year,
+    }),
+  },
+  {
+    name: 'get_daily_rhythm',
+    description: '每日节律：按日期返回当前节气调养（饮食/起居/运动/穴位）+ 体质针对性建议 + 当前时辰经络当令（子午流注）。可传 constitution 命中节气体质加减。中医民俗养生参考。',
+    schema: z.object({
+      date: z.string().optional().describe('公历日期 yyyy-mm-dd，不传默认今天'),
+      hour: z.number().int().min(0).max(23).optional().describe('时辰 0-23，不传默认当前小时'),
+      constitution: z.string().optional().describe('体质类型（如气虚质），命中节气针对性建议'),
+    }),
+    handler: (i) => getDailyRhythmEnveloped({
+      date: (i as { date?: string }).date,
+      hour: (i as { hour?: number }).hour,
+      constitution: (i as { constitution?: string }).constitution,
+      solar: solarEntry as never,
     }),
   },
 ];

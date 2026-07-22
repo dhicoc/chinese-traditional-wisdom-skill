@@ -308,6 +308,16 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     doNotAssume: ['birthYear', 'gender', 'door', 'bedroom', 'kitchen'],
     workflow: '确认出生年+性别 → 调 calc_bazhai 得命卦与八方吉凶；若用户问门主灶则补问 door/bedroom/kitchen 方位再调。',
   },
+  get_daily_rhythm: {
+    tool: 'get_daily_rhythm',
+    purpose: '每日节律：当前节气调养+时辰经络当令，可传体质命中针对性建议。',
+    requiredParams: [
+      { name: 'date', required: true, description: '公历日期', promptToUser: '请提供日期（如 2026-08-01）；查今天可不传。' },
+    ],
+    safeDefaults: {},
+    doNotAssume: ['date', 'hour', 'constitution'],
+    workflow: '确认日期（+可选体质）→ 调 get_daily_rhythm → 解读节气调养与时辰经络养生。',
+  },
 };
 
 /** 取某工具的参数引导。未注册工具返回 null。 */
