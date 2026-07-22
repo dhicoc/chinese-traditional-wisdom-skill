@@ -28,6 +28,7 @@ import { calcMarriageCombo } from '../../visual/src/legacy/marriageCombo';
 import { calcCeziEnveloped } from '../../visual/src/legacy/ceziEngine';
 import { calcChenguzEnveloped } from '../../visual/src/legacy/chenguzEngine';
 import { getAlmanacEnveloped } from '../../visual/src/legacy/almanacData';
+import { calcFeixingEnveloped } from '../../visual/src/legacy/feixingEngine';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
 const solarEntry: unknown = (() => {
@@ -421,6 +422,20 @@ export const TOOLS: ToolDef[] = [
     handler: (i) => getAlmanacEnveloped({
       date: (i as { date?: string }).date,
       solar: solarEntry as never,
+    }),
+  },
+  {
+    name: 'calc_feixing',
+    description: '流年飞星：按年份推算九宫飞星盘（中宫飞星+八方飞星）、元运旺衰、九星状态、凶位化解。可传 gender+birthYear 附个人命卦八方吉凶（生气/天医/延年/伏位/绝命/五鬼/六煞/祸害）。玄空风水民俗参考。不传 year 默认今年。',
+    schema: z.object({
+      year: z.number().int().min(1900).max(2100).optional().describe('公历年，不传默认今年'),
+      gender: z.enum(['男', '女']).optional().describe('性别，用于推算命卦方位'),
+      birthYear: z.number().int().min(1900).max(2100).optional().describe('出生年（推命卦用，不传则用 year'),
+    }),
+    handler: (i) => calcFeixingEnveloped({
+      year: (i as { year?: number }).year,
+      gender: (i as { gender?: '男' | '女' }).gender,
+      birthYear: (i as { birthYear?: number }).birthYear,
     }),
   },
 ];

@@ -287,6 +287,16 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     doNotAssume: ['date'],
     workflow: '确认日期（不传默认今天）→ 调 get_almanac → 解读宜忌、神位方位、时辰吉凶。',
   },
+  calc_feixing: {
+    tool: 'calc_feixing',
+    purpose: '流年飞星：九宫飞星盘+元运旺衰+凶位化解，可附命卦八方吉凶（需性别）。',
+    requiredParams: [
+      { name: 'year', required: true, description: '公历年', promptToUser: '请提供要查的年份（如 2026）；不传默认今年。' },
+    ],
+    safeDefaults: {},
+    doNotAssume: ['year', 'gender', 'birthYear'],
+    workflow: '确认年份（+可选性别/出生年推命卦方位）→ 调 calc_feixing → 解读中宫飞星、凶位化解、命卦吉方。',
+  },
 };
 
 /** 取某工具的参数引导。未注册工具返回 null。 */

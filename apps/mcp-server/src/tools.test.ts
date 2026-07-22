@@ -41,8 +41,8 @@ function findTool(name: string) {
 }
 
 describe('MCP TOOLS 注册完整性', async () => {
-  it('注册了 26 个工具', async () => {
-    expect(TOOLS.length).toBe(26);
+  it('注册了 27 个工具', async () => {
+    expect(TOOLS.length).toBe(27);
   });
 
   it('所有工具有 name/description/schema/handler', async () => {

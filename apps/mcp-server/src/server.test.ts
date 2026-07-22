@@ -91,12 +91,12 @@ describe('MCP Server 端到端协议', () => {
     expect(result.protocolVersion).toBe('2024-11-05');
   }, 30000);
 
-  it('tools/list 返回 28 个工具（26 计算 + 2 元工具）且 inputSchema 完整', async () => {
+  it('tools/list 返回 29 个工具（27 计算 + 2 元工具）且 inputSchema 完整', async () => {
     const responses = await runMcpSession([INIT_MSG, INITIALIZED_MSG, TOOLS_LIST_MSG]);
     const list = responses.find((r) => r.id === 2);
     expect(list).toBeDefined();
     const tools = (list!.result as { tools: Array<{ name: string; description: string; inputSchema: { type: string; properties: unknown } }> }).tools;
-    expect(tools.length).toBe(28);
+    expect(tools.length).toBe(29);
     tools.forEach((t) => {
       expect(t.name).toMatch(/^[a-z][a-z0-9_]*$/);
       expect(t.description.length).toBeGreaterThan(10);
@@ -165,6 +165,24 @@ describe('MCP Server 端到端协议', () => {
     expect(envelope.data.solarDate).toContain('2026年8月1日');
     expect(envelope.data.dayGanZhi).toBeTruthy();
     expect(envelope.data.hours.length).toBeGreaterThan(0);
+  }, 30000);
+
+  it('tools/call calc_feixing 返回流年飞星盘', async () => {
+    const responses = await runMcpSession([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(12, 'calc_feixing', { year: 2026, gender: '男', birthYear: 1990 }),
+    ]);
+    const call = responses.find((r) => r.id === 12);
+    expect(call).toBeDefined();
+    const result = call!.result as { content: Array<{ type: string; text: string }>; isError?: boolean };
+    expect(result.isError).toBeFalsy();
+    const envelope = JSON.parse(result.content[0].text) as { ok: boolean; tool: string; data: { year: number; center: { centerStar: number }; grid: unknown[]; mingGua: { trigram: string } } };
+    expect(envelope.ok).toBe(true);
+    expect(envelope.tool).toBe('calc_feixing');
+    expect(envelope.data.year).toBe(2026);
+    expect(envelope.data.center.centerStar).toBeGreaterThan(0);
+    expect(envelope.data.grid.length).toBe(3);
+    expect(envelope.data.mingGua.trigram).toBeTruthy();
   }, 30000);
 
   it('tools/call bazi_calculate 返回 ToolEnvelope 内容', async () => {
