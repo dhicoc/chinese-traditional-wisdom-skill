@@ -141,7 +141,7 @@ export function HuangjiWorkspace() {
         title="先天六十四卦圆图"
         subtitle="正卦·世卦·年卦 当前时空定位（点击卦位查看）"
       >
-        <ZoomableSvg title="皇极经世先天六十四卦圆图">
+        <ZoomableSvg title="皇极经世先天六十四卦圆图" className="mx-auto block w-full max-w-[560px]">
           <HuangjiGuaCircle
             zhengGua={gua.zheng}
             shiGua={gua.shi}

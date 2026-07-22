@@ -140,7 +140,7 @@ export function ZoomableSvg({ title, children, className }: ZoomableSvgProps) {
     <>
       <div
         ref={wrapperRef}
-        className={className ?? 'cursor-zoom-in'}
+        className={className ? `${className} cursor-zoom-in` : 'cursor-zoom-in'}
         title="双击放大查看 · 右键复制为图像"
         onDoubleClick={openZoom}
         onContextMenu={copyAsImage}
