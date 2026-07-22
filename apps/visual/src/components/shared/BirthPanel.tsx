@@ -67,35 +67,37 @@ export function BirthPanel() {
   return (
     <div className={`rounded-panel p-3 transition ${
       isDefaultBirth
-        ? 'border border-gold-500/30 bg-gold-500/5 shadow-[0_0_20px_rgba(201,178,122,0.08)]'
+        ? 'border border-gold-500/30 bg-gold-500/5 shadow-[0_0_20px_rgb(var(--gold)/0.08)]'
         : 'border border-ink-700 bg-ink-850/60'
     }`}>
       <div className="flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={handleToggle}
-          className="flex items-center gap-2 text-left text-sm text-jade-100/70 transition hover:text-jade-100"
+          className="flex min-w-0 items-center gap-2 text-left text-sm text-jade-100/70 transition hover:text-jade-100"
         >
           <span className="font-mono text-xs text-jade-400">{expanded ? '▾' : '▸'}</span>
-          <span className="font-semibold">全局生辰</span>
-          <span className="text-jade-100/45">{summary}</span>
-          <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${legacyReady ? 'bg-jade-500/15 text-jade-400' : 'bg-ink-700/50 text-jade-100/30'}`}>
+          <span className="shrink-0 font-semibold">全局生辰</span>
+          <span className="truncate text-jade-100/45">{summary}</span>
+        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className={`rounded-full border px-2 py-0.5 text-[10px] ${legacyReady ? 'border-jade-500/25 bg-jade-500/10 text-jade-400' : 'border-white/10 bg-ink-700/50 text-jade-100/30'}`}>
             {legacyReady ? '已同步' : '等待引擎'}
           </span>
-        </button>
-        {expanded && (
-          <button
-            type="button"
-            onClick={() => {
-              if (window.confirm('确定重置生辰为默认值（1990-06-15 12时 男）？')) {
-                resetBirth();
-              }
-            }}
-            className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-jade-100/55 transition hover:text-jade-100"
-          >
-            重置
-          </button>
-        )}
+          {expanded && (
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('确定重置生辰为默认值（1990-06-15 12时 男）？')) {
+                  resetBirth();
+                }
+              }}
+              className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-jade-100/55 transition hover:text-jade-100"
+            >
+              重置
+            </button>
+          )}
+        </div>
       </div>
 
       {/* 默认生辰提示 */}
