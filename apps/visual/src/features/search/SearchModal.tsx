@@ -141,15 +141,12 @@ export function SearchModal({ onSelectModule }: { onSelectModule: (id: ModuleId)
                   onClick={() => openReader(m.title)}
                 >
                   <div className="flex items-center gap-1.5">
-                    <span className="rounded bg-amber-600/80 px-1.5 py-px text-[11px] font-bold text-white">
-                      JSON
-                    </span>
                     <span className="text-[13px] font-semibold text-jade-100">
                       {highlight(m.title, debouncedQuery)}
                     </span>
                   </div>
                   <div className="mt-0.5 text-[11px] text-jade-100/35">
-                    {m.category} · {m.completeness} · {m.source}
+                    {m.category}
                   </div>
                   <div className="mt-0.5 text-xs text-jade-100/50">
                     {highlight(m.summary, debouncedQuery)}
@@ -178,7 +175,7 @@ export function SearchModal({ onSelectModule }: { onSelectModule: (id: ModuleId)
                       <span className="text-[11px] text-jade-100/30">{k.author}</span>
                     )}
                     <span className="text-[11px] text-jade-100/40">
-                      {k.category} · {k.completeness}
+                      {k.category}
                     </span>
                   </div>
                   <div className="mt-0.5 text-xs text-jade-100/50">

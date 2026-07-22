@@ -19,10 +19,7 @@ function HitCard({ hit }: { hit: KnowledgeReferenceHit }) {
         <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2 py-0.5 text-[10px] text-jade-400">
           {hit.kind === 'mapping' ? '映射表' : '古籍索引'}
         </span>
-        <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-jade-100/55">
-          {hit.completeness}
-        </span>
-        <span className="text-[10px] text-jade-100/55">{hit.source} · {hit.field}</span>
+        <span className="text-[10px] text-jade-100/55">{hit.category}</span>
       </div>
       <h4 className="mt-2 text-sm font-semibold text-jade-100">{hit.title}</h4>
       <p className="mt-1 text-xs leading-5 text-jade-100/60">{hit.summary}</p>
