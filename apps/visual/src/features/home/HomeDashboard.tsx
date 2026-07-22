@@ -8,7 +8,7 @@ import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import type { ModuleId } from '@/lib/modules';
 import { MODULES } from '@/lib/modules';
 import { type BaziPillars } from '@/legacy/canvasRenderers';
-import { getCapabilityForTool, getLegacyTools, getToolModeLabel, type LegacyTool } from '@/legacy/toolRegistry';
+import { getCapabilityForTool, getLegacyTools, type LegacyTool } from '@/legacy/toolRegistry';
 import type { SolarBirth } from '@/legacy/birthBridge';
 import { useBirth } from '@/lib/birthContext';
 
@@ -78,7 +78,6 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
     [tools],
   );
   const counts = modeCounts(tools);
-  const primaryTools = tools.filter((tool) => ['bazi', 'ziwei', 'liuyao', 'meihua', 'fengshui'].includes(tool.entryTab));
 
   return (
     <section className="space-y-5" data-testid="home-dashboard">
@@ -133,42 +132,6 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
           <p className="mt-2 text-center text-[11px] text-jade-100/45">
             {ready ? '真实四柱 · 双击放大查看 · 右键复制为图像' : '引擎加载后显示真实四柱'}
           </p>
-        </div>
-      </section>
-
-      <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
-        <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/8 pb-3">
-          <div>
-            <h2 className="font-serif text-lg font-semibold tracking-[0.1em] text-jade-50">常用排盘入口</h2>
-          </div>
-          <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-jade-100/45">{primaryTools.length} 个核心入口</span>
-        </div>
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-          {primaryTools.map((tool, index) => {
-            const modeLabel = getToolModeLabel(tool);
-            const capability = getCapabilityForTool(tool);
-            return (
-              <article
-                key={tool.id}
-                data-testid="tool-card"
-                className={`tool-tile group relative overflow-hidden rounded-[20px] border border-white/8 bg-white/[0.035] p-4 transition hover:-translate-y-1 hover:border-jade-500/30 ct-animate-slide-up ct-delay-${(index % 4) + 1}`}
-              >
-                <button
-                  type="button"
-                  data-testid={tool.entryTab === 'bazi' ? 'tool-card-bazi' : 'tool-card-trigger'}
-                  onClick={() => isModuleId(tool.entryTab) && onSelectModule(tool.entryTab)}
-                  className="flex min-h-40 w-full flex-col text-left"
-                >
-                  <span className="font-mono text-[11px] text-jade-100/30">{String(index + 1).padStart(2, '0')}</span>
-                  <span className="mt-3 text-lg font-semibold text-jade-50">{tool.title}</span>
-                  <span className="mt-2 line-clamp-2 text-sm leading-6 text-jade-100/55">{tool.description}</span>
-                </button>
-                <div className="mt-3 border-t border-white/8 pt-3">
-                  <CopyContextButton label="Copy context" title={tool.title + ' 工具上下文'} payload={{ tool, capability, modeLabel, source: 'legacy ToolManifest + CapabilityRegistry' }} />
-                </div>
-              </article>
-            );
-          })}
         </div>
       </section>
 

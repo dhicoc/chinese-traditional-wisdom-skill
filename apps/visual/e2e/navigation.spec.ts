@@ -183,15 +183,8 @@ test.describe('Home Dashboard Navigation', () => {
   });
 
   test('should navigate to tool from home cards', async ({ page }) => {
-    // Click on a tool card in home dashboard
-    await page.click('[data-testid="tool-card-bazi"]');
+    // 从首页意图入口跳转（「我想看运势」指向八字命盘）
+    await page.click('button:has-text("我想看运势")');
     await expect(page.locator('[data-testid="workspace-bazi"]')).toBeVisible();
-  });
-
-  test('should show core tool cards in directory', async ({ page }) => {
-    const toolCards = page.locator('[data-testid="tool-card"]');
-    // 首页「常用排盘入口」展示 5 个核心工具（bazi/ziwei/liuyao/meihua/fengshui）
-    await expect(toolCards).toHaveCount(5);
-    await expect(page.locator('[data-testid="tool-card-bazi"]')).toBeVisible();
   });
 });
