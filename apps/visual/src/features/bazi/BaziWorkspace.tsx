@@ -80,6 +80,30 @@ function birthSummary(solarBirth: SolarBirth) {
   return solarBirth.year + '-' + String(solarBirth.month).padStart(2, '0') + '-' + String(solarBirth.day).padStart(2, '0') + ' ' + String(solarBirth.hour).padStart(2, '0') + ':00';
 }
 
+/** 神煞按名分组：同名神煞落多柱时合并为一条，柱位清晰标注，释义只显示一次。 */
+function groupShenSha(shenSha: ShenShaItem[]): Array<{ label: string; value: string; description: string }> {
+  const order: string[] = [];
+  const byName: Record<string, ShenShaItem[]> = {};
+  for (const s of shenSha) {
+    if (!byName[s.name]) { byName[s.name] = []; order.push(s.name); }
+    byName[s.name].push(s);
+  }
+  return order.map((name) => {
+    const group = byName[name];
+    // 柱位排序：年→月→日→时
+    const pillarOrder: Record<string, number> = { 年: 0, 月: 1, 日: 2, 时: 3 };
+    const positions = group
+      .slice()
+      .sort((a, b) => (pillarOrder[a.pillar] ?? 9) - (pillarOrder[b.pillar] ?? 9))
+      .map((s) => `${s.pillar}柱·${s.branch}`);
+    return {
+      label: name,
+      value: positions.join('、'),
+      description: group[0].meaning,
+    };
+  });
+}
+
 export function BaziWorkspace() {
   const { birth, solarBirth } = useBirth();
   const [trineSource, setTrineSource] = useState<TrineSource>('year');
@@ -160,11 +184,7 @@ export function BaziWorkspace() {
             title="神煞"
             badge={result?.shenSha?.length ? `${result.shenSha.length} 项` : '无'}
             subtitle="按日干 / 日支 / 月支推算的常见神煞，文化参考。"
-            items={(result?.shenSha ?? []).map((s) => ({
-              label: s.name,
-              value: `${s.branch}·${s.pillar}`,
-              description: s.meaning,
-            }))}
+            items={groupShenSha(result?.shenSha ?? [])}
           />
           <div className="rounded-card border border-white/8 bg-ink-900/40 px-3 py-2">
             <p className="mb-1.5 text-xs font-semibold text-jade-100/70">桃花·驿马·华盖·将星 查法</p>
