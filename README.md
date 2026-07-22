@@ -8,7 +8,7 @@
 <p align="center"><em style="font-family: 'KaiTi', 'STKaiti', 'SimSun', serif; font-size: 1.3em; color: #999;">究天人之际，通古今之变</em></p>
 
 <p align="center">BaZi / Ziwei / Liuyao / Meihua / Qimen / Liuren / Taiyi / Fengshui / WuYun-LiuQi / Constitution / Daoism / Buddhism — 全融合 AI Agent 咨询工作流<br/>
-三层路由 · 25 引擎推算（16 排盘 + 9 联合分析）· 知识库引用 · React+SVG 可视化 Dashboard · 能力边界标识 · 自动化测试</p>
+本地排盘 · 不上传生辰 · 全功能免费 · 三层路由 · 25 引擎推算（16 排盘 + 9 联合分析）· 知识库引用 · React+SVG 可视化 Dashboard</p>
 
 <p align="center">
   <a href="https://github.com/dhicoc/chinese-traditional-wisdom-ai-agent-workflow/stargazers"><img src="https://img.shields.io/github/stars/dhicoc/chinese-traditional-wisdom-ai-agent-workflow?style=flat&logo=github" alt="stars"></a>
@@ -48,10 +48,14 @@
 ```
 
 **为什么需要这个项目：**
-- 八字、紫微、六爻、梅花、风水、五运六气、体质七大学科散落不同工具，缺乏统一入口
-- 传统命理软件界面陈旧，AI Agent 无法直接调用
-- 古籍全文检索困难，同一问题每次重新查证
-- 纯前端可视化方案能让用户零安装即刻体验
+
+> 市面上多数命理平台需付费解锁完整解读，且生辰等敏感信息要上传服务器、安全性未知。本项目正是为解决这个问题而设计：**所有排盘在浏览器本地完成，不上传完整生辰，核心能力全部免费开放**。
+
+- **本地优先 · 不上传生辰**：所有引擎纯 TS 本地计算（lunar-javascript/iztro/3meta 内置），生辰只收集年/月/日/时拆分字段，不存完整日期、不传服务器，比要你上传的平台隐私风险更低
+- **零付费 · 全功能开放**：无解锁、无会员、无付费墙，25 个引擎与可视化全部免费；MCP server 也是本地 stdio，不依赖任何付费远端
+- **多学科统一入口**：八字、紫微、六爻、梅花、风水、五运六气、体质等散落不同工具，此处统一聚合，AI Agent 可直接调用
+- **古籍可检索**：内置 16+ 部风水经典全文，同一问题不必每次重新查证
+- **零安装即刻体验**：纯前端可视化，打开即用
 
 <p align="right">(<a href="#关于项目">返回顶部</a>)</p>
 
@@ -278,6 +282,8 @@ field-journal/ → 经验沉淀
 # Chinese Traditional Wisdom AI Agent Workflow
 
 A holistic life consulting AI Agent workflow integrating BaZi, Ziwei, Liuyao, Meihua, Qimen, Liuren, Taiyi, Fengshui, WuYun-LiuQi, TCM Constitution, Daoist philosophy, and Buddhist psychology.
+
+> **Why this project exists:** Most metaphysics platforms require paid unlocks for full readings and ask you to upload birth data to their servers with unclear security. This project solves that — **all charts are computed locally in the browser, no full birth datetime is uploaded, and every core capability is free**.
 
 **Features:**
 - React + Vite + TypeScript dashboard with SVG visualization, capability badges and offline Mermaid fallback
