@@ -52,7 +52,7 @@ describe('Modules Registry', () => {
 
   it('should categorize modules into valid groups', () => {
     const validGroups: ModuleGroup[] = [
-      '易学源流', '术数排盘', '堪舆风水', '医道运气', '日用工具', '知识检索', '开发者'
+      '易学源流', '术数排盘', '堪舆风水', '医道运气', '日用工具', '知识检索', '古籍与历史'
     ];
     MODULES.forEach(module => {
       expect(validGroups).toContain(module.group);

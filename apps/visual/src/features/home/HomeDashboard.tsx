@@ -115,8 +115,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
         <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
           <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-3">
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-400">Birth Input</p>
-              <h2 className="mt-1 font-serif text-lg font-semibold tracking-[0.1em] text-jade-50">排盘信息</h2>
+              <h2 className="font-serif text-lg font-semibold tracking-[0.1em] text-jade-50">排盘信息</h2>
             </div>
             <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2.5 py-1 text-[10px] text-jade-400">已同步</span>
           </div>
@@ -146,8 +145,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
         <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-400">Core Plate</p>
-              <h2 className="mt-1 font-serif text-xl font-semibold tracking-[0.1em] text-jade-50">四柱 / 九宫工作台</h2>
+              <h2 className="font-serif text-xl font-semibold tracking-[0.1em] text-jade-50">四柱 / 九宫工作台</h2>
             </div>
             <CopyContextButton
               commandScope="home"
@@ -177,8 +175,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
       <section className="console-panel rounded-[22px] border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
         <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/8 pb-3">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-100/45">Primary Tools</p>
-            <h2 className="mt-1 font-serif text-lg font-semibold tracking-[0.1em] text-jade-50">常用排盘入口</h2>
+            <h2 className="font-serif text-lg font-semibold tracking-[0.1em] text-jade-50">常用排盘入口</h2>
           </div>
           <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-jade-100/45">{primaryTools.length} 个核心入口</span>
         </div>
@@ -201,7 +198,6 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
                   <span className="font-mono text-[11px] text-jade-100/30">{String(index + 1).padStart(2, '0')}</span>
                   <span className="mt-3 text-lg font-semibold text-jade-50">{tool.title}</span>
                   <span className="mt-2 line-clamp-2 text-sm leading-6 text-jade-100/55">{tool.description}</span>
-                  <span className="mt-auto w-fit rounded-full border border-white/10 bg-black/30 px-2.5 py-1 text-[10px] text-jade-100/45">{modeLabel}</span>
                 </button>
                 <div className="mt-3 border-t border-white/8 pt-3">
                   <CopyContextButton label="Copy context" title={tool.title + ' 工具上下文'} payload={{ tool, capability, modeLabel, source: 'legacy ToolManifest + CapabilityRegistry' }} />
@@ -221,14 +217,12 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
             </div>
             <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
               {groupTools.map((tool) => {
-                const modeLabel = getToolModeLabel(tool);
                 return (
                   <button key={tool.id} type="button" onClick={() => isModuleId(tool.entryTab) && onSelectModule(tool.entryTab)} className="flex items-center justify-between gap-3 rounded-[16px] border border-white/8 bg-black/25 px-3 py-3 text-left transition hover:border-jade-500/25 hover:bg-white/[0.04]">
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-medium text-jade-100">{tool.title}</span>
                       <span className="mt-0.5 block truncate text-xs text-jade-100/55">{tool.questionTypes.slice(0, 2).join(' / ')}</span>
                     </span>
-                    <span className="shrink-0 rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-jade-100/55">{modeLabel}</span>
                   </button>
                 );
               })}

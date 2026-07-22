@@ -1,4 +1,4 @@
-export type ModuleGroup = '易学源流' | '术数排盘' | '堪舆风水' | '医道运气' | '日用工具' | '知识检索' | '开发者';
+export type ModuleGroup = '易学源流' | '术数排盘' | '堪舆风水' | '医道运气' | '日用工具' | '知识检索' | '古籍与历史';
 
 export type ModuleStatus = 'local-exact' | 'local-approx' | 'demo' | 'knowledge' | 'derived' | 'folk-experience';
 
@@ -286,7 +286,7 @@ export const MODULES: WisdomModule[] = [
   },
   {
     id: 'reader',
-    group: '开发者',
+    group: '古籍与历史',
     title: '古籍 Split Reader',
     shortTitle: '古籍',
     status: 'knowledge',
@@ -298,7 +298,7 @@ export const MODULES: WisdomModule[] = [
   },
   {
     id: 'history',
-    group: '开发者',
+    group: '古籍与历史',
     title: '本地历史与收藏',
     shortTitle: '历史',
     status: 'derived',
