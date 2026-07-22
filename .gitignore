@@ -40,4 +40,6 @@ apps/visual/playwright-report*/
 apps/visual/test-results*/
 apps/visual/pw_*.log
 artifacts/tmp/
+.playwright-mcp/
+prototype/
 
