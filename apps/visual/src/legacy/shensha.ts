@@ -25,6 +25,11 @@ export type ShenShaCategory =
   | '华盖'
   | '将星'
   | '月德'
+  | '天德'
+  | '月空'
+  | '天赦'
+  | '金舆'
+  | '孤寡'
   | '魁罡';
 
 export interface ShenShaItem {
@@ -93,7 +98,38 @@ const MEANING: Record<string, string> = {
   华盖: '主聪慧孤高，喜玄学、艺术与独处思辨。',
   将星: '主领导才能，为组织中之骨干中坚。',
   月德贵人: '月建之德神，主化灾解厄、仁慈荫庇。',
+  天德贵人: '四时德神之最，主人品德性、遇事有贵人相扶。',
+  月空: '月德之对冲神，主空亡虚浮、谋事易成空。',
+  天赦: '赦宥之神，主人逢凶化吉、遇难呈祥。',
+  金舆: '主婚姻美、得贤内助，为载命之车。',
+  孤辰: '主孤独自立，六亲缘薄，须自立自强。',
+  寡宿: '主孤寡清冷，宜静守、专注内在。',
   魁罡: '性情刚毅果决，临日柱主掌权不服输。',
+};
+
+// ─── 扩展神煞规则表 ───
+
+/** 天德贵人（月支查天干）：正二三四五六七八九十冬腊月 → 丁坤壬辛乾甲癸艮丙乙巽庚（简化用月支对宫法） */
+const TIANDE: Record<string, string> = {
+  寅: '丁', 卯: '申', 辰: '壬', 巳: '辛', 午: '亥', 未: '甲',
+  申: '癸', 酉: '寅', 戌: '丙', 亥: '乙', 子: '巳', 丑: '庚',
+};
+
+/** 月空（月支三合局的对冲地支）：申子辰→午，亥卯未→申，寅午戌→子，巳酉丑→卯 */
+const YUEKONG: Record<string, string> = { 申子辰: '午', 亥卯未: '申', 寅午戌: '子', 巳酉丑: '卯' };
+
+/** 天赦日（特定干支）：甲子、甲寅、乙卯、丁卯、庚辰、庚午、辛巳、壬午、戊寅、戊寅、己卯（取常用五组） */
+const TIANSHEDAY = ['甲子', '甲寅', '乙卯', '丁卯', '庚辰', '庚午', '辛巳', '壬午', '戊寅', '己卯'];
+
+/** 金舆（日干查地支）：甲辰、乙巳、丙未、丁申、戊未、己申、庚戌、辛亥、壬丑、癸寅 */
+const JINYU: Record<string, string> = { 甲: '辰', 乙: '巳', 丙: '未', 丁: '申', 戊: '未', 己: '申', 庚: '戌', 辛: '亥', 壬: '丑', 癸: '寅' };
+
+/** 孤辰寡宿（按年支三合）：申子辰→孤寅寡戌，亥卯未→孤申寡辰，寅午戌→孤巳寡丑，巳酉丑→孤申寡辰 */
+const GUGUA: Record<string, { gu: string; gua: string }> = {
+  申: { gu: '寅', gua: '戌' }, 子: { gu: '寅', gua: '戌' }, 辰: { gu: '寅', gua: '戌' },
+  亥: { gu: '申', gua: '辰' }, 卯: { gu: '申', gua: '辰' }, 未: { gu: '申', gua: '辰' },
+  寅: { gu: '巳', gua: '丑' }, 午: { gu: '巳', gua: '丑' }, 戌: { gu: '巳', gua: '丑' },
+  巳: { gu: '申', gua: '辰' }, 酉: { gu: '申', gua: '辰' }, 丑: { gu: '申', gua: '辰' },
 };
 
 export function calcShenSha(pillars: PillarsLike, trineSource: TrineSource = 'year'): ShenShaItem[] {
@@ -143,6 +179,29 @@ export function calcShenSha(pillars: PillarsLike, trineSource: TrineSource = 'ye
   // 月德贵人（月支三合 → 天干）
   const mTriad = triadOf(monthBranch);
   if (mTriad && YUEDE[mTriad]) pushStem('月德贵人', '月德', YUEDE[mTriad]);
+
+  // 天德贵人（月支查天干）
+  const td = TIANDE[monthBranch];
+  if (td) pushStem('天德贵人', '天德', td);
+
+  // 月空（月支三合 → 对冲地支）
+  if (mTriad && YUEKONG[mTriad]) pushBranch('月空', '月空', YUEKONG[mTriad]);
+
+  // 天赦（日柱干支为天赦日）
+  if (TIANSHEDAY.includes(dayStem + dayBranch)) {
+    items.push({ name: '天赦', category: '天赦', branch: dayBranch, pillar: '日', meaning: MEANING['天赦'] });
+  }
+
+  // 金舆（日干查地支）
+  const jy = JINYU[dayStem];
+  if (jy) pushBranch('金舆', '金舆', jy);
+
+  // 孤辰寡宿（按年支三合查）
+  const gg = GUGUA[pillars.year.branch];
+  if (gg) {
+    pushBranch('孤辰', '孤寡', gg.gu);
+    pushBranch('寡宿', '孤寡', gg.gua);
+  }
 
   // 魁罡（日柱干支）
   if (KUIGANG.includes(dayStem + dayBranch)) {
