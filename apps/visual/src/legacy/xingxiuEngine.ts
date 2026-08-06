@@ -159,11 +159,20 @@ export interface XingXiuInput {
 
 // ─── 连续轮转法 ───
 // 基准：2004-7-30 = 斗（用户验证点），公历日序连续轮转28宿
-// 偏移量：JD模28 + 25 = 斗（经验证）
-const XIU_ROTATIONAL_OFFSET = 25;
+// 偏移量：纯算术儒略日（时区无关）模28 + 24 = 斗（XIU_ORDER 中斗=index 21；旧实现用本地
+//         时区 Date 计算 JD 会因时区差异（UTC vs +8）偏移一天导致星宿错位，改纯算术消除时区依赖）
+const XIU_ROTATIONAL_OFFSET = 24;
+
+/** 纯算术儒略日（Fliegel-Van Flandern，时区无关）。替代 new Date().getTime() 避免本地时区偏移。 */
+function julianDayArithmetic(year: number, month: number, day: number): number {
+  const a = Math.floor((14 - month) / 12);
+  const yy = year + 4800 - a;
+  const mm = month + 12 * a - 3;
+  return day + Math.floor((153 * mm + 2) / 5) + 365 * yy + Math.floor(yy / 4) - Math.floor(yy / 100) + Math.floor(yy / 400) - 32045;
+}
 
 function calcXiuByRotation(year: number, month: number, day: number): string {
-  const jd = Math.floor((new Date(year, month - 1, day).getTime() / 86400000) + 2440588);
+  const jd = julianDayArithmetic(year, month, day);
   return XIU_ORDER[(((jd % 28) + XIU_ROTATIONAL_OFFSET) % 28 + 28) % 28];
 }
 
