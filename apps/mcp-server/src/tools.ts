@@ -72,7 +72,7 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: (i) => calcBaziEnveloped({
       birth: (i as { birth: unknown }).birth as never,
-      solar: solarEntry,
+      solar: solarEntry as never,
       shenShaTrineSource: (i as { shenShaTrineSource?: 'year' | 'day' }).shenShaTrineSource,
     }),
   },
@@ -109,7 +109,7 @@ export const TOOLS: ToolDef[] = [
     schema: z.object({
       birth: birthSchema,
     }),
-    handler: (i) => calcDaliurenEnveloped({ birth: (i as { birth: unknown }).birth as never, solar: solarEntry }),
+    handler: (i) => calcDaliurenEnveloped({ birth: (i as { birth: unknown }).birth as never, solar: solarEntry as never }),
   },
   {
     name: 'xingxiu_daily',
@@ -117,7 +117,7 @@ export const TOOLS: ToolDef[] = [
     schema: z.object({
       birth: birthSchema,
     }),
-    handler: (i) => calcXingXiuEnveloped({ birth: (i as { birth: unknown }).birth as never, solar: solarEntry }),
+    handler: (i) => calcXingXiuEnveloped({ birth: (i as { birth: unknown }).birth as never, solar: solarEntry as never }),
   },
   {
     name: 'taiyi_calculate',
@@ -131,7 +131,7 @@ export const TOOLS: ToolDef[] = [
       birth: (i as { birth: unknown }).birth as never,
       jiStyle: ((i as { jiStyle?: string }).jiStyle ?? '0') as never,
       acumYear: ((i as { acumYear?: string }).acumYear ?? '0') as never,
-      solar: solarEntry,
+      solar: solarEntry as never,
     }),
   },
   {
@@ -142,7 +142,7 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: (i) => calcHuangjiEnveloped({
       birth: (i as { birth: unknown }).birth as never,
-      solar: solarEntry,
+      solar: solarEntry as never,
     }),
   },
   {
@@ -232,7 +232,7 @@ export const TOOLS: ToolDef[] = [
       birth: (i as { birth: unknown }).birth as never,
       targetYear: (i as { targetYear?: number }).targetYear,
       currentMonth: (i as { currentMonth?: number }).currentMonth,
-      solar: solarEntry,
+      solar: solarEntry as never,
     }),
   },
   {
@@ -247,7 +247,7 @@ export const TOOLS: ToolDef[] = [
       birth: (i as { birth: unknown }).birth as never,
       question: (i as { question: string }).question,
       seed: (i as { seed?: number }).seed,
-      solar: solarEntry,
+      solar: solarEntry as never,
     }),
   },
   {
@@ -262,7 +262,7 @@ export const TOOLS: ToolDef[] = [
       birth: (i as { birth: unknown }).birth as never,
       targetYear: (i as { targetYear?: number }).targetYear,
       facing: (i as { facing?: string }).facing,
-      solar: solarEntry,
+      solar: solarEntry as never,
     }),
   },
   {
@@ -275,7 +275,7 @@ export const TOOLS: ToolDef[] = [
     handler: (i) => calcSanshiCombo({
       birth: (i as { birth: unknown }).birth as never,
       question: (i as { question: string }).question,
-      solar: solarEntry,
+      solar: solarEntry as never,
     }),
   },
   {
@@ -288,7 +288,7 @@ export const TOOLS: ToolDef[] = [
     handler: (i) => calcSanshiClassicCombo({
       birth: (i as { birth: unknown }).birth as never,
       question: (i as { question: string }).question,
-      solar: solarEntry,
+      solar: solarEntry as never,
     }),
   },
   {
@@ -310,7 +310,7 @@ export const TOOLS: ToolDef[] = [
       constitution: (i as { constitution?: string }).constitution,
       now: (i as { now?: { year: number; month: number; day: number; hour: number } }).now,
       targetYear: (i as { targetYear?: number }).targetYear,
-      solar: solarEntry,
+      solar: solarEntry as never,
     }),
   },
   {
@@ -331,7 +331,7 @@ export const TOOLS: ToolDef[] = [
       endDate: (i as { endDate: string }).endDate,
       targetYear: (i as { targetYear?: number }).targetYear,
       topN: (i as { topN?: number }).topN,
-      solar: solarEntry,
+      solar: solarEntry as never,
     }),
   },
   {
@@ -348,7 +348,7 @@ export const TOOLS: ToolDef[] = [
       targetYear: (i as { targetYear: number }).targetYear,
       targetMonth: (i as { targetMonth: number }).targetMonth,
       constitution: (i as { constitution?: string }).constitution,
-      solar: solarEntry,
+      solar: solarEntry as never,
     }),
   },
   {
@@ -376,7 +376,7 @@ export const TOOLS: ToolDef[] = [
         surname: (i as { personA: { surname?: string } }).personA.surname,
         givenName: (i as { personA: { givenName?: string } }).personA.givenName,
         label: (i as { personA: { label?: string } }).personA.label,
-        solar: solarEntry,
+        solar: solarEntry as never,
       },
       personB: {
         birth: (i as { personB: { birth: unknown } }).personB.birth as never,
@@ -400,7 +400,7 @@ export const TOOLS: ToolDef[] = [
       char: (i as { char: string }).char,
       aspect: (i as { aspect?: '事业' | '感情' | '财利' | '健康' | '综合' }).aspect,
       birth: (i as { birth?: unknown }).birth as never,
-      solar: solarEntry,
+      solar: solarEntry as never,
     }),
   },
   {
@@ -412,7 +412,7 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: (i) => calcChenguzEnveloped({
       birth: (i as { birth: unknown }).birth as never,
-      solar: solarEntry,
+      solar: solarEntry as never,
       version: (i as { version?: 'standard' | 'folk' | 'full' }).version,
     }),
   },

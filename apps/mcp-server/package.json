@@ -10,6 +10,7 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "dev": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {

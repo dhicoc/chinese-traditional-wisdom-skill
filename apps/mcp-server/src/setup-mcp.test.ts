@@ -100,7 +100,7 @@ describe('configureAll 配置逻辑（临时配置文件）', () => {
     const m = await importSetup();
     const results = m.configureAll({ checkOnly: true });
     // checkOnly 下所有 configured 应为 false
-    results.forEach((r: { configured: boolean }) => {
+    results.forEach((r: { detected?: boolean; configured: boolean }) => {
       if (r.detected) expect(r.configured).toBe(false);
     });
   });

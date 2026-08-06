@@ -72,10 +72,10 @@ describe('bazi_calculate', async () => {
   it('1990-6-15 12时男 返回精确排盘 envelope', async () => {
     const t = findTool('bazi_calculate');
     const env = await t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
-    const e = expectValidEnvelope(env);
+    const e = expectValidEnvelope(env) as ToolEnvelope<{ mode: string }>;
     expect(e.tool).toBe('BaziLunarAdapter');
     expect(e.data.mode).toBe('local-exact');
-    const data = e.data as { pillars: { year: { stem: string; branch: string } }; dayMaster: string };
+    const data = e.data as unknown as { pillars: { year: { stem: string; branch: string } }; dayMaster: string };
     expect(data.pillars.year.stem).toBe('庚');
     expect(data.pillars.year.branch).toBe('午');
     expectExportSnapshot(e);
@@ -109,7 +109,7 @@ describe('cast_liuyao', async () => {
 
   it('问财运自动选取用神为妻财', async () => {
     const t = findTool('cast_liuyao');
-    const env = await t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, method: 'manual', yaoValues: '777777', question: '今年财运' });
+    const env = (await t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, method: 'manual', yaoValues: '777777', question: '今年财运' })) as ToolEnvelope;
     const data = env.data as { yongShen: string };
     expect(data.yongShen).toBe('妻财');
   });

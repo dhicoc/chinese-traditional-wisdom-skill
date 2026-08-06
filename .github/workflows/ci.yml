@@ -28,7 +28,7 @@ jobs:
         run: pnpm typecheck
       - name: typecheck mcp-server
         working-directory: apps/mcp-server
-        run: npx tsc --noEmit
+        run: pnpm typecheck
 
   unit:
     name: Unit tests
