@@ -76,6 +76,10 @@ export interface AlmanacData {
   sha: string;
   /** 时辰吉凶 */
   hours: AlmanacTimeHour[];
+  /** 六曜（赤口/先胜等） */
+  liuYao?: string;
+  /** 日九星（玄空九星，含 index） */
+  dayNineStar?: string;
   /** 数据来源说明 */
   confidenceNote: string;
 }
@@ -96,6 +100,8 @@ interface LunarLike {
   getXiuSong(): string;
   getDayTianShen(): string;
   getDayTianShenType(): string;
+  getLiuYao?(): string;
+  getDayNineStar?(): { toString?: () => string; index?: number };
   getDayPositionXiDesc(): string;
   getDayPositionFuDesc(): string;
   getDayPositionCaiDesc(): string;
@@ -214,6 +220,12 @@ export function getAlmanacData(dateStr: string, solar?: SolarLike | null): Alman
       chong: lunar.getDayChongDesc(),
       sha: lunar.getDaySha(),
       hours,
+      liuYao: typeof lunar.getLiuYao === 'function' ? lunar.getLiuYao() : undefined,
+      dayNineStar: typeof lunar.getDayNineStar === 'function'
+        ? (() => {
+            try { const n = lunar.getDayNineStar?.(); return n && typeof n.toString === 'function' ? n.toString() : n?.index !== undefined ? String(n.index) : undefined; } catch { return undefined; }
+          })()
+        : undefined,
       confidenceNote: '数据由内置 6tail/lunar-javascript 真实历法推算；宜忌为民俗参考，不作为决策依据。',
     };
   } catch {
@@ -263,7 +275,7 @@ export function getAlmanacEnveloped(input: AlmanacInput = {}): ToolEnvelope<Alma
     summary: synthesis,
     tags: ['黄历', data.dayGanZhi, data.zodiac, data.dayTianShenType],
     sections: [
-      { heading: '干支纳音', body: `${data.yearGanZhi}年 ${data.monthGanZhi}月 ${data.dayGanZhi}日（${data.dayNaYin}），生肖${data.zodiac}，星宿${data.dayXiu}。` },
+      { heading: '干支纳音', body: `${data.yearGanZhi}年 ${data.monthGanZhi}月 ${data.dayGanZhi}日（${data.dayNaYin}），生肖${data.zodiac}，星宿${data.dayXiu}${data.liuYao ? `，六曜${data.liuYao}` : ''}${data.dayNineStar ? `，九星${data.dayNineStar}` : ''}。` },
       { heading: '宜忌', body: `宜：${yiStr}。忌：${jiStr}。` },
       { heading: '吉神凶煞', body: `吉神宜趋：${data.jiShen.join('、') || '无'}。凶煞宜忌：${data.xiongSha.join('、') || '无'}。彭祖百忌：${data.pengZu}。` },
       { heading: '神位方位', body: `喜神${data.xiPosition}、福神${data.fuPosition}、财神${data.caiPosition}、阳贵${data.yangGuiPosition}、阴贵${data.yinGuiPosition}。` },
@@ -280,7 +292,7 @@ export function getAlmanacEnveloped(input: AlmanacInput = {}): ToolEnvelope<Alma
     tool: 'get_almanac',
     version: '1.0.0',
     input_normalized: { date: dateStr },
-    data,
+    data: { ...data, export_snapshot: snapshot } as AlmanacData & { export_snapshot: ExportSnapshot },
     summary: [synthesis],
     warnings: [data.confidenceNote],
   };
