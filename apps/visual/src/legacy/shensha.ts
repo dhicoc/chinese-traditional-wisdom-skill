@@ -30,6 +30,7 @@ export type ShenShaCategory =
   | '天赦'
   | '金舆'
   | '孤寡'
+  | '空亡'
   | '魁罡';
 
 export interface ShenShaItem {
@@ -60,6 +61,30 @@ const PILLAR_LABEL: Record<(typeof PILLAR_KEYS)[number], '年' | '月' | '日' |
   day: '日',
   hour: '时',
 };
+
+// 干支序（用于空亡旬空推算）
+const GAN_ORDER = '甲乙丙丁戊己庚辛壬癸';
+const ZHI_ORDER = '子丑寅卯辰巳午未申酉戌亥';
+
+/** 六旬空亡表：每旬首干支 → 该旬空亡的两个地支（甲子旬空戌亥…甲寅旬空子丑） */
+const XUN_KONG: Record<string, string[]> = {
+  甲子: ['戌', '亥'], 甲戌: ['申', '酉'], 甲申: ['午', '未'],
+  甲午: ['辰', '巳'], 甲辰: ['寅', '卯'], 甲寅: ['子', '丑'],
+};
+
+/** 60 甲子表（0-based：甲子=0 … 癸亥=59） */
+const JIAZI60: string[] = (() => {
+  const out: string[] = [];
+  for (let i = 0; i < 60; i++) out.push(GAN_ORDER[i % 10] + ZHI_ORDER[i % 12]);
+  return out;
+})();
+
+/** 取某日柱所属旬的首干支（如「辛亥」→ 旬首「甲辰」） */
+function xunShouOf(dayStem: string, dayBranch: string): string {
+  const idx = JIAZI60.indexOf(dayStem + dayBranch);
+  if (idx < 0) return '';
+  return JIAZI60[idx - (idx % 10)];
+}
 
 /** 三合局归类（用于桃花 / 驿马 / 华盖 / 将星） */
 function triadOf(branch: string): '申子辰' | '亥卯未' | '寅午戌' | '巳酉丑' | '' {
@@ -104,6 +129,7 @@ const MEANING: Record<string, string> = {
   金舆: '主婚姻美、得贤内助，为载命之车。',
   孤辰: '主孤独自立，六亲缘薄，须自立自强。',
   寡宿: '主孤寡清冷，宜静守、专注内在。',
+  空亡: '旬空之支，主虚浮落空、事有欠缺，吉凶皆减力。',
   魁罡: '性情刚毅果决，临日柱主掌权不服输。',
 };
 
@@ -201,6 +227,17 @@ export function calcShenSha(pillars: PillarsLike, trineSource: TrineSource = 'ye
   if (gg) {
     pushBranch('孤辰', '孤寡', gg.gu);
     pushBranch('寡宿', '孤寡', gg.gua);
+  }
+
+  // 空亡（按日柱旬，命中四柱中落入空亡的地支）
+  const xunShou = xunShouOf(dayStem, dayBranch);
+  const kongZhi = XUN_KONG[xunShou];
+  if (kongZhi) {
+    for (const key of PILLAR_KEYS) {
+      if (kongZhi.includes(pillars[key].branch)) {
+        items.push({ name: '空亡', category: '空亡', branch: pillars[key].branch, pillar: PILLAR_LABEL[key], meaning: MEANING['空亡'] });
+      }
+    }
   }
 
   // 魁罡（日柱干支）
