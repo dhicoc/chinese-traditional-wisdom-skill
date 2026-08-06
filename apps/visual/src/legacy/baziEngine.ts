@@ -322,7 +322,7 @@ function buildResultFromPillars(pillars: BaziPillars, birth: BaziBirth, luck: Ba
     shishenList,
     elements: calcElements(pillars),
     luck,
-    shenSha: calcShenSha(pillars, trineSource),
+    shenSha: calcShenSha(pillars, trineSource, (birth.gender ?? '男') as '男' | '女'),
     shenShaTrineSource: trineSource,
   };
   if (mode === 'local-exact') result.calendar = { provider: 'lunar-javascript', exactSolarTerms: true };

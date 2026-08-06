@@ -50,7 +50,21 @@ export type ShenShaCategory =
   | '红鸾'
   | '阴差阳错'
   | '十恶大败'
-  | '四废';
+  | '四废'
+  | '血刃'
+  | '孤鸾'
+  | '丧吊'
+  | '披麻'
+  | '勾绞'
+  | '元辰'
+  | '攀鞍'
+  | '岁驿'
+  | '息神'
+  | '指背'
+  | '月煞'
+  | '天煞'
+  | '晦气'
+  | '六合';
 
 export interface ShenShaItem {
   name: string;
@@ -274,6 +288,22 @@ const MEANING: Record<string, string> = {
   阴差阳错: '婚姻之神，主婚缘不顺、感情多波折。',
   十恶大败: '败神，主破财败家、家业难聚。',
   四废: '废日之神，主衰败无力、谋事难成。',
+  血刃: '血光之煞，主外伤手术、磕碰见血。',
+  孤鸾: '孤鸾寡鹄，主婚姻不顺、独处孤寂。',
+  丧门: '凶煞，主孝丧之事、心情郁结。',
+  吊客: '凶煞，主孝服吊丧、家中有忧。',
+  天狗: '凶煞，主小人暗算、财物损耗。',
+  披麻: '凶煞，主孝服之事、劳顿忧心。',
+  晦气: '凶煞，主晦暗不顺、口舌是非。',
+  六合贵人: '地支六合之贵人，主得人帮扶、合作顺遂。',
+  攀鞍: '主出行得马、事业上升、有攀附之机。',
+  岁驿: '主岁中变动、迁徙走动，同驿马。',
+  息神: '主安宁收敛、气机休养，宜静守。',
+  指背: '主背后是非、小人指背，防口舌。',
+  月煞: '凶煞，主月内灾伤、防意外血光。',
+  天煞: '凶煞，主天降灾伤、防意外横祸。',
+  元辰: '大耗之别名，主一生坎坷、多灾多难。',
+  勾绞: '勾绞之煞，主牵连羁绊、官非口舌。',
 };
 
 // ─── 60 甲子（空亡/纳音用）───
@@ -297,9 +327,62 @@ function xunShouOf(dayStem: string, dayBranch: string): string {
   return JIAZI60[idx - (idx % 10)];
 }
 
+// ─── 第二批神煞规则表 ───
+
+/** 孤鸾煞（日柱核心8组，渊海子平孤鸾寡鹄歌） */
+const GULUAN_DAYS = ['乙巳', '丁巳', '辛亥', '戊申', '甲寅', '丙午', '戊午', '壬子'];
+
+/** 血刃（日干查地支，=禄神顺行一位）：甲卯乙辰丙午丁未戊午己未庚酉辛戌壬子癸丑 */
+const XUEREN: Record<string, string> = { 甲: '卯', 乙: '辰', 丙: '午', 丁: '未', 戊: '午', 己: '未', 庚: '酉', 辛: '戌', 壬: '子', 癸: '丑' };
+
+/** 丧门 = 年支+2，吊客 = 年支-2(=+10)（年支直查） */
+const SANGMEN: Record<string, string> = { 子: '寅', 丑: '卯', 寅: '辰', 卯: '巳', 辰: '午', 巳: '未', 午: '申', 未: '酉', 申: '戌', 酉: '亥', 戌: '子', 亥: '丑' };
+const DIAOKE: Record<string, string> = { 子: '戌', 丑: '亥', 寅: '子', 卯: '丑', 辰: '寅', 巳: '卯', 午: '辰', 未: '巳', 申: '午', 酉: '未', 戌: '申', 亥: '酉' };
+
+/** 天狗 = 年支-2(+10，与吊客同位) */
+const TIANGOU: Record<string, string> = { 子: '戌', 丑: '亥', 寅: '子', 卯: '丑', 辰: '寅', 巳: '卯', 午: '辰', 未: '巳', 申: '午', 酉: '未', 戌: '申', 亥: '酉' };
+/** 披麻 = 年支-3(+9) */
+const PIMA: Record<string, string> = { 子: '酉', 丑: '戌', 寅: '亥', 卯: '子', 辰: '丑', 巳: '寅', 午: '卯', 未: '辰', 申: '巳', 酉: '午', 戌: '未', 亥: '申' };
+/** 晦气 = 年支+1（岁前十二神） */
+const HUIQI: Record<string, string> = { 子: '丑', 丑: '寅', 寅: '卯', 卯: '辰', 辰: '巳', 巳: '午', 午: '未', 未: '申', 申: '酉', 酉: '戌', 戌: '亥', 亥: '子' };
+
+/** 六合贵人（年支查地支六合） */
+const LIUHE: Record<string, string> = { 子: '丑', 丑: '子', 寅: '亥', 亥: '寅', 卯: '戌', 戌: '卯', 辰: '酉', 酉: '辰', 巳: '申', 申: '巳', 午: '未', 未: '午' };
+
+/** 将前十二神（年支三合，将星起顺行）：攀鞍/岁驿/息神/指背/月煞/天煞 */
+const PANAN: Record<string, string> = { 申子辰: '丑', 寅午戌: '未', 巳酉丑: '戌', 亥卯未: '辰' };
+const SUIYI: Record<string, string> = { 申子辰: '寅', 寅午戌: '申', 巳酉丑: '亥', 亥卯未: '巳' };
+const XISHEN: Record<string, string> = { 申子辰: '卯', 寅午戌: '酉', 巳酉丑: '子', 亥卯未: '午' };
+const ZHIBEI: Record<string, string> = { 申子辰: '申', 寅午戌: '寅', 巳酉丑: '巳', 亥卯未: '亥' };
+const YUESHA: Record<string, string> = { 申子辰: '戌', 寅午戌: '辰', 巳酉丑: '未', 亥卯未: '丑' };
+const TIAN_SHA: Record<string, string> = { 申子辰: '未', 寅午戌: '丑', 巳酉丑: '辰', 亥卯未: '戌' };
+
+/** 阳年支（子寅辰午申戌）判断：干支年支序为偶数=阳 */
+function isYangBranch(zhi: string): boolean {
+  return ZHI_ORDER.indexOf(zhi) % 2 === 0;
+}
+
+/** 元辰（大耗）：阳男/阴女 → 冲支顺行(=年支+7)；阴男/阳女 → 冲支逆行(=年支+5)。三命通会分阴阳。 */
+const YUANCHEN_YANG: Record<string, string> = { 子: '未', 丑: '申', 寅: '酉', 卯: '戌', 辰: '亥', 巳: '子', 午: '丑', 未: '寅', 申: '卯', 酉: '辰', 戌: '巳', 亥: '午' };
+const YUANCHEN_YIN: Record<string, string> = { 子: '巳', 丑: '午', 寅: '未', 卯: '申', 辰: '酉', 巳: '戌', 午: '亥', 未: '子', 申: '丑', 酉: '寅', 戌: '卯', 亥: '辰' };
+
+/** 勾绞（年支分阴阳）：阳男/阴女 → 勾=+3绞=+9；阴男/阳女 → 勾=+9绞=+3。三命通会。 */
+const GOUJIAO_YANG: Record<string, { gou: string; jiao: string }> = {
+  子: { gou: '卯', jiao: '酉' }, 丑: { gou: '辰', jiao: '戌' }, 寅: { gou: '巳', jiao: '亥' },
+  卯: { gou: '午', jiao: '子' }, 辰: { gou: '未', jiao: '丑' }, 巳: { gou: '申', jiao: '寅' },
+  午: { gou: '酉', jiao: '卯' }, 未: { gou: '戌', jiao: '辰' }, 申: { gou: '亥', jiao: '巳' },
+  酉: { gou: '子', jiao: '午' }, 戌: { gou: '丑', jiao: '未' }, 亥: { gou: '寅', jiao: '申' },
+};
+const GOUJIAO_YIN: Record<string, { gou: string; jiao: string }> = {
+  子: { gou: '酉', jiao: '卯' }, 丑: { gou: '戌', jiao: '辰' }, 寅: { gou: '亥', jiao: '巳' },
+  卯: { gou: '子', jiao: '午' }, 辰: { gou: '丑', jiao: '未' }, 巳: { gou: '寅', jiao: '申' },
+  午: { gou: '卯', jiao: '酉' }, 未: { gou: '辰', jiao: '戌' }, 申: { gou: '巳', jiao: '亥' },
+  酉: { gou: '午', jiao: '子' }, 戌: { gou: '未', jiao: '丑' }, 亥: { gou: '申', jiao: '寅' },
+};
+
 // ─── 主函数 ───
 
-export function calcShenSha(pillars: PillarsLike, trineSource: TrineSource = 'year'): ShenShaItem[] {
+export function calcShenSha(pillars: PillarsLike, trineSource: TrineSource = 'year', gender: '男' | '女' = '男'): ShenShaItem[] {
   const items: ShenShaItem[] = [];
   const dayStem = pillars.day.stem;
   const dayBranch = pillars.day.branch;
@@ -452,6 +535,53 @@ export function calcShenSha(pillars: PillarsLike, trineSource: TrineSource = 'ye
   const naYinWx = NAYIN_WUXING[yearStem + yearBranch];
   if (naYinWx && XUETANG[naYinWx]) pushBranch('学堂', '学堂', XUETANG[naYinWx]);
   if (naYinWx && CIGUAN[naYinWx]) pushBranch('词馆', '学堂', CIGUAN[naYinWx]);
+
+  // ── 第二批神煞 ──
+
+  // 孤鸾煞（日柱）
+  if (GULUAN_DAYS.includes(dayStem + dayBranch)) {
+    items.push({ name: '孤鸾', category: '孤鸾', branch: dayBranch, pillar: '日', meaning: MEANING['孤鸾'] });
+  }
+
+  // 血刃（日干查地支 = 禄前一位）
+  if (XUEREN[dayStem]) pushBranch('血刃', '血刃', XUEREN[dayStem]);
+
+  // 丧门/吊客（年支直查）
+  if (SANGMEN[yearBranch]) pushBranch('丧门', '丧吊', SANGMEN[yearBranch]);
+  if (DIAOKE[yearBranch]) pushBranch('吊客', '丧吊', DIAOKE[yearBranch]);
+  // 天狗/披麻（年支直查）
+  if (TIANGOU[yearBranch]) pushBranch('天狗', '披麻', TIANGOU[yearBranch]);
+  if (PIMA[yearBranch]) pushBranch('披麻', '披麻', PIMA[yearBranch]);
+  // 晦气（年支+1）
+  if (HUIQI[yearBranch]) pushBranch('晦气', '晦气', HUIQI[yearBranch]);
+
+  // 六合贵人（年支查六合）
+  if (LIUHE[yearBranch]) pushBranch('六合贵人', '六合', LIUHE[yearBranch]);
+
+  // 将前十二神（年支三合）
+  const yearTriad = triadOf(yearBranch);
+  if (yearTriad) {
+    if (PANAN[yearTriad]) pushBranch('攀鞍', '攀鞍', PANAN[yearTriad]);
+    if (SUIYI[yearTriad]) pushBranch('岁驿', '岁驿', SUIYI[yearTriad]);
+    if (XISHEN[yearTriad]) pushBranch('息神', '息神', XISHEN[yearTriad]);
+    if (ZHIBEI[yearTriad]) pushBranch('指背', '指背', ZHIBEI[yearTriad]);
+    if (YUESHA[yearTriad]) pushBranch('月煞', '月煞', YUESHA[yearTriad]);
+    if (TIAN_SHA[yearTriad]) pushBranch('天煞', '天煞', TIAN_SHA[yearTriad]);
+  }
+
+  // 元辰（大耗）：分阳男/阴女 vs 阴男/阳女（三命通会，必须分阴阳）
+  const isYangYear = isYangBranch(yearBranch);
+  const isMale = gender !== '女';
+  // 阳男/阴女 → 阳表；阴男/阳女 → 阴表
+  const yuanTable = (isYangYear === isMale) ? YUANCHEN_YANG : YUANCHEN_YIN;
+  if (yuanTable[yearBranch]) pushBranch('元辰', '元辰', yuanTable[yearBranch]);
+
+  // 勾绞（分阴阳年+性别）：阳男/阴女 → 勾+3绞+9；阴男/阳女 → 勾+9绞+3
+  const gouTable = (isYangYear === isMale) ? GOUJIAO_YANG : GOUJIAO_YIN;
+  if (gouTable[yearBranch]) {
+    pushBranch('勾绞', '勾绞', gouTable[yearBranch].gou);
+    pushBranch('勾绞', '勾绞', gouTable[yearBranch].jiao);
+  }
 
   return items;
 }
