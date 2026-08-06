@@ -10,10 +10,13 @@
  */
 
 import type { BaziPillars } from '@/legacy/canvasRenderers';
+import type { ShenShaItem } from '@/legacy/shensha';
 
 interface BaziPillarsChartProps {
   pillars: BaziPillars;
   size?: number;
+  /** 神煞（按柱位分组标注在盘面，可选） */
+  shenSha?: ShenShaItem[];
 }
 
 // 天干 → 五行（对齐 legacy CORE.stemWuxing）
@@ -55,9 +58,9 @@ function branchWuxing(branch: string): string {
 
 const DAY_ACCENT = 'var(--c-gold)'; // 日柱金色点缀
 
-export function BaziPillarsChart({ pillars, size = 620 }: BaziPillarsChartProps) {
+export function BaziPillarsChart({ pillars, size = 620, shenSha }: BaziPillarsChartProps) {
   const W = size;
-  const H = 460;
+  const H = 500;
 
   const colCount = 4;
   const cellW = 132;
@@ -75,6 +78,16 @@ export function BaziPillarsChart({ pillars, size = 620 }: BaziPillarsChartProps)
     { label: '日柱', data: pillars.day, isDay: true },
     { label: '时柱', data: pillars.hour },
   ];
+
+  // 神煞按柱位分组：{ '年': [...], '月': [...], '日': [...], '时': [...] }
+  const shenShaByPillar: Record<string, ShenShaItem[]> = { 年: [], 月: [], 日: [], 时: [] };
+  if (shenSha) {
+    for (const s of shenSha) {
+      (shenShaByPillar[s.pillar] ??= []).push(s);
+    }
+  }
+  // 柱标签 → pillar 键映射（年柱→年，月柱→月，日柱→日，时柱→时）
+  const pillarKeyOf = (label: string): string => label.charAt(0);
 
   return (
     <svg
@@ -174,6 +187,39 @@ export function BaziPillarsChart({ pillars, size = 620 }: BaziPillarsChartProps)
                 </text>
               </g>
             )}
+
+            {/* 神煞行：朱砂小印章（每柱最多 2 个，超出 +N） */}
+            {(() => {
+              const key = pillarKeyOf(col.label);
+              const ss = shenShaByPillar[key] ?? [];
+              if (ss.length === 0) return null;
+              const maxShow = 2;
+              const shown = ss.slice(0, maxShow);
+              const extra = ss.length - shown.length;
+              const shenY = hiddenY + 46;
+              const chipW = cellW / (shown.length + (extra > 0 ? 1 : 0)) - 8;
+              const chipH = 20;
+              const chips: Array<{ label: string; x: number }> = [];
+              shown.forEach((s, si) => {
+                chips.push({ label: s.name, x: x + 8 + si * (chipW + 8) });
+              });
+              if (extra > 0) {
+                chips.push({ label: `+${extra}`, x: x + 8 + shown.length * (chipW + 8) });
+              }
+              return (
+                <g>
+                  <rect x={x} y={shenY} width={cellW} height={chipH + 12} rx={4} fill="rgb(var(--cinnabar) / 0.04)" />
+                  {chips.map((c, ci) => (
+                    <g key={ci}>
+                      <rect x={c.x} y={shenY + 2} width={Math.min(chipW, 4)} height={chipH - 4} rx={1} fill="rgb(var(--cinnabar) / 0.55)" />
+                      <text x={c.x + 8} y={shenY + chipH / 2 + 2} dominantBaseline="middle" fill="rgb(var(--cinnabar) / 0.85)" style={{ fontSize: 10, fontWeight: 500 }}>
+                        {c.label}
+                      </text>
+                    </g>
+                  ))}
+                </g>
+              );
+            })()}
           </g>
         );
       })}

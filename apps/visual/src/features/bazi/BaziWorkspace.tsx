@@ -234,7 +234,7 @@ export function BaziWorkspace() {
             <div className="canvas-stage overflow-x-auto rounded-card border border-jade-500/18 bg-ink-950/92 p-3">
               {ready ? (
                 <ZoomableSvg title="四柱主盘">
-                  <BaziPillarsChart pillars={pillars} />
+                  <BaziPillarsChart pillars={pillars} shenSha={result?.shenSha} />
                 </ZoomableSvg>
               ) : (
                 <LoadingSkeleton label="正在排盘" />
