@@ -383,5 +383,26 @@ export function calcBaziEnveloped(input: BaziInput): ToolEnvelope<BaziData> {
     input_normalized: input as unknown as Record<string, unknown>,
     data: { ...result, export_snapshot: snapshot },
     warnings: [result.confidenceNote, ...(result.mode === 'local-approx' ? ['未传入精确历法入口，月柱按节气近似'] : [])],
+    evidence: {
+      steps: [
+        { key: 'settle', stage: '定盘', status: result.mode === 'local-exact' ? 'ok' : 'approx', inputs: { year: input.birth.year, month: input.birth.month, day: input.birth.day, hour: input.birth.hour }, result: pillarsStr, promptText: `按${result.mode === 'local-exact' ? '精确节气' : '近似节气'}排出四柱 ${pillarsStr}` },
+        { key: 'elements', stage: '五行统计', status: 'ok', inputs: pillarsStr, result: elSummary, dependsOnStepKeys: ['settle'], promptText: `四柱五行计数 ${elSummary}` },
+        { key: 'daymaster', stage: '日主判定', status: 'ok', inputs: { dm, dmWx, dmYy }, result: `${dm}${dmYy}${dmWx}`, dependsOnStepKeys: ['settle'], promptText: `日主为${dm}（${dmYy}${dmWx}）` },
+        { key: 'luck', stage: '大运推算', status: 'approx', inputs: { gender: input.birth.gender }, result: result.luck.map((l) => `${l.ageStart}岁起 ${l.stem}${l.branch}`).join('；'), dependsOnStepKeys: ['settle'], promptText: '大运按3岁简化起运', limitation: '起运年龄为简化3岁，非精确节令起运' },
+      ],
+      facts: [
+        { level: '主证', title: `日主${dm}${dmYy}${dmWx}`, detail: `五行偏${isStrong ? '强' : '弱'}（${maxEl}${maxVal} vs ${minEl}${minVal}）`, source: '五行计数近似', tags: ['日主', '五行'] },
+        { level: '主证', title: `四柱 ${pillarsStr}`, detail: `十神 ${['year', 'month', 'day', 'hour'].map((k) => `${PILLAR_CN[k]}${result.shishenList[k]}`).join(' ')}`, source: result.mode === 'local-exact' ? 'lunar-javascript 节气表' : '本地近似节气', tags: ['四柱'] },
+        { level: '辅证', title: `神煞 ${result.shenSha.map((s) => s.name).join('、') || '无'}`, detail: result.shenSha.length ? result.shenSha.map((s) => `${s.name}(${s.branch}·${s.pillar})`).join('、') : '未检出常见神煞', source: '神煞规则表', tags: ['神煞'] },
+        { level: '限制', title: '日主强弱为五行计数近似', detail: '非月令旺衰/格局判断，仅作参考', source: '引擎口径', tags: ['边界'] },
+      ],
+      limitations: ['日主强弱基于五行计数近似，非月令旺衰/格局/调候判断', '大运起运按3岁简化，非精确节令起运'],
+    },
+    result_meta: {
+      engineVersion: result.mode,
+      evidenceSchemaVersion: '0.1.0',
+      algorithm: '四柱排盘',
+      calculationConfig: { exactCalendar: input.birth.useExactCalendar !== false, shenShaTrineSource: input.shenShaTrineSource ?? 'year' },
+    },
   };
 }

@@ -170,4 +170,20 @@ describe('calcBaziEnveloped envelope 适配', () => {
     const env = calcBaziEnveloped({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
     expect(env.warnings?.some((w) => w.includes('节气近似'))).toBe(true);
   });
+
+  it('证据链 evidence 结构完整（步骤/事实/限制/元数据）', () => {
+    const env = calcBaziEnveloped({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
+    expect(env.evidence).toBeDefined();
+    expect(env.evidence!.steps.length).toBeGreaterThan(0);
+    expect(env.evidence!.facts.length).toBeGreaterThan(0);
+    expect(env.evidence!.limitations.length).toBeGreaterThan(0);
+    expect(env.result_meta).toBeDefined();
+    expect(env.result_meta!.evidenceSchemaVersion).toBe('0.1.0');
+    // 事实含主证日主 + 限制边界
+    const facts = env.evidence!.facts;
+    expect(facts.some((f) => f.level === '主证' && f.title.includes('日主'))).toBe(true);
+    expect(facts.some((f) => f.level === '限制')).toBe(true);
+    // 每步骤有 promptText（供 AI 转述）
+    env.evidence!.steps.forEach((s) => expect(s.promptText.length).toBeGreaterThan(0));
+  });
 });

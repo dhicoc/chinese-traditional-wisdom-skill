@@ -3,6 +3,8 @@ export type WuxingStats = Record<'木' | '火' | '土' | '金' | '水', number>;
 /** 命理通用吉凶定调（吉/中/凶），供 combo 一致性检验与四层报告共用 */
 export type Tone = '吉' | '凶' | '中';
 
+import type { EvidenceBundle, ResultMeta } from './envelopeEvidence';
+
 // ──────────────────────────────────────────────────────────────────────
 //  ToolEnvelope —— 统一工具输出信封（借鉴 horosa-skill ToolEnvelope）
 //
@@ -66,6 +68,10 @@ export interface ToolEnvelope<TData = unknown> {
   warnings?: string[];
   /** 错误信息（ok=false 时必填） */
   error?: { code: string; message: string };
+  /** 证据链（口径披露/计算步骤/事实断言，供 AI 转述，不进 UI 文案） */
+  evidence?: EvidenceBundle;
+  /** 结果元数据（引擎版本/算法/实际口径） */
+  result_meta?: ResultMeta;
 }
 
 /**
