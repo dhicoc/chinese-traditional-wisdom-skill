@@ -63,6 +63,18 @@ export interface ZiweiResult {
   mainStars: string[];
   chart: unknown; // iztro 原始 chart（供高级消费，渲染器不读）
   confidenceNote?: string;
+  /** 五行局（如「木三局」） */
+  fiveElementsClass?: string;
+  /** 命主/身主 */
+  soul?: string;
+  body?: string;
+  /** 身宫地支（命主此生关注之宫） */
+  bodyPalaceBranch?: string;
+  /** 来因宫地支（先天业力聚焦之宫） */
+  originalPalaceBranch?: string;
+  /** 星座/生肖 */
+  sign?: string;
+  zodiac?: string;
 }
 
 interface IztroStar { name: string; brightness?: string; type?: string; mutagen?: string }
@@ -170,7 +182,17 @@ export function calculateZiwei(input: ZiweiInput): ZiweiResult {
   const genderKey = birth.gender === '男' ? '男' : '女';
   const solarDateStr = `${birth.year}-${birth.month}-${birth.day}`;
 
-  const chart = astro.bySolar(solarDateStr, timeIndex, genderKey) as unknown as { palaces: IztroPalace[]; sihua: Record<string, string> };
+  const chart = astro.bySolar(solarDateStr, timeIndex, genderKey) as unknown as {
+    palaces: IztroPalace[];
+    sihua: Record<string, string>;
+    fiveElementsClass?: string;
+    soul?: string;
+    body?: string;
+    earthlyBranchOfBodyPalace?: string;
+    earthlyBranchOfSoulPalace?: string;
+    sign?: string;
+    zodiac?: string;
+  };
   if (!chart || !chart.palaces || !Array.isArray(chart.palaces)) {
     return {
       engineName: 'ZiweiIztroAdapter',
@@ -197,6 +219,13 @@ export function calculateZiwei(input: ZiweiInput): ZiweiResult {
     mainStars: extractMainStars(chart.palaces),
     chart,
     confidenceNote: '紫微斗数排盘采用 SylarLong/iztro (v2.5.8) 引擎；紫微流派存在差异，采用 iztro 默认配置。',
+    fiveElementsClass: chart.fiveElementsClass,
+    soul: chart.soul,
+    body: chart.body,
+    bodyPalaceBranch: chart.earthlyBranchOfBodyPalace,
+    originalPalaceBranch: chart.earthlyBranchOfSoulPalace,
+    sign: chart.sign,
+    zodiac: chart.zodiac,
   };
 }
 
@@ -213,6 +242,18 @@ export function calcZiweiEnveloped(input: ZiweiInput): ToolEnvelope<ZiweiData> {
   const sihuaSummary = Object.keys(result.sihua).map((star) => `${star}${result.sihua[star]}`).join('、');
 
   const sections: Array<{ heading: string; body: string }> = [];
+  if (result.fiveElementsClass || result.soul || result.body) {
+    sections.push({
+      heading: '命盘元',
+      body: [
+        result.fiveElementsClass ? `五行局${result.fiveElementsClass}` : '',
+        result.soul ? `命主${result.soul}` : '',
+        result.body ? `身主${result.body}` : '',
+        result.bodyPalaceBranch ? `身宫在${result.bodyPalaceBranch}` : '',
+        result.originalPalaceBranch ? `来因宫在${result.originalPalaceBranch}` : '',
+      ].filter(Boolean).join('，') + '。',
+    });
+  }
   if (ming) {
     sections.push({ heading: '命宫', body: `命宫在${ming.position}方，主星：${ming.stars.join('、') || '无'}，庙旺：${ming.miaoxian}。` });
   }
@@ -226,7 +267,7 @@ export function calcZiweiEnveloped(input: ZiweiInput): ToolEnvelope<ZiweiData> {
 
   const snapshot: ExportSnapshot = {
     summary: result.mode === 'local-exact'
-      ? `紫微斗数${result.birthInfo.year}年${result.birthInfo.month}月${result.birthInfo.day}日${result.birthInfo.hour}时${result.birthInfo.gender}命，命宫主星：${ming?.stars.join('、') || '未知'}，四化：${sihuaSummary || '未知'}。`
+      ? `紫微斗数${result.birthInfo.year}年${result.birthInfo.month}月${result.birthInfo.day}日${result.birthInfo.hour}时${result.birthInfo.gender}命，${result.fiveElementsClass ? `五行局${result.fiveElementsClass}，` : ''}${result.soul ? `命主${result.soul}、` : ''}${result.body ? `身主${result.body}，` : ''}命宫主星：${ming?.stars.join('、') || '未知'}，四化：${sihuaSummary || '未知'}。`
       : 'iztro 排盘失败，已降级为 demo。',
     tags: ['紫微斗数', result.mode === 'local-exact' ? '真实排盘' : '演示', `iztro@2.5.8`, ...(ming?.stars || [])],
     sections: sections.length ? sections : [{ heading: '说明', body: result.confidenceNote || '' }],
