@@ -265,6 +265,22 @@ export function calcZiweiEnveloped(input: ZiweiInput): ToolEnvelope<ZiweiData> {
   });
   if (sihuaSummary) sections.push({ heading: '四化', body: sihuaSummary + '。' });
 
+  // 当前大限/流年（iztro horoscope 时间层）
+  const hs = getZiweiHoroscopeSummary(
+    { year: result.birthInfo.year, month: result.birthInfo.month, day: result.birthInfo.day, hour: result.birthInfo.hour, gender: result.birthInfo.gender as '男' | '女' },
+    new Date().getFullYear(),
+  );
+  if (hs.available) {
+    const hText = [
+      hs.decadal.name && hs.decadal.stem ? `${hs.decadal.name}（${hs.decadal.stem}${hs.decadal.branch}）` : '',
+      hs.yearly.stem ? `流年${hs.yearly.stem}${hs.yearly.branch}` : '',
+      hs.age.nominalAge ? `虚岁${hs.age.nominalAge}` : '',
+      hs.age.palace ? `小限在${hs.age.palace}` : '',
+      hs.yearlyJiStar ? `流年化忌${hs.yearlyJiStar}` : '',
+    ].filter(Boolean).join('，');
+    if (hText) sections.push({ heading: '当前大限流年', body: `${hs.targetYear}年${hText}。` });
+  }
+
   const snapshot: ExportSnapshot = {
     summary: result.mode === 'local-exact'
       ? `紫微斗数${result.birthInfo.year}年${result.birthInfo.month}月${result.birthInfo.day}日${result.birthInfo.hour}时${result.birthInfo.gender}命，${result.fiveElementsClass ? `五行局${result.fiveElementsClass}，` : ''}${result.soul ? `命主${result.soul}、` : ''}${result.body ? `身主${result.body}，` : ''}命宫主星：${ming?.stars.join('、') || '未知'}，四化：${sihuaSummary || '未知'}。`
