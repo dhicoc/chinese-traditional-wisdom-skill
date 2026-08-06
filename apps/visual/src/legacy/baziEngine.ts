@@ -49,7 +49,8 @@ interface LunarEightCharLike {
   hour?: string;
   timeGanZhi?: string;
   /** lunar-javascript 大运入口 */
-  getYun?: (gender: string) => LunarYunLike;
+  /** lunar-javascript/lunar-typescript 大运入口（gender: string 或 number） */
+  getYun?: (gender: string | number) => LunarYunLike;
 }
 
 /** lunar-javascript 大运对象（getYun 返回） */
@@ -68,8 +69,8 @@ interface LunarLike {
   getEightChar?: () => LunarEightCharLike;
 }
 interface SolarLike {
-  fromYmd?(y: number, mo: number, d: number): { getLunar(): LunarLike };
-  fromYmdHms?(y: number, mo: number, d: number, h: number, mi: number, s: number): { getLunar(): LunarLike };
+  fromYmd?(y: number, mo: number, d: number): { getLunar(): unknown };
+  fromYmdHms?(y: number, mo: number, d: number, h: number, mi: number, s: number): { getLunar(): unknown };
 }
 
 export interface BaziBirth {
@@ -260,7 +261,7 @@ function calcLuckWithLunar(solar: SolarLike, birth: BaziBirth): BaziLuck[] | nul
     const s = solar.fromYmdHms
       ? solar.fromYmdHms(birth.year, birth.month, birth.day, birth.hour, birth.minute || 0, 0)
       : solar.fromYmd?.(birth.year, birth.month, birth.day);
-    const lunar = s && typeof s.getLunar === 'function' ? s.getLunar() : null;
+    const lunar = (s && typeof s.getLunar === 'function' ? s.getLunar() : null) as LunarLike | null;
     const eightChar = lunar && typeof lunar.getEightChar === 'function' ? lunar.getEightChar() : null;
     const getYun = eightChar && typeof eightChar.getYun === 'function' ? eightChar.getYun : null;
     if (!getYun) return null;
@@ -359,7 +360,7 @@ function calcPillarsWithLunar(birth: BaziBirth, solar: SolarLike): BaziPillars |
   const s = solar.fromYmdHms
     ? solar.fromYmdHms(birth.year, birth.month, birth.day, birth.hour, birth.minute || 0, 0)
     : solar.fromYmd?.(birth.year, birth.month, birth.day);
-  const lunar = s && typeof s.getLunar === 'function' ? s.getLunar() : null;
+  const lunar = (s && typeof s.getLunar === 'function' ? s.getLunar() : null) as LunarLike | null;
   const eightChar = lunar && typeof lunar.getEightChar === 'function' ? lunar.getEightChar() : null;
   if (!eightChar) return null;
   return {

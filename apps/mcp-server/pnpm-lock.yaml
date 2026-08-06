@@ -17,9 +17,9 @@ importers:
       iztro:
         specifier: 2.5.8
         version: 2.5.8
-      lunar-javascript:
-        specifier: 1.7.7
-        version: 1.7.7
+      lunar-typescript:
+        specifier: 1.8.6
+        version: 1.8.6
       zod:
         specifier: ^3.24.0
         version: 3.25.76
@@ -687,9 +687,6 @@ packages:
   lightningcss@1.33.0:
     resolution: {integrity: sha512-WkUDrojuJs0xkgGf2udWxa3yGBRxPtxUkB79i6aCZLRgc7PM8fZe9TosfPDcvEpQZbuFASnHYmRLBLUbmLOIIA==}
     engines: {node: '>= 12.0.0'}
-
-  lunar-javascript@1.7.7:
-    resolution: {integrity: sha512-u/KYiwPIBo/0bT+WWfU7qO1d+aqeB90Tuy4ErXenr2Gam0QcWeezUvtiOIyXR7HbVnW2I1DKfU0NBvzMZhbVQw==}
 
   lunar-lite@0.2.8:
     resolution: {integrity: sha512-Y4tba4RaIFI0ikImJhgoEsyqtDE64lJIM3yFwRX01dbmagCDq7rNmpDQFrSFFy4WXeuywdRVFpIBoT1GGCEizw==}
@@ -1559,8 +1556,6 @@ snapshots:
       lightningcss-linux-x64-musl: 1.33.0
       lightningcss-win32-arm64-msvc: 1.33.0
       lightningcss-win32-x64-msvc: 1.33.0
-
-  lunar-javascript@1.7.7: {}
 
   lunar-lite@0.2.8:
     dependencies:

@@ -9,7 +9,7 @@
  */
 
 import { z } from 'zod';
-import { Solar } from 'lunar-javascript';
+import { Solar } from 'lunar-typescript';
 
 import { searchDreamEnveloped } from '../../visual/src/legacy/envelopeSample';
 import { calcXiYongEnveloped, calcNameRatingEnveloped, getConstitutionTendencyEnveloped } from '../../visual/src/legacy/envelopeAdapters';

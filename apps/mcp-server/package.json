@@ -17,7 +17,7 @@
     "3meta": "2.6.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "iztro": "2.5.8",
-    "lunar-javascript": "1.7.7",
+    "lunar-typescript": "1.8.6",
     "zod": "^3.24.0"
   },
   "devDependencies": {

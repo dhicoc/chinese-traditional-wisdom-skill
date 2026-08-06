@@ -84,7 +84,7 @@ check(
   '#bazi 不应再调用 renderLegacyBazi / renderLegacyWuxing（已由 SVG 组件替换）',
 );
 check(baziWorkspace.includes('calcBaziEnveloped') || baziWorkspace.includes('calculateBazi'), '#bazi 应通过纯 TS baziEngine 计算四柱');
-check(baziWorkspace.includes('getSolarEntry'), '#bazi 应使用 npm lunar-javascript Solar 入口');
+check(baziWorkspace.includes('getSolarEntry'), '#bazi 应使用 npm lunar-typescript Solar 入口');
 check(baziWorkspace.includes('useBirth'), '#bazi 应读取全局生辰上下文');
 check(!baziWorkspace.includes('loadLegacyScripts'), '#bazi 不应再加载 visual/ 旧桥');
 
@@ -464,7 +464,7 @@ check(sidebarNav.includes('BirthPanel'), 'SidebarNav 应接入 BirthPanel（全�
 
 // ── 5. 纯 TS 引擎路径（已拔除 visual/ 旧桥） ─────────────
 check(!exists(path.join(srcRoot, 'legacy/loadLegacyScripts.ts')), 'loadLegacyScripts.ts 应已删除');
-check(exists(path.join(srcRoot, 'legacy/solarEntry.ts')), 'solarEntry.ts 应提供 npm lunar-javascript 入口');
+check(exists(path.join(srcRoot, 'legacy/solarEntry.ts')), 'solarEntry.ts 应提供 npm lunar-typescript 入口');
 check(exists(path.join(srcRoot, 'legacy/termExplanations.ts')), 'termExplanations.ts 应提供纯 TS 术语表');
 check(exists(path.join(srcRoot, 'legacy/termExplanations.json')), 'termExplanations.json 词表应存在');
 check(exists(path.join(srcRoot, 'legacy/baziEngine.ts')), 'baziEngine.ts 纯 TS 引擎应存在');
@@ -473,7 +473,7 @@ check(exists(path.join(srcRoot, 'legacy/liuyaoEngine.ts')), 'liuyaoEngine.ts 纯
 check(exists(path.join(srcRoot, 'legacy/yunqiEngine.ts')), 'yunqiEngine.ts 纯 TS 引擎应存在');
 
 const solarEntry = read(path.join(srcRoot, 'legacy/solarEntry.ts'));
-check(solarEntry.includes("from 'lunar-javascript'"), 'solarEntry 应从 npm 包 lunar-javascript 导入');
+check(solarEntry.includes("from 'lunar-typescript'"), 'solarEntry 应从 npm 包 lunar-typescript 导入');
 check(!solarEntry.includes('?raw'), 'solarEntry 不应 ?raw 加载 visual/vendor');
 
 const birthCtx = read(path.join(srcRoot, 'lib/birthContext.tsx'));
