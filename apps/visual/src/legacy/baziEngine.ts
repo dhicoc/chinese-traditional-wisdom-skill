@@ -48,6 +48,21 @@ interface LunarEightCharLike {
   getHour?: () => string;
   hour?: string;
   timeGanZhi?: string;
+  /** lunar-javascript 大运入口 */
+  getYun?: (gender: string) => LunarYunLike;
+}
+
+/** lunar-javascript 大运对象（getYun 返回） */
+interface LunarYunLike {
+  getDaYun?: () => Array<LunarDaYunLike>;
+}
+
+/** lunar-javascript 单个大运对象 */
+interface LunarDaYunLike {
+  getGanZhi?: () => string;
+  getStartAge?: () => number;
+  getStartYear?: () => number;
+  getEndYear?: () => number;
 }
 interface LunarLike {
   getEightChar?: () => LunarEightCharLike;
@@ -94,6 +109,10 @@ export interface BaziLuck {
   stem: string;
   branch: string;
   stemWuxing: string;
+  /** 起运年份（精确路径 lunar 提供） */
+  startYear?: number;
+  /** 该运结束年份（精确路径） */
+  endYear?: number;
 }
 
 export interface BaziResult {
@@ -231,6 +250,50 @@ function calcLuck(pillars: BaziPillars, gender: string): BaziLuck[] {
   return luck;
 }
 
+/**
+ * 精确大运（lunar-javascript getYun/getDaYun）。
+ * 精确起运年龄（按节气余气折算），并带起运/结束年份。跳过 lunar 的胎运段（index 0）。
+ * 返回 null 表示 lunar 能力不可用（调用方降级简化大运）。
+ */
+function calcLuckWithLunar(solar: SolarLike, birth: BaziBirth): BaziLuck[] | null {
+  try {
+    const s = solar.fromYmdHms
+      ? solar.fromYmdHms(birth.year, birth.month, birth.day, birth.hour, birth.minute || 0, 0)
+      : solar.fromYmd?.(birth.year, birth.month, birth.day);
+    const lunar = s && typeof s.getLunar === 'function' ? s.getLunar() : null;
+    const eightChar = lunar && typeof lunar.getEightChar === 'function' ? lunar.getEightChar() : null;
+    const getYun = eightChar && typeof eightChar.getYun === 'function' ? eightChar.getYun : null;
+    if (!getYun) return null;
+    const yun = getYun.call(eightChar, birth.gender || '男');
+    const getDaYun = yun && typeof yun.getDaYun === 'function' ? yun.getDaYun : null;
+    if (!getDaYun) return null;
+    const daYun = getDaYun.call(yun);
+    if (!Array.isArray(daYun)) return null;
+
+    const luck: BaziLuck[] = [];
+    for (const d of daYun) {
+      const gz = d && typeof d.getGanZhi === 'function' ? d.getGanZhi() : '';
+      const stem = gz.charAt(0);
+      const branch = gz.charAt(1);
+      const stemIndex = TG.indexOf(stem);
+      // 跳过胎运段（干支为空，出生前，startAge < 1）
+      if (stemIndex < 0) continue;
+      const ageStart = d.getStartAge ? d.getStartAge() : 0;
+      luck.push({
+        ageStart,
+        stem,
+        branch,
+        stemWuxing: STEM_WX[stemIndex],
+        startYear: d.getStartYear ? d.getStartYear() : undefined,
+        endYear: d.getEndYear ? d.getEndYear() : undefined,
+      });
+    }
+    return luck.length ? luck : null;
+  } catch {
+    return null;
+  }
+}
+
 // ─── 由 pillars 构建完整结果（对齐 engine-adapters buildBaziResultFromPillars）──
 function buildResultFromPillars(pillars: BaziPillars, birth: BaziBirth, luck: BaziLuck[], mode: 'local-exact' | 'local-approx', confidenceNote: string, sourceProject: string | undefined, trineSource: TrineSource): BaziResult {
   const dm = pillars.day.stemIndex;
@@ -318,11 +381,14 @@ export function calculateBazi(input: BaziInput): BaziResult {
     try {
       const pillars = calcPillarsWithLunar(birth, input.solar);
       if (pillars) {
-        // 精确路径仍用本地大运（起运简化），与旧 BaziLunarAdapter 一致
-        const luck = calcLuck(pillars, gender);
+        // 精确大运（lunar getYun 节气余气起运）；不可用则降级简化
+        const luck = calcLuckWithLunar(input.solar, birth) ?? calcLuck(pillars, gender);
+        const hasExactLuck = luck.length > 0 && luck[0].startYear !== undefined;
         return buildResultFromPillars(
           pillars, birth, luck, 'local-exact',
-          '已通过 lunar-javascript/Solar 全局对象读取节气干支；起运仍沿用本地简化大运。',
+          hasExactLuck
+            ? '已通过 lunar-javascript/Solar 全局对象读取节气干支；大运按节气余气精确起运。'
+            : '已通过 lunar-javascript/Solar 全局对象读取节气干支；起运沿用本地简化大运。',
           '6tail/lunar-javascript',
           trineSource,
         );
@@ -369,7 +435,7 @@ export function calcBaziEnveloped(input: BaziInput): ToolEnvelope<BaziData> {
       { heading: '五行分布', body: `${elSummary}。最旺：${maxEl}(${maxVal})，最弱：${minEl}(${minVal})。` },
       { heading: '十神', body: (['year', 'month', 'day', 'hour'] as const).map((k) => `${PILLAR_CN[k]}柱${result.shishenList[k]}`).join('、') + '。' },
       { heading: '日主强弱', body: `日主${dm}为${dmYy}${dmWx}，五行总量${Object.values(els).reduce((s, v) => s + v, 0)}，判断为${isStrong ? '偏强' : '偏弱'}。此判断基于五行计数近似，仅供参考。` },
-      { heading: '大运', body: result.luck.map((l) => `${l.ageStart}岁起 ${l.stem}${l.branch}(${l.stemWuxing})`).join('；') + '。起运按3岁简化。' },
+      { heading: '大运', body: result.luck.map((l) => `${l.ageStart}岁起 ${l.stem}${l.branch}(${l.stemWuxing})${l.startYear ? `（${l.startYear}-${l.endYear}）` : ''}`).join('；') + `。${result.luck.some((l) => l.startYear !== undefined) ? '按节气余气精确起运。' : '起运按3岁简化。'}` },
       { heading: '神煞', body: (result.shenSha.length ? result.shenSha.map((s) => `${s.name}(${s.branch}·${s.pillar})`).join('、') + '。' : '本命局未检出常见神煞。') + `（桃花/驿马/华盖/将星按${result.shenShaTrineSource === 'year' ? '年支' : '日支'}三合查）` },
       { heading: '边界说明', body: result.confidenceNote },
     ],
@@ -388,7 +454,7 @@ export function calcBaziEnveloped(input: BaziInput): ToolEnvelope<BaziData> {
         { key: 'settle', stage: '定盘', status: result.mode === 'local-exact' ? 'ok' : 'approx', inputs: { year: input.birth.year, month: input.birth.month, day: input.birth.day, hour: input.birth.hour }, result: pillarsStr, promptText: `按${result.mode === 'local-exact' ? '精确节气' : '近似节气'}排出四柱 ${pillarsStr}` },
         { key: 'elements', stage: '五行统计', status: 'ok', inputs: pillarsStr, result: elSummary, dependsOnStepKeys: ['settle'], promptText: `四柱五行计数 ${elSummary}` },
         { key: 'daymaster', stage: '日主判定', status: 'ok', inputs: { dm, dmWx, dmYy }, result: `${dm}${dmYy}${dmWx}`, dependsOnStepKeys: ['settle'], promptText: `日主为${dm}（${dmYy}${dmWx}）` },
-        { key: 'luck', stage: '大运推算', status: 'approx', inputs: { gender: input.birth.gender }, result: result.luck.map((l) => `${l.ageStart}岁起 ${l.stem}${l.branch}`).join('；'), dependsOnStepKeys: ['settle'], promptText: '大运按3岁简化起运', limitation: '起运年龄为简化3岁，非精确节令起运' },
+        { key: 'luck', stage: '大运推算', status: result.luck.some((l) => l.startYear !== undefined) ? 'ok' : 'approx', inputs: { gender: input.birth.gender }, result: result.luck.map((l) => `${l.ageStart}岁起 ${l.stem}${l.branch}`).join('；'), dependsOnStepKeys: ['settle'], promptText: result.luck.some((l) => l.startYear !== undefined) ? '大运按节气余气精确起运' : '大运按3岁简化起运', limitation: result.luck.some((l) => l.startYear !== undefined) ? undefined : '起运年龄为简化3岁，非精确节令起运' },
       ],
       facts: [
         { level: '主证', title: `日主${dm}${dmYy}${dmWx}`, detail: `五行偏${isStrong ? '强' : '弱'}（${maxEl}${maxVal} vs ${minEl}${minVal}）`, source: '五行计数近似', tags: ['日主', '五行'] },
