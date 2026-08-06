@@ -17,6 +17,8 @@ interface BaziPillarsChartProps {
   size?: number;
   /** 神煞（按柱位分组标注在盘面，可选） */
   shenSha?: ShenShaItem[];
+  activeShenShaPillar?: '年' | '月' | '日' | '时' | null;
+  onSelectShenShaPillar?: (pillar: '年' | '月' | '日' | '时') => void;
 }
 
 // 天干 → 五行（对齐 legacy CORE.stemWuxing）
@@ -58,7 +60,13 @@ function branchWuxing(branch: string): string {
 
 const DAY_ACCENT = 'var(--c-gold)'; // 日柱金色点缀
 
-export function BaziPillarsChart({ pillars, size = 620, shenSha }: BaziPillarsChartProps) {
+export function BaziPillarsChart({
+  pillars,
+  size = 620,
+  shenSha,
+  activeShenShaPillar,
+  onSelectShenShaPillar,
+}: BaziPillarsChartProps) {
   const W = size;
   const H = 500;
 
@@ -188,35 +196,43 @@ export function BaziPillarsChart({ pillars, size = 620, shenSha }: BaziPillarsCh
               </g>
             )}
 
-            {/* 神煞行：朱砂小印章（每柱最多 2 个，超出 +N） */}
+            {/* 神煞行：按柱位索引，完整明细在主盘下方呈现 */}
             {(() => {
-              const key = pillarKeyOf(col.label);
-              const ss = shenShaByPillar[key] ?? [];
+              const pillar = pillarKeyOf(col.label) as '年' | '月' | '日' | '时';
+              const ss = shenShaByPillar[pillar] ?? [];
               if (ss.length === 0) return null;
-              const maxShow = 2;
-              const shown = ss.slice(0, maxShow);
-              const extra = ss.length - shown.length;
-              const shenY = hiddenY + 46;
-              const chipW = cellW / (shown.length + (extra > 0 ? 1 : 0)) - 8;
-              const chipH = 20;
-              const chips: Array<{ label: string; x: number }> = [];
-              shown.forEach((s, si) => {
-                chips.push({ label: s.name, x: x + 8 + si * (chipW + 8) });
-              });
-              if (extra > 0) {
-                chips.push({ label: `+${extra}`, x: x + 8 + shown.length * (chipW + 8) });
-              }
+              const selected = pillar === activeShenShaPillar;
+              const sealX = x + 8;
+              const sealY = hiddenY + 46;
+              const sealW = cellW - 16;
+              const select = () => onSelectShenShaPillar?.(pillar);
               return (
-                <g>
-                  <rect x={x} y={shenY} width={cellW} height={chipH + 12} rx={4} fill="rgb(var(--cinnabar) / 0.04)" />
-                  {chips.map((c, ci) => (
-                    <g key={ci}>
-                      <rect x={c.x} y={shenY + 2} width={Math.min(chipW, 4)} height={chipH - 4} rx={1} fill="rgb(var(--cinnabar) / 0.55)" />
-                      <text x={c.x + 8} y={shenY + chipH / 2 + 2} dominantBaseline="middle" fill="rgb(var(--cinnabar) / 0.85)" style={{ fontSize: 10, fontWeight: 500 }}>
-                        {c.label}
-                      </text>
-                    </g>
-                  ))}
+                <g
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${col.label}神煞，${ss.length} 项`}
+                  aria-pressed={selected}
+                  onClick={select}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      select();
+                    }
+                  }}
+                  style={{ cursor: onSelectShenShaPillar ? 'pointer' : 'default' }}
+                >
+                  <rect
+                    x={sealX}
+                    y={sealY}
+                    width={sealW}
+                    height={26}
+                    rx={4}
+                    fill={selected ? 'rgb(var(--cinnabar) / 0.16)' : 'rgb(var(--cinnabar) / 0.06)'}
+                    stroke={selected ? 'rgb(var(--cinnabar) / 0.72)' : 'rgb(var(--cinnabar) / 0.32)'}
+                  />
+                  <text x={sealX + sealW / 2} y={sealY + 14} textAnchor="middle" dominantBaseline="middle" fill="rgb(var(--cinnabar) / 0.9)" style={{ fontSize: 10, fontWeight: 600 }}>
+                    神煞 {ss.length}
+                  </text>
                 </g>
               );
             })()}

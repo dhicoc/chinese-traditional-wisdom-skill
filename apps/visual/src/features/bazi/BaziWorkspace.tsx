@@ -107,9 +107,18 @@ function groupShenSha(shenSha: ShenShaItem[]): Array<{ label: string; value: str
 export function BaziWorkspace() {
   const { birth, solarBirth } = useBirth();
   const [trineSource, setTrineSource] = useState<TrineSource>('year');
+  const [activeShenShaPillar, setActiveShenShaPillar] = useState<'年' | '月' | '日' | '时' | null>(null);
 
   const ready = true;
   const { result, pillars, wuxing, envelope } = useMemo(() => calculateBazi(solarBirth, ready, trineSource), [solarBirth, ready, trineSource]);
+  const shenSha = result?.shenSha ?? [];
+  const firstShenShaPillar = (['年', '月', '日', '时'] as const).find((pillar) => shenSha.some((item) => item.pillar === pillar)) ?? null;
+  const selectedShenShaPillar = activeShenShaPillar && shenSha.some((item) => item.pillar === activeShenShaPillar)
+    ? activeShenShaPillar
+    : firstShenShaPillar;
+  const selectedShenShaItems = selectedShenShaPillar
+    ? shenSha.filter((item) => item.pillar === selectedShenShaPillar)
+    : [];
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!envelope) return null;
     return toFourLayer(envelope.data.export_snapshot as ReadingLike);
@@ -234,12 +243,41 @@ export function BaziWorkspace() {
             <div className="canvas-stage overflow-x-auto rounded-card border border-jade-500/18 bg-ink-950/92 p-3">
               {ready ? (
                 <ZoomableSvg title="四柱主盘">
-                  <BaziPillarsChart pillars={pillars} shenSha={result?.shenSha} />
+                  <BaziPillarsChart
+                    pillars={pillars}
+                    shenSha={shenSha}
+                    activeShenShaPillar={selectedShenShaPillar}
+                    onSelectShenShaPillar={setActiveShenShaPillar}
+                  />
                 </ZoomableSvg>
               ) : (
                 <LoadingSkeleton label="正在排盘" />
               )}
             </div>
+            {selectedShenShaPillar && selectedShenShaItems.length > 0 && (
+              <section className="mt-4 border-t border-jade-500/16 pt-4" aria-labelledby="pillar-shensha-title">
+                <div className="mb-3 flex items-center justify-between">
+                  <h4 id="pillar-shensha-title" className="text-sm font-semibold text-jade-100">
+                    {selectedShenShaPillar}柱神煞
+                  </h4>
+                  <span className="rounded-full border border-cinnabar-500/25 bg-cinnabar-500/10 px-2 py-0.5 text-[11px] text-cinnabar-500">
+                    {selectedShenShaItems.length} 项
+                  </span>
+                </div>
+                <ul className="space-y-2">
+                  {selectedShenShaItems.map((item) => (
+                    <li key={`${item.name}-${item.branch}-${item.pillar}`} className="rounded-card border border-white/8 bg-white/[0.025] px-3 py-2.5">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="font-medium text-jade-50">{item.name}</span>
+                        <span className="text-xs text-cinnabar-500/85">{item.category}</span>
+                        <span className="text-xs text-jade-100/50">临{item.branch}</span>
+                      </div>
+                      <p className="mt-1 text-xs leading-5 text-jade-100/60">{item.meaning}</p>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
           </section>
           <div className="console-panel rounded-panel border border-jade-500/20 bg-ink-950/90 p-4">
             <div className="mb-4 flex items-center justify-between border-b border-white/8 pb-3">
