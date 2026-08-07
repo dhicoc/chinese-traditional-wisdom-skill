@@ -45,8 +45,32 @@ export interface ZiweiMingGua {
   group: string;
 }
 
+export type ZiweiStarType =
+  | 'major'
+  | 'soft'
+  | 'tough'
+  | 'adjective'
+  | 'flower'
+  | 'helper'
+  | 'lucun'
+  | 'tianma';
+
+export type ZiweiStarScope = 'origin' | 'decadal' | 'yearly' | 'monthly' | 'daily' | 'hourly';
+
+export interface ZiweiStar {
+  name: string;
+  type: ZiweiStarType;
+  scope: ZiweiStarScope;
+  brightness?: string;
+  mutagen?: string;
+  source: 'majorStars' | 'minorStars' | 'adjectiveStars';
+}
+
 export interface ZiweiPalace {
   stars: string[];
+  majorStars: ZiweiStar[];
+  minorStars: ZiweiStar[];
+  adjectiveStars: ZiweiStar[];
   position: string;
   miaoxian: string;
   earthlyBranch?: string;
@@ -77,13 +101,34 @@ export interface ZiweiResult {
   zodiac?: string;
 }
 
-interface IztroStar { name: string; brightness?: string; type?: string; mutagen?: string }
+interface IztroStar {
+  name: string;
+  brightness?: string;
+  type?: string;
+  scope?: string;
+  mutagen?: string;
+}
 interface IztroPalace {
   name: string;
   majorStars?: IztroStar[];
   minorStars?: IztroStar[];
   adjectiveStars?: IztroStar[];
   earthlyBranch?: string;
+}
+
+function toZiweiStars(stars: IztroStar[] | undefined, source: ZiweiStar['source']): ZiweiStar[] {
+  if (!Array.isArray(stars)) return [];
+  return stars.flatMap((star) => {
+    if (!star?.name || !star.type || !star.scope) return [];
+    return [{
+      name: star.name,
+      type: star.type as ZiweiStarType,
+      scope: star.scope as ZiweiStarScope,
+      brightness: star.brightness,
+      mutagen: star.mutagen,
+      source,
+    }];
+  });
 }
 
 /** 将 iztro palaces 数组转换为本项目渲染器格式（对齐 transformIztroPalaces） */
@@ -95,27 +140,18 @@ function transformIztroPalaces(iztroPalaces: IztroPalace[]): Record<string, Ziwe
     if (!p) return;
     const pName = IZTRO_PALACE_MAP[p.name];
     if (!pName) return;
-    const majorStars: string[] = [];
-    const minorStars: string[] = [];
-    let brightness = '';
-    if (p.majorStars && Array.isArray(p.majorStars)) {
-      p.majorStars.forEach((s) => {
-        if (s && s.name) {
-          majorStars.push(s.name);
-          if (s.brightness && !brightness) brightness = s.brightness;
-        }
-      });
-    }
-    if (p.minorStars && Array.isArray(p.minorStars)) {
-      p.minorStars.forEach((s) => {
-        if (s && s.name && s.type === 'helpful') minorStars.push(s.name);
-      });
-    }
+    const majorStars = toZiweiStars(p.majorStars, 'majorStars');
+    const minorStars = toZiweiStars(p.minorStars, 'minorStars');
+    const adjectiveStars = toZiweiStars(p.adjectiveStars, 'adjectiveStars');
+    const brightness = majorStars.find((star) => star.brightness)?.brightness ?? '';
     let branchIndex = p.earthlyBranch ? BRANCHES.indexOf(p.earthlyBranch.substring(0, 1)) : brIdx % 12;
     if (branchIndex < 0) branchIndex = brIdx % 12;
     const branch = BRANCHES[branchIndex] || BRANCHES[brIdx % 12];
     result[pName] = {
-      stars: majorStars.concat(minorStars),
+      stars: [...majorStars, ...minorStars, ...adjectiveStars].map((star) => star.name),
+      majorStars,
+      minorStars,
+      adjectiveStars,
       position: branch,
       miaoxian: brightness || '平',
       earthlyBranch: p.earthlyBranch || '',

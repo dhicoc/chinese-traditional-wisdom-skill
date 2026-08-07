@@ -6,7 +6,12 @@ import { LegendPanel } from '@/components/shared/LegendPanel';
 import { ZiweiPalaceGrid } from '@/components/shared/ZiweiPalaceGrid';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
-import { calculateZiwei as calculateZiweiPure, calcZiweiEnveloped } from '@/legacy/ziweiEngine';
+import {
+  calculateZiwei as calculateZiweiPure,
+  calcZiweiEnveloped,
+  type ZiweiPalace,
+  type ZiweiStar,
+} from '@/legacy/ziweiEngine';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
@@ -16,12 +21,6 @@ import { useBirth } from '@/lib/birthContext';
 interface ZiweiMingGua {
   trigram: string;
   group: string;
-}
-
-interface ZiweiPalace {
-  stars: string[];
-  position: string;
-  miaoxian: string;
 }
 
 interface ZiweiData {
@@ -39,6 +38,15 @@ const PALACE_NAMES = ['命宫', '兄弟', '夫妻', '子女', '财帛', '疾厄'
 const STARS = ['紫微', '天机', '太阳', '武曲', '天同', '廉贞', '天府', '太阴', '贪狼', '巨门', '天相', '天梁', '七杀', '破军'] as const;
 const POSITIONS = ['寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '子', '丑'] as const;
 const BRIGHTNESS = ['庙', '旺', '得', '利', '平', '陷'] as const;
+
+const STAR_GROUPS: Array<{ label: string; types: ZiweiStar['type'][] }> = [
+  { label: '主星', types: ['major'] },
+  { label: '吉辅', types: ['soft', 'lucun', 'tianma'] },
+  { label: '六煞', types: ['tough'] },
+  { label: '桃花', types: ['flower'] },
+  { label: '解厄 / 辅曜', types: ['helper'] },
+  { label: '杂曜', types: ['adjective'] },
+];
 
 function calcMingGua(year: number, gender: '男' | '女'): ZiweiMingGua {
   const sum = String(year)
@@ -78,8 +86,17 @@ function buildFallbackZiweiData(solarBirth: SolarBirth, mingGua: ZiweiMingGua): 
     while (starSet.size < starCount) {
       starSet.add(STARS[Math.floor(next() * STARS.length)]);
     }
+    const majorStars: ZiweiStar[] = Array.from(starSet).map((name) => ({
+      name,
+      type: 'major',
+      scope: 'origin',
+      source: 'majorStars',
+    }));
     acc[palaceName] = {
       stars: Array.from(starSet),
+      majorStars,
+      minorStars: [],
+      adjectiveStars: [],
       position: POSITIONS[(index + solarBirth.month - 1) % POSITIONS.length],
       miaoxian: BRIGHTNESS[Math.floor(next() * BRIGHTNESS.length)],
     };
@@ -111,9 +128,13 @@ function calculateZiweiData(solarBirth: SolarBirth, ready: boolean): ZiweiData {
 
 export function ZiweiWorkspace() {
   const { solarBirth } = useBirth();
+  const [activePalace, setActivePalace] = useState<string | null>(null);
 
   const ready = true;
   const data = useMemo(() => calculateZiweiData(solarBirth, ready), [solarBirth, ready]);
+  const firstPalaceWithStars = PALACE_NAMES.find((name) => data.palaces[name]?.stars.length > 0) ?? null;
+  const selectedPalaceName = activePalace && data.palaces[activePalace] ? activePalace : firstPalaceWithStars;
+  const selectedPalace = selectedPalaceName ? data.palaces[selectedPalaceName] : null;
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!ready) return null;
     try {
@@ -199,7 +220,7 @@ export function ZiweiWorkspace() {
             <div>
               <h3 className="text-lg font-semibold text-jade-50">十二宫命盘</h3>
               <p className="mt-1 text-sm leading-6 text-jade-100/55">
-                十二宫命盘：外环十二地支各居一格，中心为命卦/四化/生辰/主星信息区。
+                十二宫命盘：外环十二地支各居一格；点击宫位可检视主星、吉辅、六煞、杂曜与桃花等本命星曜分类。
               </p>
             </div>
           </div>
@@ -208,10 +229,50 @@ export function ZiweiWorkspace() {
               <LoadingSkeleton label="正在排盘" />
             ) : (
               <ZoomableSvg title="紫微斗数十二宫命盘">
-                <ZiweiPalaceGrid data={data} />
+                <ZiweiPalaceGrid data={data} activePalace={selectedPalaceName} onSelectPalace={setActivePalace} />
               </ZoomableSvg>
             )}
           </div>
+          {selectedPalaceName && selectedPalace && (
+            <section className="mt-4 border-t border-jade-500/16 pt-4" aria-labelledby="ziwei-palace-stars-title">
+              <div className="mb-3 flex items-center justify-between">
+                <h4 id="ziwei-palace-stars-title" className="text-sm font-semibold text-jade-100">
+                  {selectedPalaceName}星曜
+                </h4>
+                <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2 py-0.5 text-[11px] text-jade-300">
+                  本命 · {selectedPalace.stars.length} 颗
+                </span>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                {STAR_GROUPS.map((group) => {
+                  const stars = [...selectedPalace.majorStars, ...selectedPalace.minorStars, ...selectedPalace.adjectiveStars]
+                    .filter((star) => group.types.includes(star.type));
+                  if (stars.length === 0) return null;
+                  return (
+                    <section key={group.label} className="rounded-card border border-white/8 bg-white/[0.025] px-3 py-2.5">
+                      <p className="mb-1.5 text-xs font-semibold text-jade-100/70">{group.label}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {stars.map((star) => (
+                          <span
+                            key={`${star.source}-${star.name}`}
+                            className={`rounded-full border px-2 py-0.5 text-xs ${
+                              star.type === 'tough'
+                                ? 'border-cinnabar-500/30 bg-cinnabar-500/10 text-cinnabar-500'
+                                : star.type === 'flower'
+                                  ? 'border-rose-400/30 bg-rose-400/10 text-rose-200'
+                                  : 'border-jade-500/25 bg-jade-500/10 text-jade-100/80'
+                            }`}
+                          >
+                            {star.name}{star.mutagen ? `化${star.mutagen}` : ''}
+                          </span>
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
+            </section>
+          )}
         </section>
       </div>
     </section>

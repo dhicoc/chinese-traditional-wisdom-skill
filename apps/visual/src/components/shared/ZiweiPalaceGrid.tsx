@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import type { ZiweiPalace, ZiweiStar } from '@/legacy/ziweiEngine';
 
 /**
  * ZiweiPalaceGrid — 紫微斗数十二宫 SVG 命盘（Phase 10 图表替换）
@@ -13,7 +14,7 @@ import { useMemo } from 'react';
 export interface ZiweiPalaceGridData {
   birthInfo: { year: number; month: number; day: number; hour: number; gender: string };
   mingGua: { trigram: string; group: string };
-  palaces: Record<string, { stars: string[]; position: string; miaoxian: string }>;
+  palaces: Record<string, ZiweiPalace>;
   sihua: Record<string, string>;
   mainStars?: string[];
 }
@@ -22,6 +23,8 @@ interface ZiweiPalaceGridProps {
   data: ZiweiPalaceGridData;
   /** viewBox 尺寸（方形），默认 640 */
   size?: number;
+  activePalace?: string | null;
+  onSelectPalace?: (palace: string) => void;
 }
 
 // 经典紫微 4x4 环形布局：外环 12 地支顺时针，中心 2x2 为信息区。
@@ -62,18 +65,25 @@ function starColor(name: string): string {
   return `hsl(${h}, 55%, 62%)`;
 }
 
-export function ZiweiPalaceGrid({ data, size = 640 }: ZiweiPalaceGridProps) {
+export function ZiweiPalaceGrid({ data, size = 640, activePalace, onSelectPalace }: ZiweiPalaceGridProps) {
   const cell = size / COLS;
 
   // 地支 → 宫位信息
   const branchToPalace = useMemo(() => {
-    const map: Record<string, { name: string; stars: string[]; miaoxian: string; branch: string }> = {};
+    const map: Record<string, { name: string; stars: string[]; minorStars: ZiweiStar[]; adjectiveStars: ZiweiStar[]; miaoxian: string; branch: string }> = {};
     const palaces = data.palaces || {};
     for (const pName of Object.keys(palaces)) {
       const p = palaces[pName];
       const branch = p.position || '';
       if (branch) {
-        map[branch] = { name: pName, stars: p.stars || [], miaoxian: p.miaoxian || '', branch };
+        map[branch] = {
+          name: pName,
+          stars: p.stars || [],
+          minorStars: p.minorStars || [],
+          adjectiveStars: p.adjectiveStars || [],
+          miaoxian: p.miaoxian || '',
+          branch,
+        };
       }
     }
     return map;
@@ -117,23 +127,37 @@ export function ZiweiPalaceGrid({ data, size = 640 }: ZiweiPalaceGridProps) {
       {Object.entries(BRANCH_TO_GRID).map(([branch, { col, row }]) => {
         const x = col * cell;
         const y = row * cell;
-        const info = branchToPalace[branch] || { name: '', stars: [], miaoxian: '', branch };
+        const info = branchToPalace[branch] || { name: '', stars: [], minorStars: [], adjectiveStars: [], miaoxian: '', branch };
         const isAlt = (col + row) % 2 === 0;
-        const maxStars = 5;
-        const stars = info.stars.slice(0, maxStars);
+        const displayStars = info.stars.filter((star) => !info.adjectiveStars.some((item) => item.name === star)).slice(0, 4);
+        const hiddenAdjectiveCount = info.adjectiveStars.length;
         const starLineH = 18;
         const starStartY = y + 34;
+        const isActive = activePalace === info.name;
 
         return (
-          <g key={branch}>
+          <g
+            key={branch}
+            role={onSelectPalace && info.name ? 'button' : undefined}
+            tabIndex={onSelectPalace && info.name ? 0 : undefined}
+            aria-label={info.name ? `查看${info.name}星曜分类` : undefined}
+            onClick={() => info.name && onSelectPalace?.(info.name)}
+            onKeyDown={(event) => {
+              if (info.name && onSelectPalace && (event.key === 'Enter' || event.key === ' ')) {
+                event.preventDefault();
+                onSelectPalace(info.name);
+              }
+            }}
+            style={onSelectPalace && info.name ? { cursor: 'pointer' } : undefined}
+          >
             <rect
               x={x}
               y={y}
               width={cell}
               height={cell}
               fill={isAlt ? 'var(--chart-inset)' : 'var(--chart-bg)'}
-              stroke="var(--chart-line)"
-              strokeWidth={0.75}
+              stroke={isActive ? 'var(--wz-fire)' : 'var(--chart-line)'}
+              strokeWidth={isActive ? 2 : 0.75}
             />
             {/* 宫名（左上） */}
             <text
@@ -158,9 +182,9 @@ export function ZiweiPalaceGrid({ data, size = 640 }: ZiweiPalaceGridProps) {
               {branch}
             </text>
             {/* 星曜列表 */}
-            {stars.map((star, i) => {
+            {displayStars.map((star, i) => {
               const sy = starStartY + i * starLineH;
-              if (sy + starLineH > y + cell - 18) return null;
+              if (sy + starLineH > y + cell - 30) return null;
               const sColor = starColor(star);
               const sType = sihua[star];
               const sColorTag = sType ? SIHUA_COLOR[sType] : null;
@@ -195,6 +219,14 @@ export function ZiweiPalaceGrid({ data, size = 640 }: ZiweiPalaceGridProps) {
                 </g>
               );
             })}
+            {hiddenAdjectiveCount > 0 && (
+              <g>
+                <rect x={x + 9} y={y + cell - 27} width={42} height={16} rx={8} fill="var(--chart-line)" />
+                <text x={x + 30} y={y + cell - 19} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-mid)" style={{ fontSize: 9 }}>
+                  杂曜 {hiddenAdjectiveCount}
+                </text>
+              </g>
+            )}
             {/* 庙旺利得（右下） */}
             {info.miaoxian && (
               <text

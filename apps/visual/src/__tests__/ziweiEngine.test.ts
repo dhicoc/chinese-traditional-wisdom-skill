@@ -61,6 +61,19 @@ describe('calculateZiwei 真实 iztro ESM 排盘', () => {
     expect(r.mode).toBe('local-exact');
     expect(r.palaces['命宫']).toBeDefined();
   });
+
+  it('保留 iztro 已安置的吉辅、六煞与杂曜分类', () => {
+    const r = calculateZiwei({ birth: { year: 2000, month: 8, day: 16, hour: 3, gender: '男' } });
+    const palaceWithFire = Object.values(r.palaces).find((palace) => palace.minorStars.some((star) => star.name === '火星'));
+    const palaceWithFlower = Object.values(r.palaces).find((palace) => palace.adjectiveStars.some((star) => star.type === 'flower'));
+    expect(palaceWithFire?.minorStars).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: '火星', type: 'tough', scope: 'origin', source: 'minorStars' }),
+    ]));
+    expect(palaceWithFlower?.adjectiveStars).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'flower', scope: 'origin', source: 'adjectiveStars' }),
+    ]));
+    expect(r.palaces['命宫'].stars).toContain('凤阁');
+  });
 });
 
 describe('calcZiweiEnveloped envelope 适配', () => {
