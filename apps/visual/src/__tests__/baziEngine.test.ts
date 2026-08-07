@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateBazi, calcBaziEnveloped } from '@/legacy/baziEngine';
+import { calculateBazi, calcBaziEnveloped, getBaziTransitSnapshot } from '@/legacy/baziEngine';
 import type { ToolEnvelope } from '@/legacy/baseTypes';
 import { calcShenSha } from '@/legacy/shensha';
 import type { ShenShaItem } from '@/legacy/shensha';
@@ -105,6 +105,21 @@ describe('calculateBazi 精确路径（传 solar mock）', () => {
     const badSolar = { fromYmd: () => { throw new Error('boom'); } };
     const r = calculateBazi({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, solar: badSolar as never });
     expect(r.mode).toBe('local-approx');
+  });
+});
+
+describe('getBaziTransitSnapshot 大运流年分层', () => {
+  it('按目标年份返回独立大运与流年十神', () => {
+    const snapshot = getBaziTransitSnapshot(
+      { year: 1990, month: 6, day: 15, hour: 12, gender: '男', useExactCalendar: false },
+      2025,
+    );
+
+    expect(snapshot.available).toBe(true);
+    expect(snapshot.targetYear).toBe(2025);
+    expect(snapshot.yearly).toMatchObject({ stem: '乙', branch: '巳', stemShiShen: '正印' });
+    expect(snapshot.currentLuck).toMatchObject({ ageStart: 33, stem: '壬', branch: '午' });
+    expect(snapshot.luck).toHaveLength(8);
   });
 });
 

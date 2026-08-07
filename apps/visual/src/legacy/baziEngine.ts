@@ -137,6 +137,20 @@ export interface BaziResult {
   calendar?: { provider: string; exactSolarTerms: boolean };
 }
 
+export interface BaziTransitSnapshot {
+  targetYear: number;
+  age: number;
+  luck: BaziLuck[];
+  currentLuck: BaziLuck | null;
+  yearly: {
+    stem: string;
+    branch: string;
+    stemShiShen: string;
+    stemWuxing: string;
+  };
+  available: boolean;
+}
+
 // ─── 十神 ───
 function getShiShen(dayStem: number, otherStem: number): string {
   const d = dayStem, o = otherStem;
@@ -408,6 +422,42 @@ export function calculateBazi(input: BaziInput): BaziResult {
     undefined,
     trineSource,
   );
+}
+
+export function getBaziTransitSnapshot(input: BaziInput['birth'], targetYear: number, solar?: SolarLike | null): BaziTransitSnapshot {
+  const empty: BaziTransitSnapshot = {
+    targetYear,
+    age: 0,
+    luck: [],
+    currentLuck: null,
+    yearly: { stem: '', branch: '', stemShiShen: '', stemWuxing: '' },
+    available: false,
+  };
+  if (!Number.isInteger(targetYear)) return empty;
+  try {
+    const result = calculateBazi({ birth: input, solar });
+    const age = targetYear - input.year;
+    const currentLuck = result.luck.reduce<BaziLuck | null>((active, item) => (
+      item.ageStart <= age && (!active || item.ageStart > active.ageStart) ? item : active
+    ), null);
+    const stemIndex = ((targetYear - 4) % 10 + 10) % 10;
+    const branchIndex = ((targetYear - 4) % 12 + 12) % 12;
+    return {
+      targetYear,
+      age,
+      luck: result.luck,
+      currentLuck,
+      yearly: {
+        stem: TG[stemIndex],
+        branch: DZ[branchIndex],
+        stemShiShen: getShiShen(result.pillars.day.stemIndex, stemIndex),
+        stemWuxing: STEM_WX[stemIndex],
+      },
+      available: true,
+    };
+  } catch {
+    return empty;
+  }
 }
 
 // ─── ToolEnvelope 适配 ───

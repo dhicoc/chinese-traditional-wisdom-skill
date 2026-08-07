@@ -9,7 +9,7 @@ import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
-import { calculateBazi as calculateBaziPure, calcBaziEnveloped } from '@/legacy/baziEngine';
+import { calculateBazi as calculateBaziPure, calcBaziEnveloped, getBaziTransitSnapshot } from '@/legacy/baziEngine';
 import type { TrineSource } from '@/legacy/shensha';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
@@ -84,9 +84,11 @@ export function BaziWorkspace() {
   const { birth, solarBirth } = useBirth();
   const [trineSource, setTrineSource] = useState<TrineSource>('year');
   const [activeShenShaPillar, setActiveShenShaPillar] = useState<'年' | '月' | '日' | '时' | null>(null);
+  const [transitYear, setTransitYear] = useState(() => String(new Date().getFullYear()));
 
   const ready = true;
   const { result, pillars, wuxing, envelope } = useMemo(() => calculateBazi(solarBirth, ready, trineSource), [solarBirth, ready, trineSource]);
+  const transit = useMemo(() => getBaziTransitSnapshot(solarBirth, Number(transitYear), getSolarEntry()), [solarBirth, transitYear]);
   const shenSha = result?.shenSha ?? [];
   const firstShenShaPillar = (['年', '月', '日', '时'] as const).find((pillar) => shenSha.some((item) => item.pillar === pillar)) ?? null;
   const selectedShenShaPillar = activeShenShaPillar && shenSha.some((item) => item.pillar === activeShenShaPillar)
@@ -249,6 +251,62 @@ export function BaziWorkspace() {
               </section>
             )}
           </section>
+          {transit.available && (
+            <section className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument" aria-labelledby="bazi-transit-title">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 id="bazi-transit-title" className="text-lg font-semibold text-jade-50">大运 · 流年</h3>
+                  <p className="mt-1 text-sm leading-6 text-jade-100/55">大运与流年独立于本命四柱显示；当前按周岁定位大运。</p>
+                </div>
+                <label className="flex items-center gap-2 text-xs text-jade-100/65">
+                  目标年份
+                  <input
+                    type="number"
+                    value={transitYear}
+                    min="1900"
+                    max="2100"
+                    onChange={(event) => setTransitYear(event.target.value)}
+                    className="w-24 rounded border border-white/10 bg-black/30 px-2 py-1 text-sm text-jade-50 outline-none focus:border-jade-500/60"
+                  />
+                </label>
+              </div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <section className="rounded-card border border-jade-500/20 bg-jade-500/10 px-3 py-2.5">
+                  <p className="text-xs font-semibold text-jade-100/70">当前大运</p>
+                  <p className="mt-1 text-sm text-jade-50">
+                    {transit.currentLuck
+                      ? `${transit.currentLuck.ageStart}岁起 · ${transit.currentLuck.stem}${transit.currentLuck.branch}`
+                      : '尚未起运'}
+                  </p>
+                  <p className="mt-1 text-xs text-jade-100/55">
+                    {transit.currentLuck?.startYear && transit.currentLuck.endYear
+                      ? `${transit.currentLuck.startYear}–${transit.currentLuck.endYear}`
+                      : '起运年龄按当前排盘口径'}
+                  </p>
+                </section>
+                <section className="rounded-card border border-cinnabar-500/20 bg-cinnabar-500/10 px-3 py-2.5">
+                  <p className="text-xs font-semibold text-jade-100/70">流年</p>
+                  <p className="mt-1 text-sm text-jade-50">{transit.targetYear}年 · {transit.yearly.stem}{transit.yearly.branch}</p>
+                  <p className="mt-1 text-xs text-jade-100/55">流年天干{transit.yearly.stem}为{transit.yearly.stemShiShen} · 五行{transit.yearly.stemWuxing}</p>
+                </section>
+              </div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                {transit.luck.map((luck) => {
+                  const isCurrent = transit.currentLuck?.ageStart === luck.ageStart;
+                  return (
+                    <section
+                      key={`${luck.ageStart}-${luck.stem}${luck.branch}`}
+                      className={`rounded-card border px-3 py-2.5 ${isCurrent ? 'border-jade-500/55 bg-jade-500/15' : 'border-white/8 bg-white/[0.025]'}`}
+                    >
+                      <p className="text-xs font-semibold text-jade-100/70">{luck.ageStart}岁起</p>
+                      <p className="mt-1 text-lg text-jade-50">{luck.stem}{luck.branch}</p>
+                      <p className="mt-1 text-xs text-jade-100/55">{luck.stemWuxing}{luck.startYear && luck.endYear ? ` · ${luck.startYear}–${luck.endYear}` : ''}</p>
+                    </section>
+                  );
+                })}
+              </div>
+            </section>
+          )}
           <div className="console-panel rounded-panel border border-jade-500/20 bg-ink-950/90 p-4">
             <div className="mb-4 flex items-center justify-between border-b border-white/8 pb-3">
               <h3 className="text-lg font-semibold text-jade-50">八字明细</h3>
