@@ -237,16 +237,44 @@ describe('calcBaziEnveloped envelope 适配', () => {
     expect(data.pillars.year.stem).toBe('庚');
     expect(data.export_snapshot.summary).toContain('日主');
     expect(data.export_snapshot.sections.some((s) => s.heading === '四柱')).toBe(true);
-    expect(data.export_snapshot.sections.some((s) => s.heading === '命局要览')).toBe(true);
+    expect(data.export_snapshot.sections.some((s) => s.heading === '整体状态')).toBe(true);
+    expect(data.export_snapshot.sections.some((s) => s.heading === '平衡方向')).toBe(true);
+    expect(data.export_snapshot.sections.some((s) => s.heading === '进阶观察')).toBe(true);
     expect(data.export_snapshot.sections.some((s) => s.heading === '大运')).toBe(true);
     const full = env.data as { shenSha?: ShenShaItem[]; advancedAnalysis: { support: { strength: string } }; export_snapshot: { summary: string; sections: Array<{ heading: string; body: string }> } };
-    const strengthSection = full.export_snapshot.sections.find((section) => section.heading === '日主强弱');
-    const overviewSection = full.export_snapshot.sections.find((section) => section.heading === '命局要览');
-    expect(full.export_snapshot.summary).toContain(`整体${full.advancedAnalysis.support.strength}`);
-    expect(strengthSection?.body).toContain(`判断为${full.advancedAnalysis.support.strength}`);
-    expect(overviewSection?.body).toContain(`身强弱：${full.advancedAnalysis.support.strength}`);
+    const strengthSection = full.export_snapshot.sections.find((section) => section.heading === '日主力量');
+    const overviewSection = full.export_snapshot.sections.find((section) => section.heading === '整体状态');
+    expect(full.export_snapshot.summary).toContain('整体力量');
+    expect(strengthSection?.body).toContain('初步参考');
+    expect(overviewSection?.body).toContain('当前判断为');
     expect(Array.isArray(full.shenSha)).toBe(true);
     expect(full.export_snapshot.sections.some((s) => s.heading === '神煞')).toBe(true);
+  });
+
+  it('校正后时间用于定盘，并在快照保留用户可读口径', () => {
+    const correctedBirth = { year: 1990, month: 6, day: 16, hour: 0, minute: 10, gender: '男' as const };
+    const env = calcBaziEnveloped({
+      birth: correctedBirth,
+      timeContext: {
+        civilBirth: { year: 1990, month: 6, day: 15, hour: 23, minute: 10, gender: '男', useExactCalendar: false },
+        correctedBirth: { ...correctedBirth, useExactCalendar: false },
+        correctionMinutes: 60,
+        applied: true,
+        reason: '测试校时。',
+        crossedDate: true,
+        crossedShichen: true,
+        crossedZiChu: true,
+        dayBoundaryRule: 'zi-chu-next-day',
+      },
+    });
+    const direct = calculateBazi({ birth: correctedBirth });
+    const data = env.data as { pillars: { day: { stem: string; branch: string } }; export_snapshot: { sections: Array<{ heading: string; body: string }> } };
+    const timeSection = data.export_snapshot.sections.find((section) => section.heading === '排盘口径');
+
+    expect(`${data.pillars.day.stem}${data.pillars.day.branch}`).toBe(`${direct.pillars.day.stem}${direct.pillars.day.branch}`);
+    expect(timeSection?.body).toContain('民用出生时间：1990-06-15 23:10');
+    expect(timeSection?.body).toContain('排盘时间：1990-06-16 00:10');
+    expect(timeSection?.body).toContain('子初换日口径');
   });
 
   it('精确历法快照不包含实现或依赖名称', () => {

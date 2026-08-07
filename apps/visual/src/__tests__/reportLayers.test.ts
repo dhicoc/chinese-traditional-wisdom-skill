@@ -29,18 +29,18 @@ describe('toFourLayer 基本结构', () => {
 });
 
 describe('toFourLayer 八字归类', () => {
-  it('日主强弱归 highlights，四柱/五行/十神/大运归 details', () => {
+  it('日主力量归 highlights，四柱/五行/十神/大运归 details', () => {
     const env = calcBaziEnveloped({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
     const report = toFourLayer(snapshotOf(env));
-    // 日主强弱应进 highlights
-    expect(report.highlights.some((h) => h.label.includes('日主强弱'))).toBe(true);
+    // 新旧日主力量标题都应进入 highlights
+    expect(report.highlights.some((h) => /日主强弱|日主力量/.test(h.label))).toBe(true);
     // 四柱应进 details（非 highlights）
     expect(report.details.some((d) => d.heading === '四柱')).toBe(true);
     expect(report.details.some((d) => d.heading === '五行分布')).toBe(true);
     expect(report.details.some((d) => d.heading === '十神')).toBe(true);
     expect(report.details.some((d) => d.heading === '大运')).toBe(true);
-    // 日主强弱不应同时进 details
-    expect(report.details.some((d) => d.heading.includes('日主强弱'))).toBe(false);
+    // 日主力量不应同时进 details
+    expect(report.details.some((d) => /日主强弱|日主力量/.test(d.heading))).toBe(false);
   });
 
   it('十神段用中文柱名（年柱/月柱/日柱/时柱），不混英文 year/month/day/hour', () => {
@@ -64,10 +64,10 @@ describe('toFourLayer 八字归类', () => {
     });
   });
 
-  it('日主强弱 highlight 的 strength 由偏强/身强/偏弱/身弱检测', () => {
+  it('日主力量 highlight 的 strength 由偏强/身强/偏弱/身弱检测', () => {
     const env = calcBaziEnveloped({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
     const report = toFourLayer(snapshotOf(env));
-    const dy = report.highlights.find((h) => h.label.includes('日主强弱'));
+    const dy = report.highlights.find((h) => /日主强弱|日主力量/.test(h.label));
     expect(dy).toBeDefined();
     // 1990-6-15 12时男 日主辛金 偏强 → strength='强'
     expect(dy!.strength).toBe('强');

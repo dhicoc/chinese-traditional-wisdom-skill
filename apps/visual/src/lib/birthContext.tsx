@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { DEFAULT_BIRTH, type BirthData, type SolarBirth, toSolarBirth } from '@/legacy/birthBridge';
+import { resolveBaziBirthTime, type ResolvedBaziBirth } from '@/legacy/birthTimeCorrection';
 import {
   BIRTH_INTENT_EVENT,
   REFRESH_ALL_INTENT_EVENT,
@@ -12,8 +13,10 @@ import {
 interface BirthContextValue {
   /** 用户输入的生辰（可能是农历或公历） */
   birth: BirthData;
-  /** 转换后的公历生辰（所有引擎统一用这个） */
+  /** 转换后的公历生辰（未校正；供各工作区默认使用） */
   solarBirth: SolarBirth;
+  /** 八字专用的排盘时间；经度校正不影响其他工作区 */
+  resolvedBaziBirth: ResolvedBaziBirth;
   /**
    * 引擎是否可用。
    * 拔除 visual/ 旧桥后纯 TS 引擎始终就绪；字段名保留以兼容既有 UI。
@@ -66,16 +69,17 @@ export function BirthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener(REFRESH_ALL_INTENT_EVENT, handleRefreshAll);
   }, []);
 
-  const value = useMemo<BirthContextValue>(
-    () => ({
+  const value = useMemo<BirthContextValue>(() => {
+    const solarBirth = toSolarBirth(birth);
+    return {
       birth,
-      solarBirth: toSolarBirth(birth),
+      solarBirth,
+      resolvedBaziBirth: resolveBaziBirthTime(solarBirth, birth),
       legacyReady: true,
       updateBirth,
       resetBirth,
-    }),
-    [birth, updateBirth, resetBirth],
-  );
+    };
+  }, [birth, updateBirth, resetBirth]);
 
   return <BirthContext.Provider value={value}>{children}</BirthContext.Provider>;
 }

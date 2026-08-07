@@ -4,6 +4,10 @@
 
 import { getLunarEntry } from './solarEntry';
 
+export type TimeCorrectionMode = 'none' | 'longitude';
+export type OffsetSource = 'manual';
+export type DayBoundaryRule = 'zi-chu-next-day';
+
 export interface BirthData {
   year: number;
   month: number;
@@ -15,6 +19,15 @@ export interface BirthData {
   isLunar: boolean;
   /** true=用 lunar-javascript 精确节气干支，false=本地近似 */
   useExactCalendar: boolean;
+  /** 默认不校时；经度校时仅用于八字排盘 */
+  timeCorrectionMode: TimeCorrectionMode;
+  /** 出生地点经度（东经为正） */
+  longitude?: number;
+  /** 出生时实际 UTC 偏移，已包含当地历史夏令时 */
+  utcOffsetMinutes?: number;
+  offsetSource?: OffsetSource;
+  /** 固定采用子初换日 */
+  dayBoundaryRule: DayBoundaryRule;
 }
 
 /** 公历生辰（已转历，不含 isLunar）；供所有引擎统一消费 */
@@ -37,6 +50,8 @@ export const DEFAULT_BIRTH: BirthData = {
   gender: '男',
   isLunar: false,
   useExactCalendar: true,
+  timeCorrectionMode: 'none',
+  dayBoundaryRule: 'zi-chu-next-day',
 };
 
 /**

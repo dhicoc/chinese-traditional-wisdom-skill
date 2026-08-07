@@ -44,13 +44,14 @@ const TRANSFORMATIONS: Array<{ stems: [string, string]; element: Element }> = [
 export interface AdvancedBaziAnalysis {
   monthCommand: { branch: string; monthElement: Element; dayMasterState: string; obtainsCommand: boolean; reason: string };
   support: { obtainsRoot: boolean; obtainsMomentum: boolean; strength: '身强' | '身弱' | '中和'; reason: string[] };
-  pattern: { name: string; status: Status; primaryGod: string; reason: string[] };
-  followPattern: { type: string; status: Status; reason: string[] };
-  transformation: { element: Element | ''; status: Status; reason: string[] };
+  pattern: { name: string; status: Status; primaryGod: string; exposed: boolean; policy: string; reason: string[] };
+  followPattern: { type: string; status: Status; policy: string; reason: string[] };
+  transformation: { element: Element | ''; status: Status; policy: string; reason: string[] };
   fuyii: { principle: '扶弱' | '抑强' | '调和'; usefulElements: Element[]; reason: string[] };
   seasonalAdjustment: { usefulElements: Element[]; reason: string[] };
   passage: { conflict: string; element: Element | ''; status: Status; reason: string[] };
   remedy: { illness: string; remedy: string; status: Status; reason: string[] };
+  priority: string[];
   confidenceNote: string;
 }
 
@@ -131,21 +132,37 @@ export function analyzeAdvancedBazi(pillars: BaziPillars): AdvancedBaziAnalysis 
       : { principle: '调和' as const, usefulElements: chooseWeakest([...ELEMENTS], pillars).slice(0, 2), reason: ['日主强弱中和，优先补全局偏弱五行。'] };
   const primaryStem = HIDDEN[monthBranch][0];
   const primaryGod = tenGod(dayStem, primaryStem);
+  const exposed = [pillars.year.stem, pillars.month.stem, pillars.hour.stem].includes(primaryStem);
+  const patternPolicy = '月支主气透于年、月或时干时，按其十神取普通格；日干不作透干。';
   const pattern = primaryGod === '比肩' || primaryGod === '劫财'
-    ? { name: PATTERN_NAMES[primaryGod], status: '不成立' as const, primaryGod, reason: ['月支主气为比劫，按本规则不以比劫单独定普通格。'] }
-    : { name: PATTERN_NAMES[primaryGod], status: '成立' as const, primaryGod, reason: [`月支${monthBranch}主气${primaryStem}对日主为${primaryGod}。`] };
-  const opposingElements = ELEMENTS.filter((element) => element !== dayElement && element !== ELEMENTS[(ELEMENTS.indexOf(dayElement) + 4) % 5]);
+    ? { name: PATTERN_NAMES[primaryGod], status: '不成立' as const, primaryGod, exposed, policy: patternPolicy, reason: ['月支主气为比劫，按本规则不以比劫单独定普通格。'] }
+    : exposed
+      ? { name: PATTERN_NAMES[primaryGod], status: '成立' as const, primaryGod, exposed, policy: patternPolicy, reason: [`月支${monthBranch}主气${primaryStem}透于天干，对日主为${primaryGod}。`] }
+      : { name: PATTERN_NAMES[primaryGod], status: '不成立' as const, primaryGod, exposed, policy: patternPolicy, reason: [`月支${monthBranch}主气${primaryStem}对日主为${primaryGod}，但未透于年、月或时干。`] };
   const dominant = chooseWeakest([...ELEMENTS], pillars).reverse()[0];
   const followType = dominant === controls(dayElement) ? '从财' : controls(dominant) === dayElement ? '从杀' : dominant === produces(dayElement) ? '从儿' : '';
+  const followPolicy = '从格属于少见的特殊格局，只有日主极弱、全局力量高度集中时才考虑。';
   const followEligible = strength === '身弱' && !obtainsRoot && !obtainsMomentum && countElement(pillars, dominant) >= 6 && countElement(pillars, dayElement) <= 2;
+  const followFailures = [
+    strength !== '身弱' ? '日主仍有自身力量，并非极弱。' : '',
+    obtainsRoot ? '日主在地支仍有根气。' : '',
+    obtainsMomentum ? '命局仍有同类或生扶日主的力量。' : '',
+    countElement(pillars, dominant) < 6 ? '全局力量尚未集中到单一五行。' : '',
+    countElement(pillars, dayElement) > 2 ? '日主自身力量仍未弱到从格程度。' : '',
+  ].filter(Boolean);
   const followPattern = followEligible && followType
-    ? { type: followType, status: '成立' as const, reason: [`日主无根无助，${dominant}势力集中，满足${followType}规则。`] }
-    : { type: '', status: '不成立' as const, reason: ['未同时满足日主极弱、无根无助与一行专旺条件。'] };
-  const stems = pillarsList(pillars).map((pillar) => pillar.stem);
-  const transform = TRANSFORMATIONS.find((rule) => rule.stems.every((stem) => stems.includes(stem)));
+    ? { type: followType, status: '成立' as const, policy: followPolicy, reason: [`日主无根少助，${dominant}力量集中，可按${followType}方向参看。`] }
+    : { type: '', status: '不成立' as const, policy: followPolicy, reason: followFailures.length ? followFailures : ['整体力量并未呈现适合从格的单一倾向。'] };
+  const pillarArray = pillarsList(pillars);
+  const dayIndex = 2;
+  const transform = TRANSFORMATIONS.find((rule) => {
+    const partner = rule.stems[0] === dayStem ? rule.stems[1] : rule.stems[1] === dayStem ? rule.stems[0] : '';
+    return Boolean(partner && pillarArray.some((pillar, index) => Math.abs(index - dayIndex) === 1 && pillar.stem === partner));
+  });
+  const transformationPolicy = '化气需日干与相邻天干相合，并得到月令或全局五行的支持；条件较严格。';
   const transformation: AdvancedBaziAnalysis['transformation'] = transform && (monthElement === transform.element || countElement(pillars, transform.element) >= 4)
-    ? { element: transform.element, status: '成立', reason: [`天干${transform.stems.join('、')}相合，月令或地支同助${transform.element}。`] }
-    : { element: transform?.element ?? '', status: '不成立', reason: ['未同时满足天干五合与月令/地支助化条件。'] };
+    ? { element: transform.element, status: '成立', policy: transformationPolicy, reason: [`日干${dayStem}与相邻天干相合，且${transform.element}力量足以支持转化。`] }
+    : { element: '', status: '不成立', policy: transformationPolicy, reason: ['未见同时具备相邻天干相合与足够五行支持的条件。'] };
   const passage = analyzePassage(pillars);
   const hasSevenKillings = hasStemGod(pillars, dayStem, ['七杀']);
   const hasOfficer = hasStemGod(pillars, dayStem, ['正官']);
@@ -169,6 +186,7 @@ export function analyzeAdvancedBazi(pillars: BaziPillars): AdvancedBaziAnalysis 
     seasonalAdjustment: seasonalAdjustment(monthBranch),
     passage,
     remedy,
-    confidenceNote: '本页从月令、根气、助力、寒暖燥湿等角度辅助观察命局。格局、从格与化气的看法因流派而异，宜结合整体命盘参考。',
+    priority: ['化气成立后顺化气参看', '从格成立后顺旺势参看', '调候与通关用于修正寒暖燥湿或相战', '常规格局与扶抑作为基础取用', '病药作为辅助观察'],
+    confidenceNote: '本页从月令、根气、助力、寒暖燥湿等角度辅助观察命局。普通格取月支主气透干，化气仅取日干与相邻干五合；格局、从格与化气的看法因流派而异，宜结合整体命盘参考。',
   };
 }

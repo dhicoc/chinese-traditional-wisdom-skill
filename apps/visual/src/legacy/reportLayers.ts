@@ -71,7 +71,7 @@ export interface LayerReport {
 /** 核心结论类 heading → 归 highlights */
 const HIGHLIGHT_HEADINGS = [
   '命宫', '四化', '值符值使', '世应用神', '体用生克', '喜用神',
-  '日主强弱', '强弱判断', '格局', '遁局', '综合评级', '卦象',
+  '日主强弱', '日主力量', '强弱判断', '格局', '遁局', '综合评级', '卦象',
 ];
 
 /** 可执行建议类 heading → 归 actions */

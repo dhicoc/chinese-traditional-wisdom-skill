@@ -31,28 +31,40 @@ export function BirthPanel() {
   const [draftMonth, setDraftMonth] = useState(String(birth.month));
   const [draftDay, setDraftDay] = useState(String(birth.day));
   const [draftHour, setDraftHour] = useState(String(birth.hour));
+  const [draftMinute, setDraftMinute] = useState(String(birth.minute));
+  const [draftLongitude, setDraftLongitude] = useState(birth.longitude?.toString() ?? '');
+  const [draftOffset, setDraftOffset] = useState(birth.utcOffsetMinutes?.toString() ?? '');
   // birth 外部变化（reset / 路由跳转）时同步回 draft
   useEffect(() => { setDraftYear(String(birth.year)); }, [birth.year]);
   useEffect(() => { setDraftMonth(String(birth.month)); }, [birth.month]);
   useEffect(() => { setDraftDay(String(birth.day)); }, [birth.day]);
   useEffect(() => { setDraftHour(String(birth.hour)); }, [birth.hour]);
+  useEffect(() => { setDraftMinute(String(birth.minute)); }, [birth.minute]);
+  useEffect(() => { setDraftLongitude(birth.longitude?.toString() ?? ''); }, [birth.longitude]);
+  useEffect(() => { setDraftOffset(birth.utcOffsetMinutes?.toString() ?? ''); }, [birth.utcOffsetMinutes]);
 
   /** blur 时把 draft 提交为 number；空或非法时回退到当前 birth 值 */
-  const commitDraft = (field: 'year' | 'month' | 'day' | 'hour', draft: string, fallback: number) => {
+  const commitDraft = (field: 'year' | 'month' | 'day' | 'hour' | 'minute', draft: string, fallback: number) => {
     const n = Number.parseInt(draft, 10);
     if (Number.isNaN(n) || draft.trim() === '') {
       // 回退：把 draft 复位回当前 birth 值
       if (field === 'year') setDraftYear(String(birth.year));
       else if (field === 'month') setDraftMonth(String(birth.month));
       else if (field === 'day') setDraftDay(String(birth.day));
-      else setDraftHour(String(birth.hour));
+      else if (field === 'hour') setDraftHour(String(birth.hour));
+      else setDraftMinute(String(birth.minute));
       return;
     }
     updateBirth({ [field]: n } as Partial<typeof birth>);
     void fallback;
   };
 
-  const summary = `${birth.year}-${String(birth.month).padStart(2, '0')}-${String(birth.day).padStart(2, '0')} ${birth.gender} ${birth.isLunar ? '农历' : '公历'}`;
+  const commitOptionalNumber = (field: 'longitude' | 'utcOffsetMinutes', draft: string) => {
+    const n = Number(draft);
+    updateBirth({ [field]: draft.trim() === '' || !Number.isFinite(n) ? undefined : n } as Partial<typeof birth>);
+  };
+
+  const summary = `${birth.year}-${String(birth.month).padStart(2, '0')}-${String(birth.day).padStart(2, '0')} ${String(birth.hour).padStart(2, '0')}:${String(birth.minute).padStart(2, '0')} ${birth.gender} ${birth.isLunar ? '农历' : '公历'}`;
 
   const handleToggle = () => {
     if (isDefaultBirth && !userToggledHidden && !userToggled) {
@@ -154,6 +166,16 @@ export function BirthPanel() {
               onChange={(e) => setDraftHour(e.target.value)}
               onBlur={() => commitDraft('hour', draftHour, birth.hour)}
             />
+            <ControlField
+              label="分"
+              type="number"
+              min={0}
+              max={59}
+              inputMode="numeric"
+              value={draftMinute}
+              onChange={(e) => setDraftMinute(e.target.value)}
+              onBlur={() => commitDraft('minute', draftMinute, birth.minute)}
+            />
           </div>
 
           {/* 性别 + 历法：同一行，左右各半 */}
@@ -200,6 +222,46 @@ export function BirthPanel() {
             />
             精确节气
           </label>
+
+          <details className="rounded-card border border-white/10 bg-black/15 px-3 py-2">
+            <summary className="cursor-pointer text-xs text-jade-100/65">八字地点与校时（可选）</summary>
+            <div className="mt-3 space-y-2">
+              <label className="flex items-center gap-2 text-xs text-jade-100/55">
+                <input
+                  type="checkbox"
+                  checked={birth.timeCorrectionMode === 'longitude'}
+                  onChange={(e) => updateBirth({ timeCorrectionMode: e.target.checked ? 'longitude' : 'none' })}
+                  className="h-3.5 w-3.5 accent-jade-500"
+                />
+                按经度换算地方平太阳时
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <ControlField
+                  label="经度（东正西负）"
+                  type="number"
+                  min={-180}
+                  max={180}
+                  inputMode="decimal"
+                  value={draftLongitude}
+                  onChange={(e) => setDraftLongitude(e.target.value)}
+                  onBlur={() => commitOptionalNumber('longitude', draftLongitude)}
+                />
+                <ControlField
+                  label="实际 UTC 偏移（分钟）"
+                  type="number"
+                  min={-720}
+                  max={840}
+                  inputMode="numeric"
+                  value={draftOffset}
+                  onChange={(e) => setDraftOffset(e.target.value)}
+                  onBlur={() => commitOptionalNumber('utcOffsetMinutes', draftOffset)}
+                />
+              </div>
+              <p className="text-[11px] leading-5 text-jade-100/40">
+                请填写出生当时实际 UTC 偏移（包含当时夏令时）；系统不会自动推断历史时区或夏令时。未填写完整时保持民用时间。
+              </p>
+            </div>
+          </details>
         </div>
       )}
     </div>

@@ -11,6 +11,7 @@
  */
 
 import type { ToolEnvelope, ExportSnapshot } from './baseTypes';
+import type { ResolvedBaziBirth } from './birthTimeCorrection';
 import { analyzeAdvancedBazi, type AdvancedBaziAnalysis } from './advancedBazi';
 import { relationBetweenPillars } from './ganZhiChongHe';
 import { calcShenSha, type ShenShaItem, type TrineSource } from './shensha';
@@ -98,6 +99,8 @@ export interface BaziBirth {
 
 export interface BaziInput {
   birth: BaziBirth;
+  /** 八字定盘使用的民用/校正时间上下文 */
+  timeContext?: ResolvedBaziBirth;
   /** 可选 lunar-javascript Solar 入口（精确节气干支） */
   solar?: SolarLike | null;
   /** 神煞三合局查取口径：'year' 年支查（传统主流，默认）/ 'day' 日支查（流派之一） */
@@ -629,6 +632,10 @@ export interface BaziData extends BaziResult {
   export_snapshot: ExportSnapshot;
 }
 
+function formatBirthTime(birth: BaziBirth): string {
+  return `${birth.year}-${String(birth.month).padStart(2, '0')}-${String(birth.day).padStart(2, '0')} ${String(birth.hour).padStart(2, '0')}:${String(birth.minute ?? 0).padStart(2, '0')}`;
+}
+
 export function calcBaziEnveloped(input: BaziInput): ToolEnvelope<BaziData> {
   const result = calculateBazi(input);
   const p = result.pillars;
@@ -643,16 +650,24 @@ export function calcBaziEnveloped(input: BaziInput): ToolEnvelope<BaziData> {
   const strength = result.advancedAnalysis.support.strength;
 
   const snapshot: ExportSnapshot = {
-    summary: `四柱：${pillarsStr}。日主${dm}${dmYy}${dmWx}，五行 ${elSummary}，偏旺${maxEl}、偏弱${minEl}，整体${strength}。`,
+    summary: `你的日主为${dm}${dmWx}。盘中${maxEl}的表现相对更明显，${minEl}相对较少；按当前规则，整体力量${strength === '身强' ? '偏强' : strength === '身弱' ? '偏弱' : '较平衡'}。五行分布仅用于辅助观察。`,
     tags: ['八字', dmWx + '命', dmYy + '干', strength],
     sections: [
+      ...(input.timeContext ? [{
+        heading: '排盘口径',
+        body: input.timeContext.applied
+          ? `民用出生时间：${formatBirthTime(input.timeContext.civilBirth)}；排盘时间：${formatBirthTime(input.timeContext.correctedBirth)}。已按出生地点经度换算地方平太阳时（校正 ${input.timeContext.correctionMinutes >= 0 ? '+' : ''}${input.timeContext.correctionMinutes} 分钟）。${input.timeContext.crossedDate || input.timeContext.crossedShichen || input.timeContext.crossedZiChu ? '校时已跨越' + [input.timeContext.crossedDate ? '日期' : '', input.timeContext.crossedShichen ? '时辰' : '', input.timeContext.crossedZiChu ? '子初换日边界' : ''].filter(Boolean).join('、') + '，按子初换日口径定盘。' : '按子初换日口径定盘。'}`
+          : `排盘时间采用民用出生时间 ${formatBirthTime(input.timeContext.civilBirth)}；未启用经度校时，按子初换日口径定盘。`,
+      }] : []),
       { heading: '四柱', body: `年柱 ${p.year.stem}${p.year.branch}、月柱 ${p.month.stem}${p.month.branch}、日柱 ${p.day.stem}${p.day.branch}、时柱 ${p.hour.stem}${p.hour.branch}。` },
       { heading: '五行分布', body: `${elSummary}。最旺：${maxEl}(${maxVal})，最弱：${minEl}(${minVal})。` },
       { heading: '十神', body: (['year', 'month', 'day', 'hour'] as const).map((k) => `${PILLAR_CN[k]}柱${result.shishenList[k]}`).join('、') + '。' },
-      { heading: '日主强弱', body: `日主${dm}为${dmYy}${dmWx}，五行总量${Object.values(els).reduce((s, v) => s + v, 0)}，判断为${strength}。日主强弱还需结合月令、通根、格局与调候综合参看。` },
-      { heading: '命局要览', body: `月令：${result.advancedAnalysis.monthCommand.reason}${result.advancedAnalysis.monthCommand.obtainsCommand ? '得令。' : '失令。'} 身强弱：${result.advancedAnalysis.support.strength}；扶抑：${result.advancedAnalysis.fuyii.principle}，候选${result.advancedAnalysis.fuyii.usefulElements.join('、')}。格局：${result.advancedAnalysis.pattern.name}${result.advancedAnalysis.pattern.status}。从格：${result.advancedAnalysis.followPattern.status === '成立' ? result.advancedAnalysis.followPattern.type : '不成立'}；化气：${result.advancedAnalysis.transformation.status === '成立' ? `${result.advancedAnalysis.transformation.element}化成立` : '不成立'}。调候取${result.advancedAnalysis.seasonalAdjustment.usefulElements.join('、')}；${result.advancedAnalysis.passage.status === '成立' ? `${result.advancedAnalysis.passage.conflict}取${result.advancedAnalysis.passage.element}通关` : '未见通关取法'}；病药：${result.advancedAnalysis.remedy.status === '成立' ? result.advancedAnalysis.remedy.remedy : '未见相应病药'}。` },
-      { heading: '大运', body: result.luck.map((l) => `${l.ageStart}岁起 ${l.stem}${l.branch}(${l.stemWuxing})${l.startYear ? `（${l.startYear}-${l.endYear}）` : ''}`).join('；') + '。大运起始时间依传统命理规则参看。' },
-      { heading: '神煞', body: (result.shenSha.length ? result.shenSha.map((s) => `${s.name}(${s.branch}·${s.pillar})`).join('、') + '。' : '本命局未检出常见神煞。') + `（桃花/驿马/华盖/将星按${result.shenShaTrineSource === 'year' ? '年支' : '日支'}三合查）` },
+      { heading: '日主力量', body: `按当前排盘规则，日主${dm}的力量${strength === '身强' ? '偏强' : strength === '身弱' ? '偏弱' : '较平衡'}。除五行分布外，出生季节、日主是否有根和整体结构也会影响判断，因此此处仅作初步参考。` },
+      { heading: '整体状态', body: `出生季节力量：${result.advancedAnalysis.monthCommand.reason}${result.advancedAnalysis.monthCommand.obtainsCommand ? '与日主较相合。' : '对日主支持相对较少。'} 当前判断为${strength === '身强' ? '整体偏强' : strength === '身弱' ? '整体偏弱' : '整体较平衡'}。` },
+      { heading: '平衡方向', body: `可优先参考${result.advancedAnalysis.fuyii.usefulElements.join('、')}，帮助五行力量趋于协调。${result.advancedAnalysis.seasonalAdjustment.reason.join('')}` },
+      { heading: '进阶观察', body: `结构观察：${result.advancedAnalysis.pattern.name}${result.advancedAnalysis.pattern.status}，${result.advancedAnalysis.pattern.reason.join('')} 从格：${result.advancedAnalysis.followPattern.status === '成立' ? result.advancedAnalysis.followPattern.type : '暂不按从格看'}，${result.advancedAnalysis.followPattern.reason.join('')} 化气：${result.advancedAnalysis.transformation.status === '成立' ? `${result.advancedAnalysis.transformation.element}化成立` : '暂不按化气看'}，${result.advancedAnalysis.transformation.reason.join('')} 不同流派对这些进阶观察可能有不同取法，宜结合整体命盘参考。` },
+      { heading: '大运', body: '以下列出传统命理中每十年左右的阶段划分；起运年龄会因计算方法与流派而有差异。' + result.luck.map((l) => `${l.ageStart}岁起 ${l.stem}${l.branch}（${l.stemWuxing}${l.startYear ? `，${l.startYear}-${l.endYear}` : ''}）`).join('；') + '。' },
+      { heading: '神煞', body: '神煞是传统命理的辅助标记，不宜单独作为判断依据。' + (result.shenSha.length ? result.shenSha.map((s) => `${s.name}（${s.branch}·${s.pillar}柱）`).join('、') + '。' : '本命盘未检出常见神煞。') + `本页按${result.shenShaTrineSource === 'year' ? '出生年份' : '出生日'}的地支查取桃花、驿马、华盖与将星。` },
       { heading: '使用提醒', body: '本报告依传统命理规则整理，适合用于传统文化学习与自我观察，不作为现实决策依据。' },
     ],
     sourceNotes: '八字命盘依传统命理规则整理，仅作传统文化参考。',
@@ -670,7 +685,7 @@ export function calcBaziEnveloped(input: BaziInput): ToolEnvelope<BaziData> {
         { key: 'settle', stage: '定盘', status: result.mode === 'local-exact' ? 'ok' : 'approx', inputs: { year: input.birth.year, month: input.birth.month, day: input.birth.day, hour: input.birth.hour }, result: pillarsStr, promptText: `四柱 ${pillarsStr}` },
         { key: 'elements', stage: '五行统计', status: 'ok', inputs: pillarsStr, result: elSummary, dependsOnStepKeys: ['settle'], promptText: `五行分布 ${elSummary}` },
         { key: 'daymaster', stage: '日主判定', status: 'ok', inputs: { dm, dmWx, dmYy }, result: `${dm}${dmYy}${dmWx}`, dependsOnStepKeys: ['settle'], promptText: `日主为${dm}（${dmYy}${dmWx}）` },
-        { key: 'advanced', stage: '命局要览', status: 'ok', inputs: pillarsStr, result: `月令${result.advancedAnalysis.monthCommand.dayMasterState}、${result.advancedAnalysis.support.strength}、${result.advancedAnalysis.fuyii.principle}、${result.advancedAnalysis.pattern.name}${result.advancedAnalysis.pattern.status}`, dependsOnStepKeys: ['settle', 'elements', 'daymaster'], promptText: `月令、通根、得势显示${result.advancedAnalysis.support.strength}，${result.advancedAnalysis.pattern.name}${result.advancedAnalysis.pattern.status}`, limitation: result.advancedAnalysis.confidenceNote },
+        { key: 'advanced', stage: '命局要览', status: 'ok', inputs: pillarsStr, result: `月令${result.advancedAnalysis.monthCommand.dayMasterState}、${result.advancedAnalysis.support.strength}、${result.advancedAnalysis.fuyii.principle}、${result.advancedAnalysis.pattern.name}${result.advancedAnalysis.pattern.status}、从格${result.advancedAnalysis.followPattern.status}、化气${result.advancedAnalysis.transformation.status}`, dependsOnStepKeys: ['settle', 'elements', 'daymaster'], promptText: `月令、通根、得势显示${result.advancedAnalysis.support.strength}，${result.advancedAnalysis.pattern.name}${result.advancedAnalysis.pattern.status}。判断次序：${result.advancedAnalysis.priority.join('；')}`, limitation: result.advancedAnalysis.confidenceNote },
         { key: 'luck', stage: '大运', status: result.luck.some((l) => l.startYear !== undefined) ? 'ok' : 'approx', inputs: { gender: input.birth.gender }, result: result.luck.map((l) => `${l.ageStart}岁起 ${l.stem}${l.branch}`).join('；'), dependsOnStepKeys: ['settle'], promptText: '大运起始年龄与干支', limitation: result.luck.some((l) => l.startYear !== undefined) ? undefined : '起运年龄仅作参考' },
       ],
       facts: [

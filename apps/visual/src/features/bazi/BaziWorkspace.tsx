@@ -54,14 +54,14 @@ interface BaziResult {
   shenShaTrineSource?: TrineSource;
 }
 
-function calculateBazi(solarBirth: SolarBirth, ready: boolean, trineSource: TrineSource) {
+function calculateBazi(solarBirth: SolarBirth, timeContext: ReturnType<typeof useBirth>['resolvedBaziBirth'], ready: boolean, trineSource: TrineSource) {
   if (!ready) {
     return { result: null, pillars: { ...DEFAULT_PILLARS, gender: solarBirth.gender }, wuxing: DEFAULT_WUXING, envelope: null };
   }
   try {
     const solarEntry = getSolarEntry();
-    const env = calcBaziEnveloped({ birth: solarBirth, solar: solarEntry, shenShaTrineSource: trineSource });
-    const pure = calculateBaziPure({ birth: solarBirth, solar: solarEntry, shenShaTrineSource: trineSource });
+    const env = calcBaziEnveloped({ birth: solarBirth, timeContext, solar: solarEntry, shenShaTrineSource: trineSource });
+    const pure = calculateBaziPure({ birth: solarBirth, timeContext, solar: solarEntry, shenShaTrineSource: trineSource });
     const pillars: BaziPillars = {
       year: { stem: pure.pillars.year.stem, branch: pure.pillars.year.branch, hidden: pure.hiddenStems.year },
       month: { stem: pure.pillars.month.stem, branch: pure.pillars.month.branch, hidden: pure.hiddenStems.month },
@@ -82,7 +82,7 @@ function calculateBazi(solarBirth: SolarBirth, ready: boolean, trineSource: Trin
 }
 
 function birthSummary(solarBirth: SolarBirth) {
-  return solarBirth.year + '-' + String(solarBirth.month).padStart(2, '0') + '-' + String(solarBirth.day).padStart(2, '0') + ' ' + String(solarBirth.hour).padStart(2, '0') + ':00';
+  return solarBirth.year + '-' + String(solarBirth.month).padStart(2, '0') + '-' + String(solarBirth.day).padStart(2, '0') + ' ' + String(solarBirth.hour).padStart(2, '0') + ':' + String(solarBirth.minute).padStart(2, '0');
 }
 
 function getTodayDate() {
@@ -91,14 +91,18 @@ function getTodayDate() {
 }
 
 export function BaziWorkspace() {
-  const { birth, solarBirth } = useBirth();
+  const { birth, resolvedBaziBirth } = useBirth();
+  const solarBirth = resolvedBaziBirth.correctedBirth;
   const [trineSource, setTrineSource] = useState<TrineSource>('year');
   const [activeShenShaPillar, setActiveShenShaPillar] = useState<'年' | '月' | '日' | '时' | null>(null);
   const [transitYear, setTransitYear] = useState(() => String(new Date().getFullYear()));
   const [transitDate, setTransitDate] = useState(getTodayDate);
 
   const ready = true;
-  const { result, pillars, wuxing, envelope } = useMemo(() => calculateBazi(solarBirth, ready, trineSource), [solarBirth, ready, trineSource]);
+  const { result, pillars, wuxing, envelope } = useMemo(
+    () => calculateBazi(solarBirth, resolvedBaziBirth, ready, trineSource),
+    [solarBirth, resolvedBaziBirth, ready, trineSource],
+  );
   const transit = useMemo(() => getBaziTransitSnapshot(solarBirth, Number(transitYear), getSolarEntry()), [solarBirth, transitYear]);
   const monthDayTransit = useMemo(() => getBaziMonthDaySnapshot(solarBirth, transitDate, getSolarEntry()), [solarBirth, transitDate]);
   const shenSha = result?.shenSha ?? [];
@@ -128,11 +132,13 @@ export function BaziWorkspace() {
   const contextPayload = useMemo(
     () => ({
       项目: '八字命盘',
-      生辰: solarBirth,
+      民用出生时间: resolvedBaziBirth.civilBirth,
+      排盘时间: solarBirth,
+      校时: resolvedBaziBirth.applied ? `${resolvedBaziBirth.correctionMinutes >= 0 ? '+' : ''}${resolvedBaziBirth.correctionMinutes} 分钟（地方平太阳时）` : '未启用经度校时',
       四柱: pillars,
       五行: wuxing,
     }),
-    [solarBirth, pillars, wuxing],
+    [resolvedBaziBirth, solarBirth, pillars, wuxing],
   );
 
   return (
@@ -143,11 +149,21 @@ export function BaziWorkspace() {
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-400">八字命盘</p>
             <h2 className="mt-1 font-serif text-2xl font-semibold tracking-[0.08em] text-jade-50">八字排盘</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              读取顶部全局生辰，生成四柱、五行与喜用神分析。
+              根据出生时间排出四柱，并从五行平衡角度提供传统命理参考。
             </p>
             <p className="mt-2 text-xs text-jade-100/50">
-              {birthSummary(solarBirth)} · {birth.isLunar ? '农历' : '公历'} · {solarBirth.gender}
+              民用时间：{birthSummary(resolvedBaziBirth.civilBirth)} · {birth.isLunar ? '农历' : '公历'} · {solarBirth.gender}
             </p>
+            {resolvedBaziBirth.applied && (
+              <p className="mt-1 text-xs text-gold-300/80">
+                排盘时间：{birthSummary(solarBirth)}（地方平太阳时，校正 {resolvedBaziBirth.correctionMinutes >= 0 ? '+' : ''}{resolvedBaziBirth.correctionMinutes} 分钟）
+              </p>
+            )}
+            {(resolvedBaziBirth.crossedDate || resolvedBaziBirth.crossedShichen || resolvedBaziBirth.crossedZiChu) && (
+              <p className="mt-1 text-xs text-gold-300/80">
+                校时已跨越{[resolvedBaziBirth.crossedDate ? '日期' : '', resolvedBaziBirth.crossedShichen ? '时辰' : '', resolvedBaziBirth.crossedZiChu ? '子初换日边界' : ''].filter(Boolean).join('、')}，按子初换日口径定盘。
+              </p>
+            )}
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="bazi" title="八字命盘摘要" payload={contextPayload} />
@@ -159,9 +175,9 @@ export function BaziWorkspace() {
       <section className="bazi-summary-grid grid gap-px overflow-hidden border border-jade-500/20 bg-jade-500/20 sm:grid-cols-2 xl:grid-cols-4" aria-label="命局摘要">
         {[
           ['日主', `${result?.dayMaster ?? pillars.dayMaster ?? '?'} · ${result?.dayMasterWuxing ?? '?'}`],
-          ['命局倾向', result?.advancedAnalysis?.support.strength ?? xiyong?.qiangRuo ?? '—'],
-          ['喜用', xiyong?.shen ?? '—'],
-          ['月令', result?.advancedAnalysis?.monthCommand.branch ? `${result.advancedAnalysis.monthCommand.branch}月 · ${result.advancedAnalysis.monthCommand.obtainsCommand ? '得令' : '失令'}` : '—'],
+          ['整体平衡状态', result?.advancedAnalysis?.support.strength ?? xiyong?.qiangRuo ?? '—'],
+          ['参考平衡元素', xiyong?.shen ?? '—'],
+          ['出生季节力量', result?.advancedAnalysis?.monthCommand.branch ? `${result.advancedAnalysis.monthCommand.branch}月 · ${result.advancedAnalysis.monthCommand.obtainsCommand ? '得令' : '失令'}` : '—'],
         ].map(([label, value]) => (
           <div key={label} className="bg-ink-950/90 px-4 py-3">
             <p className="text-xs text-jade-100/50">{label}</p>
@@ -177,7 +193,7 @@ export function BaziWorkspace() {
               <div>
                 <h3 className="text-lg font-semibold text-jade-50">四柱主盘</h3>
                 <p className="mt-1 text-sm leading-6 text-jade-100/55">
-                  四柱主盘：年/月/日/时天干地支，按五行配色，日柱高亮。
+                  四柱分别对应出生的年、月、日、时；日柱作为观察其他干支关系的参照。
                 </p>
               </div>
             </div>
@@ -186,7 +202,7 @@ export function BaziWorkspace() {
                 <div>
                   <p className="text-xs font-semibold text-jade-100/70">桃花、驿马、华盖、将星查法</p>
                   <p className="mt-1 text-[11px] leading-4 text-jade-100/45">
-                    {trineSource === 'year' ? '以年支所在三合局查取，多数子平书采用此法。' : '以日支所在三合局查取，部分流派采用。'}
+                    {trineSource === 'year' ? '神煞查法有不同传统；本页默认按出生年份的地支查取，仅作辅助参考。' : '当前按出生日的地支查取，可与默认查法对照阅读，仅作辅助参考。'}
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-wrap gap-1.5">
@@ -251,7 +267,7 @@ export function BaziWorkspace() {
             <div className="mb-4 flex items-end justify-between border-b border-white/8 pb-3">
               <div>
                 <h3 id="bazi-table-title" className="text-lg font-semibold text-jade-50">四柱对照</h3>
-                <p className="mt-1 text-sm text-jade-100/55">按年、月、日、时依次查看十神、天干、地支与藏干。</p>
+                <p className="mt-1 text-sm text-jade-100/55">按出生的年、月、日、时依次查看干支，以及它们与日主形成的关系。</p>
               </div>
               <span className="text-xs text-jade-100/45">日柱为命局参照</span>
             </div>
@@ -314,10 +330,10 @@ export function BaziWorkspace() {
                   </p>
                   <p className="mt-1 text-xs text-jade-100/55">
                     {transit.luckStartSolar
-                      ? `精确起运：${transit.luckStartSolar}`
+                      ? `起运时间：${transit.luckStartSolar}`
                       : transit.currentLuck?.startYear && transit.currentLuck.endYear
                         ? `${transit.currentLuck.startYear}–${transit.currentLuck.endYear}`
-                        : '起运年龄按当前排盘口径'}
+                        : '起运时间按当前采用的传统计算方法估算'}
                   </p>
                 </section>
                 <section className="rounded-card border border-cinnabar-500/20 bg-cinnabar-500/10 px-3 py-2.5">
@@ -343,7 +359,7 @@ export function BaziWorkspace() {
               </div>
               <div className="mt-3 grid gap-2 lg:grid-cols-2">
                 <section className="rounded-card border border-white/8 bg-white/[0.025] px-3 py-2.5">
-                  <p className="text-xs font-semibold text-jade-100/70">流年与原局</p>
+                  <p className="text-xs font-semibold text-jade-100/70">这一年与本命盘的互动</p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {transit.natalRelations.length > 0
                       ? transit.natalRelations.map((item) => (
@@ -351,7 +367,7 @@ export function BaziWorkspace() {
                           {item.pillar}{item.ganZhi} · {item.relations.join('、')}
                         </span>
                       ))
-                      : <span className="text-xs text-jade-100/50">未见冲、合、刑、害关系</span>}
+                      : <span className="text-xs text-jade-100/50">未发现本规则重点标记的干支互动</span>}
                   </div>
                 </section>
                 <section className="rounded-card border border-white/8 bg-white/[0.025] px-3 py-2.5">
@@ -359,7 +375,7 @@ export function BaziWorkspace() {
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {transit.currentLuck && transit.luckRelations.length > 0
                       ? <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2 py-0.5 text-xs text-jade-100/80">{transit.currentLuck.stem}{transit.currentLuck.branch} · {transit.luckRelations.join('、')}</span>
-                      : <span className="text-xs text-jade-100/50">未见冲、合、刑、害关系</span>}
+                      : <span className="text-xs text-jade-100/50">未发现本规则重点标记的干支互动</span>}
                   </div>
                 </section>
               </div>
@@ -369,16 +385,17 @@ export function BaziWorkspace() {
             <section className="order-3 console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument" aria-labelledby="bazi-advanced-title">
               <div>
                 <h3 id="bazi-advanced-title" className="text-lg font-semibold text-jade-50">命局要览</h3>
-                <p className="mt-1 text-sm leading-6 text-jade-100/55">从月令、根气、助力与五行关系，看看命局的整体倾向。</p>
+                <p className="mt-1 text-sm leading-6 text-jade-100/55">从出生季节、日主支持度与五行关系，观察命盘的整体平衡状态。</p>
               </div>
               <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                 {[
-                  ['月令', `${result.advancedAnalysis.monthCommand.branch}月 · ${result.advancedAnalysis.monthCommand.dayMasterState} · ${result.advancedAnalysis.monthCommand.obtainsCommand ? '得令' : '失令'}`, result.advancedAnalysis.monthCommand.reason],
-                  ['扶抑', `${result.advancedAnalysis.support.strength} · ${result.advancedAnalysis.fuyii.principle} · 用${result.advancedAnalysis.fuyii.usefulElements.join('、')}`, result.advancedAnalysis.fuyii.reason.join('')],
-                  ['格局', `${result.advancedAnalysis.pattern.name} · ${result.advancedAnalysis.pattern.status}`, result.advancedAnalysis.pattern.reason.join('')],
-                  ['从格 / 化气', `${result.advancedAnalysis.followPattern.status === '成立' ? result.advancedAnalysis.followPattern.type : '从格不成立'} · ${result.advancedAnalysis.transformation.status === '成立' ? `${result.advancedAnalysis.transformation.element}化气成立` : '化气不成立'}`, [...result.advancedAnalysis.followPattern.reason, ...result.advancedAnalysis.transformation.reason].join('')],
-                  ['调候 / 通关', `调候取${result.advancedAnalysis.seasonalAdjustment.usefulElements.join('、')} · ${result.advancedAnalysis.passage.status === '成立' ? `${result.advancedAnalysis.passage.conflict}取${result.advancedAnalysis.passage.element}通关` : '未见通关'}`, [...result.advancedAnalysis.seasonalAdjustment.reason, ...result.advancedAnalysis.passage.reason].join('')],
-                  ['病药', `${result.advancedAnalysis.remedy.status === '成立' ? result.advancedAnalysis.remedy.remedy : '暂无明显病药组合'}`, result.advancedAnalysis.remedy.reason.join('')],
+                  ['出生季节力量', `${result.advancedAnalysis.monthCommand.branch}月 · ${result.advancedAnalysis.monthCommand.dayMasterState} · ${result.advancedAnalysis.monthCommand.obtainsCommand ? '较有支持' : '支持较少'}`, result.advancedAnalysis.monthCommand.reason],
+                  ['平衡方向', `${result.advancedAnalysis.support.strength} · ${result.advancedAnalysis.fuyii.principle === '抑强' ? '适度疏泄' : result.advancedAnalysis.fuyii.principle === '扶弱' ? '适度补足' : '保持协调'} · 参考${result.advancedAnalysis.fuyii.usefulElements.join('、')}`, result.advancedAnalysis.fuyii.reason.join('')],
+                  ['结构观察', `${result.advancedAnalysis.pattern.name} · ${result.advancedAnalysis.pattern.status}`, result.advancedAnalysis.pattern.reason.join('')],
+                  ['从格', result.advancedAnalysis.followPattern.status === '成立' ? result.advancedAnalysis.followPattern.type : '不按从格看', result.advancedAnalysis.followPattern.reason.join('')],
+                  ['化气', result.advancedAnalysis.transformation.status === '成立' ? `${result.advancedAnalysis.transformation.element}化成立` : '暂不按化气看', result.advancedAnalysis.transformation.reason.join('')],
+                  ['季节平衡 / 五行协调', `季节平衡参考${result.advancedAnalysis.seasonalAdjustment.usefulElements.join('、')} · ${result.advancedAnalysis.passage.status === '成立' ? `${result.advancedAnalysis.passage.conflict}之间可参考${result.advancedAnalysis.passage.element}协调` : '未见需要特别协调的五行关系'}`, [...result.advancedAnalysis.seasonalAdjustment.reason, ...result.advancedAnalysis.passage.reason].join('')],
+                  ['特殊组合提示', `${result.advancedAnalysis.remedy.status === '成立' ? result.advancedAnalysis.remedy.remedy : '未发现本规则特别标记的组合'}`, result.advancedAnalysis.remedy.reason.join('')],
                 ].map(([label, value, detail]) => (
                   <section key={label} className="rounded-card border border-white/8 bg-white/[0.025] px-3 py-2.5">
                     <p className="text-xs font-semibold text-jade-100/70">{label}</p>
@@ -387,7 +404,8 @@ export function BaziWorkspace() {
                   </section>
                 ))}
               </div>
-              <p className="mt-3 text-xs leading-5 text-jade-100/45">命局解读依传统命理规则整理，适合用于传统文化学习与自我观察，不作为现实决策依据。</p>
+              <p className="mt-3 text-xs leading-5 text-jade-100/45">判断次序：{result.advancedAnalysis.priority.join('；')}。</p>
+              <p className="mt-1 text-xs leading-5 text-jade-100/45">命局解读依传统命理规则整理，适合用于传统文化学习与自我观察，不作为现实决策依据。</p>
             </section>
           )}
           {monthDayTransit.available && (
@@ -462,7 +480,7 @@ export function BaziWorkspace() {
               <div>
                 <h3 className="text-lg font-semibold text-jade-50">五行平衡</h3>
                 <p className="mt-1 text-sm leading-6 text-jade-100/55">
-                  五行相生相克图，统计姓名各字五行分布。
+                  根据四柱中的天干、地支和藏干，展示五行力量的相对分布。
                 </p>
               </div>
             </div>
@@ -484,7 +502,7 @@ export function BaziWorkspace() {
           <TermExplanationPanel
             ready={ready}
             initialTerm="日主"
-            terms={["日主","十神","正印","偏印","正官","七杀","正财","偏财","比肩","劫财","食神","伤官","喜用神","五行","纳音"]}
+            terms={["日主","十神","喜用神","身强","身弱","月令","得令","失令","通根","扶抑","格局","从格","化气","调候","通关","病药","本命盘","冲合刑害","正印","偏印","正官","七杀","正财","偏财","比肩","劫财","食神","伤官","五行","纳音"]}
             description="读完盘面后，可在这里查看术语的通俗说明。"
           />
         </div>
