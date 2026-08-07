@@ -583,5 +583,11 @@ export function calcShenSha(pillars: PillarsLike, trineSource: TrineSource = 'ye
     pushBranch('勾绞', '勾绞', gouTable[yearBranch].jiao);
   }
 
-  return items;
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const key = `${item.name}:${item.pillar}:${item.branch}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }

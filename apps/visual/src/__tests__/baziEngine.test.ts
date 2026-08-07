@@ -149,6 +149,16 @@ describe('calcShenSha 神煞推算（甲日干 · 午日支 · 年支子 fixture
     });
     expect(kg.some((s) => s.name === '魁罡')).toBe(true);
   });
+  it('相同神煞在同一柱同一地支只保留一项', () => {
+    const ss = calcShenSha({
+      year: { stem: '庚', branch: '子' },
+      month: { stem: '乙', branch: '丑' },
+      day: { stem: '庚', branch: '寅' },
+      hour: { stem: '丁', branch: '亥' },
+    });
+    const taijiAtHour = ss.filter((item) => item.name === '太极贵人' && item.pillar === '时' && item.branch === '亥');
+    expect(taijiAtHour).toHaveLength(1);
+  });
 });
 
 describe('calcBaziEnveloped envelope 适配', () => {
