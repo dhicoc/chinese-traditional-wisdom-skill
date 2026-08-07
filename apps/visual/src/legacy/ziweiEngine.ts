@@ -368,6 +368,112 @@ interface IztroHoroscope {
   age?: IztroHoroscopePeriod & { nominalAge?: number };
 }
 
+interface IztroTransitStar { name?: string }
+interface IztroTransitDecStar {
+  suiqian12?: string[];
+  jiangqian12?: string[];
+}
+interface IztroTransitPeriod extends Omit<IztroHoroscopePeriod, 'stars' | 'yearlyDecStar'> {
+  stars?: IztroTransitStar[][];
+  yearlyDecStar?: IztroTransitDecStar;
+}
+interface IztroTransitHoroscope {
+  decadal?: IztroTransitPeriod;
+  yearly?: IztroTransitPeriod;
+}
+
+export interface ZiweiTransitPeriod {
+  stem: string;
+  branch: string;
+  mutagen: string[];
+  starsByNatalPalace: Record<string, string[]>;
+}
+
+export interface ZiweiTransitSnapshot {
+  targetDate: string;
+  decadal: ZiweiTransitPeriod;
+  yearly: ZiweiTransitPeriod & {
+    mingPalace: { natalPalace: string; earthlyBranch: string };
+    suiqian12ByNatalPalace: Record<string, string>;
+    jiangqian12ByNatalPalace: Record<string, string>;
+  };
+  available: boolean;
+}
+
+function normalizeIztroPalaceName(name: string | undefined): string {
+  return name ? IZTRO_PALACE_MAP[name] ?? name : '未知';
+}
+
+function transitStarsByNatalPalace(palaces: IztroPalace[], stars: IztroTransitStar[][] | undefined): Record<string, string[]> {
+  return palaces.reduce<Record<string, string[]>>((result, palace, index) => {
+    const palaceName = normalizeIztroPalaceName(palace.name);
+    result[palaceName] = (stars?.[index] ?? []).flatMap((star) => star.name ? [star.name] : []);
+    return result;
+  }, {});
+}
+
+function transitDeitiesByNatalPalace(palaces: IztroPalace[], deities: string[] | undefined): Record<string, string> {
+  return palaces.reduce<Record<string, string>>((result, palace, index) => {
+    const deity = deities?.[index];
+    if (deity) result[normalizeIztroPalaceName(palace.name)] = deity;
+    return result;
+  }, {});
+}
+
+export function getZiweiTransitSnapshot(birth: ZiweiBirth, targetDate: string): ZiweiTransitSnapshot {
+  const empty: ZiweiTransitSnapshot = {
+    targetDate,
+    decadal: { stem: '', branch: '', mutagen: [], starsByNatalPalace: {} },
+    yearly: {
+      stem: '',
+      branch: '',
+      mutagen: [],
+      starsByNatalPalace: {},
+      mingPalace: { natalPalace: '未知', earthlyBranch: '' },
+      suiqian12ByNatalPalace: {},
+      jiangqian12ByNatalPalace: {},
+    },
+    available: false,
+  };
+  try {
+    let timeIndex = Math.floor((birth.hour + 1) / 2);
+    if (timeIndex === 12) timeIndex = 0;
+    const chart = astro.bySolar(`${birth.year}-${birth.month}-${birth.day}`, timeIndex, birth.gender) as unknown as {
+      horoscope?: (date: string) => IztroTransitHoroscope;
+      palaces?: IztroPalace[];
+    };
+    if (!chart?.palaces || typeof chart.horoscope !== 'function') return empty;
+    const horoscope = chart.horoscope(targetDate);
+    const decadal = horoscope.decadal ?? {};
+    const yearly = horoscope.yearly ?? {};
+    const mingPalace = chart.palaces[yearly.index ?? -1];
+    return {
+      targetDate,
+      decadal: {
+        stem: decadal.heavenlyStem ?? '',
+        branch: decadal.earthlyBranch ?? '',
+        mutagen: decadal.mutagen ?? [],
+        starsByNatalPalace: transitStarsByNatalPalace(chart.palaces, decadal.stars),
+      },
+      yearly: {
+        stem: yearly.heavenlyStem ?? '',
+        branch: yearly.earthlyBranch ?? '',
+        mutagen: yearly.mutagen ?? [],
+        starsByNatalPalace: transitStarsByNatalPalace(chart.palaces, yearly.stars),
+        mingPalace: {
+          natalPalace: normalizeIztroPalaceName(mingPalace?.name),
+          earthlyBranch: mingPalace?.earthlyBranch ?? '',
+        },
+        suiqian12ByNatalPalace: transitDeitiesByNatalPalace(chart.palaces, yearly.yearlyDecStar?.suiqian12),
+        jiangqian12ByNatalPalace: transitDeitiesByNatalPalace(chart.palaces, yearly.yearlyDecStar?.jiangqian12),
+      },
+      available: true,
+    };
+  } catch {
+    return empty;
+  }
+}
+
 /** 流年/大限摘要 */
 export interface ZiweiHoroscopeSummary {
   /** 目标年份 */

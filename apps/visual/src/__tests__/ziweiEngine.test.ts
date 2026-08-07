@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateZiwei, calcZiweiEnveloped } from '@/legacy/ziweiEngine';
+import { calculateZiwei, calcZiweiEnveloped, getZiweiTransitSnapshot } from '@/legacy/ziweiEngine';
 import type { ToolEnvelope } from '@/legacy/baseTypes';
 
 /**
@@ -82,6 +82,25 @@ describe('calculateZiwei 真实 iztro ESM 排盘', () => {
     expect(r.palaces['命宫'].boshi12).toBe('伏兵');
     expect(r.palaces['交友'].changsheng12).toBe('长生');
     expect(r.palaces['福德'].boshi12).toBe('博士');
+  });
+});
+
+describe('getZiweiTransitSnapshot 运限流年分层', () => {
+  it('按目标日期返回大限流耀、流年实位与流年十二神', () => {
+    const snapshot = getZiweiTransitSnapshot(
+      { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      '2025-07-15',
+    );
+
+    expect(snapshot.available).toBe(true);
+    expect(snapshot.targetDate).toBe('2025-07-15');
+    expect(snapshot.decadal).toMatchObject({ stem: '己', branch: '卯', mutagen: ['武曲', '贪狼', '天梁', '文曲'] });
+    expect(snapshot.yearly).toMatchObject({ stem: '乙', branch: '巳', mutagen: ['天机', '天梁', '紫微', '太阴'] });
+    expect(snapshot.yearly.mingPalace).toEqual({ natalPalace: '交友', earthlyBranch: '巳' });
+    expect(snapshot.yearly.starsByNatalPalace['兄弟']).toEqual(expect.arrayContaining(['流马']));
+    expect(snapshot.yearly.starsByNatalPalace['财帛']).toEqual(expect.arrayContaining(['流钺', '流曲']));
+    expect(snapshot.yearly.suiqian12ByNatalPalace['交友']).toBe('岁建');
+    expect(snapshot.yearly.jiangqian12ByNatalPalace['交友']).toBe('指背');
   });
 });
 

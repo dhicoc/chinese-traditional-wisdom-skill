@@ -9,6 +9,7 @@ import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import {
   calculateZiwei as calculateZiweiPure,
   calcZiweiEnveloped,
+  getZiweiTransitSnapshot,
   type ZiweiPalace,
   type ZiweiStar,
 } from '@/legacy/ziweiEngine';
@@ -129,9 +130,12 @@ function calculateZiweiData(solarBirth: SolarBirth, ready: boolean): ZiweiData {
 export function ZiweiWorkspace() {
   const { solarBirth } = useBirth();
   const [activePalace, setActivePalace] = useState<string | null>(null);
+  const [transitYear, setTransitYear] = useState(() => String(new Date().getFullYear()));
 
   const ready = true;
   const data = useMemo(() => calculateZiweiData(solarBirth, ready), [solarBirth, ready]);
+  const transitDate = `${transitYear}-07-15`;
+  const transit = useMemo(() => getZiweiTransitSnapshot(solarBirth, transitDate), [solarBirth, transitDate]);
   const firstPalaceWithStars = PALACE_NAMES.find((name) => data.palaces[name]?.stars.length > 0) ?? null;
   const selectedPalaceName = activePalace && data.palaces[activePalace] ? activePalace : firstPalaceWithStars;
   const selectedPalace = selectedPalaceName ? data.palaces[selectedPalaceName] : null;
@@ -271,6 +275,59 @@ export function ZiweiWorkspace() {
                             {star.name}{star.mutagen ? `化${star.mutagen}` : ''}
                           </span>
                         ))}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+          {transit.available && (
+            <section className="mt-4 border-t border-jade-500/16 pt-4" aria-labelledby="ziwei-transit-title">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h4 id="ziwei-transit-title" className="text-sm font-semibold text-jade-100">大限 · 流年</h4>
+                  <p className="mt-1 text-xs leading-5 text-jade-100/50">按目标年份查看大限、流年四化与流年十二神。</p>
+                </div>
+                <label className="flex items-center gap-2 text-xs text-jade-100/65">
+                  目标年份
+                  <input
+                    type="number"
+                    value={transitYear}
+                    min="1900"
+                    max="2100"
+                    onChange={(event) => setTransitYear(event.target.value)}
+                    className="w-24 rounded border border-white/10 bg-black/30 px-2 py-1 text-sm text-jade-50 outline-none focus:border-jade-500/60"
+                  />
+                </label>
+              </div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <section className="rounded-card border border-jade-500/20 bg-jade-500/10 px-3 py-2.5">
+                  <p className="text-xs font-semibold text-jade-100/70">大限</p>
+                  <p className="mt-1 text-sm text-jade-50">{transit.decadal.stem}{transit.decadal.branch}</p>
+                  <p className="mt-1 text-xs text-jade-100/55">化禄 {transit.decadal.mutagen[0] || '—'} · 化权 {transit.decadal.mutagen[1] || '—'} · 化科 {transit.decadal.mutagen[2] || '—'} · 化忌 {transit.decadal.mutagen[3] || '—'}</p>
+                </section>
+                <section className="rounded-card border border-cinnabar-500/20 bg-cinnabar-500/10 px-3 py-2.5">
+                  <p className="text-xs font-semibold text-jade-100/70">流年</p>
+                  <p className="mt-1 text-sm text-jade-50">{transit.yearly.stem}{transit.yearly.branch} · 命宫落{transit.yearly.mingPalace.natalPalace}{transit.yearly.mingPalace.earthlyBranch}</p>
+                  <p className="mt-1 text-xs text-jade-100/55">化禄 {transit.yearly.mutagen[0] || '—'} · 化权 {transit.yearly.mutagen[1] || '—'} · 化科 {transit.yearly.mutagen[2] || '—'} · 化忌 {transit.yearly.mutagen[3] || '—'}</p>
+                </section>
+              </div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                {PALACE_NAMES.map((palace) => {
+                  const decadalStars = transit.decadal.starsByNatalPalace[palace] ?? [];
+                  const yearlyStars = transit.yearly.starsByNatalPalace[palace] ?? [];
+                  const suiqian = transit.yearly.suiqian12ByNatalPalace[palace];
+                  const jiangqian = transit.yearly.jiangqian12ByNatalPalace[palace];
+                  if (!decadalStars.length && !yearlyStars.length && !suiqian && !jiangqian) return null;
+                  return (
+                    <section key={palace} className="rounded-card border border-white/8 bg-white/[0.025] px-3 py-2.5">
+                      <p className="text-xs font-semibold text-jade-100/70">{palace}</p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {decadalStars.map((star) => <span key={`decadal-${star}`} className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2 py-0.5 text-xs text-jade-100/80">{star}</span>)}
+                        {yearlyStars.map((star) => <span key={`yearly-${star}`} className="rounded-full border border-cinnabar-500/25 bg-cinnabar-500/10 px-2 py-0.5 text-xs text-cinnabar-400">{star}</span>)}
+                        {suiqian && <span className="rounded-full border border-white/10 bg-black/25 px-2 py-0.5 text-xs text-jade-100/65">岁前 · {suiqian}</span>}
+                        {jiangqian && <span className="rounded-full border border-white/10 bg-black/25 px-2 py-0.5 text-xs text-jade-100/65">将前 · {jiangqian}</span>}
                       </div>
                     </section>
                   );
