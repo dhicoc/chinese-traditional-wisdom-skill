@@ -78,29 +78,28 @@ export function QimenWorkspace() {
     }
   }, [ready, solarBirth]);
 
-  const fourLayer = useMemo<LayerReport | null>(() => {
+  const exportSnapshot = useMemo(() => {
     if (!ready || !result) return null;
     try {
-      const env = calcQimenEnveloped({ birth: solarBirth });
-      return toFourLayer(env.data.export_snapshot as ReadingLike);
+      return calcQimenEnveloped({ birth: solarBirth }).data.export_snapshot;
     } catch {
       return null;
     }
   }, [ready, solarBirth, result]);
+  const fourLayer = useMemo<LayerReport | null>(() => (
+    exportSnapshot ? toFourLayer(exportSnapshot as ReadingLike) : null
+  ), [exportSnapshot]);
 
   const contextPayload = useMemo(
     () => ({
-      module: 'qimen',
-      mode: result?.mode ?? 'loading',
-      engineName: result?.engineName,
-      solarBirth,
-      dun: result?.dun,
-      ju: result?.ju,
-      zhiFu: result?.zhiFu,
-      zhiShi: result?.zhiShi,
-      auspiciousPatterns: result?.auspiciousPatterns,
-      inauspiciousPatterns: result?.inauspiciousPatterns,
-      source: '3meta v2.6.0 + apps/visual/src/legacy/qimenEngine.ts',
+      项目: '奇门遁甲',
+      生辰: solarBirth,
+      阴阳遁: result?.dun,
+      局数: result?.ju,
+      值符: result?.zhiFu,
+      值使: result?.zhiShi,
+      吉格: result?.auspiciousPatterns,
+      凶格: result?.inauspiciousPatterns,
     }),
     [result, solarBirth],
   );
@@ -116,8 +115,8 @@ export function QimenWorkspace() {
             </p>
           </div>
           <div className="flex gap-2">
-            <CopyContextButton commandScope="qimen" title="奇门遁甲上下文" payload={contextPayload} />
-            <ExportReportButton module="命盘" />
+            <CopyContextButton commandScope="qimen" title="奇门遁甲摘要" payload={contextPayload} />
+            <ExportReportButton module="奇门遁甲命盘" report={exportSnapshot} />
           </div>
         </div>
       </div>
@@ -133,7 +132,7 @@ export function QimenWorkspace() {
           {/* 排盘概要：局式信息 + 四柱 + 值符值使 + 吉凶格局，紧凑单卡 */}
           <InterpretationCard
             title="排盘概要"
-            badge={result.mode === 'local-exact' ? '真实排盘' : '简化排盘'}
+            badge={result.mode === 'local-exact' ? '按出生资料排盘' : '参考推算'}
           >
             {/* 局式 + 四柱：两列 */}
             <div className="grid gap-3 sm:grid-cols-2">
@@ -273,7 +272,7 @@ export function QimenWorkspace() {
       )}
       {fourLayer && (
         <div className="console-panel mt-4 rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-          <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
+          <FourLayerReport report={fourLayer} title="奇门遁甲解读" />
         </div>
       )}
     </section>

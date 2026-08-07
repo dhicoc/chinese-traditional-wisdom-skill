@@ -29,6 +29,17 @@ export function RhythmWorkspace() {
     const d = new Date();
     return queryJieqiWellness({ year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() });
   }, []);
+  const exportReport = useMemo(() => {
+    const focusedShiChen = selectedShiChen ?? currentShiChen;
+    return {
+      summary: `${jieqi.jieqi}节气调养与十二时辰经络参考。`,
+      sections: [
+        { heading: '节气调养', body: `${jieqi.wellness.season}季 · ${jieqi.wellness.principle}\n${jieqi.wellness.feature}` },
+        { heading: '日常建议', body: `饮食：${jieqi.wellness.diet}\n起居：${jieqi.wellness.lifestyle}\n运动：${jieqi.wellness.exercise}\n穴位：${jieqi.wellness.acupoints}` },
+        ...(focusedShiChen ? [{ heading: '时辰养护', body: `${focusedShiChen.name}（${focusedShiChen.time}）\n当令经络：${focusedShiChen.meridian}\n对应脏腑：${focusedShiChen.organ}\n生理活动：${focusedShiChen.function}\n养生建议：${focusedShiChen.advice}` }] : []),
+      ],
+    };
+  }, [currentShiChen, jieqi, selectedShiChen]);
 
   return (
     <div className="space-y-6">
@@ -43,7 +54,7 @@ export function RhythmWorkspace() {
             <span className="rounded-full border border-jade-500/30 bg-jade-500/10 px-3 py-1 text-xs text-jade-500">
               养生参考
             </span>
-            <ExportReportButton module="每日节律" />
+            <ExportReportButton module="每日节律" report={exportReport} />
           </div>
         </div>
       </div>

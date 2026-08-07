@@ -78,7 +78,7 @@ export function FourLayerReport({ report, title, defaultDetailsOpen = false }: F
       {/* 第二层：highlights 亮点/风险（单列全宽，与 tldr 对齐） */}
       {report.highlights.length > 0 && (
         <div>
-          <p className="mb-1.5 text-xs font-medium text-jade-100/55">关键亮点 / 风险</p>
+          <p className="mb-1.5 text-xs font-medium text-jade-100/55">值得留意的方向</p>
           <div className="space-y-2">
             {report.highlights.map((h, i) => {
               const hs = TONE_STYLE[h.tone];
@@ -115,7 +115,7 @@ export function FourLayerReport({ report, title, defaultDetailsOpen = false }: F
             onClick={() => setDetailsOpen((v) => !v)}
             className="flex w-full items-center justify-between text-xs font-medium text-jade-100/55 transition hover:text-jade-100/80"
           >
-            <span>详细分析（{report.details.length} 段）</span>
+            <span>查看详细解读</span>
             <span>{detailsOpen ? '收起 ▲' : '展开 ▼'}</span>
           </button>
           {detailsOpen && (

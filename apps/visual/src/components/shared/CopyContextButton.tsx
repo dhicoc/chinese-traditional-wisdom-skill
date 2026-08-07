@@ -11,14 +11,27 @@ interface CopyContextButtonProps {
 
 type CopyStatus = 'idle' | 'copied' | 'error';
 
-/** 把标题 + payload 转成 LLM 友好的 Markdown 代码块（导出供测试）。 */
+function formatValue(value: unknown): string {
+  if (value === null || value === undefined || value === '') return '—';
+  if (Array.isArray(value)) return value.map(formatValue).join('、');
+  if (typeof value === 'object') {
+    return Object.entries(value as Record<string, unknown>)
+      .map(([key, item]) => `${key}：${formatValue(item)}`)
+      .join('；');
+  }
+  return String(value);
+}
+
 export function toMarkdown(title: string, payload: unknown) {
-  return [`# ${title}`, '', '```json', JSON.stringify(payload, null, 2), '```', ''].join('\n');
+  const lines = typeof payload === 'object' && payload !== null && !Array.isArray(payload)
+    ? Object.entries(payload as Record<string, unknown>).map(([key, value]) => `- ${key}：${formatValue(value)}`)
+    : [formatValue(payload)];
+  return [`# ${title}`, '', ...lines, ''].join('\n');
 }
 
 const FEEDBACK_MS = 1800;
 
-export function CopyContextButton({ label = 'Copy context for AI', title, payload, commandScope }: CopyContextButtonProps) {
+export function CopyContextButton({ label = '复制解读摘要', title, payload, commandScope }: CopyContextButtonProps) {
   const [status, setStatus] = useState<CopyStatus>('idle');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -65,7 +78,7 @@ export function CopyContextButton({ label = 'Copy context for AI', title, payloa
     return () => window.removeEventListener(COPY_CONTEXT_INTENT, handleCopyIntent);
   }, [commandScope, copy]);
 
-  const display = status === 'copied' ? 'Copied' : status === 'error' ? '复制失败' : label;
+  const display = status === 'copied' ? '已复制' : status === 'error' ? '复制失败' : label;
 
   return (
     <button

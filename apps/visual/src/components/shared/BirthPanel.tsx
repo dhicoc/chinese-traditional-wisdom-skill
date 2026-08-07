@@ -52,7 +52,7 @@ export function BirthPanel() {
     void fallback;
   };
 
-  const summary = `${birth.year}-${String(birth.month).padStart(2, '0')}-${String(birth.day).padStart(2, '0')} ${birth.gender} ${birth.isLunar ? '农历' : '公历'} ${birth.useExactCalendar ? '精确' : '近似'}`;
+  const summary = `${birth.year}-${String(birth.month).padStart(2, '0')}-${String(birth.day).padStart(2, '0')} ${birth.gender} ${birth.isLunar ? '农历' : '公历'}`;
 
   const handleToggle = () => {
     if (isDefaultBirth && !userToggledHidden && !userToggled) {
@@ -82,7 +82,7 @@ export function BirthPanel() {
         </button>
         <div className="flex shrink-0 items-center gap-2">
           <span className={`rounded-full border px-2 py-0.5 text-[10px] ${legacyReady ? 'border-jade-500/25 bg-jade-500/10 text-jade-400' : 'border-white/10 bg-ink-700/50 text-jade-100/30'}`}>
-            {legacyReady ? '已同步' : '等待引擎'}
+            {legacyReady ? '已更新' : '准备中'}
           </span>
           {expanded && (
             <button

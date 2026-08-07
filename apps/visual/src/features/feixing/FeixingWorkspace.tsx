@@ -111,16 +111,23 @@ export function FeixingWorkspace() {
 
   const contextPayload = useMemo(
     () => ({
-      module: 'feixing',
-      mode: 'local-approx',
-      year,
-      centerStar: summary ?? null,
-      yuanYun: yuanYun.name,
-      usageSummary,
-      source: 'apps/visual/src/legacy/canvasRenderers.ts + flyingStarRemedies.ts',
+      项目: '流年飞星',
+      年份: year,
+      中宫飞星: summary ?? null,
+      元运: yuanYun.name,
+      方位参考: usageSummary,
     }),
     [year, summary, yuanYun, usageSummary],
   );
+  const exportReport = useMemo(() => ({
+    summary: `${year}年流年飞星方位参考。`,
+    sections: [
+      { heading: '中宫与元运', body: `中宫飞星：${summary ? `${summary.centerStar} · ${summary.starName} · ${summary.wuxing} · ${summary.luck}` : '—'}\n元运：${yuanYun.name}（${yuanYun.startYear}-${yuanYun.endYear}）` },
+      ...(usageSummary ? [{ heading: '方位用途', body: `财位：${usageSummary.wealth}方\n文昌位：${usageSummary.study}方\n桃花位：${usageSummary.romance}方\n病符位：${usageSummary.illness}方\n五黄位：${usageSummary.danger}方` }] : []),
+      ...(mingGuaResult ? [{ heading: '个人方位参考', body: `生气位：${mingGuaResult.shengqi}方\n天医位：${mingGuaResult.tianyi}方\n延年位：${mingGuaResult.niannian}方\n绝命位：${mingGuaResult.jueming}方` }] : []),
+      { heading: '九星方位', body: gridRemedies.map(({ cell, remedy }) => `${PALACE_TO_DIR[cell.palace] ?? cell.palace}方：${remedy?.name ?? `${cell.starNum}星`} · ${remedy?.usageLabel ?? '方位参考'}`).join('\n') },
+    ],
+  }), [gridRemedies, mingGuaResult, summary, usageSummary, year, yuanYun]);
 
   return (
     <section className="space-y-4">
@@ -133,8 +140,8 @@ export function FeixingWorkspace() {
             </p>
           </div>
           <div className="flex gap-2">
-            <CopyContextButton commandScope="feixing" title="流年飞星上下文" payload={contextPayload} />
-            <ExportReportButton module="流年飞星" />
+            <CopyContextButton commandScope="feixing" title="流年飞星摘要" payload={contextPayload} />
+            <ExportReportButton module="流年飞星" report={exportReport} />
           </div>
         </div>
       </div>

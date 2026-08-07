@@ -269,7 +269,7 @@ function buildMeihuaResult(
     numbers,
     engineName: 'LocalMeihuaTimeAdapter',
     mode,
-    confidenceNote: '本地时间起卦：按年月日时取数定上下卦与动爻，并计算互卦、变卦、体用生克、错卦、综卦、卦德、吉凶分级与策略指导；不同流派可能采用不同取数口径。',
+    confidenceNote: '本解读根据年月日时取数，观察本卦、互卦、变卦、体用生克、错卦与综卦。不同流派的取数方法可能不同，宜结合具体情境参考。',
   };
 }
 
@@ -379,12 +379,12 @@ export function calcMeihuaEnveloped(input: MeihuaInput, solar?: SolarLike | null
     }
     sections.push({ heading: '彖传', body: classicalText.tuanZhuan });
   }
-  sections.push({ heading: '起卦方式', body: `${result.sourceMethod}。${result.confidenceNote}` });
+  sections.push({ heading: '使用提醒', body: '本卦依传统梅花易数规则整理，适合用于传统文化学习与自我观察，不作为现实决策依据。' });
   const snapshot: ExportSnapshot = {
     summary: `上卦${upper.name}(${upper.nature})、下卦${lower.name}(${lower.nature})，${result.changingLine}爻动。体卦${result.bodyTrigram}、用卦${result.useTrigram}，体用${result.bodyUseRelation}，${result.fortuneLevel}。`,
     tags: ['梅花易数', result.hexagramName, '动爻' + result.changingLine, result.bodyUseRelation, result.fortuneLevel],
     sections,
-    sourceNotes: result.confidenceNote,
+    sourceNotes: '梅花易数内容仅作传统文化参考。',
   };
 
   return {

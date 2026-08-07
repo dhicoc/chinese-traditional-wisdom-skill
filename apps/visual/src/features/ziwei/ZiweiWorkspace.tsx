@@ -144,31 +144,26 @@ export function ZiweiWorkspace() {
     if (!item?.changsheng12 || !item.boshi12) return [];
     return [{ palace, changsheng12: item.changsheng12, boshi12: item.boshi12 }];
   });
-  const fourLayer = useMemo<LayerReport | null>(() => {
+  const exportSnapshot = useMemo(() => {
     if (!ready) return null;
     try {
-      const env = calcZiweiEnveloped({ birth: solarBirth, mingGua: { trigram: '?', group: '?' } });
-      return toFourLayer(env.data.export_snapshot as ReadingLike);
+      return calcZiweiEnveloped({ birth: solarBirth, mingGua: { trigram: '?', group: '?' } }).data.export_snapshot;
     } catch {
       return null;
     }
   }, [solarBirth, ready]);
+  const fourLayer = useMemo<LayerReport | null>(() => (
+    exportSnapshot ? toFourLayer(exportSnapshot as ReadingLike) : null
+  ), [exportSnapshot]);
   const palaceCount = Object.keys(data.palaces || {}).length;
-  const transformedByIztro = data.engineName === 'ZiweiIztroAdapter';
   const contextPayload = useMemo(
     () => ({
-      module: 'ziwei',
-      mode: data.mode ?? 'unknown',
-      engineName: data.engineName,
-      version: data.version,
-      birth: data.birthInfo,
-      palaceCount,
-      source: transformedByIztro ? 'SylarLong/iztro v2.5.8 (ESM) + ziweiEngine.ts' : 'React fallback demo',
-      note: transformedByIztro
-        ? '基于内置 iztro v2.5.8 真实排盘。'
-        : '旧引擎未就绪时仅用于界面降级，不作为真实排盘结论。',
+      项目: '紫微斗数命盘',
+      生辰: data.birthInfo,
+      宫位数: palaceCount,
+      命卦: data.mingGua,
     }),
-    [data, palaceCount, transformedByIztro],
+    [data.birthInfo, data.mingGua, palaceCount],
   );
 
   return (
@@ -182,8 +177,8 @@ export function ZiweiWorkspace() {
             </p>
           </div>
           <div className="flex gap-2">
-            <CopyContextButton commandScope="ziwei" title="紫微斗数 React 迁移上下文" payload={contextPayload} />
-            <ExportReportButton module="命盘" />
+            <CopyContextButton commandScope="ziwei" title="紫微斗数命盘摘要" payload={contextPayload} />
+            <ExportReportButton module="紫微斗数命盘" report={exportSnapshot} />
           </div>
         </div>
       </div>
@@ -191,11 +186,10 @@ export function ZiweiWorkspace() {
       <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
         <aside className="space-y-4 rounded-panel border border-ink-700 bg-black/24 p-4">
           <InterpretationCard
-            title="排盘状态"
+            title="命盘信息"
             items={[
-              { label: '状态', value: data.mode === 'local-exact' ? '真实排盘' : '演示数据'},
-              { label: '宫位', value: String(palaceCount) + ' 宫'},
-              { label: '命卦', value: data.mingGua.trigram + '卦 · ' + data.mingGua.group},
+              { label: '宫位', value: String(palaceCount) + ' 宫' },
+              { label: '命卦', value: data.mingGua.trigram + '卦 · ' + data.mingGua.group },
             ]}
           />
 
@@ -219,7 +213,7 @@ export function ZiweiWorkspace() {
           />
           {fourLayer && (
             <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-              <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
+              <FourLayerReport report={fourLayer} title="命盘解读" />
             </div>
           )}
         </aside>

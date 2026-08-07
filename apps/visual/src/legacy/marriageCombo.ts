@@ -280,7 +280,7 @@ export async function calcMarriageCombo(input: MarriageComboInput): Promise<Tool
     if (overlap.length) zwCompareParts.push(`双方命宫共${overlap.join('、')}，性格底色有共鸣`);
     else zwCompareParts.push('双方命宫主星不同，性格互补为主');
   } else {
-    zwCompareParts.push('紫微数据不可用（iztro 未加载），降级为占位');
+    zwCompareParts.push('暂未取得紫微命宫主星资料，本次以八字、五行、姓名与命卦信息为主参看');
   }
   const ziweiCompare = zwCompareParts.join('；') + '。';
 
@@ -391,12 +391,12 @@ export async function calcMarriageCombo(input: MarriageComboInput): Promise<Tool
     export_snapshot: snapshot,
     engineName: 'marriageCombo',
     mode: 'local-exact',
-    confidenceNote: '八字/冲合/命卦确定性计算；紫微依赖 iztro；姓名依赖 fate 数据',
+    confidenceNote: '本解读结合八字冲合、命卦、紫微与姓名等内容，宜结合双方实际相处情况参考。',
   };
 
   const warnings: string[] = [];
-  if (!zwA.available || !zwB.available) warnings.push('紫微合盘降级为占位（iztro 未加载）');
-  if (nameMatch === null) warnings.push('未提供双方姓名，姓名匹配维度跳过');
+  if (!zwA.available || !zwB.available) warnings.push('紫微合盘信息暂未显示，请结合其他内容参考');
+  if (nameMatch === null) warnings.push('未提供双方姓名，姓名匹配部分暂未显示');
 
   return {
     ok: true,

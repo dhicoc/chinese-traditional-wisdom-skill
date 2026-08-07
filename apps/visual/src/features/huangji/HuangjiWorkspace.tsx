@@ -74,7 +74,7 @@ export function HuangjiWorkspace() {
           </div>
           <div className="flex items-center gap-2">
             <span className="rounded-full border border-[rgb(var(--earth)/0.30)] bg-[rgb(var(--earth)/0.10)] px-3 py-1 text-xs text-[var(--c-gold)]">长期宏观</span>
-            <ExportReportButton module="皇极经世" />
+            <ExportReportButton module="皇极经世" report={result.envelope?.data.export_snapshot ?? null} />
           </div>
         </div>
         <p className="mt-3 text-xs leading-5 text-jade-100/45">
@@ -85,7 +85,7 @@ export function HuangjiWorkspace() {
       {/* 起盘信息 + 周期定位 */}
       <InterpretationCard
         title="起盘信息"
-        subtitle={`${birthSummary} · ${data.mode === 'local-exact' ? '真实历法' : '近似历法'}`}
+        subtitle={birthSummary}
       >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-card border border-white/8 bg-white/[0.02] px-3 py-2">
@@ -162,26 +162,25 @@ export function HuangjiWorkspace() {
         <p className="text-sm leading-6 text-jade-100/70">{data.interpretation}</p>
       </InterpretationCard>
 
-      {/* 四层报告 */}
+      {/* 解读 */}
       <div className="console-panel rounded-panel border border-[rgb(var(--earth)/0.16)] bg-ink-950/90 p-4 shadow-instrument">
-        <FourLayerReport report={fourLayer!} title="皇极经世 · 四层报告" />
+        <FourLayerReport report={fourLayer!} title="皇极经世解读" />
       </div>
 
-      {/* 复制上下文 */}
       <div className="flex justify-end">
         <CopyContextButton
           commandScope="huangji"
-          title="皇极经世上下文"
+          title="皇极经世摘要"
           payload={{
-            module: '皇极经世',
-            birth: { year: solarBirth.year, month: solarBirth.month, day: solarBirth.day, hour: solarBirth.hour, gender: solarBirth.gender },
-            solarDate: data.solarDate,
-            ganZhi,
-            cycles,
-            gua,
-            movingLines,
-            cyclePosition: data.cyclePosition,
-            interpretation: data.interpretation,
+            项目: '皇极经世',
+            生辰: { 年份: solarBirth.year, 月份: solarBirth.month, 日期: solarBirth.day, 时辰: solarBirth.hour, 性别: solarBirth.gender },
+            公历日期: data.solarDate,
+            干支: ganZhi,
+            元会运世: cycles,
+            九卦: gua,
+            动爻: movingLines,
+            周期位置: data.cyclePosition,
+            解读: data.interpretation,
           }}
         />
       </div>

@@ -84,15 +84,22 @@ export function MeihuaWorkspace() {
 
   const contextPayload = useMemo(
     () => ({
-      module: 'meihua',
-      mode: 'legacy-canvas-react-shell',
-      data,
-      source: 'apps/visual/src/legacy/meihuaEngine.ts + MeihuaChart SVG',
+      项目: '梅花易数',
+      卦象: data,
     }),
     [data],
   );
 
   const ready = true;
+  const exportReport = useMemo(() => ({
+    summary: `${data.hexagramName}之卦，体用关系为${data.bodyUseRelation}。`,
+    sections: [
+      { heading: '卦象', body: `本卦：${data.hexagramName}（上${data.upperTrigram.name}下${data.lowerTrigram.name}）\n互卦：${data.mutualUpper?.name ?? '—'}${data.mutualLower?.name ?? ''}\n变卦：${data.changingHexagramName}\n动爻：第${data.changingLine}爻` },
+      { heading: '体用关系', body: `体卦：${data.bodyTrigram} · 用卦：${data.useTrigram}\n关系：${data.bodyUseRelation}\n判断：${data.fortuneLevel}\n${data.fortuneDetail}` },
+      { heading: '参考建议', body: data.strategy ?? '顺势而为，审慎参看。' },
+      { heading: '卦德旁参', body: `体卦：${data.bodyGuaDe ?? '—'}\n用卦：${data.useGuaDe ?? '—'}\n错卦：${data.cuoTrigram?.name ?? '—'}\n综卦：${data.zongTrigram?.name ?? '—'}` },
+    ],
+  }), [data]);
 
   return (
     <section className="space-y-4">
@@ -105,8 +112,8 @@ export function MeihuaWorkspace() {
             </p>
           </div>
           <div className="flex gap-2">
-            <CopyContextButton commandScope="meihua" title="梅花易数 React 迁移上下文" payload={contextPayload} />
-            <ExportReportButton module="梅花易数" />
+            <CopyContextButton commandScope="meihua" title="梅花易数摘要" payload={contextPayload} />
+            <ExportReportButton module="梅花易数" report={exportReport} />
           </div>
         </div>
       </div>

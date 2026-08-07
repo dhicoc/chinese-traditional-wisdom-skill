@@ -45,8 +45,8 @@ export function CanvasPanel<TData>({ title, description, data, width, height, re
       setError(null);
       render(canvasId, data);
       if (canvasRef.current) canvasRef.current.style.height = 'auto';
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+    } catch {
+      setError('命盘暂时无法显示，请稍后重试。');
     }
   }, [canvasId, data, ready, render]);
 
@@ -58,9 +58,6 @@ export function CanvasPanel<TData>({ title, description, data, width, height, re
             <h3 className="text-lg font-semibold text-jade-50">{title}</h3>
             <p className="mt-1 text-sm leading-6 text-jade-100/55">{description}</p>
           </div>
-          <span className="w-fit rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-            Legacy Canvas
-          </span>
         </div>
         <div className="canvas-stage overflow-x-auto rounded-card border border-jade-500/18 bg-ink-950/92 p-3">
           <canvas
@@ -73,7 +70,7 @@ export function CanvasPanel<TData>({ title, description, data, width, height, re
             onDoubleClick={openZoom}
           />
         </div>
-        {!ready && <p className="mt-3 text-sm text-jade-100/45">正在加载旧版渲染引擎。</p>}
+        {!ready && <p className="mt-3 text-sm text-jade-100/45">正在生成命盘图…</p>}
         {error && <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">{error}</p>}
       </section>
       {zoomSrc && createPortal(
@@ -92,7 +89,7 @@ export function CanvasPanel<TData>({ title, description, data, width, height, re
           >
             <div className="flex items-center justify-between gap-4 border-b border-white/10 bg-ink-900/92 px-5 py-4">
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-400">Canvas Zoom</p>
+                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-400">命盘图</p>
                 <h2 id={`${canvasId}-zoom-title`} className="mt-1 text-lg font-semibold text-jade-50">{title}</h2>
               </div>
               <button
@@ -112,7 +109,7 @@ export function CanvasPanel<TData>({ title, description, data, width, height, re
               />
             </div>
             <p className="border-t border-white/10 bg-ink-900/92 px-4 py-3 text-center text-xs text-jade-100/45">
-              双击 Canvas 放大查看；按 Esc、点击背景或右上角 × 关闭。
+              双击图像可放大查看；点击背景或右上角 × 即可关闭。
             </p>
           </div>
         </div>,

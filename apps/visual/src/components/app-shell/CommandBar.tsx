@@ -248,19 +248,11 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
         action: () => onSelectModule('home'),
       },
       {
-        id: 'action-testing',
-        label: '打开测试控制台',
-        hint: 'Phase 9 · Node CLI / 浏览器 / 验证页',
-        group: '操作',
-        keywords: ['test', '测试', 'verify', 'CLI'],
-        action: () => onSelectModule('testing'),
-      },
-      {
         id: 'action-copy-context',
-        label: '复制当前模块 AI 上下文',
-        hint: `${active.title} · ${active.statusLabel}`,
+        label: '复制当前页面摘要',
+        hint: active.title,
         group: '操作',
-        keywords: ['copy', 'context', 'AI', '复制', '上下文'],
+        keywords: ['copy', '复制', '摘要'],
         action: () => dispatchCopyContextIntent(active.id),
       },
       {
@@ -443,15 +435,15 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
               onClick={() => {
                 dispatchCopyContextIntent(active.id);
                 dispatchCommandFeedback({
-                  title: '已执行：复制当前模块 AI 上下文',
-                  description: active.title + ' · ' + active.statusLabel,
+                  title: '当前页面摘要已复制',
+                  description: active.title,
                   tone: 'success',
                 });
               }}
               data-testid="copy-context-button"
               className="rounded-full border border-jade-500/25 bg-jade-500/10 px-3.5 py-2 text-xs font-medium text-jade-400 transition hover:border-jade-500/40 active:scale-[0.98]"
             >
-              复制上下文
+              复制摘要
             </button>
           </div>
         </div>

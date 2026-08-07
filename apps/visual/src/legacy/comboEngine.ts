@@ -176,7 +176,7 @@ export function calcAnnualFortuneCombo(input: AnnualFortuneComboInput): ToolEnve
     version: 'iztro@2.5.8',
     input_normalized: { birth: { year: birth.year }, targetYear },
     data: { export_snapshot: { summary: ziweiSummary.summary, sections: [] } },
-    warnings: ziweiSummary.available ? [] : ['iztro 流年数据不可用，紫微维度降级为占位'],
+    warnings: ziweiSummary.available ? [] : ['紫微流年信息暂未显示，请结合其他内容参考'],
   };
 
   const subsystems: SubsystemResult[] = [
@@ -1246,9 +1246,9 @@ export function calcMonthlyFortuneCombo(input: MonthlyFortuneComboInput): ToolEn
 
   const subsystems: WellnessSubsystem[] = [
     { name: '流月干支', summary: `${targetYear}年${targetMonth}月流月${monthGanZhi}（月支${monthBranch}）${monthChongOwner ? '冲命主生肖，月运偏滞' : '与命主无冲'}。` },
-    { name: '五运六气', summary: keqiStep ? `该月处「${keqiStep.step}」（客气${keqiStep.qi}，主气${keqiStep.zhuqi}）。${yunqiData.export_snapshot?.summary ?? ''}` : (yunqiData.export_snapshot?.summary ?? '客气步数据不可用') },
+    { name: '五运六气', summary: keqiStep ? `该月处「${keqiStep.step}」（客气${keqiStep.qi}，主气${keqiStep.zhuqi}）。${yunqiData.export_snapshot?.summary ?? ''}` : (yunqiData.export_snapshot?.summary ?? '本月运气资料暂未齐备。') },
     { name: '节气调养', summary: `${jieqiQuery.jieqi}（${jieqiQuery.wellness.season}季）：${jieqiQuery.wellness.principle}。饮食${jieqiQuery.wellness.diet}。` },
-    { name: '紫微流月', summary: ziweiSummary.available ? `流月${ziweiSummary.monthly.stem}${ziweiSummary.monthly.branch}，流月四化${ziweiSummary.monthly.mutagen.join('、') || '无'}。` : '紫微流月数据不可用。' },
+    { name: '紫微流月', summary: ziweiSummary.available ? `流月${ziweiSummary.monthly.stem}${ziweiSummary.monthly.branch}，流月四化${ziweiSummary.monthly.mutagen.join('、') || '无'}。` : '本月紫微流月资料暂未齐备。' },
   ];
 
   const tones: Tone[] = [liuyueTone, yunqiTone, '中', ziweiMonthlyTone];

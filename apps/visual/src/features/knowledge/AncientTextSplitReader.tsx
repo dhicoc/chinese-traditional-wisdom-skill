@@ -112,12 +112,9 @@ export function AncientTextSplitReader() {
 
   const contextPayload = useMemo(
     () => ({
-      module: 'split-reader',
-      mode: 'ancient-text-split-reader',
-      selectedPair: selected.id,
-      sourceLength: selected.source.length,
-      mappingLength: selected.mappingJson.length,
-      searchTerm,
+      项目: '古籍阅读',
+      当前内容: selected.title,
+      搜索关键词: searchTerm || '未填写',
     }),
     [selected, searchTerm],
   );
@@ -127,12 +124,12 @@ export function AncientTextSplitReader() {
       <div className="rounded-panel border border-ink-700 bg-ink-850/78 p-4 shadow-instrument">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="font-serif text-2xl font-semibold text-jade-100">古籍 Split Reader</h2>
+            <h2 className="font-serif text-2xl font-semibold text-jade-100">古籍阅读</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              左侧为古籍原文，右侧为对应的规则映射，支持关键词搜索高亮。先内置《八宅明镜》与八宅规则对照。
+              阅读古籍原文与相关说明，支持关键词搜索与重点标记；现收录《八宅明镜》。
             </p>
           </div>
-          <CopyContextButton commandScope="reader" title="Split Reader 上下文" payload={contextPayload} />
+          <CopyContextButton commandScope="reader" title="古籍阅读摘要" payload={contextPayload} />
         </div>
       </div>
 
@@ -189,10 +186,10 @@ export function AncientTextSplitReader() {
           />
         </div>
 
-        {/* 右侧：映射 JSON */}
+        {/* 右侧：相关说明 */}
         <div className="rounded-panel border border-ink-700 bg-ink-850/60 p-4">
           <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
-            <h3 className="font-serif text-sm font-semibold text-jade-100/70">{selected.mappingName}</h3>
+            <h3 className="font-serif text-sm font-semibold text-jade-100/70">相关说明</h3>
           </div>
           <pre className="max-h-[60vh] overflow-auto rounded-card border border-white/8 bg-black/30 p-3 text-xs leading-5">
             <code dangerouslySetInnerHTML={{ __html: highlightedJson }} />

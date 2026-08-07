@@ -20,22 +20,22 @@ interface ModeInfo {
 
 function getModeInfo(mode: string | undefined, ready: boolean | undefined): ModeInfo {
   if (!ready) {
-    return { label: '引擎加载中', color: 'text-jade-100/55 border-white/10 bg-white/[0.02]', icon: '◌' };
+    return { label: '正在生成结果…', color: 'text-jade-100/55 border-white/10 bg-white/[0.02]', icon: '◌' };
   }
   switch (mode) {
     case 'local-exact':
-      return { label: '真实排盘', color: 'text-jade-400 border-jade-500/30 bg-jade-500/10', icon: '✓' };
+      return { label: '按出生资料排盘', color: 'text-jade-400 border-jade-500/30 bg-jade-500/10', icon: '✓' };
     case 'local-approx':
-      return { label: '本地近似推算', color: 'text-jade-300 border-jade-500/25 bg-jade-500/8', icon: '≈' };
+      return { label: '参考推算', color: 'text-jade-300 border-jade-500/25 bg-jade-500/8', icon: '≈' };
     case 'local':
-      return { label: '本地规则推算', color: 'text-jade-300 border-jade-500/25 bg-jade-500/8', icon: '≈' };
+      return { label: '传统方法参考', color: 'text-jade-300 border-jade-500/25 bg-jade-500/8', icon: '≈' };
     case 'fallback-demo':
     case 'demo':
-      return { label: '演示数据，请填写生辰查看真实结果', color: 'text-gold-400 border-gold-500/30 bg-gold-500/10', icon: '⚠' };
+      return { label: '请填写出生资料后查看命盘', color: 'text-gold-400 border-gold-500/30 bg-gold-500/10', icon: '⚠' };
     case 'derived':
-      return { label: '数据派生', color: 'text-jade-100/55 border-white/10 bg-white/[0.03]', icon: '→' };
+      return { label: '综合整理', color: 'text-jade-100/55 border-white/10 bg-white/[0.03]', icon: '→' };
     case 'knowledge':
-      return { label: '知识库', color: 'text-jade-100/55 border-white/10 bg-white/[0.03]', icon: '📖' };
+      return { label: '知识参考', color: 'text-jade-100/55 border-white/10 bg-white/[0.03]', icon: '📖' };
     case 'folk-experience':
       return { label: '民俗参考', color: 'text-jade-100/55 border-white/10 bg-white/[0.03]', icon: '民俗' };
     default:

@@ -565,16 +565,15 @@ export function ComboWorkspace() {
             </InterpretationCard>
           )}
 
-          {/* 四层报告 */}
           <div className="console-panel rounded-panel border border-purple-500/16 bg-ink-950/90 p-4 shadow-instrument">
-            <FourLayerReport report={fourLayer} title={`${data.comboName} · 四层报告`} />
+            <FourLayerReport report={fourLayer} title={`${data.comboName}解读`} />
           </div>
 
-          {/* 复制上下文 */}
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
+            <ExportReportButton module={data.comboName} report={result.envelope?.data.export_snapshot ?? null} />
             <CopyContextButton
               commandScope="combo"
-              title="联合分析上下文"
+              title="联合分析摘要"
               payload={{
                 comboName: data.comboName,
                 comboType,

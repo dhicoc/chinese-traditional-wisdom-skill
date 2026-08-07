@@ -194,7 +194,7 @@ export function calcChenguz(input: ChenguzInput): ToolEnvelope<ChenguzResult> {
     export_snapshot: snapshot,
     engineName: 'chenguzEngine',
     mode: lunarMD ? 'local-exact' : 'local-approx',
-    confidenceNote: `称骨法无唯一正本，本引擎收录三版供切换（当前「${ver.name}」）。年骨重按60甲子年；农历月日依赖 lunar-javascript`,
+    confidenceNote: `称骨法的歌诀版本并不统一，当前采用「${ver.name}」。结果仅作传统文化参考。`,
     versionId: ver.id,
     versionName: ver.name,
     versionNote: ver.note,

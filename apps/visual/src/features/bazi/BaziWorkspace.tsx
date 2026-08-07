@@ -10,6 +10,7 @@ import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { calculateBazi as calculateBaziPure, calcBaziEnveloped, getBaziMonthDaySnapshot, getBaziTransitSnapshot } from '@/legacy/baziEngine';
+import type { AdvancedBaziAnalysis } from '@/legacy/advancedBazi';
 import type { TrineSource } from '@/legacy/shensha';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
@@ -45,6 +46,10 @@ interface BaziResult {
   engineName?: string;
   mode?: string;
   confidenceNote?: string;
+  hiddenStems?: Record<string, string[]>;
+  shishen?: Record<string, { stem: string; branch: string }>;
+  shishenList?: Record<string, string>;
+  advancedAnalysis?: AdvancedBaziAnalysis;
   shenSha?: ShenShaItem[];
   shenShaTrineSource?: TrineSource;
 }
@@ -122,15 +127,12 @@ export function BaziWorkspace() {
   }, [result?.dayMasterWuxing, wuxing]);
   const contextPayload = useMemo(
     () => ({
-      module: 'bazi',
-      mode: result?.mode ?? 'fallback-demo',
-      engineName: result?.engineName ?? 'BaziEngine',
-      solarBirth,
-      pillars,
-      wuxing,
-      source: 'apps/visual/src/legacy/baziEngine.ts + lunar-javascript',
+      项目: '八字命盘',
+      生辰: solarBirth,
+      四柱: pillars,
+      五行: wuxing,
     }),
-    [solarBirth, pillars, result, wuxing],
+    [solarBirth, pillars, wuxing],
   );
 
   return (
@@ -138,85 +140,71 @@ export function BaziWorkspace() {
       <div className="console-panel rounded-panel border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-400">Bazi Plate</p>
-            <h2 className="mt-1 font-serif text-2xl font-semibold tracking-[0.08em] text-jade-50">八字排盘工作台</h2>
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-400">八字命盘</p>
+            <h2 className="mt-1 font-serif text-2xl font-semibold tracking-[0.08em] text-jade-50">八字排盘</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               读取顶部全局生辰，生成四柱、五行与喜用神分析。
             </p>
+            <p className="mt-2 text-xs text-jade-100/50">
+              {birthSummary(solarBirth)} · {birth.isLunar ? '农历' : '公历'} · {solarBirth.gender}
+            </p>
           </div>
           <div className="flex gap-2">
-            <CopyContextButton commandScope="bazi" title="八字命盘 React 迁移上下文" payload={contextPayload} />
-            <ExportReportButton module="八字命盘" />
+            <CopyContextButton commandScope="bazi" title="八字命盘摘要" payload={contextPayload} />
+            <ExportReportButton module="八字命盘" report={envelope?.data.export_snapshot ?? null} />
           </div>
         </div>
       </div>
 
-      <div className="bazi-console-grid grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)_320px]">
-        <aside className="space-y-4">
-          <InterpretationCard
-            title="排盘信息"
-            badge={ready ? '已接入' : '加载中'}
-            items={[
-              { label: '生辰', value: birthSummary(solarBirth) },
-              { label: '历法', value: (birth.isLunar ? '农历' : '公历') + ' · ' + (solarBirth.useExactCalendar ? '精确' : '近似') },
-              { label: '性别', value: solarBirth.gender },
-            ]}
-          />
-          <InterpretationCard
-            title="推算边界"
-            items={[
-              { label: '日主', value: (result?.dayMaster ?? pillars.dayMaster ?? '?') + ' · ' + (result?.dayMasterWuxing ?? '?') },
-              ...(xiyong ? [
-                { label: '日主强弱', value: `${xiyong.qiangRuo}（同类${xiyong.similarPoint} / 异类${xiyong.heterogeneousPoint}）` },
-                { label: '喜用神', value: xiyong.shen + '（' + (xiyong.qiangRuo === '身弱' ? '补同类最弱' : xiyong.qiangRuo === '身强' ? '补异类最弱' : '补全局最弱') + '）' },
-                { label: '同类', value: xiyong.similar.join('、') },
-                { label: '异类', value: xiyong.heterogeneous.join('、') },
-              ] : []),
-            ]}
-          />
-          <div className="rounded-card border border-white/8 bg-ink-900/40 px-3 py-2">
-            <p className="mb-1.5 text-xs font-semibold text-jade-100/70">桃花·驿马·华盖·将星 查法</p>
-            <div className="flex flex-wrap gap-1.5">
-              {([['year', '按年支查（传统主流）'], ['day', '按日支查（流派之一）']] as Array<[TrineSource, string]>).map(([id, label]) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setTrineSource(id)}
-                  className={`rounded-full px-3 py-1 text-xs transition-colors ${
-                    id === trineSource
-                      ? 'border border-jade-500/50 bg-jade-500/20 text-jade-100'
-                      : 'border border-white/10 bg-ink-900/60 text-jade-100/55 hover:border-jade-500/30 hover:text-jade-100/80'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <p className="mt-1.5 text-[11px] leading-4 text-jade-100/45">
-              {trineSource === 'year' ? '以年支所在三合局查取，多数子平书采用此法。' : '以日支所在三合局查取，部分流派采用。'} 切换后主盘神煞印章与柱位明细会相应更新。
-            </p>
+      <section className="bazi-summary-grid grid gap-px overflow-hidden border border-jade-500/20 bg-jade-500/20 sm:grid-cols-2 xl:grid-cols-4" aria-label="命局摘要">
+        {[
+          ['日主', `${result?.dayMaster ?? pillars.dayMaster ?? '?'} · ${result?.dayMasterWuxing ?? '?'}`],
+          ['命局倾向', result?.advancedAnalysis?.support.strength ?? xiyong?.qiangRuo ?? '—'],
+          ['喜用', xiyong?.shen ?? '—'],
+          ['月令', result?.advancedAnalysis?.monthCommand.branch ? `${result.advancedAnalysis.monthCommand.branch}月 · ${result.advancedAnalysis.monthCommand.obtainsCommand ? '得令' : '失令'}` : '—'],
+        ].map(([label, value]) => (
+          <div key={label} className="bg-ink-950/90 px-4 py-3">
+            <p className="text-xs text-jade-100/50">{label}</p>
+            <p className="mt-1 font-serif text-lg text-jade-50">{value}</p>
           </div>
-          <TermExplanationPanel
-            ready={ready}
-            initialTerm="日主"
-            terms={["日主","十神","正印","偏印","正官","七杀","正财","偏财","比肩","劫财","食神","伤官","喜用神","五行","纳音"]}
-            description="点击术语查看通俗解释与命理含义。"
-          />
-          {fourLayer && (
-            <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-              <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
-            </div>
-          )}
-        </aside>
+        ))}
+      </section>
 
-        <div className="space-y-4">
-          <section className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+      <div className="bazi-console-grid grid gap-4 xl:grid-cols-12">
+        <div className="order-1 flex flex-col gap-4 xl:col-span-8">
+          <section className="order-1 console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
             <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-jade-50">四柱主盘</h3>
                 <p className="mt-1 text-sm leading-6 text-jade-100/55">
                   四柱主盘：年/月/日/时天干地支，按五行配色，日柱高亮。
                 </p>
+              </div>
+            </div>
+            <div className="mb-3 rounded-card border border-white/8 bg-ink-900/40 px-3 py-2.5">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-jade-100/70">桃花、驿马、华盖、将星查法</p>
+                  <p className="mt-1 text-[11px] leading-4 text-jade-100/45">
+                    {trineSource === 'year' ? '以年支所在三合局查取，多数子平书采用此法。' : '以日支所在三合局查取，部分流派采用。'}
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-wrap gap-1.5">
+                  {([['year', '按年支查'], ['day', '按日支查']] as Array<[TrineSource, string]>).map(([id, label]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setTrineSource(id)}
+                      className={`rounded-full px-3 py-1 text-xs transition-colors ${
+                        id === trineSource
+                          ? 'border border-jade-500/50 bg-jade-500/20 text-jade-100'
+                          : 'border border-white/10 bg-ink-900/60 text-jade-100/55 hover:border-jade-500/30 hover:text-jade-100/80'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
             <div className="canvas-stage overflow-x-auto rounded-card border border-jade-500/18 bg-ink-950/92 p-3">
@@ -258,8 +246,47 @@ export function BaziWorkspace() {
               </section>
             )}
           </section>
+
+          <section className="order-2 console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument" aria-labelledby="bazi-table-title">
+            <div className="mb-4 flex items-end justify-between border-b border-white/8 pb-3">
+              <div>
+                <h3 id="bazi-table-title" className="text-lg font-semibold text-jade-50">四柱对照</h3>
+                <p className="mt-1 text-sm text-jade-100/55">按年、月、日、时依次查看十神、天干、地支与藏干。</p>
+              </div>
+              <span className="text-xs text-jade-100/45">日柱为命局参照</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-[620px] w-full border-collapse text-center">
+                <thead>
+                  <tr className="border-y border-white/10 text-xs text-jade-100/55">
+                    <th scope="col" className="w-20 px-3 py-2 text-left font-medium">层次</th>
+                    {pillarRows.map(([label]) => <th key={label} scope="col" className="px-3 py-2 font-medium">{label}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-white/8">
+                    <th scope="row" className="px-3 py-2 text-left text-xs font-medium text-jade-100/55">天干十神</th>
+                    {(['year', 'month', 'day', 'hour'] as const).map((key) => <td key={key} className="px-3 py-2 text-sm text-cinnabar-500">{result?.shishenList?.[key] ?? '—'}</td>)}
+                  </tr>
+                  <tr className="border-b border-white/8">
+                    <th scope="row" className="px-3 py-3 text-left text-xs font-medium text-jade-100/55">天干</th>
+                    {pillarRows.map(([label, pillar]) => <td key={label} className="px-3 py-3 font-serif text-3xl text-jade-50">{pillar.stem}</td>)}
+                  </tr>
+                  <tr className="border-b border-white/8">
+                    <th scope="row" className="px-3 py-3 text-left text-xs font-medium text-jade-100/55">地支</th>
+                    {pillarRows.map(([label, pillar]) => <td key={label} className="px-3 py-3 font-serif text-3xl text-jade-50">{pillar.branch}</td>)}
+                  </tr>
+                  <tr>
+                    <th scope="row" className="px-3 py-2 text-left text-xs font-medium text-jade-100/55">藏干</th>
+                    {(['year', 'month', 'day', 'hour'] as const).map((key) => <td key={key} className="px-3 py-2 text-sm text-jade-100/70">{result?.hiddenStems?.[key]?.join(' · ') || '—'}</td>)}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
           {transit.available && (
-            <section className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument" aria-labelledby="bazi-transit-title">
+            <section className="order-5 console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument" aria-labelledby="bazi-transit-title">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 id="bazi-transit-title" className="text-lg font-semibold text-jade-50">大运 · 流年</h3>
@@ -338,8 +365,33 @@ export function BaziWorkspace() {
               </div>
             </section>
           )}
+          {result?.advancedAnalysis && (
+            <section className="order-3 console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument" aria-labelledby="bazi-advanced-title">
+              <div>
+                <h3 id="bazi-advanced-title" className="text-lg font-semibold text-jade-50">命局要览</h3>
+                <p className="mt-1 text-sm leading-6 text-jade-100/55">从月令、根气、助力与五行关系，看看命局的整体倾向。</p>
+              </div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                {[
+                  ['月令', `${result.advancedAnalysis.monthCommand.branch}月 · ${result.advancedAnalysis.monthCommand.dayMasterState} · ${result.advancedAnalysis.monthCommand.obtainsCommand ? '得令' : '失令'}`, result.advancedAnalysis.monthCommand.reason],
+                  ['扶抑', `${result.advancedAnalysis.support.strength} · ${result.advancedAnalysis.fuyii.principle} · 用${result.advancedAnalysis.fuyii.usefulElements.join('、')}`, result.advancedAnalysis.fuyii.reason.join('')],
+                  ['格局', `${result.advancedAnalysis.pattern.name} · ${result.advancedAnalysis.pattern.status}`, result.advancedAnalysis.pattern.reason.join('')],
+                  ['从格 / 化气', `${result.advancedAnalysis.followPattern.status === '成立' ? result.advancedAnalysis.followPattern.type : '从格不成立'} · ${result.advancedAnalysis.transformation.status === '成立' ? `${result.advancedAnalysis.transformation.element}化气成立` : '化气不成立'}`, [...result.advancedAnalysis.followPattern.reason, ...result.advancedAnalysis.transformation.reason].join('')],
+                  ['调候 / 通关', `调候取${result.advancedAnalysis.seasonalAdjustment.usefulElements.join('、')} · ${result.advancedAnalysis.passage.status === '成立' ? `${result.advancedAnalysis.passage.conflict}取${result.advancedAnalysis.passage.element}通关` : '未见通关'}`, [...result.advancedAnalysis.seasonalAdjustment.reason, ...result.advancedAnalysis.passage.reason].join('')],
+                  ['病药', `${result.advancedAnalysis.remedy.status === '成立' ? result.advancedAnalysis.remedy.remedy : '暂无明显病药组合'}`, result.advancedAnalysis.remedy.reason.join('')],
+                ].map(([label, value, detail]) => (
+                  <section key={label} className="rounded-card border border-white/8 bg-white/[0.025] px-3 py-2.5">
+                    <p className="text-xs font-semibold text-jade-100/70">{label}</p>
+                    <p className="mt-1 text-sm text-jade-50">{value}</p>
+                    <p className="mt-1 text-xs leading-5 text-jade-100/55">{detail}</p>
+                  </section>
+                ))}
+              </div>
+              <p className="mt-3 text-xs leading-5 text-jade-100/45">命局解读依传统命理规则整理，适合用于传统文化学习与自我观察，不作为现实决策依据。</p>
+            </section>
+          )}
           {monthDayTransit.available && (
-            <section className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument" aria-labelledby="bazi-month-day-title">
+            <section className="order-6 console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument" aria-labelledby="bazi-month-day-title">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 id="bazi-month-day-title" className="text-lg font-semibold text-jade-50">流月 · 流日</h3>
@@ -380,26 +432,9 @@ export function BaziWorkspace() {
               </div>
             </section>
           )}
-          <div className="console-panel rounded-panel border border-jade-500/20 bg-ink-950/90 p-4">
-            <div className="mb-4 flex items-center justify-between border-b border-white/8 pb-3">
-              <h3 className="text-lg font-semibold text-jade-50">八字明细</h3>
-              <span className="rounded-full border border-white/10 bg-black/30 px-2.5 py-1 text-[10px] text-jade-100/45">四柱</span>
-            </div>
-            <div className="grid grid-cols-4 overflow-hidden rounded-card border border-white/10 text-center text-sm">
-              {pillarRows.map(([label]) => (
-                <div key={label} className="border-b border-white/10 bg-white/[0.035] px-2 py-2 text-xs text-jade-100/45">{label}</div>
-              ))}
-              {pillarRows.map(([label, pillar]) => (
-                <div key={label + 'stem'} className="border-b border-white/10 px-2 py-4 font-serif text-3xl text-jade-400">{pillar.stem}</div>
-              ))}
-              {pillarRows.map(([label, pillar]) => (
-                <div key={label + 'branch'} className="px-2 py-4 font-serif text-3xl text-jade-100">{pillar.branch}</div>
-              ))}
-            </div>
-          </div>
         </div>
 
-        <aside className="space-y-4">
+        <aside className="order-1 space-y-4 xl:col-span-4">
           <section className="console-panel rounded-panel border border-jade-500/20 bg-ink-950/90 p-4 shadow-instrument">
             <div className="mb-4 flex items-center justify-between border-b border-white/8 pb-3">
               <h3 className="text-lg font-semibold text-jade-50">五行能量</h3>
@@ -443,6 +478,22 @@ export function BaziWorkspace() {
           </section>
         </aside>
       </div>
+
+      <section className="grid gap-4 xl:grid-cols-12" aria-label="辅助阅读">
+        <div className="xl:col-span-5">
+          <TermExplanationPanel
+            ready={ready}
+            initialTerm="日主"
+            terms={["日主","十神","正印","偏印","正官","七杀","正财","偏财","比肩","劫财","食神","伤官","喜用神","五行","纳音"]}
+            description="读完盘面后，可在这里查看术语的通俗说明。"
+          />
+        </div>
+        {fourLayer && (
+          <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument xl:col-span-7">
+            <FourLayerReport report={fourLayer} title="命盘解读" />
+          </div>
+        )}
+      </section>
     </section>
   );
 }

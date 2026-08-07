@@ -23,6 +23,18 @@ export function AlmanacWorkspace() {
 
   const jiHours = useMemo(() => almanac?.hours.filter((h) => h.luck === '吉') ?? [], [almanac]);
   const xiongHours = useMemo(() => almanac?.hours.filter((h) => h.luck === '凶') ?? [], [almanac]);
+  const exportReport = useMemo(() => {
+    if (!almanac) return null;
+    return {
+      summary: `${almanac.solarDate}黄历参考。`,
+      sections: [
+        { heading: '日期信息', body: `公历：${almanac.solarDate}\n农历：${almanac.lunarDate}\n年柱：${almanac.yearGanZhi} · ${almanac.zodiac}年\n月柱：${almanac.monthGanZhi}\n日柱：${almanac.dayGanZhi} · ${almanac.dayNaYin}\n节气：${almanac.jieQi || '—'}\n冲煞：冲${almanac.chong} · 煞${almanac.sha}` },
+        { heading: '宜与忌', body: `宜：${almanac.yi.join('、') || '—'}\n忌：${almanac.ji.join('、') || '—'}\n彭祖百忌：${almanac.pengZu}` },
+        { heading: '吉神凶煞', body: `吉神宜趋：${almanac.jiShen.join('、') || '—'}\n凶煞宜忌：${almanac.xiongSha.join('、') || '—'}` },
+        { heading: '方位与时辰', body: `喜神：${almanac.xiPosition}\n福神：${almanac.fuPosition}\n财神：${almanac.caiPosition}\n吉时：${jiHours.map((item) => item.ganZhi).join('、') || '—'}\n凶时：${xiongHours.map((item) => item.ganZhi).join('、') || '—'}` },
+      ],
+    };
+  }, [almanac, jiHours, xiongHours]);
 
   return (
     <div className="space-y-6">
@@ -31,13 +43,13 @@ export function AlmanacWorkspace() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold text-jade-50">每日黄历</h2>
-            <p className="text-sm text-jade-100/55">真实历法推算 · 民俗参考 · 非预测结论</p>
+            <p className="text-sm text-jade-100/55">民俗参考 · 非预测结论</p>
           </div>
           <div className="flex items-center gap-2">
             <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
-              真实历法
+              当日参考
             </span>
-            <ExportReportButton module="每日黄历" />
+            <ExportReportButton module="每日黄历" report={exportReport} />
           </div>
         </div>
       </div>
@@ -220,7 +232,7 @@ export function AlmanacWorkspace() {
               ))}
             </div>
             <p className="mt-3 text-[11px] text-jade-100/55">
-              吉时 {jiHours.length} 辰 · 凶时 {xiongHours.length} 辰；时辰宜忌按真实历法推算。
+              吉时 {jiHours.length} 辰 · 凶时 {xiongHours.length} 辰；时辰宜忌仅作民俗参考。
             </p>
           </div>
         </div>

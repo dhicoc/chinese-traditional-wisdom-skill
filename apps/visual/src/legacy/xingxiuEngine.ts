@@ -268,7 +268,7 @@ export function calculateXingXiu(input: XingXiuInput): XingXiuResult {
     method: method === 'rotational' ? '连续轮转法' : '日支星期查表法',
     engineName: 'XingXiuEngine',
     mode,
-    confidenceNote: '二十八宿值日由 lunar-javascript 推算（精确）或日序近似轮转。',
+    confidenceNote: '二十八宿值日信息仅作传统文化参考。',
   };
 }
 
@@ -292,7 +292,7 @@ export function calcXingXiuEnveloped(input: XingXiuInput): ToolEnvelope<XingXiuD
       { heading: '西方对应', body: result.western },
       ...(result.song ? [{ heading: '歌诀', body: result.song }] : []),
     ],
-    sourceNotes: result.confidenceNote,
+    sourceNotes: '二十八星宿内容仅作传统文化参考。',
   };
 
   return {

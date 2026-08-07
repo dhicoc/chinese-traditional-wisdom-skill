@@ -75,12 +75,22 @@ export function ConstitutionWorkspace() {
   }, [dominant]);
 
   const contextPayload = useMemo(() => ({
-    module: 'tizhi',
-    mode: 'derived',
-    data: { scores, dominant },
-    source: 'constitutionQuestionnaire.ts + yunqiEngine.ts',
-    medicalBoundary: '体质辨识仅作中医文化参考，不替代医疗诊断。',
+    体质评分: scores,
+    主要体质: dominant,
+    医疗提示: '体质辨识仅作中医文化参考，不替代医疗诊断。',
   }), [scores, dominant]);
+  const exportReport = useMemo(() => {
+    const group = QUESTIONNAIRE.find((item) => item.type === dominant);
+    return {
+      summary: `体质自评结果：${dominant || '尚未形成主要体质'}。`,
+      sections: [
+        { heading: '体质评分', body: CONSTITUTION_TYPES.map((type) => `${type}：${scores[type]}分`).join('\n') },
+        ...(group ? [{ heading: '调养参考', body: `主要体质：${dominant}\n调养方向：${group.direction}\n食疗参考：${group.diet}\n穴位保健：${group.acupoints}` }] : []),
+        ...(yunqiTendency ? [{ heading: '出生年倾向参考', body: `岁运：${yunqiTendency.dayun}\n司天：${yunqiTendency.sitian}\n${yunqiTendency.tendencies.map((item) => `${item.type}：${item.reason}`).join('\n')}` }] : []),
+        { heading: '使用提醒', body: '本结果根据问卷自评整理，仅作中医文化与日常调养参考；如有不适或健康问题，请咨询专业医师。' },
+      ],
+    };
+  }, [dominant, scores, yunqiTendency]);
 
   // 问卷答题
   const handleAnswer = (questionKey: string, score: number) => {
@@ -117,8 +127,8 @@ export function ConstitutionWorkspace() {
             </p>
           </div>
           <div className="flex gap-2">
-            <CopyContextButton commandScope="tizhi" title="体质辨识上下文" payload={contextPayload} />
-            <ExportReportButton module="体质辨识" />
+            <CopyContextButton commandScope="tizhi" title="体质辨识摘要" payload={contextPayload} />
+            <ExportReportButton module="体质辨识" report={exportReport} />
           </div>
         </div>
       </div>

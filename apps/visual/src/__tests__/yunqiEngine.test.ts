@@ -18,7 +18,10 @@ describe('calculateYunqi 纯 TS 计算', () => {
     expect(r.liuqi.sitian).toBe('太阳寒水');
     expect(r.liuqi.zaiquan).toBe('太阴湿土');
     expect(r.mode).toBe('local-approx'); // 未传 solar
-    expect(r.yearBoundary).toContain('近似按公历');
+    expect(r.yearBoundary).toBe('本年运气以出生年份为参考。');
+    expect(r.yearBoundary).not.toContain('近似');
+    expect(r.yearBoundary).not.toContain('未接入');
+    expect(r.yearBoundary).not.toContain('节气表');
   });
 
   it('1990年庚午：岁运金运太过、司天少阴君火（与旧引擎一致）', () => {
@@ -91,8 +94,8 @@ describe('calcYunqiEnveloped envelope 适配', () => {
     expect(data.export_snapshot.sections.length).toBeGreaterThanOrEqual(5);
   });
 
-  it('近似模式带未精确历法 warning', () => {
+  it('参考推算模式带岁运提示', () => {
     const env = calcYunqiEnveloped({ year: 2024, currentMonth: 6 });
-    expect(env.warnings?.some((w) => w.includes('公历年近似'))).toBe(true);
+    expect(env.warnings?.some((w) => w.includes('岁运信息仅作辅助参考'))).toBe(true);
   });
 });

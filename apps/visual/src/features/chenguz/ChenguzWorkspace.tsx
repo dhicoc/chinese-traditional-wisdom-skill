@@ -122,27 +122,24 @@ export function ChenguzWorkspace() {
               <div className="flex justify-end gap-2">
                 <CopyContextButton
                   commandScope="chenguz"
-                  title="称骨上下文"
+                  title="称骨摘要"
                   payload={{
-                    total: r.total,
-                    totalText: r.totalText,
-                    song: r.song,
-                    interpretation: r.interpretation,
-                    yearBone: r.yearBone,
-                    monthBone: r.monthBone,
-                    dayBone: r.dayBone,
-                    hourBone: r.hourBone,
-                    versionId: r.versionId,
-                    versionName: r.versionName,
-                    versionNote: r.versionNote,
+                    项目: '称骨',
+                    骨重: r.totalText,
+                    称骨歌: r.song,
+                    解读: r.interpretation,
+                    年柱: r.yearBone,
+                    月柱: r.monthBone,
+                    日柱: r.dayBone,
+                    时柱: r.hourBone,
                   }}
                 />
-                <ExportReportButton module="称骨" />
+                <ExportReportButton module="称骨" report={r.export_snapshot ?? null} />
               </div>
             </div>
           </InterpretationCard>
 
-          <FourLayerReport report={result.fourLayer} title={`称骨 · ${r.totalText} · 四层报告`} />
+          <FourLayerReport report={result.fourLayer} title={`称骨 · ${r.totalText} 解读`} />
         </div>
       )}
     </div>

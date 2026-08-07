@@ -167,11 +167,11 @@ export function HistoryWorkspace() {
               自动保存最近 30 条脱敏阅读摘要。仅保留模块、标题、摘要和标签，不保存完整姓名、完整出生日期或具体地点。
             </p>
           </div>
-          <CopyContextButton commandScope="history" title="历史记录上下文" payload={contextPayload} />
+          <CopyContextButton commandScope="history" title="历史记录摘要" payload={contextPayload} />
         </div>
         {!store && (
           <p className="mt-3 rounded-card border border-cinnabar-500/30 bg-cinnabar-500/10 p-3 text-sm text-red-200">
-            暂无历史记录。排盘后可通过导出/复制上下文沉淀脱敏摘要。
+            暂无历史记录。排盘后可导出或复制摘要。
           </p>
         )}
       </div>
@@ -245,7 +245,7 @@ export function HistoryWorkspace() {
           <div className="col-span-full rounded-card border border-white/8 bg-white/[0.025] p-8 text-center">
             <p className="text-sm text-jade-100/45">
               {tab === 'history'
-                ? '暂无历史记录。在旧 Dashboard 或 React Shell 中生成命盘后将自动保存脱敏摘要。'
+                ? '暂无历史记录。生成命盘后会自动保存脱敏摘要。'
                 : '暂无收藏。点击历史记录中的 ☆ 标记可添加收藏。'}
             </p>
           </div>

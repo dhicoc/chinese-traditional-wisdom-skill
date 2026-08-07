@@ -98,7 +98,7 @@ export function AgentConfirmPanel({ route, onConfirm, onCancel }: AgentConfirmPa
           )}
 
           <p className="text-xs leading-5 text-jade-100/40">
-            确认后将跳转到「{target.title}」并预填以上上下文。这是本地确定性路由，不调用外部 AI。
+            确认后将跳转到「{target.title}」，并带入已填写的信息。
           </p>
         </div>
 

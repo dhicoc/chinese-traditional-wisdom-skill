@@ -355,7 +355,7 @@ export function calculateHuangji(input: HuangjiInput): HuangjiData {
 
   const snapshot: ExportSnapshot = {
     summary: `${birth.year}年${month}月${day}日${hour}时皇极排盘：正卦${zhengGua}、运卦${yunGua}、世卦${shiGua}、旬卦${xunGua}。处于第${hui}会第${yun}运第${shi}世（积年${acumYear}）。`,
-    tags: ['皇极经世', `${hui}会${yun}运${shi}世`, `正卦${zhengGua}`, `世卦${shiGua}`, mode === 'local-exact' ? '真实历法' : '近似历法'],
+    tags: ['皇极经世', `${hui}会${yun}运${shi}世`, `正卦${zhengGua}`, `世卦${shiGua}`],
     sections: [
       { heading: '周期定位', body: cyclePosition },
       { heading: '干支', body: `年柱${ygz}、月柱${mgz}、日柱${dgz}、时柱${hgz}。农历${lunarMonthCN || lunarMonth + '月'}。` },
@@ -370,7 +370,7 @@ export function calculateHuangji(input: HuangjiInput): HuangjiData {
       { heading: '分卦', body: `${fenGua}：分刻卦象（按分钟偏移）。` },
       { heading: '趋势解读', body: interpretation },
     ],
-    sourceNotes: '皇极经世为邵雍象数学，参考kentang2017/kinwangji（MIT）算法重写。历法复用lunar-javascript。宇宙周期推演属传统象数参考，非科学预测。',
+    sourceNotes: '皇极经世为传统象数参考，适合用于传统文化学习与自我观察。',
   };
 
   return {

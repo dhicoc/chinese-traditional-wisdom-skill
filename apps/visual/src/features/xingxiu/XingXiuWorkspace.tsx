@@ -65,12 +65,11 @@ export function XingXiuWorkspace() {
   }, [data]);
 
   const contextPayload = useMemo(() => ({
-    module: 'xingxiu',
-    mode: data.mode,
-    date: `${solarBirth.year}-${solarBirth.month}-${solarBirth.day}`,
-    zhiXiu: data.zhiXiuFull,
-    xiang: data.xiang,
-    luck: data.luck,
+    项目: '二十八星宿',
+    日期: `${solarBirth.year}-${solarBirth.month}-${solarBirth.day}`,
+    当日值宿: data.zhiXiuFull,
+    所属四象: data.xiang,
+    宜忌参考: data.luck,
   }), [data, solarBirth]);
 
   return (
@@ -86,8 +85,8 @@ export function XingXiuWorkspace() {
           </div>
           <div className="flex flex-col items-end gap-2">
             <div className="flex gap-2">
-              <CopyContextButton commandScope="xingxiu" title="二十八星宿上下文" payload={contextPayload} />
-              <ExportReportButton module="二十八星宿" />
+              <CopyContextButton commandScope="xingxiu" title="二十八星宿摘要" payload={contextPayload} />
+              <ExportReportButton module="二十八星宿" report={result.envelope?.data.export_snapshot ?? null} />
             </div>
             <div className="flex items-center gap-1 rounded-full border border-white/10 bg-black/30 p-0.5">
               <button
@@ -143,7 +142,7 @@ export function XingXiuWorkspace() {
           )}
           {fourLayer && (
             <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-              <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
+              <FourLayerReport report={fourLayer} title="二十八星宿解读" />
             </div>
           )}
         </aside>

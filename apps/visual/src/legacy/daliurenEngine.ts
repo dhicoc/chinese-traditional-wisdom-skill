@@ -717,7 +717,7 @@ export function calculateDaliuren(input: DaliurenInput): DaliurenResult {
     engineName: 'DaliurenEngine',
     mode,
     school,
-    confidenceNote: `大六壬天地盘/四课/三传/神煞/格局全规则推演；节气干支由 lunar-javascript 提供（精确）或公历近似。天将口径：${schoolName}——${DALIUREN_SCHOOLS[school].note}`,
+    confidenceNote: `本解读结合天地盘、四课、三传、神煞与格局观察。天将采用${schoolName}：${DALIUREN_SCHOOLS[school].note}。不同传承的看法可能不同，宜结合所问事项参考。`,
   };
 }
 
@@ -739,7 +739,7 @@ export function calcDaliurenEnveloped(input: DaliurenInput): ToolEnvelope<Daliur
 
   const snapshot: ExportSnapshot = {
     summary: `${basicInfo.dayGanZhi}日${basicInfo.hourGanZhi}时${basicInfo.dayNight}占，月将${tianDiPan.yueJiangName}（${tianDiPan.yueJiang}），${gejuStr}。${chuanStr}。`,
-    tags: ['大六壬', gejuStr, `月将${tianDiPan.yueJiangName}`, basicInfo.dayNight + '占', result.mode === 'local-exact' ? '精确历法' : '近似历法', `天将·${schoolName}`],
+    tags: ['大六壬', gejuStr, `月将${tianDiPan.yueJiangName}`, basicInfo.dayNight + '占', `天将·${schoolName}`],
     sections: [
       { heading: '格局', body: `${gejuStr}。${basicInfo.dayGanZhi}日${basicInfo.hourGanZhi}时${basicInfo.dayNight}占，节气${basicInfo.jieqi}，月将${tianDiPan.yueJiangName}。` },
       { heading: '三传', body: chuanStr + '。' },
@@ -750,7 +750,7 @@ export function calcDaliurenEnveloped(input: DaliurenInput): ToolEnvelope<Daliur
       // 但保留在 sourceNotes 与 snapshot 内，供导出/溯源。
       { heading: '天将口径', body: `${schoolName}：${DALIUREN_SCHOOLS[school].note}` },
     ],
-    sourceNotes: result.confidenceNote,
+    sourceNotes: '大六壬内容仅作传统卜筮文化参考。',
   };
 
   return {

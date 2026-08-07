@@ -152,23 +152,24 @@ export function CeziWorkspace() {
               <div className="flex justify-end gap-2">
                 <CopyContextButton
                   commandScope="cezi"
-                  title="测字上下文"
+                  title="测字摘要"
                   payload={{
-                    char: r.char,
-                    strokes: r.strokes,
-                    shuli: r.shuli,
-                    charWuxing: r.charWuxing,
-                    structure: r.structure.structure,
-                    baziComplement: r.baziComplement,
-                    synthesis: r.synthesis,
+                    项目: '测字',
+                    文字: r.char,
+                    笔画: r.strokes,
+                    数理: r.shuli,
+                    五行: r.charWuxing,
+                    结构: r.structure.structure,
+                    八字补益: r.baziComplement,
+                    解读: r.synthesis,
                   }}
                 />
-                <ExportReportButton module="测字" />
+                <ExportReportButton module="测字" report={r.export_snapshot ?? null} />
               </div>
             </div>
           </InterpretationCard>
 
-          <FourLayerReport report={result.fourLayer} title={`测「${r.char}」字 · 四层报告`} />
+          <FourLayerReport report={result.fourLayer} title={`测「${r.char}」字解读`} />
         </div>
       )}
     </div>

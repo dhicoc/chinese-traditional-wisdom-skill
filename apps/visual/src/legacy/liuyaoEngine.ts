@@ -665,7 +665,7 @@ export function calculateLiuyao(input: LiuyaoInput): LiuyaoResult {
     version: '1.0.0',
     sourceProject: 'local:liuyaoEngine.ts; reference: bopo/najia, ichingshifa',
     license: 'project-local',
-    confidenceNote: '本地京房八宫纳甲自研规则：纳甲/六亲/六神/世应/用神/变卦；起卦支持铜钱法、时间起卦、手动爻值。不同流派在纳甲地支顺逆与六神起例上可能存在口径差异。',
+    confidenceNote: '本解读结合纳甲、六亲、六神、世应、用神与变卦等内容。不同流派对纳甲地支顺逆和六神起例的看法可能不同，宜结合所问事项参考。',
   };
 }
 
@@ -704,13 +704,13 @@ export function calcLiuyaoEnveloped(input: LiuyaoInput): ToolEnvelope<LiuyaoData
     }
     sections.push({ heading: '彖传', body: classicalText.tuanZhuan });
   }
-  sections.push({ heading: '边界说明', body: result.confidenceNote });
+  sections.push({ heading: '使用提醒', body: '本卦依传统六爻规则整理，适合用于传统文化学习与自我观察，不作为现实决策依据。' });
 
   const snapshot: ExportSnapshot = {
     summary: `${hexName}${changedHex !== hexName ? ' → ' + changedHex : ''}，属${palace}(五行${palaceEl})，世${result.shiYao}应${result.yingYao}，用神${yong}。动爻：${moveYao}。`,
     tags: ['六爻纳甲', hexName, '宫' + palace, '用神' + yong, '动爻' + moveYao, ...(changedHex !== hexName ? ['变' + changedHex] : [])],
     sections,
-    sourceNotes: result.confidenceNote,
+    sourceNotes: '六爻内容仅作传统卜筮文化参考。',
   };
 
   return {
@@ -719,6 +719,6 @@ export function calcLiuyaoEnveloped(input: LiuyaoInput): ToolEnvelope<LiuyaoData
     version: result.version,
     input_normalized: input as unknown as Record<string, unknown>,
     data: { ...result, export_snapshot: snapshot },
-    warnings: [result.confidenceNote, ...(result.mode === 'local-approx' ? ['未传入精确历法入口，日干支/空亡用近似'] : [])],
+    warnings: [result.confidenceNote, ...(result.mode === 'local-approx' ? ['日干支与空亡仅作辅助参考'] : [])],
   };
 }

@@ -332,3 +332,17 @@ input:focus-visible,
     0 0 0 1px rgb(var(--shadow-rgb) / 0.08),
     0 12px 32px rgb(var(--shadow-rgb) / 0.08);
 }
+
+.bazi-support-grid > * {
+  min-width: 0;
+}
+
+@media (min-width: 1280px) {
+  .bazi-console-grid > .order-1 {
+    order: 1;
+  }
+
+  .bazi-console-grid > .order-2 {
+    order: 2;
+  }
+}

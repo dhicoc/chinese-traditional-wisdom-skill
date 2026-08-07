@@ -57,6 +57,19 @@ export function NamewuxingWorkspace() {
     }
     return calcNameRating(analysis, birthYearNum, birth, solar);
   }, [analysis, birthYear, solarBirth, useBaziBoost]);
+  const exportReport = useMemo(() => {
+    if (!analysis) return null;
+    const name = `${surname.trim()}${givenName.trim()}`;
+    return {
+      summary: `${name}的姓名五行与五格数理参考。`,
+      sections: [
+        { heading: '姓名与笔画', body: `姓名：${name}\n总笔画：${analysis.totalStrokes}画\n姓氏：${analysis.surnameChars.map((item) => `${item.char}${item.strokes}画·${item.wuxing}`).join('；')}\n名字：${analysis.givenChars.map((item) => `${item.char}${item.strokes}画·${item.wuxing}`).join('；')}` },
+        { heading: '五格与三才', body: `${analysis.wuGeEntries.map((item) => `${item.name}${item.value}·${item.wuxing}·${item.luck}`).join('\n')}\n三才：${analysis.sanCai.config} · ${analysis.sanCai.luck}\n${analysis.sanCai.desc}` },
+        { heading: '五行分布', body: Object.entries(wuxingStats).map(([element, value]) => `${element}：${value}`).join('\n') },
+        ...(rating ? [{ heading: '综合评分', body: `总分：${rating.totalScore} · ${rating.grade}\n${rating.dimensions.map((item) => `${item.name}：${item.score}分`).join('\n')}` }] : []),
+      ],
+    };
+  }, [analysis, givenName, rating, surname, wuxingStats]);
 
   return (
     <div className="space-y-6">
@@ -71,7 +84,7 @@ export function NamewuxingWorkspace() {
             <span className="rounded-full border border-jade-500/30 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
               民俗参考
             </span>
-            <ExportReportButton module="姓名五行" />
+            <ExportReportButton module="姓名五行" report={exportReport} />
           </div>
         </div>
       </div>

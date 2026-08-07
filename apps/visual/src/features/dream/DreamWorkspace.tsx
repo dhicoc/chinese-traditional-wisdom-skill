@@ -41,6 +41,17 @@ export function DreamWorkspace() {
   );
 
   const links = useMemo(() => getDreamLinks(query), [query]);
+  const exportReport = useMemo(() => {
+    if (!query || !result.hit) return null;
+    return {
+      summary: `“${query}”的传统梦象解读参考。`,
+      sections: [
+        ...(result.entries.length > 0 ? [{ heading: '现代解读', body: result.entries.slice(0, 8).map((entry) => `${entry.title} · ${entry.luck}\n${entry.meaning}`).join('\n\n') }] : []),
+        ...(result.classics.length > 0 ? [{ heading: '古文断语', body: result.classics.slice(0, 6).map((item) => `${item.original}\n断语：${item.interpretation}`).join('\n\n') }] : []),
+        ...(links.length > 0 ? [{ heading: '方位参看', body: links.map((item) => `${item.label}：${item.value}`).join('\n') }] : []),
+      ],
+    };
+  }, [links, query, result]);
 
   // 按大类浏览（精选库）
   const categoryEntries = useMemo(() => {
@@ -68,7 +79,7 @@ export function DreamWorkspace() {
             <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs text-purple-400">
               民俗参考
             </span>
-            <ExportReportButton module="周公解梦" />
+            <ExportReportButton module="周公解梦" report={exportReport} />
           </div>
         </div>
         <p className="mt-3 text-xs leading-5 text-jade-100/45">

@@ -69,16 +69,15 @@ export function TaiyiWorkspace() {
   const hasGeju = gejuList.length > 0;
 
   const contextPayload = useMemo(() => ({
-    module: 'taiyi',
-    mode: data.mode,
-    jiStyle: basicInfo.jiStyleName,
-    acumYear: basicInfo.acumYearName,
-    birth: { year: solarBirth.year, gender: solarBirth.gender },
-    dayGanZhi: basicInfo.dayGz,
-    hourGanZhi: basicInfo.hourGz,
-    kook: kook.wen,
-    taiyiGong: taiyi.gong,
-  }), [data, solarBirth, basicInfo, kook, taiyi]);
+    项目: '太乙神数',
+    计式: basicInfo.jiStyleName,
+    积年法: basicInfo.acumYearName,
+    生辰: { 年份: solarBirth.year, 性别: solarBirth.gender },
+    日干支: basicInfo.dayGz,
+    时干支: basicInfo.hourGz,
+    局式: kook.wen,
+    太乙落宫: taiyi.gong,
+  }), [solarBirth, basicInfo, kook, taiyi]);
 
   return (
     <section className="space-y-4">
@@ -92,8 +91,8 @@ export function TaiyiWorkspace() {
             </p>
           </div>
           <div className="flex gap-2">
-            <CopyContextButton commandScope="taiyi" title="太乙神数上下文" payload={contextPayload} />
-            <ExportReportButton module="太乙神数" />
+            <CopyContextButton commandScope="taiyi" title="太乙神数摘要" payload={contextPayload} />
+            <ExportReportButton module="太乙神数" report={result.envelope?.data.export_snapshot ?? null} />
           </div>
         </div>
       </div>
@@ -161,7 +160,7 @@ export function TaiyiWorkspace() {
           />
           {fourLayer && (
             <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-              <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
+              <FourLayerReport report={fourLayer} title="太乙神数解读" />
             </div>
           )}
         </aside>

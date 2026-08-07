@@ -77,15 +77,13 @@ export function LiurenWorkspace() {
   const birthSummary = `${solarBirth.year}-${String(solarBirth.month).padStart(2, '0')}-${String(solarBirth.day).padStart(2, '0')} ${String(solarBirth.hour).padStart(2, '0')}:00`;
 
   const contextPayload = useMemo(() => ({
-    module: 'liuren',
-    mode: data.mode,
-    school: data.school,
-    birth: { year: solarBirth.year, gender: solarBirth.gender },
-    dayGanZhi: basicInfo.dayGanZhi,
-    hourGanZhi: basicInfo.hourGanZhi,
-    geJu: `${sanChuan.geJu}·${sanChuan.geJuDetail}`,
-    sanChuan: `${sanChuan.chuChuan.diZhi}→${sanChuan.zhongChuan.diZhi}→${sanChuan.moChuan.diZhi}`,
-  }), [data, solarBirth, basicInfo, sanChuan]);
+    项目: '大六壬',
+    生辰: { 年份: solarBirth.year, 性别: solarBirth.gender },
+    日干支: basicInfo.dayGanZhi,
+    时干支: basicInfo.hourGanZhi,
+    三传格局: `${sanChuan.geJu}·${sanChuan.geJuDetail}`,
+    三传: `${sanChuan.chuChuan.diZhi}→${sanChuan.zhongChuan.diZhi}→${sanChuan.moChuan.diZhi}`,
+  }), [solarBirth, basicInfo, sanChuan]);
 
   return (
     <section className="space-y-4">
@@ -99,8 +97,8 @@ export function LiurenWorkspace() {
             </p>
           </div>
           <div className="flex gap-2">
-            <CopyContextButton commandScope="liuren" title="大六壬上下文" payload={contextPayload} />
-            <ExportReportButton module="大六壬" />
+            <CopyContextButton commandScope="liuren" title="大六壬摘要" payload={contextPayload} />
+            <ExportReportButton module="大六壬" report={result.envelope?.data.export_snapshot ?? null} />
           </div>
         </div>
       </div>
@@ -110,7 +108,7 @@ export function LiurenWorkspace() {
         <aside className="space-y-4">
           <InterpretationCard
             title="排盘信息"
-            badge={data.mode === 'local-exact' ? '真实排盘' : '近似排盘'}
+            badge={data.mode === 'local-exact' ? '按出生资料排盘' : '参考推算'}
             items={[
               { label: '生辰', value: birthSummary },
               { label: '日干支', value: basicInfo.dayGanZhi },
@@ -153,7 +151,7 @@ export function LiurenWorkspace() {
           />
           {fourLayer && (
             <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-              <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
+              <FourLayerReport report={fourLayer} title="大六壬解读" />
             </div>
           )}
         </aside>

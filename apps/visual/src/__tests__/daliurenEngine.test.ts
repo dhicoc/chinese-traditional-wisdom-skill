@@ -147,7 +147,8 @@ describe('calcDaliurenEnveloped envelope', () => {
     expect(snap.tags?.some((t) => t.startsWith('天将·'))).toBe(true);
     expect(snap.tags?.some((t) => t.includes('昼顺夜逆'))).toBe(true);
     expect(snap.sections.some((s) => s.heading === '天将口径')).toBe(true);
-    expect(snap.sourceNotes).toContain('昼顺夜逆');
+    expect(snap.sourceNotes).toContain('传统卜筮文化参考');
+    expect(snap.sourceNotes).not.toContain('昼顺夜逆');
   });
 
   it('三式互参透传 liurenSchool 至大六壬子系统', () => {

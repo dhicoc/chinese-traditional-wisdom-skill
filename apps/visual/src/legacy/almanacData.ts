@@ -226,7 +226,7 @@ export function getAlmanacData(dateStr: string, solar?: SolarLike | null): Alman
             try { const n = lunar.getDayNineStar?.(); return n && typeof n.toString === 'function' ? n.toString() : n?.index !== undefined ? String(n.index) : undefined; } catch { return undefined; }
           })()
         : undefined,
-      confidenceNote: '数据由内置 6tail/lunar-javascript 真实历法推算；宜忌为民俗参考，不作为决策依据。',
+      confidenceNote: '宜忌内容为传统民俗参考，不作为决策依据。',
     };
   } catch {
     // 任一 getter 抛错时降级，避免整页黑屏

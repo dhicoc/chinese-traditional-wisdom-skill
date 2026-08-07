@@ -113,8 +113,8 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
           </div>
           <CopyContextButton
             commandScope="home"
-            title="首页工具目录上下文"
-            payload={{ module: selected, tools: tools.length, localCapabilities: counts.local, demoBoundaries: counts.demo, legacyReady, source: 'ToolManifest + CapabilityRegistry + React HomeDashboard' }}
+            title="工具目录摘要"
+            payload={{ 当前页面: selected, 工具数量: tools.length, 可用工具: counts.local }}
           />
         </div>
         <div className="mt-4">
@@ -130,7 +130,7 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
             </div>
           )}
           <p className="mt-2 text-center text-[11px] text-jade-100/45">
-            {ready ? '真实四柱 · 双击放大查看 · 右键复制为图像' : '引擎加载后显示真实四柱'}
+            {ready ? '双击可放大查看，右键可复制图像' : '正在生成四柱命盘…'}
           </p>
         </div>
       </section>

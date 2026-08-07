@@ -200,7 +200,7 @@ function calculateWith3meta(year: number, month: number, day: number, hour: numb
     engineName: 'Qimen3metaAdapter',
     mode: 'local-exact',
     version: '3meta@2.6.0',
-    confidenceNote: '基于 3meta v2.6.0 时家奇门排盘（拆补法）：含三奇六仪、九星、八门、八神、值符值使、空亡、马星、旺相休囚、十二长生、六仪击刑、十干生克、吉凶格局自动检测。不同流派在排盘方法（拆补/置闰/均分）与格局解读上可能有差异。',
+    confidenceNote: '本解读包含三奇六仪、九星、八门、八神、值符值使、空亡、马星及格局等内容。不同流派在起局和格局解读上可能存在差异，宜结合所问事项参考。',
     sourceProject: '3metaJun/3meta (MIT)',
     license: 'MIT',
     birthInfo: { year, month, day, hour, minute },
@@ -274,7 +274,7 @@ function calculateSimplified(year: number, month: number, day: number, hour: num
     engineName: 'LocalQimenSimplifiedAdapter',
     mode: 'local-approx',
     version: '1.0.0',
-    confidenceNote: '3meta 未加载，使用简化时家奇门排盘：按年月日时取数定局，八门/九星/八神按种子轮转布九宫。非专业奇门排盘，仅作文化学习参考。',
+    confidenceNote: '当前结果以年月日时排出局式，并展示八门、九星与八神分布，适合作为传统文化学习参考。',
     sourceProject: 'local:qimenEngine.ts',
     license: 'project-local',
     birthInfo: { year, month, day, hour },
@@ -323,16 +323,16 @@ export function calcQimenEnveloped(input: QimenInput): ToolEnvelope<QimenData> {
 
   const snapshot: ExportSnapshot = {
     summary: result.summary,
-    tags: ['奇门遁甲', result.dun, result.ju, '值符' + zhiFuStar, '值使' + zhiShiGate, result._is3meta ? '3meta真实' : '简化'],
+    tags: ['奇门遁甲', result.dun, result.ju, '值符' + zhiFuStar, '值使' + zhiShiGate],
     sections: [
       { heading: '遁局', body: `${result.dun}${result.ju}，${result.yuan || ''}${result.season ? '·' + result.season : ''}。月令五行：${result.monthElement || '未知'}。` },
       { heading: '值符值使', body: `值符${zhiFuStar}（${result.zhiFu?.position || '?'}宫），值使${zhiShiGate}（${result.zhiShi?.position || '?'}宫）。` },
       { heading: '九宫分布', body: palaceDesc + '。' },
       { heading: '格局', body: `吉格${result.auspiciousPatterns.length}：${result.auspiciousPatterns.join('、') || '无'}；凶格${result.inauspiciousPatterns.length}：${result.inauspiciousPatterns.join('、') || '无'}。` },
-      { heading: '四柱', body: result.timeInfo ? `${result.timeInfo.yearGZ}年 ${result.timeInfo.monthGZ}月 ${result.timeInfo.dayGZ}日 ${result.timeInfo.hourGZ}时` : '需精确历法' },
-      { heading: '边界说明', body: result.confidenceNote },
+      { heading: '四柱', body: result.timeInfo ? `${result.timeInfo.yearGZ}年 ${result.timeInfo.monthGZ}月 ${result.timeInfo.dayGZ}日 ${result.timeInfo.hourGZ}时` : '当前时刻信息暂未齐备。' },
+      { heading: '使用提醒', body: '本局依传统奇门遁甲规则整理，适合用于传统文化学习与自我观察，不作为现实决策依据。' },
     ],
-    sourceNotes: result.confidenceNote,
+    sourceNotes: '传统奇门遁甲参考。',
   };
 
   return {
@@ -341,6 +341,6 @@ export function calcQimenEnveloped(input: QimenInput): ToolEnvelope<QimenData> {
     version: result.version,
     input_normalized: input as unknown as Record<string, unknown>,
     data: { ...result, export_snapshot: snapshot },
-    warnings: [result.confidenceNote, ...(result.mode === 'local-approx' ? ['3meta 排盘异常，已降级简化排盘'] : [])],
+    warnings: [result.confidenceNote, ...(result.mode === 'local-approx' ? ['当前局式仅作传统文化参考'] : [])],
   };
 }

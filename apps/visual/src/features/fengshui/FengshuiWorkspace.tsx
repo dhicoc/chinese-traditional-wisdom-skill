@@ -98,13 +98,11 @@ export function FengshuiWorkspace() {
   const yuanYun = useMemo(() => getYuanYun(year), [year]);
 
   const contextPayload = useMemo(() => ({
-    module: 'fengshui',
-    mode: ready ? 'local-exact' : 'loading',
-    facing: facing || '未选',
-    year,
-    mingGua: bazhaiGrid?.trigram ?? '?',
-    source: 'fengshui.js + flyingStarRemedies.ts + canvasRenderers.ts',
-  }), [facing, year, bazhaiGrid, ready]);
+    项目: '风水罗盘',
+    房屋坐向: facing || '未选',
+    年份: year,
+    命卦: bazhaiGrid?.trigram ?? '?',
+  }), [facing, year, bazhaiGrid]);
 
   // 方位吉凶一览
   const directionSummary = useMemo(() => {
@@ -122,6 +120,15 @@ export function FengshuiWorkspace() {
       danger: findDir(5),
     };
   }, [feixingGrid]);
+  const exportReport = useMemo(() => ({
+    summary: `${year}年${facing ? `坐${facing.charAt(0)}向${facing.charAt(1)}的` : ''}方位参考。`,
+    sections: [
+      { heading: '基本资料', body: `年份：${year}\n元运：${yuanYun.name}（${yuanYun.startYear}-${yuanYun.endYear}）\n房屋坐向：${facing ? `坐${facing.charAt(0)}向${facing.charAt(1)}` : '未设置'}\n命卦：${bazhaiGrid ? `${bazhaiGrid.trigram}卦 · ${bazhaiGrid.group}` : '—'}` },
+      ...(directionSummary ? [{ heading: '流年方位', body: `财位：${directionSummary.wealth}方\n文昌位：${directionSummary.study}方\n桃花位：${directionSummary.romance}方\n病符位：${directionSummary.illness}方\n五黄位：${directionSummary.danger}方` }] : []),
+      ...(mingGuaDirs ? [{ heading: '个人方位参考', body: `生气位：${mingGuaDirs.shengqi}方\n天医位：${mingGuaDirs.tianyi}方\n延年位：${mingGuaDirs.niannian}方\n绝命位：${mingGuaDirs.jueming}方` }] : []),
+      ...(feixingGrid ? [{ heading: '留意方位', body: feixingGrid.flat().filter((cell) => ['大凶', '凶'].includes(NINE_STAR_REMEDIES[cell.starNum]?.nature ?? '')).map((cell) => { const remedy = NINE_STAR_REMEDIES[cell.starNum]; const direction = PALACE_TO_DIR[cell.palace] ?? cell.palace; return `${direction}方 · ${remedy.name}\n${remedy.remedy ? `建议：${remedy.remedy}` : '宜保持安静整洁。'}`; }).join('\n\n') || '暂无特别留意的方位。' }] : []),
+    ],
+  }), [bazhaiGrid, directionSummary, facing, feixingGrid, mingGuaDirs, year, yuanYun]);
 
   return (
     <section className="space-y-4">
@@ -134,8 +141,8 @@ export function FengshuiWorkspace() {
             </p>
           </div>
           <div className="flex gap-2">
-            <CopyContextButton commandScope="fengshui" title="风水罗盘上下文" payload={contextPayload} />
-            <ExportReportButton module="风水罗盘" />
+            <CopyContextButton commandScope="fengshui" title="风水罗盘摘要" payload={contextPayload} />
+            <ExportReportButton module="风水罗盘" report={exportReport} />
           </div>
         </div>
       </div>

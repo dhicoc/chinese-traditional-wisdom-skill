@@ -191,9 +191,9 @@ export function calculateYunqi(input: YunqiInput): YunqiResult {
 
   // 大寒定年：生辰在大寒前 → 用上一年运气
   let effectiveYear = year;
-  let yearBoundary = '近似按公历年处理，未接入精确大寒节气表';
+  let yearBoundary = '本年运气以出生年份为参考。';
   let mode: 'local-exact' | 'local-approx' = 'local-approx';
-  let confidenceNote = '按公历年份干支推算岁运、司天在泉与客气六步；大寒定年和节气日为近似处理。';
+  let confidenceNote = '按出生年份参看岁运、司天在泉与客气六步。';
 
   const dahan = getDaHanDate(year, solar);
   if (dahan) {
@@ -280,7 +280,7 @@ export function calcYunqiEnveloped(input: YunqiInput): ToolEnvelope<YunqiData> {
 
   const snapshot: ExportSnapshot = {
     summary: `${y}年(${tg}${dz})岁运${dayun}，司天${sitian}，在泉${zaiquan}。疾病倾向：${tendency}。`,
-    tags: ['五运六气', tg + dz + '年', dayun, sitian, result.mode === 'local-exact' ? '精确历法' : '近似历法'],
+    tags: ['五运六气', tg + dz + '年', dayun, sitian],
     sections: [
       { heading: '岁运', body: `${tg}年岁运为${dayun}，主全年气候与体质基本倾向。客运：${result.wuyun.keyun.join('→')}。` },
       { heading: '司天在泉', body: `司天${sitian}主上半年气候，在泉${zaiquan}主下半年气候。` },
@@ -289,7 +289,7 @@ export function calcYunqiEnveloped(input: YunqiInput): ToolEnvelope<YunqiData> {
       { heading: '疾病倾向', body: tendency + '。以上为运气推算的文化参考，不作为诊疗建议。' },
       { heading: '年份边界', body: result.yearBoundary },
     ],
-    sourceNotes: result.confidenceNote,
+    sourceNotes: '五运六气内容仅作传统文化与日常调养参考。',
   };
 
   return {
@@ -298,6 +298,6 @@ export function calcYunqiEnveloped(input: YunqiInput): ToolEnvelope<YunqiData> {
     version: result.mode,
     input_normalized: input as unknown as Record<string, unknown>,
     data: { ...result, export_snapshot: snapshot },
-    warnings: [result.confidenceNote, result.mode === 'local-approx' ? '未传入精确历法入口，按公历年近似' : ''].filter(Boolean),
+    warnings: [result.confidenceNote, result.mode === 'local-approx' ? '岁运信息仅作辅助参考' : ''].filter(Boolean),
   };
 }

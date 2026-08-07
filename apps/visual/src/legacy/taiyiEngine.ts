@@ -1079,9 +1079,9 @@ export function calculateTaiyi(input: TaiyiInput): TaiyiData {
       { heading: '八门三将', body: `${core.threedoors(js, ay)} ${core.fivegenerals(js, ay)} ${core.suenwl(js, ay)}` },
       { heading: '主客相关', body: core.wcNSj(js, ay) + '。' },
       { heading: '神煞', body: `天乙${data.shenSha.tianyi}、地乙${data.shenSha.earthyi}、四神${data.shenSha.fourGod}、直符${data.shenSha.zhifu}、五福${data.shenSha.wufu}、大游${data.shenSha.bigyo}、小游${data.shenSha.smyo}、阳九${data.shenSha.yangjiu}、百六${data.shenSha.baliu}。` },
-      { heading: '口径', body: `${data.basicInfo.acumYearName}积年法，${data.basicInfo.jiStyleName}。${confidenceNote}` },
+      { heading: '使用提醒', body: '本局依传统太乙神数规则整理，适合用于传统文化学习与自我观察，不作为现实决策依据。' },
     ],
-    sourceNotes: confidenceNote,
+    sourceNotes: '传统太乙神数参考。',
   };
 
   return data;

@@ -63,23 +63,33 @@ export function BazhaiWorkspace() {
     () => (summary ? getSectorAnalysis(summary.trigram) : null),
     [summary],
   );
+  const taisui = useMemo(() => calcTaisui(flowYear), [flowYear]);
+  const menZhuZao = useMemo(() => calcMenZhuZao({ door: mzzDoor, bedroom: mzzBedroom, kitchen: mzzKitchen }), [mzzBedroom, mzzDoor, mzzKitchen]);
 
   const contextPayload = useMemo(
     () => ({
-      module: 'bazhai',
-      mode: 'legacy-canvas-react-shell',
-      year,
-      gender,
-      facing,
-      flowYear,
-      mingGua: summary ?? null,
-      houseGua: houseGua ?? null,
-      compatibility: compatibility ?? null,
-      combo: combo ?? null,
-      source: 'canvasRenderers.ts + bazhaiHouse.ts + flyingStarRemedies.ts',
+      项目: '八宅大游年',
+      出生年: year,
+      性别: gender,
+      房屋坐向: facing,
+      流年: flowYear,
+      命卦: summary ?? null,
+      宅卦: houseGua ?? null,
+      合参: compatibility ?? null,
+      解读: combo ?? null,
     }),
     [year, gender, facing, flowYear, summary, houseGua, compatibility, combo],
   );
+  const exportReport = useMemo(() => ({
+    summary: `${year}年${gender}命卦与${facing}宅方位参考。`,
+    sections: [
+      { heading: '命卦与宅卦', body: `出生年：${year}\n性别：${gender}\n命卦：${summary ? `${summary.trigram}卦 · ${summary.group}` : '—'}\n宅卦：${houseGua ? `${houseGua.name} · ${houseGua.group}` : '—'}\n命宅关系：${compatibility ? `${compatibility.level}\n${compatibility.detail}` : '—'}` },
+      ...(personalDirs ? [{ heading: '个人方位', body: `四吉方：${personalDirs.auspicious.map((item) => `${item.star}${item.direction}方`).join('；')}\n四凶方：${personalDirs.inauspicious.map((item) => `${item.star}${item.direction}方`).join('；')}` }] : []),
+      ...(sectorAnalysis ? [{ heading: '方位用途', body: sectorAnalysis.map((item) => `${item.direction}方 · ${item.use.star} · ${item.use.quality}\n${item.use.meaning}\n${item.use.advice}${item.use.remedy ? `\n化解：${item.use.remedy}` : ''}`).join('\n\n') }] : []),
+      ...(combo ? [{ heading: '流年合参', body: `流年：${flowYear}\n个人生气位：${combo.shengqiDirection}方\n流年财位：${combo.caiweiDirection}方\n五黄位：${combo.wuhuangDirection}方\n二黑病符：${combo.erheiDirection}方\n${combo.suggestions.map((item) => `${item.label}：${item.value}`).join('\n')}` }] : []),
+      { heading: '太岁与门主灶', body: `太岁：${taisui.taisui.direction}\n岁破：${taisui.suiPo.direction}\n三煞：${taisui.sanSha.zhiList.join('、')}\n门主灶：${menZhuZao.overall.tone === '吉' ? '格局优良' : menZhuZao.overall.tone === '凶' ? '需留意' : '格局一般'}\n${menZhuZao.remedies.join('\n') || '可按实际居住需求审慎调整。'}` },
+    ],
+  }), [combo, compatibility, facing, flowYear, gender, houseGua, menZhuZao, personalDirs, sectorAnalysis, summary, taisui, year]);
 
   return (
     <section className="space-y-4">
@@ -92,8 +102,8 @@ export function BazhaiWorkspace() {
             </p>
           </div>
           <div className="flex gap-2">
-            <CopyContextButton commandScope="bazhai" title="八宅大游年 React 迁移上下文" payload={contextPayload} />
-            <ExportReportButton module="八宅大游年" />
+            <CopyContextButton commandScope="bazhai" title="八宅大游年摘要" payload={contextPayload} />
+            <ExportReportButton module="八宅大游年" report={exportReport} />
           </div>
         </div>
       </div>
@@ -142,7 +152,7 @@ export function BazhaiWorkspace() {
                 <div className="flex justify-between gap-3"><dt>分组</dt><dd className="text-jade-100">{summary.group}</dd></div>
               </dl>
             ) : (
-              <p className="mt-2 text-sm text-jade-100/45">等待旧引擎加载。</p>
+              <p className="mt-2 text-sm text-jade-100/45">正在生成结果…</p>
             )}
           </div>
 

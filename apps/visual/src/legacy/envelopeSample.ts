@@ -38,9 +38,9 @@ export function searchDreamEnveloped(keyword: string, useFull = false): ToolEnve
   const topEntry = result.entries[0];
   const snapshot: ExportSnapshot = {
     summary: result.hit
-      ? `「${keyword}」命中 ${result.entries.length} 条现代解读、${result.classics.length} 条古文断语${topEntry ? `；首条判为${topEntry.luck}` : ''}`
-      : `「${keyword}」未在周公解梦库中命中，建议换用更通用的关键词`,
-    tags: result.hit ? ['周公解梦', topEntry?.luck ?? '—', useFull ? '全量库' : '精选库'] : ['周公解梦', '未命中'],
+      ? `「${keyword}」的传统梦象解读${topEntry ? `；首条判为${topEntry.luck}` : ''}`
+      : `「${keyword}」暂未找到对应梦象，建议换用更通用的关键词`,
+    tags: result.hit ? ['周公解梦', topEntry?.luck ?? '—'] : ['周公解梦', '未命中'],
     sections: [
       {
         heading: '现代解读',
@@ -51,7 +51,7 @@ export function searchDreamEnveloped(keyword: string, useFull = false): ToolEnve
         body: result.classics.slice(0, 5).map((c) => `${c.original}（断语：${c.interpretation}）`).join('\n') || '无',
       },
     ],
-    sourceNotes: useFull ? '全量库（9548条）+ 古文层（952条）' : '精选库（137条）+ 古文层（952条）',
+    sourceNotes: '传统梦象解读仅作民俗文化参考。',
   };
 
   // 用 wrapEnvelope 包装：自动从 result 提取 tool/version，把 confidenceNote 转为 warnings

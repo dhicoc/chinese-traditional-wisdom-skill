@@ -262,7 +262,7 @@ export async function calcCezi(input: CeziInput): Promise<CeziResult> {
     export_snapshot: snapshot,
     engineName: 'ceziEngine',
     mode: 'local-exact',
-    confidenceNote: '笔画/数理/结构确定性；字义依赖 fate 数据；八字补益依赖 lunar-javascript',
+    confidenceNote: '本解读从笔画、数理、字形结构、字义五行与八字补益等角度综合参考。',
   };
 }
 

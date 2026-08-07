@@ -40,23 +40,23 @@ export function YunqiWorkspace() {
   }, []);
 
   const ready = !!data;
-  const fourLayer = useMemo<LayerReport | null>(() => {
+  const exportSnapshot = useMemo(() => {
     if (!year) return null;
     try {
-      const env = calcYunqiEnveloped({ year, solar: getSolarEntry(), currentMonth: new Date().getMonth() + 1 });
-      return toFourLayer(env.data.export_snapshot as ReadingLike);
+      return calcYunqiEnveloped({ year, solar: getSolarEntry(), currentMonth: new Date().getMonth() + 1 }).data.export_snapshot;
     } catch {
       return null;
     }
   }, [year]);
+  const fourLayer = useMemo<LayerReport | null>(() => (
+    exportSnapshot ? toFourLayer(exportSnapshot as ReadingLike) : null
+  ), [exportSnapshot]);
   const contextPayload = useMemo(
     () => ({
-      module: 'yunqi',
-      mode: 'local-exact',
-      year,
-      data,
-      source: 'apps/visual/src/legacy/yunqiEngine.ts + lunar-javascript',
-      medicalBoundary: '文化参考，不替代医疗诊断或治疗建议。',
+      项目: '五运六气',
+      年份: year,
+      解读: data,
+      提示: '传统文化参考，不替代医疗诊断或治疗建议。',
     }),
     [year, data],
   );
@@ -72,8 +72,8 @@ export function YunqiWorkspace() {
             </p>
           </div>
           <div className="flex gap-2">
-            <CopyContextButton commandScope="yunqi" title="五运六气 React 迁移上下文" payload={contextPayload} />
-            <ExportReportButton module="五运六气" />
+            <CopyContextButton commandScope="yunqi" title="五运六气摘要" payload={contextPayload} />
+            <ExportReportButton module="五运六气" report={exportSnapshot} />
           </div>
         </div>
       </div>
@@ -101,7 +101,7 @@ export function YunqiWorkspace() {
                 <div className="flex justify-between gap-3"><dt>在泉</dt><dd className="text-jade-100">{data.liuqi.zaiquan}</dd></div>
               </dl>
             ) : (
-              <p className="mt-2 text-sm text-jade-100/45">等待旧引擎加载。</p>
+              <p className="mt-2 text-sm text-jade-100/45">正在生成结果…</p>
             )}
           </div>
 
@@ -141,7 +141,7 @@ export function YunqiWorkspace() {
       )}
       {fourLayer && (
         <div className="console-panel mt-4 rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-          <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
+          <FourLayerReport report={fourLayer} title="五运六气解读" />
         </div>
       )}
     </section>

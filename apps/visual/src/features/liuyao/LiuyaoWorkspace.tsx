@@ -71,7 +71,7 @@ const DEFAULT_FALLBACK: LiuyaoResult = {
   changingHexagramName: '坤为地',
   engineName: 'fallback',
   mode: 'fallback-demo',
-  confidenceNote: '旧引擎未就绪时的降级演示结构，不作真实排盘结论。',
+  confidenceNote: '请填写占问事项后查看相应解读。',
 };
 
 function isValidYaoValues(v: string) {
@@ -126,7 +126,7 @@ export function LiuyaoWorkspace() {
     }
   }, [ready, solarBirth, method, question, yaoValues, castCount]);
 
-  const fourLayer = useMemo<LayerReport | null>(() => {
+  const exportSnapshot = useMemo(() => {
     if (!ready) return null;
     try {
       const input: LiuyaoInput = {
@@ -135,12 +135,14 @@ export function LiuyaoWorkspace() {
       if (question) input.question = question;
       if (method === 'manual' && yaoValues) input.yaoValues = yaoValues.replace(/\s/g, '');
       if (method === 'coin' || method === 'yarrow') input.seed = solarBirth.year * 10000 + solarBirth.month * 100 + solarBirth.day + solarBirth.hour + castCount * 7919;
-      const env = calcLiuyaoEnveloped(input);
-      return toFourLayer(env.data.export_snapshot as ReadingLike);
+      return calcLiuyaoEnveloped(input).data.export_snapshot;
     } catch {
       return null;
     }
   }, [ready, solarBirth, method, question, yaoValues, castCount]);
+  const fourLayer = useMemo<LayerReport | null>(() => (
+    exportSnapshot ? toFourLayer(exportSnapshot as ReadingLike) : null
+  ), [exportSnapshot]);
 
   const changedLines = useMemo<LiuyaoData | null>(() => {
     if (!result.changingYao || result.changingYao.length === 0) return null;
@@ -153,24 +155,18 @@ export function LiuyaoWorkspace() {
 
   const contextPayload = useMemo(
     () => ({
-      module: 'liuyao',
-      mode: result.mode ?? 'unknown',
-      engineName: result.engineName,
-      method,
-      solarBirth,
-      question: question || '(未填写)',
-      hexagram: result.hexagramName,
-      changingHexagram: result.changingHexagramName,
-      palace: result.palace,
-      yongShen: result.yongShen,
-      shiYao: result.shiYao,
-      yingYao: result.yingYao,
-      changingYao: result.changingYao,
-      dayStem: result.dayStem,
-      lines: result.lines,
-      source: 'apps/visual/src/legacy/liuyaoEngine.ts',
+      项目: '六爻占卜',
+      起卦方式: method,
+      生辰: solarBirth,
+      所问事项: question || '未填写',
+      本卦: result.hexagramName,
+      变卦: result.changingHexagramName,
+      用神: result.yongShen,
+      世爻: result.shiYao,
+      应爻: result.yingYao,
+      动爻: result.changingYao,
     }),
-    [result, method,, solarBirth, question],
+    [result, method, solarBirth, question],
   );
 
   return (
@@ -185,8 +181,8 @@ export function LiuyaoWorkspace() {
             </p>
           </div>
           <div className="flex gap-2">
-            <CopyContextButton commandScope="liuyao" title="六爻纳甲 React 上下文" payload={contextPayload} />
-            <ExportReportButton module="命盘" />
+            <CopyContextButton commandScope="liuyao" title="六爻占卜摘要" payload={contextPayload} />
+            <ExportReportButton module="六爻占卜" report={exportSnapshot} />
           </div>
         </div>
         <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
@@ -243,7 +239,7 @@ export function LiuyaoWorkspace() {
 
           <InterpretationCard
             title="卦象概要"
-            badge={isReal ? '真实纳甲' : '降级演示'}
+            badge={isReal ? '起卦结果' : '填写事项后查看'}
             items={[
               { label: '本卦', value: result.hexagramName },
               { label: '变卦', value: result.changingHexagramName ?? '—' },
@@ -289,7 +285,7 @@ export function LiuyaoWorkspace() {
           />
           {fourLayer && (
             <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-              <FourLayerReport report={fourLayer} title="四层报告（总结·亮点·详析·建议）" />
+              <FourLayerReport report={fourLayer} title="六爻解读" />
             </div>
           )}
         </aside>

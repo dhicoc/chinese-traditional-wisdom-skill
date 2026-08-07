@@ -1,0 +1,116 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { createExportReportHtml, ExportReportButton } from '@/components/shared/ExportReportButton';
+
+vi.mock('@/lib/birthContext', () => ({
+  useBirth: () => ({
+    birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男', isLunar: false },
+    solarBirth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+  }),
+}));
+
+vi.mock('@/lib/commandIntents', () => ({
+  dispatchCommandFeedback: vi.fn(),
+}));
+
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
+
+describe('ExportReportButton', () => {
+  it('生成可独立打开且转义正文的 HTML 报告', () => {
+    const html = createExportReportHtml({
+      title: '八字 <报告>',
+      generatedAt: '2026/8/7 12:00:00',
+      birthSummary: '1990年6月15日 <12>时',
+      report: {
+        summary: '日主 & 喜用神',
+        sections: [{ heading: '结论 <一>', body: '保留 <标签>\n并换行' }],
+      },
+    });
+
+    expect(html).toContain('<!doctype html>');
+    expect(html).toContain('八字 &lt;报告&gt;');
+    expect(html).toContain('日主 &amp; 喜用神');
+    expect(html).toContain('结论 &lt;一&gt;');
+    expect(html).toContain('保留 &lt;标签&gt;<br>并换行');
+    expect(html).toContain('本报告内容仅作传统文化参考。');
+  });
+
+  it('以 HTML Blob 和 .html 文件名下载传入的结构化报告', async () => {
+    let downloadedBlob: Blob | undefined;
+    let downloadName = '';
+    const createObjectUrl = vi.fn((blob: Blob) => {
+      downloadedBlob = blob;
+      return 'blob:report';
+    });
+    const revokeObjectUrl = vi.fn();
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      downloadName = this.download;
+    });
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: createObjectUrl });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: revokeObjectUrl });
+
+    render(
+      <ExportReportButton
+        module="八字命盘"
+        report={{ summary: '结构化摘要', sections: [{ heading: '命局要览', body: '日主辛金' }] }}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: '导出报告' }));
+
+    await waitFor(() => expect(click).toHaveBeenCalledOnce());
+    expect(downloadedBlob?.type).toBe('text/html;charset=utf-8');
+    expect(downloadName).toMatch(/^八字命盘-1990xxxx-\d+\.html$/);
+    expect(revokeObjectUrl).toHaveBeenCalledWith('blob:report');
+    await expect(downloadedBlob?.text()).resolves.toContain('结构化摘要');
+    await expect(downloadedBlob?.text()).resolves.toContain('命局要览');
+  });
+
+  it('只导出摘要与章节，不输出快照附带的内部元信息', () => {
+    const report = {
+      summary: '用户可见摘要',
+      sections: [{ heading: '用户章节', body: '用户可见内容' }],
+      sourceNotes: 'lunar-javascript / internal adapter',
+      tags: ['local-exact', 'engineName'],
+    };
+    const html = createExportReportHtml({
+      title: '测试报告',
+      generatedAt: '2026/8/7 12:00:00',
+      birthSummary: '1990年6月15日 12时',
+      report,
+    });
+
+    expect(html).toContain('用户可见摘要');
+    expect(html).toContain('用户可见内容');
+    expect(html).not.toContain('lunar-javascript');
+    expect(html).not.toContain('internal adapter');
+    expect(html).not.toContain('local-exact');
+    expect(html).not.toContain('engineName');
+  });
+
+  it('未传入报告时不读取页面文本或导出内部说明', async () => {
+    let downloadedBlob: Blob | undefined;
+    const pageContent = document.createElement('main');
+    pageContent.textContent = 'engineName: internal-engine\nsource: private.ts\n不应进入报告';
+    document.body.append(pageContent);
+    const createObjectUrl = vi.fn((blob: Blob) => {
+      downloadedBlob = blob;
+      return 'blob:default-report';
+    });
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: createObjectUrl });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() });
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+
+    render(<ExportReportButton module="测试页面" />);
+    fireEvent.click(screen.getByRole('button', { name: '导出报告' }));
+
+    await waitFor(() => expect(click).toHaveBeenCalledOnce());
+    const html = await downloadedBlob?.text();
+    expect(html).toContain('当前页面尚未生成可导出的结果，请先完成输入或计算后再试。');
+    expect(html).not.toContain('internal-engine');
+    expect(html).not.toContain('private.ts');
+    pageContent.remove();
+  });
+});

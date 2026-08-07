@@ -246,7 +246,7 @@ export function calculateZiwei(input: ZiweiInput): ZiweiResult {
       sihua: {},
       mainStars: [],
       chart: null,
-      confidenceNote: 'iztro 排盘返回空，已降级为 demo。',
+      confidenceNote: '暂未生成完整命盘，请稍后重试。',
     };
   }
 
@@ -260,7 +260,7 @@ export function calculateZiwei(input: ZiweiInput): ZiweiResult {
     sihua: extractSihuaFromChart(chart.palaces),
     mainStars: extractMainStars(chart.palaces),
     chart,
-    confidenceNote: '紫微斗数排盘采用 SylarLong/iztro (v2.5.8) 引擎；紫微流派存在差异，采用 iztro 默认配置。',
+    confidenceNote: '紫微斗数各家安星与解读方法略有差异，本页内容宜结合整体命盘参考。',
     fiveElementsClass: chart.fiveElementsClass,
     soul: chart.soul,
     body: chart.body,
@@ -326,10 +326,10 @@ export function calcZiweiEnveloped(input: ZiweiInput): ToolEnvelope<ZiweiData> {
   const snapshot: ExportSnapshot = {
     summary: result.mode === 'local-exact'
       ? `紫微斗数${result.birthInfo.year}年${result.birthInfo.month}月${result.birthInfo.day}日${result.birthInfo.hour}时${result.birthInfo.gender}命，${result.fiveElementsClass ? `五行局${result.fiveElementsClass}，` : ''}${result.soul ? `命主${result.soul}、` : ''}${result.body ? `身主${result.body}，` : ''}命宫主星：${ming?.stars.join('、') || '未知'}，四化：${sihuaSummary || '未知'}。`
-      : 'iztro 排盘失败，已降级为 demo。',
-    tags: ['紫微斗数', result.mode === 'local-exact' ? '真实排盘' : '演示', `iztro@2.5.8`, ...(ming?.stars || [])],
+      : '暂未生成完整命盘，请稍后重试。',
+    tags: ['紫微斗数', ...(ming?.stars || [])],
     sections: sections.length ? sections : [{ heading: '说明', body: result.confidenceNote || '' }],
-    sourceNotes: result.confidenceNote || 'iztro v2.5.8',
+    sourceNotes: result.confidenceNote || '紫微斗数命盘参考',
   };
 
   const env: ToolEnvelope<ZiweiData> = {
@@ -341,7 +341,7 @@ export function calcZiweiEnveloped(input: ZiweiInput): ToolEnvelope<ZiweiData> {
     warnings: [result.confidenceNote || ''],
   };
   if (result.mode !== 'local-exact') {
-    env.error = { code: 'demo_fallback', message: 'iztro 排盘返回空，降级为 demo' };
+    env.error = { code: 'demo_fallback', message: '暂未生成完整命盘，请稍后重试。' };
   }
   return env;
 }

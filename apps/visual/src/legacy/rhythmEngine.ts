@@ -87,7 +87,7 @@ export function getDailyRhythm(input: RhythmInput = {}): ToolEnvelope<RhythmResu
       ...(qr.constitutionAdvice.length ? [{ heading: '体质针对性建议', body: qr.constitutionAdvice.map((a) => `${a.type}：${a.advice}`).join('；') + '。' }] : []),
       ...(meridian ? [{ heading: '时辰经络', body: `${meridian.time}（${meridian.hours}）属${meridian.meridian}经当令，对应${meridian.organ}。${meridian.advice}` }] : []),
     ],
-    sourceNotes: `节气${qr.mode === 'local-exact' ? '由 lunar-javascript 精确推算' : '按月日近似'}；经络按十二时辰子午流注。民俗养生参考。`,
+    sourceNotes: '节气与经络内容仅作传统养生参考。',
   };
 
   const result: RhythmResult = {
@@ -101,7 +101,7 @@ export function getDailyRhythm(input: RhythmInput = {}): ToolEnvelope<RhythmResu
     synthesis,
     export_snapshot: snapshot,
     engineName: 'rhythmEngine',
-    confidenceNote: `节气${qr.mode === 'local-exact' ? '精确推算' : '近似'}；经络按子午流注。民俗养生参考。`,
+    confidenceNote: '经络时辰内容参照子午流注，属于民俗养生参考。',
   };
 
   return {

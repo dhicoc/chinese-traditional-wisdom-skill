@@ -19,7 +19,7 @@ export function SidebarNav(_props: SidebarNavProps) {
             <h1 className="truncate font-serif text-base font-semibold tracking-[0.14em] text-jade-50">玄学排盘</h1>
           </div>
         </div>
-        <p className="mt-2 text-[11px] leading-5 text-jade-100/55">本地引擎 · 可验证的传统智慧工具台</p>
+        <p className="mt-2 text-[11px] leading-5 text-jade-100/55">传统文化解读工具</p>
       </div>
 
       {/* 全局生辰控制台 */}
@@ -34,7 +34,7 @@ export function SidebarNav(_props: SidebarNavProps) {
             <span>本地坛场</span>
             <span className="flex items-center gap-1 text-jade-400">
               <span className="h-1.5 w-1.5 rounded-full bg-jade-400" />
-              Ready
+              已就绪
             </span>
           </div>
           <p className="mt-1.5 text-[11px] leading-5 text-jade-100/35">不上传完整生辰，所有排盘在本地完成。</p>
