@@ -275,13 +275,15 @@ export function BaziWorkspace() {
                   <p className="text-xs font-semibold text-jade-100/70">当前大运</p>
                   <p className="mt-1 text-sm text-jade-50">
                     {transit.currentLuck
-                      ? `${transit.currentLuck.ageStart}岁起 · ${transit.currentLuck.stem}${transit.currentLuck.branch}`
-                      : '尚未起运'}
+                      ? `${transit.luckDirection} · ${transit.currentLuck.ageStart}岁起 · ${transit.currentLuck.stem}${transit.currentLuck.branch}`
+                      : `${transit.luckDirection} · 尚未起运`}
                   </p>
                   <p className="mt-1 text-xs text-jade-100/55">
-                    {transit.currentLuck?.startYear && transit.currentLuck.endYear
-                      ? `${transit.currentLuck.startYear}–${transit.currentLuck.endYear}`
-                      : '起运年龄按当前排盘口径'}
+                    {transit.luckStartSolar
+                      ? `精确起运：${transit.luckStartSolar}`
+                      : transit.currentLuck?.startYear && transit.currentLuck.endYear
+                        ? `${transit.currentLuck.startYear}–${transit.currentLuck.endYear}`
+                        : '起运年龄按当前排盘口径'}
                   </p>
                 </section>
                 <section className="rounded-card border border-cinnabar-500/20 bg-cinnabar-500/10 px-3 py-2.5">
@@ -304,6 +306,28 @@ export function BaziWorkspace() {
                     </section>
                   );
                 })}
+              </div>
+              <div className="mt-3 grid gap-2 lg:grid-cols-2">
+                <section className="rounded-card border border-white/8 bg-white/[0.025] px-3 py-2.5">
+                  <p className="text-xs font-semibold text-jade-100/70">流年与原局</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {transit.natalRelations.length > 0
+                      ? transit.natalRelations.map((item) => (
+                        <span key={`${item.pillar}-${item.ganZhi}`} className="rounded-full border border-cinnabar-500/25 bg-cinnabar-500/10 px-2 py-0.5 text-xs text-cinnabar-400">
+                          {item.pillar}{item.ganZhi} · {item.relations.join('、')}
+                        </span>
+                      ))
+                      : <span className="text-xs text-jade-100/50">未见冲、合、刑、害关系</span>}
+                  </div>
+                </section>
+                <section className="rounded-card border border-white/8 bg-white/[0.025] px-3 py-2.5">
+                  <p className="text-xs font-semibold text-jade-100/70">流年与当前大运</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {transit.currentLuck && transit.luckRelations.length > 0
+                      ? <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2 py-0.5 text-xs text-jade-100/80">{transit.currentLuck.stem}{transit.currentLuck.branch} · {transit.luckRelations.join('、')}</span>
+                      : <span className="text-xs text-jade-100/50">未见冲、合、刑、害关系</span>}
+                  </div>
+                </section>
               </div>
             </section>
           )}

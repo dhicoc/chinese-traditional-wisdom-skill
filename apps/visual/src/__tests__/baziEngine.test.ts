@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { calculateBazi, calcBaziEnveloped, getBaziTransitSnapshot } from '@/legacy/baziEngine';
+import { getSolarEntry } from '@/legacy/solarEntry';
 import type { ToolEnvelope } from '@/legacy/baseTypes';
 import { calcShenSha } from '@/legacy/shensha';
 import type { ShenShaItem } from '@/legacy/shensha';
@@ -101,6 +102,16 @@ describe('calculateBazi 精确路径（传 solar mock）', () => {
     expect(r.calendar?.provider).toBe('lunar-javascript');
   });
 
+  it('精确大运保留顺逆行和起运日期元数据', () => {
+    const r = calculateBazi({
+      birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      solar: getSolarEntry(),
+    });
+
+    expect(r.luckDirection).toBe('顺行');
+    expect(r.luckStartSolar).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
   it('solar 抛错时降级 local-approx', () => {
     const badSolar = { fromYmd: () => { throw new Error('boom'); } };
     const r = calculateBazi({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, solar: badSolar as never });
@@ -119,6 +130,11 @@ describe('getBaziTransitSnapshot 大运流年分层', () => {
     expect(snapshot.targetYear).toBe(2025);
     expect(snapshot.yearly).toMatchObject({ stem: '乙', branch: '巳', stemShiShen: '正印' });
     expect(snapshot.currentLuck).toMatchObject({ ageStart: 33, stem: '壬', branch: '午' });
+    expect(snapshot.natalRelations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ pillar: '年柱', ganZhi: '庚午', relations: expect.arrayContaining(['天干合']) }),
+      expect.objectContaining({ pillar: '月柱', ganZhi: '戊寅', relations: expect.arrayContaining(['相害', '相刑']) }),
+    ]));
+    expect(snapshot.luckRelations).toEqual([]);
     expect(snapshot.luck).toHaveLength(8);
   });
 });

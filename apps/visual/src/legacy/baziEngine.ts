@@ -11,6 +11,7 @@
  */
 
 import type { ToolEnvelope, ExportSnapshot } from './baseTypes';
+import { relationBetweenPillars } from './ganZhiChongHe';
 import { calcShenSha, type ShenShaItem, type TrineSource } from './shensha';
 
 const TG = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
@@ -56,6 +57,8 @@ interface LunarEightCharLike {
 /** lunar-javascript 大运对象（getYun 返回） */
 interface LunarYunLike {
   getDaYun?: () => Array<LunarDaYunLike>;
+  isForward?: () => boolean;
+  getStartSolar?: () => { toYmd?: () => string; toString?: () => string };
 }
 
 /** lunar-javascript 单个大运对象 */
@@ -131,16 +134,26 @@ export interface BaziResult {
   shishenList: Record<string, string>;
   elements: Record<string, number>;
   luck: BaziLuck[];
+  luckDirection: '顺行' | '逆行';
+  luckStartSolar?: string;
   shenSha: ShenShaItem[];
   /** 本命局神煞所用的三合局查取口径 */
   shenShaTrineSource: TrineSource;
   calendar?: { provider: string; exactSolarTerms: boolean };
 }
 
+export interface BaziTransitRelation {
+  pillar: string;
+  ganZhi: string;
+  relations: string[];
+}
+
 export interface BaziTransitSnapshot {
   targetYear: number;
   age: number;
   luck: BaziLuck[];
+  luckDirection: '顺行' | '逆行';
+  luckStartSolar?: string;
   currentLuck: BaziLuck | null;
   yearly: {
     stem: string;
@@ -148,6 +161,8 @@ export interface BaziTransitSnapshot {
     stemShiShen: string;
     stemWuxing: string;
   };
+  natalRelations: BaziTransitRelation[];
+  luckRelations: string[];
   available: boolean;
 }
 
@@ -247,14 +262,17 @@ function calcElements(pillars: BaziPillars): Record<string, number> {
   return c;
 }
 
+function getLuckDirection(pillars: BaziPillars, gender: string): '顺行' | '逆行' {
+  const yYang = pillars.year.stemIndex % 2 === 0;
+  const isMale = gender === '男';
+  return (yYang && isMale) || (!yYang && !isMale) ? '顺行' : '逆行';
+}
+
 // ─── 大运（简化 3 岁起运）──
 function calcLuck(pillars: BaziPillars, gender: string): BaziLuck[] {
-  const yStem = pillars.year.stemIndex;
   const mStem = pillars.month.stemIndex;
   const mBranch = pillars.month.branchIndex;
-  const yYang = yStem % 2 === 0;
-  const isMale = gender === '男';
-  const forward = (yYang && isMale) || (!yYang && !isMale);
+  const forward = getLuckDirection(pillars, gender) === '顺行';
   const luck: BaziLuck[] = [];
   for (let i = 0; i < 8; i++) {
     const age = 3 + i * 10;
@@ -270,7 +288,13 @@ function calcLuck(pillars: BaziPillars, gender: string): BaziLuck[] {
  * 精确起运年龄（按节气余气折算），并带起运/结束年份。跳过 lunar 的胎运段（index 0）。
  * 返回 null 表示 lunar 能力不可用（调用方降级简化大运）。
  */
-function calcLuckWithLunar(solar: SolarLike, birth: BaziBirth): BaziLuck[] | null {
+interface LunarLuckMetadata {
+  luck: BaziLuck[];
+  direction: '顺行' | '逆行';
+  startSolar?: string;
+}
+
+function calcLuckWithLunar(solar: SolarLike, birth: BaziBirth): LunarLuckMetadata | null {
   try {
     const s = solar.fromYmdHms
       ? solar.fromYmdHms(birth.year, birth.month, birth.day, birth.hour, birth.minute || 0, 0)
@@ -279,7 +303,7 @@ function calcLuckWithLunar(solar: SolarLike, birth: BaziBirth): BaziLuck[] | nul
     const eightChar = lunar && typeof lunar.getEightChar === 'function' ? lunar.getEightChar() : null;
     const getYun = eightChar && typeof eightChar.getYun === 'function' ? eightChar.getYun : null;
     if (!getYun) return null;
-    const yun = getYun.call(eightChar, birth.gender || '男');
+    const yun = getYun.call(eightChar, birth.gender === '女' ? 0 : 1);
     const getDaYun = yun && typeof yun.getDaYun === 'function' ? yun.getDaYun : null;
     if (!getDaYun) return null;
     const daYun = getDaYun.call(yun);
@@ -303,14 +327,31 @@ function calcLuckWithLunar(solar: SolarLike, birth: BaziBirth): BaziLuck[] | nul
         endYear: d.getEndYear ? d.getEndYear() : undefined,
       });
     }
-    return luck.length ? luck : null;
+    if (!luck.length) return null;
+    const startSolar = yun.getStartSolar?.();
+    const startSolarText = startSolar?.toYmd?.() ?? startSolar?.toString?.();
+    return {
+      luck,
+      direction: yun.isForward?.() === false ? '逆行' : '顺行',
+      startSolar: startSolarText,
+    };
   } catch {
     return null;
   }
 }
 
 // ─── 由 pillars 构建完整结果（对齐 engine-adapters buildBaziResultFromPillars）──
-function buildResultFromPillars(pillars: BaziPillars, birth: BaziBirth, luck: BaziLuck[], mode: 'local-exact' | 'local-approx', confidenceNote: string, sourceProject: string | undefined, trineSource: TrineSource): BaziResult {
+function buildResultFromPillars(
+  pillars: BaziPillars,
+  birth: BaziBirth,
+  luck: BaziLuck[],
+  mode: 'local-exact' | 'local-approx',
+  confidenceNote: string,
+  sourceProject: string | undefined,
+  trineSource: TrineSource,
+  luckDirection = getLuckDirection(pillars, birth.gender || '男'),
+  luckStartSolar?: string,
+): BaziResult {
   const dm = pillars.day.stemIndex;
   const hiddenStems: Record<string, string[]> = {};
   const shishenList: Record<string, string> = {};
@@ -336,6 +377,8 @@ function buildResultFromPillars(pillars: BaziPillars, birth: BaziBirth, luck: Ba
     shishenList,
     elements: calcElements(pillars),
     luck,
+    luckDirection,
+    luckStartSolar,
     shenSha: calcShenSha(pillars, trineSource, (birth.gender ?? '男') as '男' | '女'),
     shenShaTrineSource: trineSource,
   };
@@ -397,7 +440,8 @@ export function calculateBazi(input: BaziInput): BaziResult {
       const pillars = calcPillarsWithLunar(birth, input.solar);
       if (pillars) {
         // 精确大运（lunar getYun 节气余气起运）；不可用则降级简化
-        const luck = calcLuckWithLunar(input.solar, birth) ?? calcLuck(pillars, gender);
+        const lunarLuck = calcLuckWithLunar(input.solar, birth);
+        const luck = lunarLuck?.luck ?? calcLuck(pillars, gender);
         const hasExactLuck = luck.length > 0 && luck[0].startYear !== undefined;
         return buildResultFromPillars(
           pillars, birth, luck, 'local-exact',
@@ -406,6 +450,8 @@ export function calculateBazi(input: BaziInput): BaziResult {
             : '已通过 lunar-javascript/Solar 全局对象读取节气干支；起运沿用本地简化大运。',
           '6tail/lunar-javascript',
           trineSource,
+          lunarLuck?.direction,
+          lunarLuck?.startSolar,
         );
       }
     } catch {
@@ -424,13 +470,29 @@ export function calculateBazi(input: BaziInput): BaziResult {
   );
 }
 
+function describeTransitRelations(referenceGanZhi: string, yearlyGanZhi: string): string[] {
+  const relation = relationBetweenPillars(referenceGanZhi, yearlyGanZhi);
+  return [
+    relation.ganHe ? '天干合' : '',
+    relation.ganChong ? '天干冲' : '',
+    relation.liuHe ? '六合' : '',
+    relation.sanHe ? '三合' : '',
+    relation.chong ? '六冲' : '',
+    relation.hai ? '相害' : '',
+    relation.xing ? '相刑' : '',
+  ].filter(Boolean);
+}
+
 export function getBaziTransitSnapshot(input: BaziInput['birth'], targetYear: number, solar?: SolarLike | null): BaziTransitSnapshot {
   const empty: BaziTransitSnapshot = {
     targetYear,
     age: 0,
     luck: [],
+    luckDirection: '顺行',
     currentLuck: null,
     yearly: { stem: '', branch: '', stemShiShen: '', stemWuxing: '' },
+    natalRelations: [],
+    luckRelations: [],
     available: false,
   };
   if (!Number.isInteger(targetYear)) return empty;
@@ -442,10 +504,19 @@ export function getBaziTransitSnapshot(input: BaziInput['birth'], targetYear: nu
     ), null);
     const stemIndex = ((targetYear - 4) % 10 + 10) % 10;
     const branchIndex = ((targetYear - 4) % 12 + 12) % 12;
+    const yearlyGanZhi = `${TG[stemIndex]}${DZ[branchIndex]}`;
+    const natalRelations = (['year', 'month', 'day', 'hour'] as const).map((key) => {
+      const pillar = result.pillars[key];
+      const ganZhi = `${pillar.stem}${pillar.branch}`;
+      return { pillar: `${PILLAR_CN[key]}柱`, ganZhi, relations: describeTransitRelations(ganZhi, yearlyGanZhi) };
+    }).filter((item) => item.relations.length > 0);
+    const luckGanZhi = currentLuck ? `${currentLuck.stem}${currentLuck.branch}` : '';
     return {
       targetYear,
       age,
       luck: result.luck,
+      luckDirection: result.luckDirection,
+      luckStartSolar: result.luckStartSolar,
       currentLuck,
       yearly: {
         stem: TG[stemIndex],
@@ -453,6 +524,8 @@ export function getBaziTransitSnapshot(input: BaziInput['birth'], targetYear: nu
         stemShiShen: getShiShen(result.pillars.day.stemIndex, stemIndex),
         stemWuxing: STEM_WX[stemIndex],
       },
+      natalRelations,
+      luckRelations: luckGanZhi ? describeTransitRelations(luckGanZhi, yearlyGanZhi) : [],
       available: true,
     };
   } catch {
