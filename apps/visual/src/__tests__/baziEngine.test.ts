@@ -17,6 +17,11 @@ describe('calculateBazi 本地近似路径（无 solar）', () => {
     expect(r.pillars.year.stem).toBe('庚');
     expect(r.pillars.year.branch).toBe('午');
     expect(r.dayMaster).toBe(r.pillars.day.stem);
+    expect(r.advancedAnalysis).toMatchObject({
+      monthCommand: { branch: r.pillars.month.branch },
+      support: { strength: expect.any(String) },
+      fuyii: { principle: expect.any(String), usefulElements: expect.any(Array) },
+    });
     expect(r.mode).toBe('local-approx');
     expect(r.engineName).toBe('BaziEngine');
   });
@@ -232,15 +237,37 @@ describe('calcBaziEnveloped envelope 适配', () => {
     expect(data.pillars.year.stem).toBe('庚');
     expect(data.export_snapshot.summary).toContain('日主');
     expect(data.export_snapshot.sections.some((s) => s.heading === '四柱')).toBe(true);
+    expect(data.export_snapshot.sections.some((s) => s.heading === '命局要览')).toBe(true);
     expect(data.export_snapshot.sections.some((s) => s.heading === '大运')).toBe(true);
-    const full = env.data as { shenSha?: ShenShaItem[]; export_snapshot: { sections: Array<{ heading: string }> } };
+    const full = env.data as { shenSha?: ShenShaItem[]; advancedAnalysis: { support: { strength: string } }; export_snapshot: { summary: string; sections: Array<{ heading: string; body: string }> } };
+    const strengthSection = full.export_snapshot.sections.find((section) => section.heading === '日主强弱');
+    const overviewSection = full.export_snapshot.sections.find((section) => section.heading === '命局要览');
+    expect(full.export_snapshot.summary).toContain(`整体${full.advancedAnalysis.support.strength}`);
+    expect(strengthSection?.body).toContain(`判断为${full.advancedAnalysis.support.strength}`);
+    expect(overviewSection?.body).toContain(`身强弱：${full.advancedAnalysis.support.strength}`);
     expect(Array.isArray(full.shenSha)).toBe(true);
     expect(full.export_snapshot.sections.some((s) => s.heading === '神煞')).toBe(true);
   });
 
-  it('近似模式带节气近似 warning', () => {
+  it('精确历法快照不包含实现或依赖名称', () => {
+    const env = calcBaziEnveloped({
+      birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      solar: getSolarEntry(),
+    });
+    const data = env.data as { export_snapshot: { sections: Array<{ heading: string; body: string }> } };
+    const exportedText = data.export_snapshot.sections.map((section) => section.body).join('\n');
+
+    expect(exportedText).not.toContain('lunar-javascript');
+    expect(exportedText).not.toContain('Solar 全局对象');
+    expect(exportedText).not.toContain('五行计数近似');
+    expect(exportedText).not.toContain('简化口径');
+    expect(exportedText).not.toContain('节气余气起运');
+    expect(exportedText).toContain('传统文化学习');
+  });
+
+  it('参考推算模式带月柱提示', () => {
     const env = calcBaziEnveloped({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
-    expect(env.warnings?.some((w) => w.includes('节气近似'))).toBe(true);
+    expect(env.warnings?.some((w) => w.includes('月柱信息仅作辅助参考'))).toBe(true);
   });
 
   it('证据链 evidence 结构完整（步骤/事实/限制/元数据）', () => {
@@ -254,6 +281,8 @@ describe('calcBaziEnveloped envelope 适配', () => {
     // 事实含主证日主 + 限制边界
     const facts = env.evidence!.facts;
     expect(facts.some((f) => f.level === '主证' && f.title.includes('日主'))).toBe(true);
+    expect(facts.some((f) => f.level === '主证' && f.title.includes('命局要览'))).toBe(true);
+    expect(env.evidence!.steps.some((step) => step.key === 'advanced')).toBe(true);
     expect(facts.some((f) => f.level === '限制')).toBe(true);
     // 每步骤有 promptText（供 AI 转述）
     env.evidence!.steps.forEach((s) => expect(s.promptText.length).toBeGreaterThan(0));
