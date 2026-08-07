@@ -9,7 +9,7 @@ import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
-import { calculateBazi as calculateBaziPure, calcBaziEnveloped, getBaziTransitSnapshot } from '@/legacy/baziEngine';
+import { calculateBazi as calculateBaziPure, calcBaziEnveloped, getBaziMonthDaySnapshot, getBaziTransitSnapshot } from '@/legacy/baziEngine';
 import type { TrineSource } from '@/legacy/shensha';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
@@ -80,15 +80,22 @@ function birthSummary(solarBirth: SolarBirth) {
   return solarBirth.year + '-' + String(solarBirth.month).padStart(2, '0') + '-' + String(solarBirth.day).padStart(2, '0') + ' ' + String(solarBirth.hour).padStart(2, '0') + ':00';
 }
 
+function getTodayDate() {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
 export function BaziWorkspace() {
   const { birth, solarBirth } = useBirth();
   const [trineSource, setTrineSource] = useState<TrineSource>('year');
   const [activeShenShaPillar, setActiveShenShaPillar] = useState<'年' | '月' | '日' | '时' | null>(null);
   const [transitYear, setTransitYear] = useState(() => String(new Date().getFullYear()));
+  const [transitDate, setTransitDate] = useState(getTodayDate);
 
   const ready = true;
   const { result, pillars, wuxing, envelope } = useMemo(() => calculateBazi(solarBirth, ready, trineSource), [solarBirth, ready, trineSource]);
   const transit = useMemo(() => getBaziTransitSnapshot(solarBirth, Number(transitYear), getSolarEntry()), [solarBirth, transitYear]);
+  const monthDayTransit = useMemo(() => getBaziMonthDaySnapshot(solarBirth, transitDate, getSolarEntry()), [solarBirth, transitDate]);
   const shenSha = result?.shenSha ?? [];
   const firstShenShaPillar = (['年', '月', '日', '时'] as const).find((pillar) => shenSha.some((item) => item.pillar === pillar)) ?? null;
   const selectedShenShaPillar = activeShenShaPillar && shenSha.some((item) => item.pillar === activeShenShaPillar)
@@ -328,6 +335,48 @@ export function BaziWorkspace() {
                       : <span className="text-xs text-jade-100/50">未见冲、合、刑、害关系</span>}
                   </div>
                 </section>
+              </div>
+            </section>
+          )}
+          {monthDayTransit.available && (
+            <section className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument" aria-labelledby="bazi-month-day-title">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 id="bazi-month-day-title" className="text-lg font-semibold text-jade-50">流月 · 流日</h3>
+                  <p className="mt-1 text-sm leading-6 text-jade-100/55">流月按节气月干支、流日按精确日干支推算，与本命、大运分层显示。</p>
+                </div>
+                <label className="flex items-center gap-2 text-xs text-jade-100/65">
+                  目标日期
+                  <input
+                    type="date"
+                    value={transitDate}
+                    onChange={(event) => setTransitDate(event.target.value)}
+                    className="rounded border border-white/10 bg-black/30 px-2 py-1 text-sm text-jade-50 outline-none focus:border-jade-500/60"
+                  />
+                </label>
+              </div>
+              <div className="mt-3 grid gap-2 lg:grid-cols-2">
+                {([['流月', monthDayTransit.monthly], ['流日', monthDayTransit.daily]] as const).map(([label, pillar]) => (
+                  <section key={label} className="rounded-card border border-white/8 bg-white/[0.025] px-3 py-2.5">
+                    <p className="text-xs font-semibold text-jade-100/70">{label}</p>
+                    <p className="mt-1 text-lg text-jade-50">{pillar.stem}{pillar.branch}</p>
+                    <p className="mt-1 text-xs text-jade-100/55">天干{pillar.stem}为{pillar.stemShiShen} · 五行{pillar.stemWuxing}</p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {pillar.natalRelations.length > 0
+                        ? pillar.natalRelations.map((item) => (
+                          <span key={`${label}-${item.pillar}-${item.ganZhi}`} className="rounded-full border border-cinnabar-500/25 bg-cinnabar-500/10 px-2 py-0.5 text-xs text-cinnabar-400">
+                            原局{item.pillar}{item.ganZhi} · {item.relations.join('、')}
+                          </span>
+                        ))
+                        : <span className="text-xs text-jade-100/50">与原局未见冲、合、刑、害关系</span>}
+                      {monthDayTransit.currentLuck && pillar.luckRelations.length > 0 && (
+                        <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2 py-0.5 text-xs text-jade-100/80">
+                          大运{monthDayTransit.currentLuck.stem}{monthDayTransit.currentLuck.branch} · {pillar.luckRelations.join('、')}
+                        </span>
+                      )}
+                    </div>
+                  </section>
+                ))}
               </div>
             </section>
           )}

@@ -71,6 +71,14 @@ interface LunarDaYunLike {
 interface LunarLike {
   getEightChar?: () => LunarEightCharLike;
 }
+
+interface LunarTransitLike {
+  getMonthInGanZhiExact?: () => string;
+  getMonthInGanZhi?: () => string;
+  getDayInGanZhiExact?: () => string;
+  getDayInGanZhi?: () => string;
+}
+
 interface SolarLike {
   fromYmd?(y: number, mo: number, d: number): { getLunar(): unknown };
   fromYmdHms?(y: number, mo: number, d: number, h: number, mi: number, s: number): { getLunar(): unknown };
@@ -163,6 +171,23 @@ export interface BaziTransitSnapshot {
   };
   natalRelations: BaziTransitRelation[];
   luckRelations: string[];
+  available: boolean;
+}
+
+export interface BaziMonthDayPillar {
+  stem: string;
+  branch: string;
+  stemShiShen: string;
+  stemWuxing: string;
+  natalRelations: BaziTransitRelation[];
+  luckRelations: string[];
+}
+
+export interface BaziMonthDaySnapshot {
+  targetDate: string;
+  currentLuck: BaziLuck | null;
+  monthly: BaziMonthDayPillar;
+  daily: BaziMonthDayPillar;
   available: boolean;
 }
 
@@ -483,6 +508,14 @@ function describeTransitRelations(referenceGanZhi: string, yearlyGanZhi: string)
   ].filter(Boolean);
 }
 
+function buildTransitRelations(pillars: BaziPillars, transitGanZhi: string): BaziTransitRelation[] {
+  return (['year', 'month', 'day', 'hour'] as const).map((key) => {
+    const pillar = pillars[key];
+    const ganZhi = `${pillar.stem}${pillar.branch}`;
+    return { pillar: `${PILLAR_CN[key]}柱`, ganZhi, relations: describeTransitRelations(ganZhi, transitGanZhi) };
+  }).filter((item) => item.relations.length > 0);
+}
+
 export function getBaziTransitSnapshot(input: BaziInput['birth'], targetYear: number, solar?: SolarLike | null): BaziTransitSnapshot {
   const empty: BaziTransitSnapshot = {
     targetYear,
@@ -505,11 +538,7 @@ export function getBaziTransitSnapshot(input: BaziInput['birth'], targetYear: nu
     const stemIndex = ((targetYear - 4) % 10 + 10) % 10;
     const branchIndex = ((targetYear - 4) % 12 + 12) % 12;
     const yearlyGanZhi = `${TG[stemIndex]}${DZ[branchIndex]}`;
-    const natalRelations = (['year', 'month', 'day', 'hour'] as const).map((key) => {
-      const pillar = result.pillars[key];
-      const ganZhi = `${pillar.stem}${pillar.branch}`;
-      return { pillar: `${PILLAR_CN[key]}柱`, ganZhi, relations: describeTransitRelations(ganZhi, yearlyGanZhi) };
-    }).filter((item) => item.relations.length > 0);
+    const natalRelations = buildTransitRelations(result.pillars, yearlyGanZhi);
     const luckGanZhi = currentLuck ? `${currentLuck.stem}${currentLuck.branch}` : '';
     return {
       targetYear,
@@ -528,6 +557,65 @@ export function getBaziTransitSnapshot(input: BaziInput['birth'], targetYear: nu
       luckRelations: luckGanZhi ? describeTransitRelations(luckGanZhi, yearlyGanZhi) : [],
       available: true,
     };
+  } catch {
+    return empty;
+  }
+}
+
+function createEmptyMonthDayPillar(): BaziMonthDayPillar {
+  return { stem: '', branch: '', stemShiShen: '', stemWuxing: '', natalRelations: [], luckRelations: [] };
+}
+
+function parseSolarDate(date: string): { year: number; month: number; day: number } | null {
+  const matched = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (!matched) return null;
+  const year = Number(matched[1]);
+  const month = Number(matched[2]);
+  const day = Number(matched[3]);
+  const parsed = new Date(year, month - 1, day);
+  if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day) return null;
+  return { year, month, day };
+}
+
+function createMonthDayPillar(result: BaziResult, ganZhi: string, currentLuck: BaziLuck | null): BaziMonthDayPillar {
+  const stem = ganZhi.charAt(0);
+  const branch = ganZhi.charAt(1);
+  const stemIndex = TG.indexOf(stem);
+  if (stemIndex < 0 || DZ.indexOf(branch) < 0) return createEmptyMonthDayPillar();
+  const luckGanZhi = currentLuck ? `${currentLuck.stem}${currentLuck.branch}` : '';
+  return {
+    stem,
+    branch,
+    stemShiShen: getShiShen(result.pillars.day.stemIndex, stemIndex),
+    stemWuxing: STEM_WX[stemIndex],
+    natalRelations: buildTransitRelations(result.pillars, ganZhi),
+    luckRelations: luckGanZhi ? describeTransitRelations(luckGanZhi, ganZhi) : [],
+  };
+}
+
+export function getBaziMonthDaySnapshot(input: BaziInput['birth'], targetDate: string, solar?: SolarLike | null): BaziMonthDaySnapshot {
+  const empty: BaziMonthDaySnapshot = {
+    targetDate,
+    currentLuck: null,
+    monthly: createEmptyMonthDayPillar(),
+    daily: createEmptyMonthDayPillar(),
+    available: false,
+  };
+  const date = parseSolarDate(targetDate);
+  if (!date || !solar) return empty;
+  try {
+    const result = calculateBazi({ birth: input, solar });
+    const age = date.year - input.year;
+    const currentLuck = result.luck.reduce<BaziLuck | null>((active, item) => (
+      item.ageStart <= age && (!active || item.ageStart > active.ageStart) ? item : active
+    ), null);
+    const lunar = solar.fromYmd?.(date.year, date.month, date.day).getLunar() as LunarTransitLike;
+    const monthlyGanZhi = lunar.getMonthInGanZhiExact?.() ?? lunar.getMonthInGanZhi?.() ?? '';
+    const dailyGanZhi = lunar.getDayInGanZhiExact?.() ?? lunar.getDayInGanZhi?.() ?? '';
+    const monthly = createMonthDayPillar(result, monthlyGanZhi, currentLuck);
+    const daily = createMonthDayPillar(result, dailyGanZhi, currentLuck);
+    if (!monthly.stem || !daily.stem) return empty;
+    return { targetDate, currentLuck, monthly, daily, available: true };
   } catch {
     return empty;
   }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateBazi, calcBaziEnveloped, getBaziTransitSnapshot } from '@/legacy/baziEngine';
+import { calculateBazi, calcBaziEnveloped, getBaziMonthDaySnapshot, getBaziTransitSnapshot } from '@/legacy/baziEngine';
 import { getSolarEntry } from '@/legacy/solarEntry';
 import type { ToolEnvelope } from '@/legacy/baseTypes';
 import { calcShenSha } from '@/legacy/shensha';
@@ -136,6 +136,37 @@ describe('getBaziTransitSnapshot 大运流年分层', () => {
     ]));
     expect(snapshot.luckRelations).toEqual([]);
     expect(snapshot.luck).toHaveLength(8);
+  });
+});
+
+describe('getBaziMonthDaySnapshot 流月流日分层', () => {
+  it('按目标日期返回节气月与精确日干支、十神和原局关系', () => {
+    const snapshot = getBaziMonthDaySnapshot(
+      { year: 1990, month: 6, day: 15, hour: 12, gender: '男', useExactCalendar: false },
+      '2025-07-15',
+      getSolarEntry(),
+    );
+
+    expect(snapshot.available).toBe(true);
+    expect(snapshot.targetDate).toBe('2025-07-15');
+    expect(snapshot.monthly).toMatchObject({ stem: '癸', branch: '未', stemShiShen: '正官', stemWuxing: '水' });
+    expect(snapshot.daily).toMatchObject({ stem: '乙', branch: '酉', stemShiShen: '正印', stemWuxing: '木' });
+    expect(snapshot.monthly.natalRelations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ pillar: '年柱', ganZhi: '庚午', relations: expect.arrayContaining(['六合']) }),
+    ]));
+    expect(snapshot.daily.natalRelations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ pillar: '年柱', ganZhi: '庚午', relations: expect.arrayContaining(['天干合']) }),
+    ]));
+  });
+
+  it('日期无效时返回不可用快照', () => {
+    const snapshot = getBaziMonthDaySnapshot(
+      { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      '2025-02-30',
+      getSolarEntry(),
+    );
+
+    expect(snapshot.available).toBe(false);
   });
 });
 
