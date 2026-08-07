@@ -619,7 +619,6 @@ export function ComboWorkspace() {
                 }),
               }}
             />
-            <ExportReportButton module={data.comboName} />
           </div>
         </div>
       )}

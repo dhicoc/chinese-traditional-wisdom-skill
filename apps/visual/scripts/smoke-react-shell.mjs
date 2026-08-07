@@ -118,6 +118,17 @@ check(
   'features/tizhi 空目录应已清理',
 );
 
+// ── 联合分析报告导出 ─────────────────────────────────────
+const comboWorkspace = read(path.join(srcRoot, 'features/combo/ComboWorkspace.tsx'));
+check(
+  countOccurrences(comboWorkspace, '<ExportReportButton') === 1,
+  '联合分析结果区应仅保留一个报告导出按钮',
+);
+check(
+  comboWorkspace.includes('report={result.envelope?.data.export_snapshot ?? null}'),
+  '联合分析报告导出应传入当前结果的 export_snapshot',
+);
+
 // ── 3. #tizhi 使用 SVG RadarChart（Phase 10 升级） ────────
 const tizhiPath = path.join(srcRoot, 'features/constitution/ConstitutionWorkspace.tsx');
 check(exists(tizhiPath), 'ConstitutionWorkspace.tsx 应位于 features/constitution/ 目录');
