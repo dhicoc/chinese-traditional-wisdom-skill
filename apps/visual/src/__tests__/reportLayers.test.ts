@@ -96,12 +96,12 @@ describe('toFourLayer 六爻归类', () => {
 });
 
 describe('toFourLayer 五运六气归类', () => {
-  it('岁运/司天在泉归 details，疾病倾向归 details', () => {
+  it('岁运、司天在泉与传统季节提示归 details', () => {
     const env = calcYunqiEnveloped({ year: 2024, currentMonth: 6 });
     const report = toFourLayer(snapshotOf(env));
     expect(report.details.some((d) => d.heading === '岁运')).toBe(true);
     expect(report.details.some((d) => d.heading === '司天在泉')).toBe(true);
-    expect(report.details.some((d) => d.heading === '疾病倾向')).toBe(true);
+    expect(report.details.some((d) => d.heading === '传统季节提示')).toBe(true);
   });
 });
 

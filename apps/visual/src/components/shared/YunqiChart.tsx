@@ -5,8 +5,8 @@ import type { YunqiData } from '@/legacy/canvasRenderers';
  * YunqiChart — 五运六气 SVG 综合图（Phase 10 图表替换）
  *
  * 替代五运六气工作区的 legacy Canvas `yunqiRender`。包含标题栏、干支大字、
- * 岁运胶囊、司天/在泉、客气六步时间线、病势倾向、五行图例。
- * 病势倾向按「，」断点换行，根治 legacy Canvas 文字溢出问题。
+ * 岁运胶囊、司天/在泉、客气六步时间线、传统季节提示、五行图例。
+ * 传统季节提示按「，」断点换行，根治 legacy Canvas 文字溢出问题。
  */
 
 interface YunqiChartProps {
@@ -65,7 +65,7 @@ function extractWuxing(dayun: string): string {
 const WX_COLOR: Record<string, string> = { 金: 'var(--wz-metal)', 木: 'var(--wz-wood)', 水: 'var(--wz-water)', 火: 'var(--wz-fire)', 土: 'var(--wz-earth)' };
 const WX_COLOR_LIGHT: Record<string, string> = { 金: 'rgb(var(--metal) / 0.14)', 木: 'rgb(var(--wood) / 0.12)', 水: 'rgb(var(--water) / 0.12)', 火: 'rgb(var(--cinnabar) / 0.10)', 土: 'rgb(var(--earth) / 0.12)' };
 
-/** 病势倾向按「，」断点换行，每行不超过 maxChars 字符 */
+/** 传统季节提示按「，」断点换行，每行不超过 maxChars 字符 */
 function wrapTendency(text: string, maxChars: number): string[] {
   const segs = text.split('，');
   const lines: string[] = [];
@@ -107,13 +107,13 @@ export function YunqiChart({ data, size = 550 }: YunqiChartProps) {
   const segY = 258;
   const segH = 115;
 
-  // 病势倾向换行（先算，供 legendY/H 动态布局）
+  // 传统季节提示换行（先算，供 legendY/H 动态布局）
   const tendencyLines = useMemo(() => (diseaseTendency ? wrapTendency(diseaseTendency, 14) : []), [diseaseTendency]);
   const tendY = 388;
   const tendLineH = 14;
   const tendH = tendencyLines.length > 0 ? tendencyLines.length * tendLineH + 10 : 0;
 
-  // 图例置于病势倾向之下，避免与病势框/客气六步重叠
+  // 图例置于传统季节提示之下，避免与提示框/客气六步重叠
   const legendY = tendY + (tendencyLines.length > 0 ? tendH + 22 : 22);
   const H = legendY + 22;
   const legendSpacing = 62;
@@ -217,7 +217,7 @@ export function YunqiChart({ data, size = 550 }: YunqiChartProps) {
         );
       })}
 
-      {/* 病势倾向 */}
+      {/* 传统季节提示 */}
       {tendencyLines.length > 0 && (
         <g>
           <rect
@@ -240,7 +240,7 @@ export function YunqiChart({ data, size = 550 }: YunqiChartProps) {
               fill="var(--chart-text)"
               style={{ fontSize: 10, fontWeight: 700 }}
             >
-              {li === 0 ? `病势倾向  ${line}` : line}
+              {li === 0 ? `传统季节提示  ${line}` : line}
             </text>
           ))}
         </g>

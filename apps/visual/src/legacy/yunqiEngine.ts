@@ -43,24 +43,24 @@ const ZAIQUAN_TABLE: Record<string, string> = {
 /** 六客气步序 */
 const LIUQI_ORDER = ['厥阴风木', '少阴君火', '太阴湿土', '少阳相火', '阳明燥金', '太阳寒水'];
 
-/** 疾病倾向 */
-const DISEASE_MAP: Record<string, string> = {
-  土运太过: '脾湿、腹泻、四肢沉重',
-  土运不及: '消化不良、胃胀、肌肉酸痛',
-  金运太过: '皮肤干燥、咳嗽、便秘',
-  金运不及: '免疫力下降、气喘、皮肤过敏',
-  水运太过: '水肿、肾虚、腰膝酸软、畏寒',
-  水运不及: '尿频、耳鸣、骨质疏松',
-  木运太过: '肝火旺、头痛、眼疾、易怒',
-  木运不及: '疲劳、抑郁、筋骨不利',
-  火运太过: '心火旺、失眠、高血压、口腔溃疡',
-  火运不及: '心悸、怕冷、循环不良',
-  少阴君火: '心脑血管疾病、热证',
-  太阴湿土: '脾胃失调、水肿、湿证',
-  少阳相火: '肝胆热证、炎症、上火',
-  阳明燥金: '肺燥、便秘、皮肤干燥',
-  太阳寒水: '风寒感冒、关节痛、寒证',
-  厥阴风木: '肝风、头痛、过敏、眩晕',
+/** 传统季节提示：仅描述运气学中的气候意象，不对应个人健康判断。 */
+const SEASONAL_NOTE_MAP: Record<string, string> = {
+  土运太过: '湿土偏重，传统上多从湿、滞的气候意象理解',
+  土运不及: '土气偏弱，传统上多从调和、稳定的气候意象理解',
+  金运太过: '燥金偏显，传统上多从干燥、收敛的气候意象理解',
+  金运不及: '金气偏弱，传统上多从润泽、收敛不足的气候意象理解',
+  水运太过: '水气偏盛，传统上多从寒湿、下行的气候意象理解',
+  水运不及: '水气偏弱，传统上多从滋润不足的气候意象理解',
+  木运太过: '木气偏盛，传统上多从生发、风动的气候意象理解',
+  木运不及: '木气偏弱，传统上多从舒展不足的气候意象理解',
+  火运太过: '火气偏盛，传统上多从温热、上扬的气候意象理解',
+  火运不及: '火气偏弱，传统上多从温煦不足的气候意象理解',
+  少阴君火: '君火当令，传统上以温热气候意象参看',
+  太阴湿土: '湿土当令，传统上以湿润气候意象参看',
+  少阳相火: '相火当令，传统上以温热、升发气候意象参看',
+  阳明燥金: '燥金当令，传统上以干燥、收敛气候意象参看',
+  太阳寒水: '寒水当令，传统上以寒凉气候意象参看',
+  厥阴风木: '风木当令，传统上以风动、生发气候意象参看',
 };
 
 // ── lunar-javascript Solar 入口类型（大寒定年用，参数化）──
@@ -239,7 +239,7 @@ export function calculateYunqi(input: YunqiInput): YunqiResult {
   const tendencies: string[] = [];
   if (dayun) tendencies.push(dayun);
   if (sitian) tendencies.push(sitian);
-  const disease_tendency = tendencies.map((t) => DISEASE_MAP[t] || '').filter(Boolean).join('，') || '无明显特殊倾向';
+  const disease_tendency = tendencies.map((t) => SEASONAL_NOTE_MAP[t] || '').filter(Boolean).join('；') || '未见特别的传统季节提示';
 
   const currentStep = getCurrentStep(effectiveYear, zhuke, input.currentMonth);
   const kezhujialin = getKeZhuJiaLin(currentStep ? currentStep.qi : '', currentStep ? currentStep.zhuqi : '');
@@ -279,14 +279,14 @@ export function calcYunqiEnveloped(input: YunqiInput): ToolEnvelope<YunqiData> {
   const tendency = result.disease_tendency;
 
   const snapshot: ExportSnapshot = {
-    summary: `${y}年(${tg}${dz})岁运${dayun}，司天${sitian}，在泉${zaiquan}。疾病倾向：${tendency}。`,
+    summary: `${y}年（${tg}${dz}）的传统运气标注为${dayun}，司天${sitian}，在泉${zaiquan}。以下内容用于了解传统气候意象，不用于个人健康判断。`,
     tags: ['五运六气', tg + dz + '年', dayun, sitian],
     sections: [
-      { heading: '岁运', body: `${tg}年岁运为${dayun}，主全年气候与体质基本倾向。客运：${result.wuyun.keyun.join('→')}。` },
-      { heading: '司天在泉', body: `司天${sitian}主上半年气候，在泉${zaiquan}主下半年气候。` },
-      { heading: '客气六步', body: result.liuqi.zhuke.map((s) => `${s.step}(${s.start}~${s.end}):${s.qi}`).join('；') + '。' },
-      { heading: '客主加临', body: result.liuqi.kezhujialin ? `当前${result.liuqi.current_step?.step ?? ''}客主加临：${result.liuqi.kezhujialin}。` : '未知。' },
-      { heading: '疾病倾向', body: tendency + '。以上为运气推算的文化参考，不作为诊疗建议。' },
+      { heading: '岁运', body: `${tg}年岁运为${dayun}，用于传统气候特征的阅读。客运顺序：${result.wuyun.keyun.join('→')}。` },
+      { heading: '司天在泉', body: `司天${sitian}对应传统上半年的气候意象，在泉${zaiquan}对应下半年的气候意象。` },
+      { heading: '客气六步', body: result.liuqi.zhuke.map((s) => `${s.step}（${s.start}至${s.end}）：${s.qi}`).join('；') + '。' },
+      { heading: '客主加临', body: result.liuqi.kezhujialin ? `当前${result.liuqi.current_step?.step ?? ''}的传统气候关系：${result.liuqi.kezhujialin}。` : '暂无对应的传统气候关系。' },
+      { heading: '传统季节提示', body: tendency + '。这不是个人健康预测或医学判断。' },
       { heading: '年份边界', body: result.yearBoundary },
     ],
     sourceNotes: '五运六气内容仅作传统文化与日常调养参考。',
