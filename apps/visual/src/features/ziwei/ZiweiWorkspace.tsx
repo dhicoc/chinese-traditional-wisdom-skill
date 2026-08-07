@@ -135,6 +135,11 @@ export function ZiweiWorkspace() {
   const firstPalaceWithStars = PALACE_NAMES.find((name) => data.palaces[name]?.stars.length > 0) ?? null;
   const selectedPalaceName = activePalace && data.palaces[activePalace] ? activePalace : firstPalaceWithStars;
   const selectedPalace = selectedPalaceName ? data.palaces[selectedPalaceName] : null;
+  const natalDeities = PALACE_NAMES.flatMap((palace) => {
+    const item = data.palaces[palace];
+    if (!item?.changsheng12 || !item.boshi12) return [];
+    return [{ palace, changsheng12: item.changsheng12, boshi12: item.boshi12 }];
+  });
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!ready) return null;
     try {
@@ -270,6 +275,25 @@ export function ZiweiWorkspace() {
                     </section>
                   );
                 })}
+              </div>
+            </section>
+          )}
+          {natalDeities.length === PALACE_NAMES.length && (
+            <section className="mt-4 border-t border-jade-500/16 pt-4" aria-labelledby="ziwei-natal-deities-title">
+              <div className="mb-3 flex items-center justify-between">
+                <h4 id="ziwei-natal-deities-title" className="text-sm font-semibold text-jade-100">本命十二神</h4>
+                <span className="rounded-full border border-cinnabar-500/25 bg-cinnabar-500/10 px-2 py-0.5 text-[11px] text-cinnabar-400">十二宫</span>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                {natalDeities.map((item) => (
+                  <section key={item.palace} className="rounded-card border border-white/8 bg-white/[0.025] px-3 py-2.5">
+                    <p className="text-xs font-semibold text-jade-100/70">{item.palace}</p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-2 py-0.5 text-xs text-jade-100/80">长生 · {item.changsheng12}</span>
+                      <span className="rounded-full border border-cinnabar-500/25 bg-cinnabar-500/10 px-2 py-0.5 text-xs text-cinnabar-400">博士 · {item.boshi12}</span>
+                    </div>
+                  </section>
+                ))}
               </div>
             </section>
           )}

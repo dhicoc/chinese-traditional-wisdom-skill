@@ -74,6 +74,15 @@ describe('calculateZiwei 真实 iztro ESM 排盘', () => {
     ]));
     expect(r.palaces['命宫'].stars).toContain('凤阁');
   });
+
+  it('保留本命长生十二神与博士十二神的落宫', () => {
+    const r = calculateZiwei({ birth: { year: 2000, month: 8, day: 16, hour: 3, gender: '男' } });
+
+    expect(r.palaces['命宫'].changsheng12).toBe('死');
+    expect(r.palaces['命宫'].boshi12).toBe('伏兵');
+    expect(r.palaces['交友'].changsheng12).toBe('长生');
+    expect(r.palaces['福德'].boshi12).toBe('博士');
+  });
 });
 
 describe('calcZiweiEnveloped envelope 适配', () => {

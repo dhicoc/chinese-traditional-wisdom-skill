@@ -71,6 +71,8 @@ export interface ZiweiPalace {
   majorStars: ZiweiStar[];
   minorStars: ZiweiStar[];
   adjectiveStars: ZiweiStar[];
+  changsheng12?: string;
+  boshi12?: string;
   position: string;
   miaoxian: string;
   earthlyBranch?: string;
@@ -113,6 +115,8 @@ interface IztroPalace {
   majorStars?: IztroStar[];
   minorStars?: IztroStar[];
   adjectiveStars?: IztroStar[];
+  changsheng12?: string;
+  boshi12?: string;
   earthlyBranch?: string;
 }
 
@@ -152,6 +156,8 @@ function transformIztroPalaces(iztroPalaces: IztroPalace[]): Record<string, Ziwe
       majorStars,
       minorStars,
       adjectiveStars,
+      changsheng12: p.changsheng12,
+      boshi12: p.boshi12,
       position: branch,
       miaoxian: brightness || '平',
       earthlyBranch: p.earthlyBranch || '',
