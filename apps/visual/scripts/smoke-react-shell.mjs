@@ -354,8 +354,8 @@ check(
   'CommandBar 应支持键盘导航（↑↓Enter）',
 );
 check(
-  commandBar.includes('action-testing'),
-  'CommandBar 应包含跳转测试控制台的快捷操作',
+  commandBar.includes('action-global-search') && commandBar.includes('openSearchModal'),
+  'CommandBar 应包含全局搜索快捷操作',
 );
 check(
   !commandBar.includes('querySelector'),
@@ -589,7 +589,7 @@ if (exists(agentConfirmPath)) {
 
 const copyButton = read(path.join(srcRoot, 'components/shared/CopyContextButton.tsx'));
 check(copyButton.includes("'copied'"), 'CopyContextButton 应包含 copied 状态');
-check(copyButton.includes("'Copied'"), 'CopyContextButton 复制成功应显示 Copied');
+check(copyButton.includes("'已复制'"), 'CopyContextButton 复制成功应显示已复制');
 check(copyButton.includes('commandScope'), 'CopyContextButton 应支持 CommandBar commandScope');
 check(copyButton.includes('COPY_CONTEXT_INTENT'), 'CopyContextButton 应监听复制命令意图');
 

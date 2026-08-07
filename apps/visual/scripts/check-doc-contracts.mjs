@@ -84,12 +84,12 @@ check(modules.includes("export function getModuleById"), "modules.ts 缺少 getM
 check(modules.includes("export function isModuleId"), "modules.ts 缺少 isModuleId 类型守卫");
 
 // ── 报告导出契约（取代旧 capabilities.js 的 exportReportData）──
-check(exportButton.includes("version"), "ExportReportButton 导出缺少 version 字段");
-check(exportButton.includes("generatedAt"), "ExportReportButton 导出缺少 generatedAt 字段");
-check(exportButton.includes("sourceNotes"), "ExportReportButton 导出缺少 sourceNotes 字段");
-check(exportButton.includes("birth.year") || exportButton.includes("birthYear"), "ExportReportButton 导出缺少脱敏出生年份");
-// 隐私：导出快照应保留脱敏说明
-check(exportButton.includes("脱敏"), "ExportReportButton 导出缺少脱敏说明");
+check(exportButton.includes("generatedAt"), "ExportReportButton 导出缺少生成时间");
+check(exportButton.includes("birth.year") || exportButton.includes("birthYear"), "ExportReportButton 导出缺少出生资料摘要");
+check(exportButton.includes("text/html;charset=utf-8"), "ExportReportButton 应导出独立 HTML 文件");
+check(!exportButton.includes("sourceNotes"), "ExportReportButton 不应导出 sourceNotes 内部字段");
+check(!exportButton.includes("engineName"), "ExportReportButton 不应导出 engineName 内部字段");
+check(!exportButton.includes("version:"), "ExportReportButton 不应导出 version 内部字段");
 
 // ── visual-report 模板字段契约（保留）──
 ["version", "generatedAt", "sourceNotes"].forEach((field) => {
