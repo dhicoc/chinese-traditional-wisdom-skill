@@ -165,6 +165,21 @@ describe('ziwei_chart', async () => {
     expect(data.mainStars.length).toBeGreaterThan(0);
     expectExportSnapshot(e);
   });
+
+  it('透传目标年月，并返回可审计的动态层依据', async () => {
+    const t = findTool('ziwei_chart');
+    const env = await t.handler({
+      birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      transit: { year: 2025, month: 7 },
+    });
+    const e = expectValidEnvelope(env);
+    const data = e.data as { export_snapshot: { sections: Array<{ heading: string; body: string }> } };
+
+    expect(data.export_snapshot.sections.find((section) => section.heading === '排盘口径')?.body).toContain('2025年7月15日');
+    expect(e.evidence?.steps.some((step) => step.key === 'dynamic-transit')).toBe(true);
+    expect(e.evidence?.limitations).toEqual(expect.arrayContaining([expect.stringContaining('流日、流时及三方四正') ]));
+    expect(e.result_meta?.calculationConfig).toMatchObject({ transitYear: 2025, transitMonth: 7 });
+  });
 });
 
 describe('cast_liuyao', async () => {

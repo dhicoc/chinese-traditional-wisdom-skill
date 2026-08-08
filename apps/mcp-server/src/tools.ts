@@ -205,9 +205,15 @@ export const TOOLS: ToolDef[] = [
   },
   {
     name: 'ziwei_chart',
-    description: '紫微斗数排盘：十二宫、十四主星、四化、庙旺利得。基于 iztro v2.5.8 真实排盘。',
-    schema: z.object({ birth: birthSchema }),
-    handler: (i) => calcZiweiEnveloped({ birth: (i as { birth: unknown }).birth as never }),
+    description: '紫微斗数排盘：十二宫、十四主星、四化、庙旺利得。可选指定动态层的目标年月；不传时按当前年月查询。基于 iztro v2.5.8 真实排盘。',
+    schema: z.object({
+      birth: birthSchema,
+      transit: z.object({
+        year: z.number().int().min(1900).max(2100).describe('动态层目标公历年'),
+        month: z.number().int().min(1).max(12).describe('动态层目标月份'),
+      }).optional(),
+    }),
+    handler: (i) => calcZiweiEnveloped(i as { birth: never; transit?: { year: number; month: number } }),
   },
   {
     name: 'cast_liuyao',

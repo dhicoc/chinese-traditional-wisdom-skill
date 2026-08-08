@@ -353,6 +353,10 @@ export function calcZiweiEnveloped(input: ZiweiInput): ToolEnvelope<ZiweiData> {
     sourceNotes: result.confidenceNote || '紫微斗数命盘参考',
   };
 
+  const dynamicTransitSummary = hs.available
+    ? `${hs.targetYear}年${hs.targetMonth}月：大限${hs.decadal.stem}${hs.decadal.branch}，流年${hs.yearly.stem}${hs.yearly.branch}，流月${hs.monthly.stem}${hs.monthly.branch}，小限${hs.age.nominalAge}岁居${hs.age.palace}宫。`
+    : `${transitYear}年${transitMonth}月动态层未能生成。`;
+  const dynamicLimitations = '当前未启用流日、流时及三方四正；不得将未返回的动态层补充为确定性结论。';
   const env: ToolEnvelope<ZiweiData> = {
     ok: result.mode === 'local-exact',
     tool: result.engineName,
@@ -360,6 +364,53 @@ export function calcZiweiEnveloped(input: ZiweiInput): ToolEnvelope<ZiweiData> {
     input_normalized: input as unknown as Record<string, unknown>,
     data: { ...result, export_snapshot: snapshot },
     warnings: [result.confidenceNote || ''],
+    evidence: {
+      steps: [
+        {
+          key: 'natal-chart',
+          stage: '本命定盘',
+          status: result.mode === 'local-exact' ? 'ok' : 'fallback',
+          inputs: { birth: result.birthInfo },
+          result: `十二宫${Object.keys(result.palaces).length}宫，命宫${ming?.position ?? '未知'}，四化${sihuaSummary || '未知'}。`,
+          promptText: `本命盘使用 ${result.version} 生成十二宫与四化。`,
+          sources: ['SylarLong/iztro@2.5.8'],
+          limitation: result.confidenceNote,
+        },
+        {
+          key: 'palace-normalization',
+          stage: '宫位归一',
+          status: 'ok',
+          inputs: { sourcePalaceName: '仆役' },
+          result: '仆役宫统一显示为交友宫。',
+          dependsOnStepKeys: ['natal-chart'],
+          promptText: '引擎输出中的仆役宫已统一为交友宫。',
+          sources: ['项目宫位名称归一规则'],
+        },
+        {
+          key: 'dynamic-transit',
+          stage: '动态层查询',
+          status: hs.available ? 'ok' : 'fallback',
+          inputs: { year: transitYear, month: transitMonth, day: 15 },
+          result: dynamicTransitSummary,
+          dependsOnStepKeys: ['natal-chart'],
+          promptText: dynamicTransitSummary,
+          sources: ['SylarLong/iztro@2.5.8 horoscope'],
+          limitation: dynamicLimitations,
+        },
+      ],
+      facts: [
+        { level: '主证', title: `命宫${ming?.position ?? '未知'} · ${ming?.stars.join('、') || '无主星资料'}`, detail: `四化：${sihuaSummary || '未知'}。`, source: 'SylarLong/iztro@2.5.8', tags: ['本命', '命宫', '四化'] },
+        { level: '应期', title: `${transitYear}年${transitMonth}月动态层`, detail: dynamicTransitSummary, source: 'SylarLong/iztro@2.5.8 horoscope', tags: ['大限', '流年', '流月', '小限'] },
+        { level: '限制', title: '紫微动态层边界', detail: dynamicLimitations, source: '项目动态层口径', tags: ['边界'] },
+      ],
+      limitations: [result.confidenceNote || '紫微斗数各家安星与解读方法略有差异，应结合整体命盘参考。', dynamicLimitations],
+    },
+    result_meta: {
+      engineVersion: result.version,
+      evidenceSchemaVersion: '0.1.0',
+      algorithm: 'iztro 紫微斗数本命盘与 horoscope 动态层',
+      calculationConfig: { transitYear, transitMonth, transitDay: 15, palaceNameNormalization: '仆役→交友' },
+    },
   };
   if (result.mode !== 'local-exact') {
     env.error = { code: 'demo_fallback', message: '暂未生成完整命盘，请稍后重试。' };
@@ -499,6 +550,8 @@ export function getZiweiTransitSnapshot(birth: ZiweiBirth, targetDate: string): 
 export interface ZiweiHoroscopeSummary {
   /** 目标年份 */
   targetYear: number;
+  /** 目标月份（流月查询锚点） */
+  targetMonth: number;
   /** 大限：名称（如「第三大限」）+ 天干地支 */
   decadal: { name: string; stem: string; branch: string; mutagen: string[] };
   /** 流年：天干地支 + 流年四化星（mutagen 顺序：[化禄, 化权, 化科, 化忌]） */
@@ -536,6 +589,7 @@ export function getZiweiHoroscopeSummary(
 ): ZiweiHoroscopeSummary {
   const empty: ZiweiHoroscopeSummary = {
     targetYear,
+    targetMonth,
     decadal: { name: '未知', stem: '', branch: '', mutagen: [] },
     yearly: { stem: '', branch: '', mutagen: [] },
     age: { nominalAge: 0, palace: '未知' },
@@ -600,6 +654,7 @@ export function getZiweiHoroscopeSummary(
 
     return {
       targetYear,
+      targetMonth,
       decadal: { name: decadalName, stem: decadalStem, branch: decadalBranch, mutagen: decadalMutagen },
       yearly: { stem: yearlyStem, branch: yearlyBranch, mutagen: yearlyMutagen },
       monthly: { stem: monthlyStem, branch: monthlyBranch, mutagen: monthlyMutagen },

@@ -114,10 +114,9 @@ describe('getZiweiHoroscopeSummary 动态层摘要', () => {
 
     expect(summary.available).toBe(true);
     expect(summary.targetYear).toBe(2025);
-    expect(summary.monthly.stem).toBeTruthy();
-    expect(summary.monthly.branch).toBeTruthy();
-    expect(summary.age.nominalAge).toBeGreaterThan(0);
-    expect(summary.age.palace).toBeTruthy();
+    expect(summary.targetMonth).toBe(7);
+    expect(summary.monthly).toMatchObject({ stem: '癸', branch: '未', mutagen: ['破军', '巨门', '太阴', '贪狼'] });
+    expect(summary.age).toMatchObject({ nominalAge: 36, palace: '兄弟' });
   });
 });
 
