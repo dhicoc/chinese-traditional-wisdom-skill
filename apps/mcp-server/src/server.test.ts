@@ -108,7 +108,21 @@ describe('MCP Server 端到端协议', () => {
     const responses = await runMcpSession([INIT_MSG, INITIALIZED_MSG, TOOLS_LIST_MSG]);
     const list = responses.find((r) => r.id === 2);
     expect(list).toBeDefined();
-    const tools = (list!.result as { tools: Array<{ name: string; description: string; inputSchema: { type: string; properties: unknown } }> }).tools;
+    const tools = (list!.result as {
+      tools: Array<{
+        name: string;
+        title?: string;
+        description: string;
+        inputSchema: { type: string; properties: unknown };
+        outputSchema?: { type: string };
+        annotations?: {
+          readOnlyHint?: boolean;
+          destructiveHint?: boolean;
+          idempotentHint?: boolean;
+          openWorldHint?: boolean;
+        };
+      }>;
+    }).tools;
     expect(tools.length).toBe(34);
     tools.forEach((t) => {
       expect(t.name).toMatch(/^[a-z][a-z0-9_]*$/);
