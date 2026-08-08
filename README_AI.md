@@ -54,7 +54,7 @@ Quick start:
 8. 开始执行任务
 ```
 
-> **MCP 自动激活**（2026-07-10 架构重构后新增）：当用户在支持 MCP 的客户端（Claude Code/Desktop/Cursor/Cline）中想直接调用排盘工具时，AI 跑 `node scripts/setup-mcp.mjs` 一键自动检测并配置客户端，用户无需手动编辑 JSON。配置后 `chinese-wisdom` server 提供 27 个工具（25 计算 + agent_guidance 参数引导 + wisdom_dispatch 意图路由），统一返回 ToolEnvelope。详见 `apps/mcp-server/README.md`。
+> **MCP 自动激活**（2026-07-10 架构重构后新增）：当用户在支持 MCP 的客户端（Claude Code/Desktop/Cursor/Cline）中想直接调用排盘工具时，AI 跑 `node scripts/setup-mcp.mjs` 一键自动检测并配置客户端，用户无需手动编辑 JSON。配置后 `chinese-wisdom` server 提供 34 个工具（32 计算 + agent_guidance 参数引导 + wisdom_dispatch 意图路由）。常规计算统一返回 ToolEnvelope；`resolve_true_solar_time` 返回可审计的校准结果。详见 `apps/mcp-server/README.md`。
 
 ## 1. 三层路由矩阵
 
@@ -91,13 +91,19 @@ else → 提示用户提供更多信息（参照 §10 输入完整性）
 | 联合分析 | 纯 TS | `comboEngine.ts` 聚合各引擎 | 年度运势/事件决策/空间时间/三式互参/三式合一 |
 | 体质 | 问卷 | bootstrap/constitution-questionnaire.md | 九种体质辨识 |
 
-### 引擎调用优先级
+### Agent 与 Dashboard 的计算边界
 
-1. **纯 TS enveloped 引擎**（`apps/visual/src/legacy/*Engine.ts`，2026-07-10 架构重构后主路径）：零 DOM 依赖，统一返回 `ToolEnvelope`，MCP server 与 React Dashboard 共享。23 个引擎：bazi/ziwei/liuyao/qimen/liuren/xingxiu/taiyi/huangji/meihua/yunqi/analyzeName/xiyong/constitutionTendency/dream + 9 combo。React Dashboard 经 `pnpm dev` 启动，零 Python 依赖。
-2. **可选 Python oracle**（命令行交叉验证）：`ichingshifa`（六爻）/ `iztro-py`（紫微），默认不需要
-3. **引擎缺失**：按 bootstrap/ 目录下引导文件接入，或走 MCP/纯 TS 路径
+1. **对话 Agent**：必须通过 MCP 调用确定性工具；`wisdom_dispatch` 路由、`agent_guidance` 核对参数、计算工具返回 `ToolEnvelope`，Agent 仅据此解读。不得直接调用 legacy 引擎，或用模型知识、记忆和 reference 文件自行推演。
+2. **React Dashboard**：保留浏览器端纯 TS 引擎与可视化能力，`pnpm dev` 启动；这条路径不是模型推演，不需要经 MCP 转发。
+3. **可选 Python oracle**：仅作命令行交叉验证（`ichingshifa` 六爻 / `iztro-py` 紫微），默认不需要；不得作为 Agent 对话计算的替代入口。
 
-> MCP 调用时：所有计算工具走纯 TS 引擎，精确历法需传入 lunar-javascript `Solar`（MCP server 已内置）。`agent_guidance` 工具可查必填参数防瞎猜，`wisdom_dispatch` 工具可从自然语言路由到对应工具。
+> MCP 工具内部使用纯 TS 引擎，精确历法传入 lunar-javascript `Solar`（MCP server 已内置）。缺参时由 schema 或入口硬闸门拒绝，Agent 必须追问，不能补写。
+
+### 八字真太阳时预处理
+
+八字排盘默认尝试真太阳时，但地点解析和历史时区判断不属于前端或模型自由推断。Agent 必须先核验出生地点经度、IANA 时区、出生当日实际 UTC 偏移、夏令时状态及 `utcOffsetEvidence`，再调用 `resolve_true_solar_time`。随后仅将其 `trueSolarBirth` 传给 `bazi_calculate`。
+
+无法可靠核验时，先说明限制；用户仍要求排盘的，只能按民用出生记录计算，并明确标注“未完成真太阳时复核”。Dashboard 只用于收集地点、展示 Agent 校验状态和校正/降级结果，不独立作出真太阳时判断，也不把历史 UTC 偏移作为普通用户的必填输入。
 
 
 ## 2.1 能力边界声明
@@ -181,7 +187,7 @@ AI **必须先补问**以下信息，不得猜测：
 | 字段 | 必填条件 | 默认值 |
 |------|---------|--------|
 | 出生日期 | 始终必填 | N/A |
-| 出生时辰 | 始终必填 | 若未知 → 子时 (23:00-01:00) |
+| 出生时辰 | 相关工具需要时必填 | 不知道则追问或改用不依赖时辰的工具；不得默认子时 |
 | 性别 | 始终必填 | N/A |
 | 咨询问题 | 始终必填 | N/A |
 | 体质信息 | 体质分析时必填 | N/A |
@@ -191,7 +197,7 @@ AI **必须先补问**以下信息，不得猜测：
 
 | 引擎缺失 | 降级方案 |
 |---------|---------|
-| MCP server 未配置 | 走纯 TS 引擎 + React Dashboard（`cd apps/visual && pnpm dev`） |
+| MCP server 未配置 | 对话 Agent 不提供计算结论，先运行 `node scripts/setup-mcp.mjs`；可另行引导用户使用 Dashboard，但不得把 Dashboard 当作 Agent 计算回退 |
 | lunar-javascript 加载失败 | 八字/五运六气/六爻回退本地近似节气表 |
 | iztro (紫微) 加载失败 | 回退演示排盘结构，标注 `fallback-demo` |
 | 3meta (奇门) 加载失败 | 回退简化奇门排盘 |

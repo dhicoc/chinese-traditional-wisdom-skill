@@ -114,6 +114,33 @@ describe('AppShell global reference notice', () => {
   });
 });
 
+describe('Sidebar birth panel layout', () => {
+  it('should keep the local privacy notice visible when the birth panel is expanded', () => {
+    const source = readSource('components/app-shell/SidebarNav.tsx');
+
+    expect(source).toContain('mt-3 min-h-0 flex-1 overflow-y-auto');
+    expect(source).toContain('mt-auto shrink-0 pt-3');
+  });
+});
+
+describe('Bazi true solar time runtime boundary', () => {
+  it('should only let an agent-verified true solar result change the Bazi input time', () => {
+    const contextSource = readSource('lib/birthContext.tsx');
+    const workspaceSource = readSource('features/bazi/BaziWorkspace.tsx');
+    const panelSource = readSource('components/shared/BirthPanel.tsx');
+
+    expect(contextSource).toContain("status: 'awaiting-agent-verification'");
+    expect(contextSource).toContain("status: 'true-solar-verified'");
+    expect(contextSource).toContain("status: 'civil-unverified'");
+    expect(contextSource).not.toContain('resolveBaziBirthTime');
+    expect(workspaceSource).toContain("baziTimeStatus.status === 'true-solar-verified'");
+    expect(workspaceSource).toContain('baziTimeStatus.resolution.trueSolarBirth');
+    expect(workspaceSource).not.toContain('地方平太阳时');
+    expect(panelSource).toContain('专业核验资料（不直接改写排盘）');
+    expect(panelSource).toContain('前端不会据此计算或改写八字排盘时间');
+  });
+});
+
 describe('XuanOrbitLogo', () => {
   it('should be a decorative celestial orbit icon with the approved structure', () => {
     const source = readSource('components/app-shell/XuanOrbitLogo.tsx');

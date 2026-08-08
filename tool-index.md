@@ -50,6 +50,7 @@ ToolEnvelope<TData> = { ok, tool, version, input_normalized, data: TData & { exp
 | 五运六气 | `legacy/yunqiEngine.ts` | `calcYunqiEnveloped` | Solar 参数化(大寒定年) |
 | 六爻纳甲 | `legacy/liuyaoEngine.ts` | `calcLiuyaoEnveloped` | Solar 参数化(日干支/空亡) |
 | 八字排盘 | `legacy/baziEngine.ts` | `calcBaziEnveloped` | Solar 参数化(节气干支) |
+| 真太阳时校准 | `legacy/trueSolarTime.ts` | `resolveTrueSolarTime` | 接收 Agent 已核验的经度、IANA 时区、历史 UTC 偏移与依据；确定性计算经度校正与均时差 |
 | 紫微斗数 | `legacy/ziweiEngine.ts` | `calcZiweiEnveloped` | ESM `import { astro } from 'iztro'` |
 | 奇门遁甲 | `legacy/qimenEngine.ts` | `calcQimenEnveloped` | ESM `import { QimenChart } from '3meta'` |
 | 大六壬 | `legacy/daliurenEngine.ts` | `calcDaliurenEnveloped` | Solar 参数化(天地盘/四课/三传) |
@@ -70,10 +71,13 @@ ToolEnvelope<TData> = { ok, tool, version, input_normalized, data: TData & { exp
 
 > `apps/mcp-server/`：薄壳包装上述 enveloped 引擎为 MCP 工具，供 Claude Code/Desktop/Cursor/Cline 调用。无计算逻辑，import 纯 TS 引擎。
 
-**33 个 MCP 工具**（31 计算 + 2 元工具）：
+**34 个 MCP 工具**（32 计算 + 2 元工具）：
+- 时间校准（1）：`resolve_true_solar_time`。Agent 必须先核验地点经度、IANA 时区、出生当日 UTC 偏移、夏令时状态和 `utcOffsetEvidence`；工具仅确定性计算，不解析地点或猜测历史规则。
 - 排盘计算（22）：`bazi_calculate` / `ziwei_chart` / `cast_liuyao` / `arrange_qimen` / `liuren_calculate` / `xingxiu_daily` / `taiyi_calculate` / `huangji_calculate` / `cast_meihua` / `calc_yunqi` / `analyze_name` / `calc_xiyong` / `get_constitution_tendency` / `dream_interpret` / `cast_cezi` / `calc_chenguz` / `get_almanac` / `calc_feixing` / `calc_bazhai` / `get_daily_rhythm` / `assess_constitution` / `list_constitution_questionnaire`
 - 跨系统联合分析（9）：`combo_annual_fortune` / `combo_monthly_fortune` / `combo_decision` / `combo_space_time` / `combo_sanshi` / `combo_sanshi_classic` / `combo_daily_wellness` / `combo_zeri` / `combo_marriage`
 - 元工具（2）：`agent_guidance`（参数引导防瞎猜）+ `wisdom_dispatch`（自然语言意图路由）
+
+八字调用顺序固定为：Agent 核验事实 → `resolve_true_solar_time` → 将 `trueSolarBirth` 传给 `bazi_calculate`。无法可靠核验时，仅能在用户知情下按民用时间排盘并标注“未完成真太阳时复核”；Dashboard 只展示此状态，不独立作出真太阳时判断。
 
 **一键自动配置**（无需手动编辑 JSON）：
 ```bash

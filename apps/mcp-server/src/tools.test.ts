@@ -41,8 +41,8 @@ function findTool(name: string) {
 }
 
 describe('MCP TOOLS 注册完整性', async () => {
-  it('注册了 31 个工具', async () => {
-    expect(TOOLS.length).toBe(31);
+  it('注册了 32 个工具', async () => {
+    expect(TOOLS.length).toBe(32);
   });
 
   it('所有工具有 name/description/schema/handler', async () => {
@@ -69,16 +69,88 @@ describe('MCP TOOLS 注册完整性', async () => {
 });
 
 describe('bazi_calculate', async () => {
-  it('1990-6-15 12时男 返回精确排盘 envelope', async () => {
+  const civilBirth = { year: 1990, month: 6, day: 15, hour: 12, gender: '男' as const };
+
+  it('民用时间降级必须显式确认，并输出未完成真太阳时复核', async () => {
     const t = findTool('bazi_calculate');
-    const env = await t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
-    const e = expectValidEnvelope(env) as ToolEnvelope<{ mode: string }>;
+    expect(() => t.handler({ birth: civilBirth, timeBasis: 'civil-unverified' })).toThrow('civilFallbackConfirmed=true');
+
+    const env = await t.handler({
+      birth: civilBirth,
+      timeBasis: 'civil-unverified',
+      civilFallbackConfirmed: true,
+    });
+    const e = expectValidEnvelope(env) as ToolEnvelope<{ mode: string; timeSource: { timeBasis: string; notice: string }; export_snapshot: { summary: string } }>;
     expect(e.tool).toBe('BaziLunarAdapter');
     expect(e.data.mode).toBe('local-exact');
+    expect(e.data.timeSource).toEqual({ timeBasis: 'civil-unverified', verification: null, notice: '未完成真太阳时复核' });
+    expect(e.data.export_snapshot.summary).toContain('未完成真太阳时复核');
     const data = e.data as unknown as { pillars: { year: { stem: string; branch: string } }; dayMaster: string };
     expect(data.pillars.year.stem).toBe('庚');
     expect(data.pillars.year.branch).toBe('午');
     expectExportSnapshot(e);
+  });
+
+  it('真太阳时路径必须使用当前 MCP 进程签发的令牌和原样校正时间', () => {
+    const resolver = findTool('resolve_true_solar_time');
+    const resolution = resolver.handler({
+      birth: civilBirth,
+      location: {
+        displayName: '纽约市，纽约州，美国',
+        longitude: -74.006,
+        ianaTimeZone: 'America/New_York',
+        utcOffsetMinutes: -240,
+        utcOffsetEvidence: 'IANA 时区历史规则核验：当地夏令时 UTC-04:00',
+      },
+    }) as { calibrationToken: string; trueSolarBirth: Record<string, unknown> };
+    const t = findTool('bazi_calculate');
+
+    expect(() => t.handler({
+      birth: civilBirth,
+      timeBasis: 'true-solar-verified',
+      calibrationToken: resolution.calibrationToken,
+    })).toThrow('trueSolarBirth 与 birth.hour 不一致');
+
+    const env = t.handler({
+      birth: resolution.trueSolarBirth,
+      timeBasis: 'true-solar-verified',
+      calibrationToken: resolution.calibrationToken,
+    });
+    const e = expectValidEnvelope(env) as ToolEnvelope<{ timeSource: { timeBasis: string; verification: { status: string } } }>;
+    expect(e.data.timeSource.timeBasis).toBe('true-solar-verified');
+    expect(e.data.timeSource.verification.status).toBe('resolved');
+  });
+});
+
+describe('resolve_true_solar_time', () => {
+  it('uses agent-verified location and historical offset to return auditable true solar time', () => {
+    const t = findTool('resolve_true_solar_time');
+    const result = t.handler({
+      birth: { year: 1990, month: 6, day: 15, hour: 12, minute: 0, gender: '男' },
+      location: {
+        displayName: '纽约市，纽约州，美国',
+        longitude: -74.006,
+        ianaTimeZone: 'America/New_York',
+        utcOffsetMinutes: -240,
+        utcOffsetEvidence: 'IANA 时区历史规则核验：当地夏令时 UTC-04:00',
+      },
+    }) as {
+      status: string;
+      source: string;
+      longitudeCorrectionMinutes: number;
+      equationOfTimeMinutes: number;
+      trueSolarCorrectionMinutes: number;
+      trueSolarBirth: { hour: number; minute: number };
+      evidence: string[];
+    };
+
+    expect(result.status).toBe('resolved');
+    expect(result.source).toBe('agent-verified');
+    expect(result.longitudeCorrectionMinutes).toBe(-56);
+    expect(result.equationOfTimeMinutes).toBeTypeOf('number');
+    expect(result.trueSolarCorrectionMinutes).toBe(result.longitudeCorrectionMinutes + result.equationOfTimeMinutes);
+    expect(result.trueSolarBirth).toEqual(expect.objectContaining({ hour: 11 }));
+    expect(result.evidence).toContain('IANA 时区历史规则核验：当地夏令时 UTC-04:00');
   });
 });
 
@@ -233,18 +305,21 @@ describe('analyze_name', async () => {
     expectExportSnapshot(e);
   });
 
-  it('张伟+完整生辰 命理契合维度含八字用神补强', async () => {
+  it('张伟+完整生辰 命理契合维度含八字用神补强和时间来源', async () => {
     const t = findTool('analyze_name');
     const env = await t.handler({
       surname: '张', givenName: '伟',
       birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      baziTimeContext: { timeBasis: 'civil-unverified', civilFallbackConfirmed: true },
     });
     const e = expectValidEnvelope(env);
-    const data = e.data as { dimensions: Array<{ name: string; detail: string }> };
+    const data = e.data as { dimensions: Array<{ name: string; detail: string }>; timeSource: { notice: string }; export_snapshot: { summary: string } };
     const mingli = data.dimensions.find((d) => d.name === '命理契合');
     expect(mingli).toBeDefined();
     expect(mingli?.detail).toContain('用神补强');
     expect(mingli?.detail).toContain('喜用神');
+    expect(data.timeSource.notice).toBe('未完成真太阳时复核');
+    expect(data.export_snapshot.summary).toContain('未完成真太阳时复核');
   });
 });
 
@@ -306,14 +381,21 @@ describe('dream_interpret', async () => {
 // ─── 跨系统联合分析（combo）handler 测试 ───
 
 describe('combo_annual_fortune', async () => {
-  it('返回含4子系统(八字+五运六气+奇门+紫微流年) + 一致性的 ComboResult envelope', async () => {
+  it('返回含4子系统(八字+五运六气+奇门+紫微流年) + 时间来源的一致性 ComboResult envelope', async () => {
     const t = findTool('combo_annual_fortune');
-    const env = await t.handler({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, targetYear: 2024, currentMonth: 6 });
+    const env = await t.handler({
+      birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      baziTimeContext: { timeBasis: 'civil-unverified', civilFallbackConfirmed: true },
+      targetYear: 2024,
+      currentMonth: 6,
+    });
     const e = expectValidEnvelope(env);
-    const data = e.data as { comboName: string; subsystems: Array<{ name: string }>; consistency: { confidence: string }; export_snapshot: { summary: string; sections: Array<{ heading: string }> } };
+    const data = e.data as { comboName: string; subsystems: Array<{ name: string }>; consistency: { confidence: string }; timeSource: { notice: string }; export_snapshot: { summary: string; sections: Array<{ heading: string }> } };
     expect(data.comboName).toBe('年度综合运势');
     expect(data.subsystems.length).toBe(4);
     expect(data.subsystems.map((s) => s.name)).toEqual(['八字', '五运六气', '奇门年盘', '紫微流年']);
+    expect(data.timeSource.notice).toBe('未完成真太阳时复核');
+    expect(data.export_snapshot.summary).toContain('未完成真太阳时复核');
     expect(data.export_snapshot.summary).toContain('2024');
     expect(data.export_snapshot.sections.some((s) => s.heading === '紫微流年维度')).toBe(true);
     expectExportSnapshot(e);

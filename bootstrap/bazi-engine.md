@@ -7,6 +7,12 @@
 > - **MCP 工具**：`bazi_calculate`（详见 `apps/mcp-server/README.md`）。
 > - 本指南下方的 Python/npm 集成方式仍可用（命令行交叉验证或 fallback），但 Dashboard/MCP 默认走纯 TS 路径。
 
+### 真太阳时默认预处理
+
+八字的民用出生记录不能直接被表述为真太阳时。唯一默认链路是：Agent 核验出生地点经度、IANA 时区、出生当日实际 UTC 偏移、夏令时状态与 `utcOffsetEvidence` → 调用 `resolve_true_solar_time` → 仅把返回的 `trueSolarBirth` 传给 `bazi_calculate`。
+
+`resolve_true_solar_time` 只负责可复现的经度校正和均时差计算，不负责地名解析或历史时区检索；模型与 Dashboard 都不得凭记忆补写这些事实。若无法可靠核验，必须先告知用户，并仅在其知情下按民用出生记录排盘，输出标注“未完成真太阳时复核”。
+
 ---
 
 ## 引擎概览
@@ -251,7 +257,7 @@ bazi-ziwei-skill 同时支持八字和紫微排盘，与 bootstrap/ziwei-engine.
 ## 注意事项
 
 - 八字排盘需要准确的出生时辰，时辰错误会导致四柱全错
-- 真太阳时校正：如知道出生地经纬度，应进行地方时校正
+- 真太阳时按本文件的 Agent 核验 → `resolve_true_solar_time` → `bazi_calculate` 链路处理；不能把地方平太阳时或未核验民用时间称为真太阳时
 - 晚子时（23:00-24:00）属于次日，需特别注意
 - 闰月对八字的影响主要体现在月柱的节气界定，非农历月份
 - bazi-ziwei-skill 使用 lunar-typescript 库，排盘算法已验证，但格局解读仍需人工判断

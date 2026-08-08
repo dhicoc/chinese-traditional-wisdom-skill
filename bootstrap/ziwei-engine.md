@@ -141,7 +141,6 @@ node /path/to/ziwei-doushu/scripts/generate-chart.js \
 | hour | int | 时辰（0=子, 1=丑, 2=寅, 3=卯, 4=辰, 5=巳, 6=午, 7=未, 8=申, 9=酉, 10=戌, 11=亥） |
 | gender | string | "男" 或 "女" |
 | isLeap | bool | 农历闰月标记（农历输入时） |
-| city | string | 出生地城市（真太阳时校正，可选） |
 
 ---
 
@@ -233,7 +232,6 @@ ziwei-doushu 引擎中的以下文件可作为深度分析参考：
 |------|------|------|
 | patterns.ts | 41种格局检测 + 1100行知识库 | 格局解读 |
 | heming-knowledge.ts | 合盘方法论 | 合婚分析 |
-| cities.ts | 中国城市经纬度 | 真太阳时校正 |
 | famous.ts | 名人命盘示例 | 案例参考 |
 | classics/ | 骨髓赋、全集、全书 | 古籍引用 |
 
@@ -242,7 +240,7 @@ ziwei-doushu 引擎中的以下文件可作为深度分析参考：
 ## 注意事项
 
 - 排盘需要准确的出生时辰（地支时），时辰错误会导致整个命盘排错
-- 真太阳时校正：如知道出生地，应进行经纬度校正（cities.ts 提供中国城市坐标）
+- 本项目的 Agent-first 真太阳时契约只定义八字预处理：Agent 核验后调用 `resolve_true_solar_time`，再将 `trueSolarBirth` 传给 `bazi_calculate`。紫微不声明或依赖独立城市坐标表。
 - 闰月处理：农历闰月排盘需特别标记 isLeap 参数
 - 引擎遵循倪海厦天机派体系，不包含飞星四化、宫干自化等高级技法
 - 所有命理分析必须遵守 RULES.md 中的 disclaimer 和积极导向原则

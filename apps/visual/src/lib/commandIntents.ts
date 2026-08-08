@@ -1,4 +1,5 @@
 import type { BirthData } from '@/legacy/birthBridge';
+import type { TrueSolarTimeResolution } from '@/legacy/trueSolarTime';
 // 副作用导入：确保 historyStore 模块在应用启动即求值，
 // 从而把 HistoryStore 挂到 window（commandIntents 的 getHistoryStore 依赖它，
 // 否则命令历史/收藏记录为死代码）。原 visual/ 旧桥移除后此处需显式触发。
@@ -8,6 +9,8 @@ export const COPY_CONTEXT_INTENT = 'ctw:copy-context';
 export const YEAR_INTENT_EVENT = 'ctw:set-year';
 export const YEAR_INTENT_STORAGE_KEY = 'ctw.pendingYear';
 export const BIRTH_INTENT_EVENT = 'ctw:set-birth';
+export const TRUE_SOLAR_TIME_INTENT_EVENT = 'ctw:set-true-solar-time';
+export const CIVIL_TIME_FALLBACK_INTENT_EVENT = 'ctw:confirm-civil-time-fallback';
 export const REFRESH_ALL_INTENT_EVENT = 'ctw:refresh-all';
 export const LIUYAO_INTENT_EVENT = 'ctw:liuyao-command';
 export const MEIHUA_INTENT_EVENT = 'ctw:meihua-command';
@@ -31,6 +34,15 @@ export interface BirthIntentDetail {
   patch: Partial<BirthData>;
   source: 'command-bar';
   raw: string;
+}
+
+export interface TrueSolarTimeIntentDetail {
+  resolution: TrueSolarTimeResolution;
+  source: 'agent-mcp';
+}
+
+export interface CivilTimeFallbackIntentDetail {
+  source: 'user-confirmed';
 }
 
 export interface RefreshAllIntentDetail {
@@ -233,6 +245,16 @@ export function dispatchYearIntent(target: YearIntentTarget, yearValue: number):
 
 export function dispatchBirthIntent(detail: BirthIntentDetail): void {
   window.dispatchEvent(new CustomEvent<BirthIntentDetail>(BIRTH_INTENT_EVENT, { detail }));
+}
+
+export function dispatchTrueSolarTimeIntent(detail: TrueSolarTimeIntentDetail): void {
+  window.dispatchEvent(new CustomEvent<TrueSolarTimeIntentDetail>(TRUE_SOLAR_TIME_INTENT_EVENT, { detail }));
+}
+
+export function dispatchCivilTimeFallbackIntent(): void {
+  window.dispatchEvent(new CustomEvent<CivilTimeFallbackIntentDetail>(CIVIL_TIME_FALLBACK_INTENT_EVENT, {
+    detail: { source: 'user-confirmed' },
+  }));
 }
 
 export function dispatchRefreshAllIntent(raw?: string): void {

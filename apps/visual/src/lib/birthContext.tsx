@@ -1,22 +1,31 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { DEFAULT_BIRTH, type BirthData, type SolarBirth, toSolarBirth } from '@/legacy/birthBridge';
-import { resolveBaziBirthTime, type ResolvedBaziBirth } from '@/legacy/birthTimeCorrection';
+import type { TrueSolarTimeResolution } from '@/legacy/trueSolarTime';
 import {
   BIRTH_INTENT_EVENT,
+  CIVIL_TIME_FALLBACK_INTENT_EVENT,
   REFRESH_ALL_INTENT_EVENT,
+  TRUE_SOLAR_TIME_INTENT_EVENT,
   type BirthIntentDetail,
+  type CivilTimeFallbackIntentDetail,
   type RefreshAllIntentDetail,
+  type TrueSolarTimeIntentDetail,
 } from '@/lib/commandIntents';
 
 /* ── Context 类型 ─────────────────────────────────────── */
+
+export type BaziTimeStatus =
+  | { status: 'awaiting-agent-verification'; civilBirth: SolarBirth }
+  | { status: 'true-solar-verified'; resolution: TrueSolarTimeResolution }
+  | { status: 'civil-unverified'; civilBirth: SolarBirth; notice: '未完成真太阳时复核' };
 
 interface BirthContextValue {
   /** 用户输入的生辰（可能是农历或公历） */
   birth: BirthData;
   /** 转换后的公历生辰（未校正；供各工作区默认使用） */
   solarBirth: SolarBirth;
-  /** 八字专用的排盘时间；经度校正不影响其他工作区 */
-  resolvedBaziBirth: ResolvedBaziBirth;
+  /** 八字专用时间状态；仅 Agent/MCP 已核验结果可改变排盘时间 */
+  baziTimeStatus: BaziTimeStatus;
   /**
    * 引擎是否可用。
    * 拔除 visual/ 旧桥后纯 TS 引擎始终就绪；字段名保留以兼容既有 UI。
@@ -32,6 +41,8 @@ const BirthContext = createContext<BirthContextValue | null>(null);
 
 export function BirthProvider({ children }: { children: ReactNode }) {
   const [birth, setBirth] = useState<BirthData>(DEFAULT_BIRTH);
+  const [trueSolarResolution, setTrueSolarResolution] = useState<TrueSolarTimeResolution | null>(null);
+  const [civilFallbackConfirmed, setCivilFallbackConfirmed] = useState(false);
   const birthRef = useRef<BirthData>(DEFAULT_BIRTH);
 
   useEffect(() => {
@@ -40,6 +51,8 @@ export function BirthProvider({ children }: { children: ReactNode }) {
 
   const updateBirth = useCallback((patch: Partial<BirthData>) => {
     setBirth((prev) => ({ ...prev, ...patch }));
+    setTrueSolarResolution(null);
+    setCivilFallbackConfirmed(false);
   }, []);
 
   const resetBirth = useCallback(() => {
@@ -58,6 +71,39 @@ export function BirthProvider({ children }: { children: ReactNode }) {
   }, [updateBirth]);
 
   useEffect(() => {
+    function handleTrueSolarTime(event: Event) {
+      const detail = (event as CustomEvent<TrueSolarTimeIntentDetail>).detail;
+      if (!detail?.resolution || detail.source !== 'agent-mcp') return;
+      const currentCivilBirth = toSolarBirth(birthRef.current);
+      const resolvedCivilBirth = detail.resolution.civilBirth;
+      if (
+        currentCivilBirth.year !== resolvedCivilBirth.year
+        || currentCivilBirth.month !== resolvedCivilBirth.month
+        || currentCivilBirth.day !== resolvedCivilBirth.day
+        || currentCivilBirth.hour !== resolvedCivilBirth.hour
+        || currentCivilBirth.minute !== resolvedCivilBirth.minute
+        || currentCivilBirth.gender !== resolvedCivilBirth.gender
+      ) return;
+      setTrueSolarResolution(detail.resolution);
+      setCivilFallbackConfirmed(false);
+    }
+
+    function handleCivilTimeFallback(event: Event) {
+      const detail = (event as CustomEvent<CivilTimeFallbackIntentDetail>).detail;
+      if (detail?.source !== 'user-confirmed') return;
+      setTrueSolarResolution(null);
+      setCivilFallbackConfirmed(true);
+    }
+
+    window.addEventListener(TRUE_SOLAR_TIME_INTENT_EVENT, handleTrueSolarTime);
+    window.addEventListener(CIVIL_TIME_FALLBACK_INTENT_EVENT, handleCivilTimeFallback);
+    return () => {
+      window.removeEventListener(TRUE_SOLAR_TIME_INTENT_EVENT, handleTrueSolarTime);
+      window.removeEventListener(CIVIL_TIME_FALLBACK_INTENT_EVENT, handleCivilTimeFallback);
+    };
+  }, []);
+
+  useEffect(() => {
     function handleRefreshAll(event: Event) {
       const detail = (event as CustomEvent<RefreshAllIntentDetail>).detail;
       void detail;
@@ -71,15 +117,20 @@ export function BirthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<BirthContextValue>(() => {
     const solarBirth = toSolarBirth(birth);
+    const baziTimeStatus: BaziTimeStatus = trueSolarResolution
+      ? { status: 'true-solar-verified', resolution: trueSolarResolution }
+      : civilFallbackConfirmed
+        ? { status: 'civil-unverified', civilBirth: solarBirth, notice: '未完成真太阳时复核' }
+        : { status: 'awaiting-agent-verification', civilBirth: solarBirth };
     return {
       birth,
       solarBirth,
-      resolvedBaziBirth: resolveBaziBirthTime(solarBirth, birth),
+      baziTimeStatus,
       legacyReady: true,
       updateBirth,
       resetBirth,
     };
-  }, [birth, updateBirth, resetBirth]);
+  }, [birth, civilFallbackConfirmed, resetBirth, trueSolarResolution, updateBirth]);
 
   return <BirthContext.Provider value={value}>{children}</BirthContext.Provider>;
 }

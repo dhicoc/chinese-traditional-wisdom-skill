@@ -23,12 +23,12 @@ export function SidebarNav(_props: SidebarNavProps) {
       </div>
 
       {/* 全局生辰控制台 */}
-      <div className="mt-3 shrink-0">
+      <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
         <BirthPanel />
       </div>
 
       {/* 页脚：隐私说明，贴底填充留白 */}
-      <div className="mt-auto pt-3">
+      <div className="mt-auto shrink-0 pt-3">
         <div className="rounded-card border border-jade-500/12 bg-black/20 p-2.5">
           <div className="flex items-center justify-between text-[11px] text-jade-100/55">
             <span>本地坛场</span>

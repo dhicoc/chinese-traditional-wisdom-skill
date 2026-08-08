@@ -91,12 +91,12 @@ describe('MCP Server 端到端协议', () => {
     expect(result.protocolVersion).toBe('2024-11-05');
   }, 30000);
 
-  it('tools/list 返回 33 个工具（31 计算 + 2 元工具）且 inputSchema 完整', async () => {
+  it('tools/list 返回 34 个工具（32 计算 + 2 元工具）且 inputSchema 完整', async () => {
     const responses = await runMcpSession([INIT_MSG, INITIALIZED_MSG, TOOLS_LIST_MSG]);
     const list = responses.find((r) => r.id === 2);
     expect(list).toBeDefined();
     const tools = (list!.result as { tools: Array<{ name: string; description: string; inputSchema: { type: string; properties: unknown } }> }).tools;
-    expect(tools.length).toBe(33);
+    expect(tools.length).toBe(34);
     tools.forEach((t) => {
       expect(t.name).toMatch(/^[a-z][a-z0-9_]*$/);
       expect(t.description.length).toBeGreaterThan(10);
@@ -106,6 +106,7 @@ describe('MCP Server 端到端协议', () => {
     // 验证关键工具存在（含元工具）
     const names = tools.map((t) => t.name);
     expect(names).toContain('bazi_calculate');
+    expect(names).toContain('resolve_true_solar_time');
     expect(names).toContain('ziwei_chart');
     expect(names).toContain('dream_interpret');
     expect(names).toContain('agent_guidance');
@@ -125,17 +126,27 @@ describe('MCP Server 端到端协议', () => {
     expect(payload.workflow).toBeTruthy();
   }, 30000);
 
-  it('tools/call wisdom_dispatch 路由"排八字"到 bazi_calculate', async () => {
+  it('tools/call wisdom_dispatch 将“排八字”路由为真太阳时预检', async () => {
     const responses = await runMcpSession([
       INIT_MSG, INITIALIZED_MSG,
       toolCallMsg(21, 'wisdom_dispatch', { text: '帮我排个八字，1990年6月15日12时男' }),
     ]);
     const call = responses.find((r) => r.id === 21);
     const result = call!.result as { content: Array<{ type: string; text: string }> };
-    const payload = JSON.parse(result.content[0].text) as { tool: string; arguments: { birth: { year: number } }; hit: boolean };
+    const payload = JSON.parse(result.content[0].text) as {
+      tool: string;
+      arguments: { birth: { year: number } };
+      baziPreflight: { status: string; civilFallbackExplicitlyConfirmed: boolean };
+      hit: boolean;
+    };
     expect(payload.hit).toBe(true);
-    expect(payload.tool).toBe('bazi_calculate');
+    expect(payload.tool).toBe('resolve_true_solar_time');
     expect(payload.arguments.birth.year).toBe(1990);
+    expect(payload.baziPreflight).toEqual({
+      status: 'needs-true-solar-verification',
+      requiredBeforeCalculation: expect.any(Array),
+      civilFallbackExplicitlyConfirmed: false,
+    });
   }, 30000);
 
   it('tools/call wisdom_dispatch 路由"今天黄历宜什么"到 get_almanac', async () => {
@@ -150,12 +161,44 @@ describe('MCP Server 端到端协议', () => {
     expect(payload.tool).toBe('get_almanac');
   }, 30000);
 
+  it('tools/call 缺少 Agent 所需参数时拒绝执行，不再软提示后计算', async () => {
+    const responses = await runMcpSession([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(11, 'dream_interpret', {}),
+    ]);
+    const call = responses.find((r) => r.id === 11);
+    expect(call).toBeDefined();
+    const result = call!.result as { content: Array<{ type: string; text: string }>; isError?: boolean };
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain('keyword');
+  }, 30000);
+
+  it('tools/call guidance 跨字段缺失时返回 validation_error 且不执行 handler', async () => {
+    const responses = await runMcpSession([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(23, 'get_constitution_tendency', {}),
+    ]);
+    const call = responses.find((r) => r.id === 23);
+    expect(call).toBeDefined();
+    const result = call!.result as { content: Array<{ type: string; text: string }>; isError?: boolean };
+    expect(result.isError).toBeFalsy();
+    const payload = JSON.parse(result.content[0].text) as { ok: boolean; error: { code: string; missing: string[] } };
+    expect(payload).toEqual({
+      ok: false,
+      error: {
+        code: 'validation_error',
+        missing: ['wuyun.dayun', 'liuqi.sitian'],
+        prompts: expect.any(Array),
+      },
+    });
+  }, 30000);
+
   it('tools/call get_almanac 返回 ToolEnvelope 黄历数据', async () => {
     const responses = await runMcpSession([
       INIT_MSG, INITIALIZED_MSG,
-      toolCallMsg(11, 'get_almanac', { date: '2026-08-01' }),
+      toolCallMsg(12, 'get_almanac', { date: '2026-08-01' }),
     ]);
-    const call = responses.find((r) => r.id === 11);
+    const call = responses.find((r) => r.id === 12);
     expect(call).toBeDefined();
     const result = call!.result as { content: Array<{ type: string; text: string }>; isError?: boolean };
     expect(result.isError).toBeFalsy();
@@ -243,22 +286,27 @@ describe('MCP Server 端到端协议', () => {
     expect(envelope.data.advices.length).toBeGreaterThan(0);
   }, 30000);
 
-  it('tools/call bazi_calculate 返回 ToolEnvelope 内容', async () => {
+  it('tools/call bazi_calculate 民用降级须显式确认并返回标记', async () => {
     const responses = await runMcpSession([
       INIT_MSG, INITIALIZED_MSG,
-      toolCallMsg(10, 'bazi_calculate', { birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } }),
+      toolCallMsg(10, 'bazi_calculate', {
+        birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+        timeBasis: 'civil-unverified',
+        civilFallbackConfirmed: true,
+      }),
     ]);
     const call = responses.find((r) => r.id === 10);
     expect(call).toBeDefined();
     const result = call!.result as { content: Array<{ type: string; text: string }>; isError?: boolean };
     expect(result.isError).toBeFalsy();
     expect(result.content[0].type).toBe('text');
-    const envelope = JSON.parse(result.content[0].text) as { ok: boolean; tool: string; data: { mode: string; pillars: { year: { stem: string } }; export_snapshot: { summary: string } } };
+    const envelope = JSON.parse(result.content[0].text) as { ok: boolean; tool: string; data: { mode: string; pillars: { year: { stem: string } }; timeSource: { timeBasis: string; notice: string }; export_snapshot: { summary: string } } };
     expect(envelope.ok).toBe(true);
     expect(envelope.tool).toBe('BaziLunarAdapter');
     expect(envelope.data.mode).toBe('local-exact');
     expect(envelope.data.pillars.year.stem).toBe('庚');
-    expect(envelope.data.export_snapshot.summary).toContain('日主');
+    expect(envelope.data.timeSource).toEqual({ timeBasis: 'civil-unverified', verification: null, notice: '未完成真太阳时复核' });
+    expect(envelope.data.export_snapshot.summary).toContain('未完成真太阳时复核');
   }, 30000);
 
   it('tools/call dream_interpret 返回解梦结果', async () => {

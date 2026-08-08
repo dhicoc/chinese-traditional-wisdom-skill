@@ -8,6 +8,7 @@
  * Solar 不可用时引擎自动降级为 local-approx（公历近似）。
  */
 
+import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { Solar } from 'lunar-typescript';
 
@@ -32,6 +33,7 @@ import { calcFeixingEnveloped } from '../../visual/src/legacy/feixingEngine';
 import { calcBazhaiEnveloped } from '../../visual/src/legacy/bazhaiEngine';
 import { getDailyRhythmEnveloped } from '../../visual/src/legacy/rhythmEngine';
 import { assessConstitutionEnveloped, listConstitutionQuestionnaire } from '../../visual/src/legacy/constitutionAssessEngine';
+import { resolveTrueSolarTime } from '../../visual/src/legacy/trueSolarTime';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
 const solarEntry: unknown = (() => {
@@ -62,19 +64,144 @@ export interface ToolDef {
   handler: (input: unknown) => unknown;
 }
 
+type BaziTimeBasis = 'true-solar-verified' | 'civil-unverified';
+
+type BaziTimeContext = {
+  timeBasis: BaziTimeBasis;
+  calibrationToken?: string;
+  civilFallbackConfirmed?: true;
+};
+
+interface TrueSolarCalibration {
+  resolution: ReturnType<typeof resolveTrueSolarTime>;
+}
+
+const baziTimeContextSchema = z.object({
+  timeBasis: z.enum(['true-solar-verified', 'civil-unverified']),
+  calibrationToken: z.string().uuid().optional().describe('resolve_true_solar_time 在当前 MCP 进程签发的真太阳时校准令牌'),
+  civilFallbackConfirmed: z.literal(true).optional().describe('民用时间降级须为 true，表示用户已确认未完成真太阳时复核'),
+});
+
+const trueSolarCalibrations = new Map<string, TrueSolarCalibration>();
+
+function assertSameBirth(left: Record<string, unknown>, right: object) {
+  const verifiedBirth = right as Record<string, unknown>;
+  for (const field of ['year', 'month', 'day', 'hour', 'minute', 'gender']) {
+    if ((left[field] ?? 0) !== (verifiedBirth[field] ?? 0)) {
+      throw new Error(`校准令牌对应的 trueSolarBirth 与 birth.${field} 不一致。请使用 resolve_true_solar_time 返回的 trueSolarBirth 原样调用。`);
+    }
+  }
+}
+
+function resolveBaziTimeSource(birth: Record<string, unknown>, context: BaziTimeContext) {
+  if (context.timeBasis === 'true-solar-verified') {
+    if (!context.calibrationToken) {
+      throw new Error('timeBasis=true-solar-verified 必须提供 resolve_true_solar_time 签发的 calibrationToken。');
+    }
+    const calibration = trueSolarCalibrations.get(context.calibrationToken);
+    if (!calibration) {
+      throw new Error('calibrationToken 无效、已失效或不属于当前 MCP 进程。请重新调用 resolve_true_solar_time。');
+    }
+    assertSameBirth(birth, calibration.resolution.trueSolarBirth);
+    return { timeBasis: context.timeBasis, verification: calibration.resolution };
+  }
+
+  if (context.civilFallbackConfirmed !== true) {
+    throw new Error('timeBasis=civil-unverified 必须显式传 civilFallbackConfirmed=true，并向用户说明“未完成真太阳时复核”。');
+  }
+  return { timeBasis: context.timeBasis, verification: null, notice: '未完成真太阳时复核' };
+}
+
+function withBaziTimeSource(result: unknown, timeSource: ReturnType<typeof resolveBaziTimeSource>) {
+  const envelope = result as { data: Record<string, unknown> };
+  const snapshot = envelope.data.export_snapshot as { summary: string; sections: Array<{ heading: string; body: string }> } | undefined;
+  const notice = 'notice' in timeSource ? '未完成真太阳时复核：本次涉及八字的部分按用户确认的民用出生记录计算。' : '已核验真太阳时：本次涉及八字的部分使用经校准令牌验证的 trueSolarBirth 计算。';
+
+  return {
+    ...envelope,
+    data: {
+      ...envelope.data,
+      timeSource,
+      export_snapshot: snapshot ? {
+        ...snapshot,
+        summary: 'notice' in timeSource ? `未完成真太阳时复核；${snapshot.summary}` : snapshot.summary,
+        sections: [...snapshot.sections, { heading: '八字时间来源', body: notice }],
+      } : snapshot,
+    },
+  };
+}
+
 export const TOOLS: ToolDef[] = [
   {
-    name: 'bazi_calculate',
-    description: '八字排盘：四柱（年月日时）、日主、五行分布、十神、藏干、大运、神煞（天乙/文昌/禄刃/桃花/驿马/华盖/将星/月德/魁罡）。传入生辰得完整命局。精确历法需 lunar-javascript（已内置）。神煞中桃花/驿马/华盖/将星有两套查法口径，由 shenShaTrineSource 选择：year 按年支三合查（传统主流，默认）/ day 按日支三合查（流派之一）。',
+    name: 'resolve_true_solar_time',
+    description: '真太阳时校准：对 Agent 已核验的出生地点经度、IANA 时区与历史 UTC 偏移进行确定性计算，返回经度校正、均时差、真太阳时、跨时辰/日期/子初边界与证据。不会解析地点、猜测历史时区或夏令时；调用前必须核验并提供 utcOffsetEvidence。仅供八字排盘预处理使用。',
     schema: z.object({
       birth: birthSchema,
+      location: z.object({
+        displayName: z.string().min(1).describe('经 Agent 核验后的出生地点名称'),
+        longitude: z.number().min(-180).max(180).describe('经 Agent 核验后的地理经度，东经为正'),
+        ianaTimeZone: z.string().min(1).describe('经 Agent 核验后的 IANA 时区，如 America/New_York'),
+        utcOffsetMinutes: z.number().int().min(-720).max(840).describe('出生时当地实际 UTC 偏移分钟数，已包含历史夏令时'),
+        utcOffsetEvidence: z.string().min(1).describe('历史时区与夏令时核验依据；禁止仅凭模型记忆填写'),
+      }),
+    }),
+    handler: (i) => {
+      const input = i as {
+        birth: { year: number; month: number; day: number; hour: number; minute?: number; gender: '男' | '女' };
+        location: { displayName: string; longitude: number; ianaTimeZone: string; utcOffsetMinutes: number; utcOffsetEvidence: string };
+      };
+      const resolution = resolveTrueSolarTime({ ...input.birth, minute: input.birth.minute ?? 0, useExactCalendar: true }, input.location);
+      const calibrationToken = randomUUID();
+      trueSolarCalibrations.set(calibrationToken, { resolution });
+      return { ...resolution, calibrationToken };
+    },
+  },
+  {
+    name: 'bazi_calculate',
+    description: '八字排盘：必须声明时间来源。timeBasis=true-solar-verified 时须先调用 resolve_true_solar_time，并传回同一 MCP 进程签发的 calibrationToken 与原样 trueSolarBirth；timeBasis=civil-unverified 时须显式确认 civilFallbackConfirmed=true，结果将标注“未完成真太阳时复核”。',
+    schema: z.object({
+      birth: birthSchema,
+      timeBasis: z.enum(['true-solar-verified', 'civil-unverified']).describe('排盘时间来源：已核验真太阳时或已确认民用时间降级'),
+      calibrationToken: z.string().uuid().optional().describe('resolve_true_solar_time 在当前 MCP 进程签发的真太阳时校准令牌'),
+      civilFallbackConfirmed: z.literal(true).optional().describe('timeBasis=civil-unverified 时必须为 true，表示用户知情确认未完成真太阳时复核'),
       shenShaTrineSource: z.enum(['year', 'day']).optional().describe('神煞三合局查取口径：year 按年支查（传统主流，默认）/ day 按日支查'),
     }),
-    handler: (i) => calcBaziEnveloped({
-      birth: (i as { birth: unknown }).birth as never,
-      solar: solarEntry as never,
-      shenShaTrineSource: (i as { shenShaTrineSource?: 'year' | 'day' }).shenShaTrineSource,
-    }),
+    handler: (i) => {
+      const input = i as {
+        birth: Record<string, unknown>;
+        timeBasis: BaziTimeBasis;
+        calibrationToken?: string;
+        civilFallbackConfirmed?: true;
+        shenShaTrineSource?: 'year' | 'day';
+      };
+      const timeSource = resolveBaziTimeSource(input.birth, input);
+
+      const envelope = calcBaziEnveloped({
+        birth: input.birth as never,
+        solar: solarEntry as never,
+        shenShaTrineSource: input.shenShaTrineSource,
+      });
+      const data = envelope.data as unknown as Record<string, unknown>;
+      const exportSnapshot = data.export_snapshot as { summary: string; sections: Array<{ heading: string; body: string }> };
+      const timeSourceSection = input.timeBasis === 'true-solar-verified'
+        ? { heading: '时间来源', body: '已核验真太阳时：使用 resolve_true_solar_time 返回并经校准令牌验证的 trueSolarBirth 排盘。' }
+        : { heading: '时间来源', body: '未完成真太阳时复核：本次按用户确认的民用出生记录排盘。' };
+
+      return {
+        ...envelope,
+        data: {
+          ...data,
+          timeSource,
+          export_snapshot: {
+            ...exportSnapshot,
+            summary: input.timeBasis === 'civil-unverified'
+              ? `未完成真太阳时复核；${exportSnapshot.summary}`
+              : exportSnapshot.summary,
+            sections: [...exportSnapshot.sections, timeSourceSection],
+          },
+        },
+      };
+    },
   },
   {
     name: 'ziwei_chart',
@@ -175,14 +302,20 @@ export const TOOLS: ToolDef[] = [
       givenName: z.string().min(1).describe('名（如「伟」）'),
       birthYear: z.number().int().min(1900).max(2100).optional().describe('出生年（用于生肖契合度）'),
       birth: birthSchema.optional().describe('完整生辰（年月日时+性别），提供后命理契合维度叠加八字喜用神补强评分'),
+      baziTimeContext: baziTimeContextSchema.optional().describe('仅提供完整生辰时必填：八字喜用神补强的时间来源'),
     }),
-    handler: (i) => calcNameRatingEnveloped(
-      (i as { surname: string }).surname,
-      (i as { givenName: string }).givenName,
-      (i as { birthYear?: number }).birthYear,
-      (i as { birth?: { year: number; month: number; day: number; hour: number; minute?: number; gender: string } }).birth,
-      solarEntry,
-    ),
+    handler: async (i) => {
+      const input = i as { surname: string; givenName: string; birthYear?: number; birth?: Record<string, unknown>; baziTimeContext?: BaziTimeContext };
+      const timeSource = input.birth ? resolveBaziTimeSource(input.birth, input.baziTimeContext!) : null;
+      const result = await calcNameRatingEnveloped(
+        input.surname,
+        input.givenName,
+        input.birthYear,
+        input.birth as never,
+        solarEntry,
+      );
+      return timeSource ? withBaziTimeSource(result, timeSource) : result;
+    },
   },
   {
     name: 'calc_xiyong',
@@ -225,15 +358,20 @@ export const TOOLS: ToolDef[] = [
     description: '年度综合运势联合分析：八字（大运/日主/喜用）+ 五运六气（年运）+ 奇门年盘 + 命卦方位。聚合多系统得年度运势定调 + 一致性检验 + 方位建议。',
     schema: z.object({
       birth: birthSchema,
+      baziTimeContext: baziTimeContextSchema.describe('年度运势包含八字分析，必须声明真太阳时核验或民用时间降级'),
       targetYear: z.number().int().min(1900).max(2100).optional().describe('欲测年份（默认用出生年）'),
       currentMonth: z.number().int().min(1).max(12).optional().describe('当前月（五运六气用，不传用系统月）'),
     }),
-    handler: (i) => calcAnnualFortuneCombo({
-      birth: (i as { birth: unknown }).birth as never,
-      targetYear: (i as { targetYear?: number }).targetYear,
-      currentMonth: (i as { currentMonth?: number }).currentMonth,
-      solar: solarEntry as never,
-    }),
+    handler: (i) => {
+      const input = i as { birth: Record<string, unknown>; baziTimeContext: BaziTimeContext; targetYear?: number; currentMonth?: number };
+      const timeSource = resolveBaziTimeSource(input.birth, input.baziTimeContext);
+      return withBaziTimeSource(calcAnnualFortuneCombo({
+        birth: input.birth as never,
+        targetYear: input.targetYear,
+        currentMonth: input.currentMonth,
+        solar: solarEntry as never,
+      }), timeSource);
+    },
   },
   {
     name: 'combo_decision',
@@ -357,12 +495,14 @@ export const TOOLS: ToolDef[] = [
     schema: z.object({
       personA: z.object({
         birth: birthSchema,
+        baziTimeContext: baziTimeContextSchema.describe('甲方八字分析的时间来源：必须声明真太阳时核验或民用时间降级'),
         surname: z.string().optional().describe('甲方姓氏（可选，用于姓名匹配）'),
         givenName: z.string().optional().describe('甲方名字（可选）'),
         label: z.string().optional().describe('称谓，如男方/甲方'),
       }),
       personB: z.object({
         birth: birthSchema,
+        baziTimeContext: baziTimeContextSchema.describe('乙方八字分析的时间来源：必须声明真太阳时核验或民用时间降级'),
         surname: z.string().optional().describe('乙方姓氏（可选）'),
         givenName: z.string().optional().describe('乙方名字（可选）'),
         label: z.string().optional().describe('称谓，如女方/乙方'),
@@ -370,23 +510,41 @@ export const TOOLS: ToolDef[] = [
       scene: z.enum(['婚恋', '合伙', '合作']).optional().describe('关系类型（默认婚恋）'),
       targetYear: z.number().int().min(1900).max(2100).optional().describe('择吉日年份（默认双方出生较大年）'),
     }),
-    handler: (i) => calcMarriageCombo({
-      personA: {
-        birth: (i as { personA: { birth: unknown } }).personA.birth as never,
-        surname: (i as { personA: { surname?: string } }).personA.surname,
-        givenName: (i as { personA: { givenName?: string } }).personA.givenName,
-        label: (i as { personA: { label?: string } }).personA.label,
-        solar: solarEntry as never,
-      },
-      personB: {
-        birth: (i as { personB: { birth: unknown } }).personB.birth as never,
-        surname: (i as { personB: { surname?: string } }).personB.surname,
-        givenName: (i as { personB: { givenName?: string } }).personB.givenName,
-        label: (i as { personB: { label?: string } }).personB.label,
-      },
-      scene: (i as { scene?: '婚恋' | '合伙' | '合作' }).scene,
-      targetYear: (i as { targetYear?: number }).targetYear,
-    }),
+    handler: (i) => {
+      const input = i as {
+        personA: { birth: Record<string, unknown>; baziTimeContext: BaziTimeContext; surname?: string; givenName?: string; label?: string };
+        personB: { birth: Record<string, unknown>; baziTimeContext: BaziTimeContext; surname?: string; givenName?: string; label?: string };
+        scene?: '婚恋' | '合伙' | '合作';
+        targetYear?: number;
+      };
+      const personATimeSource = resolveBaziTimeSource(input.personA.birth, input.personA.baziTimeContext);
+      const personBTimeSource = resolveBaziTimeSource(input.personB.birth, input.personB.baziTimeContext);
+      const envelope = withBaziTimeSource(withBaziTimeSource(calcMarriageCombo({
+        personA: {
+          birth: input.personA.birth as never,
+          surname: input.personA.surname,
+          givenName: input.personA.givenName,
+          label: input.personA.label,
+          solar: solarEntry as never,
+        },
+        personB: {
+          birth: input.personB.birth as never,
+          surname: input.personB.surname,
+          givenName: input.personB.givenName,
+          label: input.personB.label,
+        },
+        scene: input.scene,
+        targetYear: input.targetYear,
+      }), personATimeSource), personBTimeSource);
+
+      return {
+        ...envelope,
+        data: {
+          ...envelope.data,
+          timeSource: { personA: personATimeSource, personB: personBTimeSource },
+        },
+      };
+    },
   },
   {
     name: 'cast_cezi',
@@ -395,13 +553,27 @@ export const TOOLS: ToolDef[] = [
       char: z.string().min(1).max(4).describe('所测汉字（取首字）'),
       aspect: z.enum(['事业', '感情', '财利', '健康', '综合']).optional().describe('问题方向（默认综合）'),
       birth: birthSchema.optional().describe('可选生辰，结合八字用神补益判断'),
+      baziTimeContext: baziTimeContextSchema.optional().describe('仅提供 birth 时必填：八字用神补益判断的时间来源'),
     }),
-    handler: (i) => calcCeziEnveloped({
-      char: (i as { char: string }).char,
-      aspect: (i as { aspect?: '事业' | '感情' | '财利' | '健康' | '综合' }).aspect,
-      birth: (i as { birth?: unknown }).birth as never,
-      solar: solarEntry as never,
-    }),
+    handler: (i) => {
+      const input = i as {
+        char: string;
+        aspect?: '事业' | '感情' | '财利' | '健康' | '综合';
+        birth?: Record<string, unknown>;
+        baziTimeContext?: BaziTimeContext;
+      };
+      if (input.birth && !input.baziTimeContext) {
+        throw new Error('提供 birth 时必须提供 baziTimeContext，以声明真太阳时核验或民用时间降级。');
+      }
+      const timeSource = input.birth ? resolveBaziTimeSource(input.birth, input.baziTimeContext!) : null;
+      const envelope = calcCeziEnveloped({
+        char: input.char,
+        aspect: input.aspect,
+        birth: input.birth as never,
+        solar: solarEntry as never,
+      });
+      return timeSource ? withBaziTimeSource(envelope, timeSource) : envelope;
+    },
   },
   {
     name: 'calc_chenguz',

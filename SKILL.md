@@ -14,8 +14,8 @@ description: 中国传统文化整体智慧咨询系统。融合玄学五术（�
 0. 检测本包路径（由 SKILL.md 所在目录推导），记为 <SKILL_ROOT>
 
 1. 确认计算引擎就绪（默认路径：纯 TS 引擎 + MCP 薄壳，零 Python 依赖）：
-   - 所有 31 个计算引擎均为纯 TypeScript，位于 apps/visual/src/legacy/
-   - MCP server（apps/mcp-server/）薄壳包装这些引擎，统一返回 ToolEnvelope
+   - 32 个计算工具均由纯 TypeScript 实现；其中真太阳时校准位于 apps/visual/src/legacy/trueSolarTime.ts
+   - MCP server（apps/mcp-server/）薄壳包装这些引擎，统一返回 ToolEnvelope 或可审计的校准结果
    - 精确历法依赖 lunar-javascript（npm/TS import，非 Python）
    - 紫微依赖 iztro v2.5.8、奇门依赖 3meta v2.6.0（均 npm ESM）
    仅当用户明确要「命令行 Python 起卦」时才检查可选 Python 包：
@@ -26,16 +26,16 @@ description: 中国传统文化整体智慧咨询系统。融合玄学五术（�
    （详见下方「MCP 自动激活」节）
 
 3. 向用户报告就绪状态（源码随仓库就绪，依赖按需安装，不预装）：
-   - 纯 TS 引擎源码: apps/visual/src/legacy/*Engine.ts（随仓库存在，零预装）
-   - MCP Server 源码: apps/mcp-server/（33 工具：31 计算 + agent_guidance + wisdom_dispatch）
-   - Web Dashboard 源码: apps/visual（React+SVG）
+   - 纯 TS 引擎源码: apps/visual/src/legacy/*Engine.ts 与 trueSolarTime.ts（随仓库存在，零预装）
+   - MCP Server 源码: apps/mcp-server/（34 工具：32 计算 + agent_guidance + wisdom_dispatch）
+   - Web Dashboard 源码: apps/visual（React+SVG；负责输入和结果可视化，不独立核验真太阳时）
    - 依赖按路径触发安装：用 Dashboard 时 `pnpm dev` 装 visual 依赖；
      用 AI 直调时 `setup-mcp.mjs` 装 mcp-server 依赖；不用则不装
 
 4. 确认就绪后，继续执行以下工作流。
    MCP 不可用时 → 仍可启动 React Dashboard（cd apps/visual && pnpm dev）用纯前端引擎，
    告知用户可视化可用、AI 直调工具需配 MCP（运行 setup-mcp.mjs 激活）。
-   ⚠️ 引擎不可用时禁止凭模型自身知识排盘（RULES.md §11），引导用户激活 MCP 或用 Dashboard。
+   ⚠️ 引擎不可用时禁止凭模型自身知识排盘或校时（RULES.md §11），引导用户激活 MCP 或用 Dashboard。
 ```
 
 > 历史说明：2026-07-10 架构重构后，计算主路径已从「Python 引擎 + npm bazi-ziwei-skill」迁移为「纯 TS 引擎 + MCP 薄壳」。Python 包（lunar-python/iztro-py/ichingshifa）退为命令行可选 oracle，不再是首次安装的必经路径。`scripts/setup.bat`/`setup.sh` 仍保留但仅装可选 Python 包，默认工作流不依赖它。
@@ -44,7 +44,7 @@ description: 中国传统文化整体智慧咨询系统。融合玄学五术（�
 
 ## MCP 自动激活（AI 自主配置，无需用户手动挂载）
 
-> 本项目提供 MCP server（`apps/mcp-server/`），把 31 个计算引擎暴露为 MCP 工具，供 Claude Code / Claude Desktop / Cursor / Cline 等客户端直接调用。**用户无需手动编辑配置文件**，AI 可自主配置激活。
+> 本项目提供 MCP server（`apps/mcp-server/`），把 32 个确定性计算工具暴露为 MCP 工具，供 Claude Code / Claude Desktop / Cursor / Cline 等客户端直接调用。**用户无需手动编辑配置文件**，AI 可自主配置激活。
 
 **当用户表达"启用 MCP / 挂载玄学工具 / 让 AI 直接排盘"等意图时，AI 执行：**
 
@@ -63,14 +63,15 @@ node <SKILL_ROOT>/scripts/setup-mcp.mjs
 - 仅检查不写入：`node scripts/setup-mcp.mjs --check`
 - 只配指定客户端：`node scripts/setup-mcp.mjs --client=claude-code`（支持 claude-code / claude-desktop / cursor / cline）
 
-**MCP 工具列表**（33 个 = 31 计算 + 2 元工具）：
+**MCP 工具列表**（34 个 = 32 计算 + 2 元工具）：
 
+- 时间校准（1）：`resolve_true_solar_time`（真太阳时：只对 Agent 已核验的地点、历史 UTC 偏移与夏令时依据做确定性计算）
 - 排盘计算（22）：`bazi_calculate` / `ziwei_chart` / `cast_liuyao` / `arrange_qimen` / `liuren_calculate` / `xingxiu_daily` / `taiyi_calculate` / `huangji_calculate` / `cast_meihua` / `calc_yunqi` / `analyze_name` / `calc_xiyong` / `get_constitution_tendency` / `dream_interpret` / `cast_cezi` / `calc_chenguz` / `get_almanac`（每日黄历）/ `calc_feixing`（流年飞星）/ `calc_bazhai`（八宅大游年）/ `get_daily_rhythm`（节气调养+时辰经络）/ `assess_constitution`（体质问卷自评）/ `list_constitution_questionnaire`（取体质问卷题目，配合 assess_constitution）
 - 跨系统联合分析（9）：`combo_annual_fortune` / `combo_monthly_fortune` / `combo_decision` / `combo_space_time` / `combo_sanshi` / `combo_sanshi_classic` / `combo_daily_wellness` / `combo_zeri` / `combo_marriage`
 - 元工具（2）：`agent_guidance`（参数引导，防瞎猜）+ `wisdom_dispatch`（自然语言意图路由）
 
-> 三层架构：Layer 1 SKILL.md（本文件，路由）→ Layer 2 MCP Server（31+2 工具薄壳）→ Layer 3 Visual Dashboard（可选可视化）。MCP server 与 Dashboard 共享同一份纯 TS 引擎，互不依赖。
-> 用户纯对话即可用全部功能：wisdom_dispatch 按关键词路由到对应工具，agent_guidance 确认参数，调工具取 ToolEnvelope 结构化结果后语言化解读（RULES.md §11：禁止凭模型自身知识排盘）。
+> 运行边界：对话 / Agent 必须走 `SKILL/RULES → wisdom_dispatch → agent_guidance → MCP 计算工具 → ToolEnvelope → 语言化解读`；Agent 不得凭模型知识、记忆或 reference 文件自行给出确定性结论。Dashboard 保持原有浏览器端纯 TypeScript 确定性计算和可视化入口，不需要经 MCP 转发；这不是模型推演，也不授权对话 Agent 绕过 MCP。
+> MCP server 与 Dashboard 可共享纯 TS 引擎。用户纯对话即可用全部功能：`wisdom_dispatch` 按关键词路由，`agent_guidance` 确认参数，计算工具返回结构化结果后再语言化解读（RULES.md §11）。
 
 ---
 
@@ -160,6 +161,18 @@ node <SKILL_ROOT>/scripts/setup-mcp.mjs
 - 当前困扰：具体问题描述
 - 体质描述：主要健康症状（可选）
 - 当前状态：情绪、环境、阶段
+
+### 八字真太阳时默认预处理
+
+八字排盘默认尝试真太阳时，但不能把“默认”变成假精确。以下链路只适用于八字；紫微及其他模块按各自工具契约处理，不得借用未核验的地点资料。
+
+1. 收集民用出生记录：公历年月日、时分、性别，以及足以定位的出生地（城市/区县 + 国家或地区）。
+2. Agent 核验出生地经度、IANA 时区、出生当日实际 UTC 偏移和夏令时状态，并保留可追溯的 `utcOffsetEvidence`。不得凭训练记忆补写这些事实。
+3. 将已核验资料传给 `resolve_true_solar_time`。该工具只做可复现的经度校正与均时差计算，返回 `trueSolarBirth`、总校正、跨日期/时辰/子初边界和核验依据。
+4. 仅将 `trueSolarBirth` 传给 `bazi_calculate`，再依据引擎返回结果解读。
+5. 若地点或历史时区/夏令时无法可靠核验，先说明限制；仅在用户知情下以民用出生记录调用 `bazi_calculate`，并在排盘与报告中标注“未完成真太阳时复核”。不得将该结果称为真太阳时排盘。
+
+> Dashboard 是这条链路的输入与结果展示层：它可以呈现 Agent 校验状态、校正明细或降级标记，但不能独立猜测地点、历史 UTC 偏移、夏令时或真太阳时。
 
 **第二步：多维度分析**（须遵守 RULES.md §11——排盘推算必须调引擎，禁止凭模型自身知识瞎算）
 

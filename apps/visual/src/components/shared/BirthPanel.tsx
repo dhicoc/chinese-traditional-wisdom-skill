@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useBirth } from '@/lib/birthContext';
+import { dispatchCivilTimeFallbackIntent } from '@/lib/commandIntents';
 import { ControlField } from '@/components/shared/ControlField';
 import { DEFAULT_BIRTH } from '@/legacy/birthBridge';
 
@@ -9,7 +10,7 @@ import { DEFAULT_BIRTH } from '@/legacy/birthBridge';
  * UX P0：默认生辰时自动展开 + 高亮提示，引导新用户先填生辰。
  */
 export function BirthPanel() {
-  const { birth, legacyReady, updateBirth, resetBirth } = useBirth();
+  const { birth, baziTimeStatus, legacyReady, updateBirth, resetBirth } = useBirth();
 
   // 判断是否仍为默认生辰（用户未修改过）
   const isDefaultBirth =
@@ -223,45 +224,63 @@ export function BirthPanel() {
             精确节气
           </label>
 
-          <details className="rounded-card border border-white/10 bg-black/15 px-3 py-2">
-            <summary className="cursor-pointer text-xs text-jade-100/65">八字地点与校时（可选）</summary>
-            <div className="mt-3 space-y-2">
-              <label className="flex items-center gap-2 text-xs text-jade-100/55">
-                <input
-                  type="checkbox"
-                  checked={birth.timeCorrectionMode === 'longitude'}
-                  onChange={(e) => updateBirth({ timeCorrectionMode: e.target.checked ? 'longitude' : 'none' })}
-                  className="h-3.5 w-3.5 accent-jade-500"
-                />
-                按经度换算地方平太阳时
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <ControlField
-                  label="经度（东正西负）"
-                  type="number"
-                  min={-180}
-                  max={180}
-                  inputMode="decimal"
-                  value={draftLongitude}
-                  onChange={(e) => setDraftLongitude(e.target.value)}
-                  onBlur={() => commitOptionalNumber('longitude', draftLongitude)}
-                />
-                <ControlField
-                  label="实际 UTC 偏移（分钟）"
-                  type="number"
-                  min={-720}
-                  max={840}
-                  inputMode="numeric"
-                  value={draftOffset}
-                  onChange={(e) => setDraftOffset(e.target.value)}
-                  onBlur={() => commitOptionalNumber('utcOffsetMinutes', draftOffset)}
-                />
-              </div>
-              <p className="text-[11px] leading-5 text-jade-100/40">
-                请填写出生当时实际 UTC 偏移（包含当时夏令时）；系统不会自动推断历史时区或夏令时。未填写完整时保持民用时间。
+          <section className="rounded-card border border-white/10 bg-black/15 px-3 py-2" aria-label="八字真太阳时状态">
+            <p className="text-xs font-medium text-jade-100/70">八字真太阳时</p>
+            {baziTimeStatus.status === 'true-solar-verified' && (
+              <p className="mt-2 text-[11px] leading-5 text-jade-300/80">
+                已核验真太阳时：Agent/MCP 已返回校正结果。排盘使用校正后的出生时间。
               </p>
-            </div>
-          </details>
+            )}
+            {baziTimeStatus.status === 'awaiting-agent-verification' && (
+              <div className="mt-2 space-y-2">
+                <p className="text-[11px] leading-5 text-jade-100/45">
+                  等待 Agent 核验出生地点、历史时区与夏令时。请提供可定位出生地；前端不会自行猜测经度、UTC 偏移或夏令时。
+                </p>
+                <details className="rounded border border-white/10 px-2 py-1.5">
+                  <summary className="cursor-pointer text-[11px] text-jade-100/55">专业核验资料（不直接改写排盘）</summary>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <ControlField
+                      label="经度（东正西负）"
+                      type="number"
+                      min={-180}
+                      max={180}
+                      inputMode="decimal"
+                      value={draftLongitude}
+                      onChange={(e) => setDraftLongitude(e.target.value)}
+                      onBlur={() => commitOptionalNumber('longitude', draftLongitude)}
+                    />
+                    <ControlField
+                      label="实际 UTC 偏移（分钟）"
+                      type="number"
+                      min={-720}
+                      max={840}
+                      inputMode="numeric"
+                      value={draftOffset}
+                      onChange={(e) => setDraftOffset(e.target.value)}
+                      onBlur={() => commitOptionalNumber('utcOffsetMinutes', draftOffset)}
+                    />
+                  </div>
+                  <p className="mt-2 text-[11px] leading-5 text-jade-100/35">
+                    仅供 Agent 核验地点与历史时区时参考；必须连同 IANA 时区、夏令时依据交给 MCP。前端不会据此计算或改写八字排盘时间。
+                  </p>
+                </details>
+              </div>
+            )}
+            {baziTimeStatus.status === 'civil-unverified' && (
+              <p className="mt-2 text-[11px] leading-5 text-gold-300/80">
+                未完成真太阳时复核：已按您确认的民用出生记录排盘，不应称为真太阳时结果。
+              </p>
+            )}
+            {baziTimeStatus.status === 'awaiting-agent-verification' && (
+              <button
+                type="button"
+                onClick={() => dispatchCivilTimeFallbackIntent()}
+                className="mt-2 rounded-full border border-gold-500/30 px-2.5 py-1 text-[10px] text-gold-300 transition hover:bg-gold-500/10"
+              >
+                确认按民用时间排盘
+              </button>
+            )}
+          </section>
         </div>
       )}
     </div>

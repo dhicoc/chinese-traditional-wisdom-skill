@@ -25,7 +25,7 @@ const server = new McpServer({
 
 const META_TOOLS_COUNT = 2;
 
-// ─── 注册 25 个计算工具（带缺参软引导）───
+// ─── 注册计算工具（Agent/MCP 硬闸门）───
 for (const tool of TOOLS) {
   // McpServer.tool 接受 ZodRawShape（z.object 的 .shape 属性）
   const shape = tool.schema.shape;
@@ -35,17 +35,26 @@ for (const tool of TOOLS) {
     shape,
     async (input: unknown) => {
       try {
-        // 软闸门：校验必填参数，缺失时仍执行但在结果旁附 prompt_to_user 引导 AI 追问
-        // （horosa 是硬闸门拒绝计算；本项目用软引导，更友好，不破坏直接调用）
-        const { prompts } = validateToolInput(tool.name, (input as Record<string, unknown>) || {});
+        const { missing, prompts } = validateToolInput(tool.name, (input as Record<string, unknown>) || {});
+        if (missing.length > 0) {
+          return {
+            content: [{
+              type: 'text' as const,
+              text: JSON.stringify({
+                ok: false,
+                error: {
+                  code: 'validation_error',
+                  missing: missing.map((requirement) => requirement.name),
+                  prompts,
+                },
+              }),
+            }],
+          };
+        }
+
         const result = await tool.handler(input);
-        // enveloped 函数返回 ToolEnvelope，序列化为 JSON 文本返回
-        // 若有缺参提示，附在返回文本末尾
-        const text = prompts.length
-          ? JSON.stringify(result, null, 2) + '\n\n⚠️ 参数引导：以下必填参数可能缺失，请向用户追问：\n' + prompts.map((p) => '  - ' + p).join('\n')
-          : JSON.stringify(result, null, 2);
         return {
-          content: [{ type: 'text' as const, text }],
+          content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
         };
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);

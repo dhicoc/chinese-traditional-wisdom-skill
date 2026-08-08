@@ -1,0 +1,260 @@
+- generic [ref=e4]:
+  - complementary [ref=e6]:
+    - generic [ref=e7]:
+      - heading "玄学排盘" [level=1] [ref=e20]
+      - paragraph [ref=e21]: 传统文化解读工具
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - button "▾ 全局生辰 1990-06-15 男 公历" [ref=e25] [cursor=pointer]:
+          - generic [ref=e26]: ▾
+          - generic [ref=e27]: 全局生辰
+          - generic [ref=e28]: 1990-06-15 男 公历
+        - generic [ref=e29]:
+          - generic [ref=e30]: 已更新
+          - button "重置" [ref=e31] [cursor=pointer]
+      - generic [ref=e32]:
+        - generic [ref=e33]: ⚠
+        - generic [ref=e34]: 当前为默认生辰（1990-06-15），请修改为您的真实出生信息以查看真实排盘结果。
+      - generic [ref=e35]:
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - generic [ref=e38]: 年
+            - spinbutton "年" [ref=e40]: "1990"
+          - generic [ref=e41]:
+            - generic [ref=e42]: 月
+            - spinbutton "月" [ref=e44]: "6"
+          - generic [ref=e45]:
+            - generic [ref=e46]: 日
+            - spinbutton "日" [ref=e48]: "15"
+          - generic [ref=e49]:
+            - generic [ref=e50]: 时
+            - spinbutton "时" [ref=e52]: "12"
+        - generic [ref=e53]:
+          - generic [ref=e54]:
+            - generic [ref=e55]: 性别
+            - combobox "性别" [ref=e56]:
+              - option "男" [selected]
+              - option "女"
+          - generic [ref=e57]:
+            - generic [ref=e58]: 历法
+            - generic [ref=e59]:
+              - button "公历" [ref=e60] [cursor=pointer]
+              - button "农历" [ref=e61] [cursor=pointer]
+        - generic [ref=e62]:
+          - checkbox "精确节气" [checked] [ref=e63]
+          - text: 精确节气
+    - generic [ref=e65]:
+      - generic [ref=e66]:
+        - generic [ref=e67]: 本地坛场
+        - generic [ref=e68]: 已就绪
+      - paragraph [ref=e70]: 不上传完整生辰，所有排盘在本地完成。
+  - main [ref=e71]:
+    - generic [ref=e73]:
+      - button "打开命令面板 (⌘K)" [ref=e74] [cursor=pointer]:
+        - generic [ref=e75]: ⌘K
+        - generic [ref=e76]: 搜索工具、输入年份/生辰、快速起卦、古籍搜索
+        - generic [ref=e77]: COMMAND
+      - button "复制摘要" [ref=e79] [cursor=pointer]
+    - generic [ref=e81]:
+      - generic [ref=e82]:
+        - button "向左滚动标签": ‹
+        - tablist "工作区标签" [ref=e84]:
+          - tab "首页" [selected] [ref=e86] [cursor=pointer]
+          - tab "八字命盘" [ref=e89] [cursor=pointer]
+          - tab "紫微斗数" [ref=e91] [cursor=pointer]
+          - tab "六爻占卜" [ref=e93] [cursor=pointer]
+          - tab "梅花易数" [ref=e95] [cursor=pointer]
+          - tab "奇门遁甲" [ref=e97] [cursor=pointer]
+          - tab "大六壬" [ref=e99] [cursor=pointer]
+          - tab "二十八星宿" [ref=e101] [cursor=pointer]
+          - tab "太乙神数" [ref=e103] [cursor=pointer]
+          - tab "皇极经世" [ref=e105] [cursor=pointer]
+          - tab "风水罗盘" [ref=e108] [cursor=pointer]
+          - tab "流年飞星" [ref=e110] [cursor=pointer]
+          - tab "八宅大游年" [ref=e112] [cursor=pointer]
+          - tab "联合分析" [ref=e115] [cursor=pointer]
+          - tab "五运六气" [ref=e118] [cursor=pointer]
+          - tab "体质辨识" [ref=e120] [cursor=pointer]
+          - tab "每日黄历" [ref=e123] [cursor=pointer]
+          - tab "姓名五行" [ref=e125] [cursor=pointer]
+          - tab "周公解梦" [ref=e127] [cursor=pointer]
+          - tab "每日节律" [ref=e129] [cursor=pointer]
+          - tab "古籍阅读" [ref=e132] [cursor=pointer]
+          - tab "本地历史与收藏" [ref=e134] [cursor=pointer]
+          - tab "测字 · 字占" [ref=e137] [cursor=pointer]
+          - tab "袁天罡称骨" [ref=e139] [cursor=pointer]
+        - button "向右滚动标签" [ref=e140] [cursor=pointer]: ›
+      - generic [ref=e141]:
+        - generic [ref=e142]:
+          - paragraph [ref=e143]: 首页
+          - paragraph [ref=e144]: 浏览传统文化工具，查看使用说明与隐私提示。
+        - generic [ref=e145]:
+          - generic [ref=e146]: 工具导航
+          - generic [ref=e147]: 不保存个人资料
+    - generic [ref=e149]:
+      - generic [ref=e150]:
+        - button "运 我想看运势 八字命盘 · 五行喜用" [ref=e151] [cursor=pointer]:
+          - generic [ref=e152]: 运
+          - generic [ref=e153]:
+            - paragraph [ref=e154]: 我想看运势
+            - paragraph [ref=e155]: 八字命盘 · 五行喜用
+        - button "名 我想起名 姓名五行 · 五格评分" [ref=e156] [cursor=pointer]:
+          - generic [ref=e157]: 名
+          - generic [ref=e158]:
+            - paragraph [ref=e159]: 我想起名
+            - paragraph [ref=e160]: 姓名五行 · 五格评分
+        - button "卜 我想问事 六爻纳甲 · 事件占断" [ref=e161] [cursor=pointer]:
+          - generic [ref=e162]: 卜
+          - generic [ref=e163]:
+            - paragraph [ref=e164]: 我想问事
+            - paragraph [ref=e165]: 六爻纳甲 · 事件占断
+        - button "堪 我想看风水 二十四山 · 八卦方位" [ref=e166] [cursor=pointer]:
+          - generic [ref=e167]: 堪
+          - generic [ref=e168]:
+            - paragraph [ref=e169]: 我想看风水
+            - paragraph [ref=e170]: 二十四山 · 八卦方位
+      - generic [ref=e171]:
+        - generic [ref=e172]:
+          - heading "四柱 / 九宫工作台" [level=2] [ref=e174]
+          - button "复制解读摘要" [ref=e175] [cursor=pointer]
+        - generic [ref=e176]:
+          - generic "双击放大查看 · 右键复制为图像" [ref=e178]:
+            - img "首页四柱环形命盘" [ref=e179]:
+              - generic [ref=e183]:
+                - generic [ref=e185]: 年柱
+                - generic [ref=e187]: 庚
+                - generic [ref=e189]: 午
+              - generic [ref=e190]:
+                - generic [ref=e192]: 月柱
+                - generic [ref=e194]: 壬
+                - generic [ref=e196]: 午
+              - generic [ref=e197]:
+                - generic [ref=e199]: 日柱
+                - generic [ref=e201]: 辛
+                - generic [ref=e203]: 亥
+              - generic [ref=e204]:
+                - generic [ref=e206]: 时柱
+                - generic [ref=e208]: 甲
+                - generic [ref=e210]: 午
+              - generic [ref=e213]: 日主
+              - generic [ref=e214]: 辛
+              - generic [ref=e215]: 金
+          - paragraph [ref=e216]: 双击可放大查看，右键可复制图像
+      - generic [ref=e217]:
+        - generic [ref=e218]:
+          - generic [ref=e219]:
+            - heading "术数排盘" [level=3] [ref=e220]
+            - generic [ref=e221]: 10 个入口
+          - generic [ref=e222]:
+            - button "八字命盘 命盘 / 五行" [ref=e223] [cursor=pointer]:
+              - generic [ref=e224]:
+                - generic [ref=e225]: 八字命盘
+                - generic [ref=e226]: 命盘 / 五行
+            - button "紫微斗数 十二宫 / 星曜" [ref=e227] [cursor=pointer]:
+              - generic [ref=e228]:
+                - generic [ref=e229]: 紫微斗数
+                - generic [ref=e230]: 十二宫 / 星曜
+            - button "六爻占卜 纳甲 / 世应" [ref=e231] [cursor=pointer]:
+              - generic [ref=e232]:
+                - generic [ref=e233]: 六爻占卜
+                - generic [ref=e234]: 纳甲 / 世应
+            - button "梅花易数 时间起卦 / 数字起卦" [ref=e235] [cursor=pointer]:
+              - generic [ref=e236]:
+                - generic [ref=e237]: 梅花易数
+                - generic [ref=e238]: 时间起卦 / 数字起卦
+            - button "奇门遁甲 时家奇门 / 九宫" [ref=e239] [cursor=pointer]:
+              - generic [ref=e240]:
+                - generic [ref=e241]: 奇门遁甲
+                - generic [ref=e242]: 时家奇门 / 九宫
+            - button "大六壬 事件占断 / 应期推算" [ref=e243] [cursor=pointer]:
+              - generic [ref=e244]:
+                - generic [ref=e245]: 大六壬
+                - generic [ref=e246]: 事件占断 / 应期推算
+            - button "二十八星宿 值日星宿 / 吉凶宜忌" [ref=e247] [cursor=pointer]:
+              - generic [ref=e248]:
+                - generic [ref=e249]: 二十八星宿
+                - generic [ref=e250]: 值日星宿 / 吉凶宜忌
+            - button "太乙神数 事件占断 / 主客胜负" [ref=e251] [cursor=pointer]:
+              - generic [ref=e252]:
+                - generic [ref=e253]: 太乙神数
+                - generic [ref=e254]: 事件占断 / 主客胜负
+            - button "皇极经世 元会运世 / 宇宙周期" [ref=e255] [cursor=pointer]:
+              - generic [ref=e256]:
+                - generic [ref=e257]: 皇极经世
+                - generic [ref=e258]: 元会运世 / 宇宙周期
+            - button "联合分析 综合运势 / 月度运势" [ref=e259] [cursor=pointer]:
+              - generic [ref=e260]:
+                - generic [ref=e261]: 联合分析
+                - generic [ref=e262]: 综合运势 / 月度运势
+        - generic [ref=e263]:
+          - generic [ref=e264]:
+            - heading "堪舆风水" [level=3] [ref=e265]
+            - generic [ref=e266]: 3 个入口
+          - generic [ref=e267]:
+            - button "风水罗盘 二十四山 / 八卦" [ref=e268] [cursor=pointer]:
+              - generic [ref=e269]:
+                - generic [ref=e270]: 风水罗盘
+                - generic [ref=e271]: 二十四山 / 八卦
+            - button "流年飞星 九宫 / 飞星" [ref=e272] [cursor=pointer]:
+              - generic [ref=e273]:
+                - generic [ref=e274]: 流年飞星
+                - generic [ref=e275]: 九宫 / 飞星
+            - button "八宅大游年 命卦 / 宅卦" [ref=e276] [cursor=pointer]:
+              - generic [ref=e277]:
+                - generic [ref=e278]: 八宅大游年
+                - generic [ref=e279]: 命卦 / 宅卦
+        - generic [ref=e280]:
+          - generic [ref=e281]:
+            - heading "医道运气" [level=3] [ref=e282]
+            - generic [ref=e283]: 2 个入口
+          - generic [ref=e284]:
+            - button "五运六气 岁运 / 司天" [ref=e285] [cursor=pointer]:
+              - generic [ref=e286]:
+                - generic [ref=e287]: 五运六气
+                - generic [ref=e288]: 岁运 / 司天
+            - button "体质辨识 九种体质 / 雷达图" [ref=e289] [cursor=pointer]:
+              - generic [ref=e290]:
+                - generic [ref=e291]: 体质辨识
+                - generic [ref=e292]: 九种体质 / 雷达图
+        - generic [ref=e293]:
+          - generic [ref=e294]:
+            - heading "日用工具" [level=3] [ref=e295]
+            - generic [ref=e296]: 6 个入口
+          - generic [ref=e297]:
+            - button "每日黄历 宜忌 / 时辰" [ref=e298] [cursor=pointer]:
+              - generic [ref=e299]:
+                - generic [ref=e300]: 每日黄历
+                - generic [ref=e301]: 宜忌 / 时辰
+            - button "姓名五行 笔画 / 五行" [ref=e302] [cursor=pointer]:
+              - generic [ref=e303]:
+                - generic [ref=e304]: 姓名五行
+                - generic [ref=e305]: 笔画 / 五行
+            - button "周公解梦 梦象 / 吉凶" [ref=e306] [cursor=pointer]:
+              - generic [ref=e307]:
+                - generic [ref=e308]: 周公解梦
+                - generic [ref=e309]: 梦象 / 吉凶
+            - button "每日节律 时辰 / 经络" [ref=e310] [cursor=pointer]:
+              - generic [ref=e311]:
+                - generic [ref=e312]: 每日节律
+                - generic [ref=e313]: 时辰 / 经络
+            - button "测字 · 字占 测字 / 字占" [ref=e314] [cursor=pointer]:
+              - generic [ref=e315]:
+                - generic [ref=e316]: 测字 · 字占
+                - generic [ref=e317]: 测字 / 字占
+            - button "袁天罡称骨 称骨 / 命格" [ref=e318] [cursor=pointer]:
+              - generic [ref=e319]:
+                - generic [ref=e320]: 袁天罡称骨
+                - generic [ref=e321]: 称骨 / 命格
+        - generic [ref=e322]:
+          - generic [ref=e323]:
+            - heading "古籍与历史" [level=3] [ref=e324]
+            - generic [ref=e325]: 2 个入口
+          - generic [ref=e326]:
+            - button "古籍阅读 古籍原文 / 相关说明" [ref=e327] [cursor=pointer]:
+              - generic [ref=e328]:
+                - generic [ref=e329]: 古籍阅读
+                - generic [ref=e330]: 古籍原文 / 相关说明
+            - button "本地历史与收藏 历史 / 收藏" [ref=e331] [cursor=pointer]:
+              - generic [ref=e332]:
+                - generic [ref=e333]: 本地历史与收藏
+                - generic [ref=e334]: 历史 / 收藏

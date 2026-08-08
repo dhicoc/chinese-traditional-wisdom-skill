@@ -42,6 +42,7 @@ const requiredFiles = [
   "apps/visual/src/components/shared/ExportReportButton.tsx",
   "apps/visual/src/legacy/reportLayers.ts",
   "apps/visual/src/legacy/toolRegistry.ts",
+  "apps/visual/src/legacy/trueSolarTime.ts",
   "knowledge-base/fengshui/mappings/SCHEMA.md",
   "knowledge-base/fengshui/mappings/life-trigram.json",
   "knowledge-base/fengshui/mappings/eight-mansions.json",
@@ -63,6 +64,10 @@ const reportTemplate = read("templates/visual-report.md");
 const modules = read("apps/visual/src/lib/modules.ts");
 const exportButton = read("apps/visual/src/components/shared/ExportReportButton.tsx");
 const reportLayers = read("apps/visual/src/legacy/reportLayers.ts");
+const trueSolarTime = read("apps/visual/src/legacy/trueSolarTime.ts");
+const rules = read("RULES.md");
+const baziBootstrap = read("bootstrap/bazi-engine.md");
+const ziweiBootstrap = read("bootstrap/ziwei-engine.md");
 
 // ── 文档能力口径（与运行时无关；对齐文档当前用词 local-exact / local-approx / 演示）──
 [
@@ -101,6 +106,25 @@ check(reportLayers.includes("export function toFourLayer"), "reportLayers.ts 缺
 check(reportLayers.includes("export interface LayerReport"), "reportLayers.ts 缺少 LayerReport 接口");
 check(reportLayers.includes("highlights"), "toFourLayer 归类应含 highlights 层");
 check(reportLayers.includes("actions"), "toFourLayer 归类应含 actions 层");
+
+// ── 真太阳时 Agent-first 契约 ──
+check(trueSolarTime.includes("export function resolveTrueSolarTime"), "trueSolarTime.ts 缺少 resolveTrueSolarTime 确定性校准函数");
+check(trueSolarTime.includes("utcOffsetEvidence"), "trueSolarTime.ts 缺少历史 UTC 偏移核验依据字段");
+check(trueSolarTime.includes("equationOfTimeMinutes"), "trueSolarTime.ts 缺少均时差输出");
+[
+  ["SKILL.md", skill],
+  ["README_AI.md", readmeAi],
+  ["tool-index.md", toolIndex],
+  ["RULES.md", rules],
+  ["bootstrap/bazi-engine.md", baziBootstrap],
+].forEach(([name, content]) => {
+  check(content.includes("resolve_true_solar_time"), `${name} 缺少 resolve_true_solar_time 真太阳时契约`);
+  check(content.includes("trueSolarBirth"), `${name} 缺少 trueSolarBirth 调用链`);
+  check(content.includes("未完成真太阳时复核"), `${name} 缺少真太阳时降级标记`);
+});
+check(rules.includes("禁止凭模型记忆"), "RULES.md 缺少禁止凭模型记忆校时规则");
+check(ziweiBootstrap.includes("只定义八字预处理"), "ziwei-engine.md 应明确真太阳时仅为八字预处理契约");
+check(!ziweiBootstrap.includes("cities.ts"), "ziwei-engine.md 不应依赖不存在的 cities.ts 城市坐标表");
 
 // ── 映射表数量与 schema 入口（保留）──
 const mappingDir = path.join(root, "knowledge-base", "fengshui", "mappings");

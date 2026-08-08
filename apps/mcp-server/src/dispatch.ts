@@ -10,6 +10,12 @@
 
 import { validateToolInput } from './guidance';
 
+export interface BaziPreflight {
+  status: 'needs-true-solar-verification' | 'civil-fallback-ready';
+  requiredBeforeCalculation: string[];
+  civilFallbackExplicitlyConfirmed: boolean;
+}
+
 export interface DispatchResult {
   /** 匹配到的工具名（未匹配为 null） */
   tool: string | null;
@@ -17,6 +23,8 @@ export interface DispatchResult {
   arguments: Record<string, unknown>;
   /** 仍缺失的必填参数追问（供 AI 转发给用户） */
   missingPrompts: string[];
+  /** 八字真太阳时预检；存在时不得将 arguments 直接视为可执行排盘请求 */
+  baziPreflight?: BaziPreflight;
   /** 路由原因 */
   reason: string;
   /** 是否命中 */
@@ -316,6 +324,43 @@ export function dispatchIntent(text: string): DispatchResult {
     case 'get_constitution_tendency':
       // 需前置工具结果，dispatch 无法自动填
       break;
+  }
+
+  if (tool === 'bazi_calculate') {
+    const civilFallbackExplicitlyConfirmed = /按民用时间|民用时间排盘|不做真太阳时复核|跳过真太阳时|接受民用时间/.test(text);
+    const baziPreflight: BaziPreflight = {
+      status: civilFallbackExplicitlyConfirmed ? 'civil-fallback-ready' : 'needs-true-solar-verification',
+      requiredBeforeCalculation: civilFallbackExplicitlyConfirmed
+        ? []
+        : ['可定位出生地（城市/区县 + 国家或地区）', '地点经度', 'IANA 时区', '出生当日实际 UTC 偏移与夏令时核验依据'],
+      civilFallbackExplicitlyConfirmed,
+    };
+
+    if (civilFallbackExplicitlyConfirmed) {
+      args = { ...args, timeBasis: 'civil-unverified', civilFallbackConfirmed: true };
+      const { prompts } = validateToolInput(tool, args);
+      return {
+        tool,
+        arguments: args,
+        missingPrompts: prompts,
+        baziPreflight,
+        reason: `命中八字意图，但用户已明确接受民用时间降级；可调用 bazi_calculate，结果必须标注“未完成真太阳时复核”。`,
+        hit: true,
+      };
+    }
+
+    return {
+      tool: 'resolve_true_solar_time',
+      arguments: birth.birth ? { birth: birth.birth } : {},
+      missingPrompts: [
+        '请提供可定位的出生地（城市/区县 + 国家或地区），以便核验经度、IANA 时区和出生当日夏令时。',
+        '真太阳时校验完成后，需调用 resolve_true_solar_time，并将返回的 trueSolarBirth 与 calibrationToken 用于 bazi_calculate。',
+        '如您明确同意不做真太阳时复核、按民用出生记录排盘，请直接说明“按民用时间排盘”。',
+      ],
+      baziPreflight,
+      reason: '命中八字意图；先进行真太阳时预检，当前不是可直接执行的 bazi_calculate 请求。',
+      hit: true,
+    };
   }
 
   // 校验缺参
