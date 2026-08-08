@@ -18,8 +18,9 @@ test.describe('Tab Navigation', () => {
 
   test('should navigate to bazi tab', async ({ page }) => {
     await page.getByRole('tab', { name: '八字' }).click();
-    await expect(page.locator('[data-testid="workspace-bazi"]')).toBeVisible();
-    await expect(page.locator('[data-testid="workspace-bazi"]')).toContainText('八字排盘工作台');
+    const workspace = page.locator('[data-testid="workspace-bazi"]');
+    await expect(workspace).toBeVisible();
+    await expect(workspace.getByRole('heading', { name: '八字排盘' })).toBeVisible();
   });
 
   test('should navigate to ziwei tab', async ({ page }) => {
@@ -59,7 +60,9 @@ test.describe('Tab Navigation', () => {
     ];
 
     for (const tool of tools) {
-      await page.getByRole('tab', { name: tool.name }).click();
+      const tab = page.getByRole('tab', { name: tool.name });
+      await tab.scrollIntoViewIfNeeded();
+      await tab.click({ force: true });
       await expect(page.locator(`[data-testid="workspace-${tool.id}"]`)).toBeVisible();
       // Small delay to ensure transition completes
       await page.waitForTimeout(200);

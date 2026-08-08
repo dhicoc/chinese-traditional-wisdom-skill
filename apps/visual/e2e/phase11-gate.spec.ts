@@ -65,12 +65,10 @@ test.describe('Phase 11 Gate - CommandBar 与 Copy context', () => {
     await expect(page.locator('[data-testid="workspace-ziwei"]')).toBeVisible();
   });
 
-  test('每个工具页都有 Copy context 按钮', async ({ page }) => {
+  test('每个工具页都有摘要复制入口', async ({ page }) => {
     await page.getByRole('tab', { name: '八字命盘' }).click();
     await page.waitForSelector('[data-testid="workspace-bazi"]', { timeout: 10000 });
-    // CopyContextButton 默认 label 为 "Copy context for AI"
-    const copyBtn = page.locator('button').filter({ hasText: /copy context for AI/i }).first();
-    await expect(copyBtn).toBeVisible();
+    await expect(page.locator('[data-testid="copy-context-button"]')).toBeVisible();
   });
 });
 

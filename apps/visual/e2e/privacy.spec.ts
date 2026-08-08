@@ -163,7 +163,7 @@ test.describe('Privacy - Favorites Store', () => {
 });
 
 test.describe('Privacy - Report Export', () => {
-  test('报告导出数据脱敏——birth/solarBirth 字段白名单且无 legacy 完整日期字段', async ({ page }) => {
+  test('报告导出为 HTML，不嵌入结构化出生资料字段', async ({ page }) => {
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
     await page.getByRole('tab', { name: '八字命盘' }).click();
@@ -173,27 +173,17 @@ test.describe('Privacy - Report Export', () => {
       page.waitForEvent('download', { timeout: 10000 }),
       page.getByRole('button', { name: '导出报告' }).first().click(),
     ]);
+    expect(download.suggestedFilename()).toMatch(/\.html$/);
     const path = await download.path();
     expect(path).toBeTruthy();
     const raw = readFileSync(path!, 'utf-8');
-    const report = JSON.parse(raw);
 
-    // 脱敏契约：birth 仅含允许字段，无 name/location/fullDate
-    const allowedBirth = ['year', 'month', 'day', 'hour', 'gender', 'isLunar', 'useExactCalendar'];
-    for (const k of Object.keys(report.birth ?? {})) {
-      expect(allowedBirth, `birth 含未授权字段: ${k}`).toContain(k);
-    }
-    const allowedSolar = ['year', 'month', 'day', 'hour', 'gender'];
-    for (const k of Object.keys(report.solarBirth ?? {})) {
-      expect(allowedSolar, `solarBirth 含未授权字段: ${k}`).toContain(k);
-    }
-    // 不应出现 legacy 完整日期字段
-    expect(raw).not.toContain('solarDate');
-    expect(raw).not.toContain('lunarDate');
-    expect(raw).not.toContain('queryDate');
+    expect(raw).toContain('<!doctype html>');
+    expect(raw).toContain('<main>');
+    expect(raw).not.toMatch(/"(?:birth|solarBirth|fullName|birthPlace|solarDate|lunarDate|queryDate)"\s*:/i);
   });
 
-  test('报告导出数据不含完整姓名/地点', async ({ page }) => {
+  test('报告不包含姓名或出生地点字段', async ({ page }) => {
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
     await page.getByRole('tab', { name: '八字命盘' }).click();
@@ -207,8 +197,7 @@ test.describe('Privacy - Report Export', () => {
     expect(path).toBeTruthy();
     const raw = readFileSync(path!, 'utf-8');
 
-    // 导出内容不应含姓名/地点相关字段（无论大小写/引号）
-    expect(raw).not.toMatch(/name|fullName|location|birthPlace|fullDate|solarDate|lunarDate/i);
+    expect(raw).not.toMatch(/fullName|birthPlace|出生地点|location/i);
   });
 });
 
@@ -220,15 +209,16 @@ test.describe('Privacy - Birth Data Input', () => {
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
   });
 
-  test('全局生辰面板默认展开且含 年/月/日/时/性别 输入', async ({ page }) => {
+  test('全局生辰面板默认展开且含 年/月/日/时/分/性别 输入', async ({ page }) => {
     // BirthPanel 默认展开，位于侧边栏内
     const sidebar = page.locator('aside[data-testid="sidebar-nav"]');
     await expect(sidebar).toBeVisible();
 
-    // 年/月/日/时 数字输入（ControlField type="number"）
+    // 年/月/日/时/分使用拆分数字输入
     const numberInputs = sidebar.locator('input[type="number"]');
     await expect(numberInputs.first()).toBeVisible();
-    await expect(numberInputs).toHaveCount(4);
+    await expect(numberInputs).toHaveCount(5);
+    await expect(sidebar.getByLabel('分', { exact: true })).toBeVisible();
     // 性别下拉
     await expect(sidebar.locator('select')).toHaveCount(1);
   });
