@@ -9,6 +9,7 @@ import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import {
   calculateZiwei as calculateZiweiPure,
   calcZiweiEnveloped,
+  getZiweiHoroscopeSummary,
   getZiweiTransitSnapshot,
   type ZiweiPalace,
   type ZiweiStar,
@@ -33,6 +34,11 @@ interface ZiweiData {
   engineName?: string;
   mode?: string;
   version?: string;
+  fiveElementsClass?: string;
+  soul?: string;
+  body?: string;
+  bodyPalaceBranch?: string;
+  originalPalaceBranch?: string;
 }
 
 const PALACE_NAMES = ['命宫', '兄弟', '夫妻', '子女', '财帛', '疾厄', '迁移', '交友', '官禄', '田宅', '福德', '父母'] as const;
@@ -131,11 +137,20 @@ export function ZiweiWorkspace() {
   const { solarBirth } = useBirth();
   const [activePalace, setActivePalace] = useState<string | null>(null);
   const [transitYear, setTransitYear] = useState(() => String(new Date().getFullYear()));
+  const [transitMonth, setTransitMonth] = useState(() => String(new Date().getMonth() + 1));
 
   const ready = true;
   const data = useMemo(() => calculateZiweiData(solarBirth, ready), [solarBirth, ready]);
-  const transitDate = `${transitYear}-07-15`;
+  const transitQuery = useMemo(() => ({
+    year: Number(transitYear) || new Date().getFullYear(),
+    month: Math.min(12, Math.max(1, Number(transitMonth) || new Date().getMonth() + 1)),
+  }), [transitMonth, transitYear]);
+  const transitDate = `${transitQuery.year}-${String(transitQuery.month).padStart(2, '0')}-15`;
   const transit = useMemo(() => getZiweiTransitSnapshot(solarBirth, transitDate), [solarBirth, transitDate]);
+  const horoscope = useMemo(
+    () => getZiweiHoroscopeSummary(solarBirth, transitQuery.year, transitQuery.month),
+    [solarBirth, transitQuery],
+  );
   const firstPalaceWithStars = PALACE_NAMES.find((name) => data.palaces[name]?.stars.length > 0) ?? null;
   const selectedPalaceName = activePalace && data.palaces[activePalace] ? activePalace : firstPalaceWithStars;
   const selectedPalace = selectedPalaceName ? data.palaces[selectedPalaceName] : null;
@@ -147,11 +162,15 @@ export function ZiweiWorkspace() {
   const exportSnapshot = useMemo(() => {
     if (!ready) return null;
     try {
-      return calcZiweiEnveloped({ birth: solarBirth, mingGua: { trigram: '?', group: '?' } }).data.export_snapshot;
+      return calcZiweiEnveloped({
+        birth: solarBirth,
+        mingGua: { trigram: '?', group: '?' },
+        transit: transitQuery,
+      }).data.export_snapshot;
     } catch {
       return null;
     }
-  }, [solarBirth, ready]);
+  }, [solarBirth, ready, transitQuery]);
   const fourLayer = useMemo<LayerReport | null>(() => (
     exportSnapshot ? toFourLayer(exportSnapshot as ReadingLike) : null
   ), [exportSnapshot]);
@@ -190,6 +209,10 @@ export function ZiweiWorkspace() {
             items={[
               { label: '宫位', value: String(palaceCount) + ' 宫' },
               { label: '命卦', value: data.mingGua.trigram + '卦 · ' + data.mingGua.group },
+              { label: '五行局', value: data.fiveElementsClass || '—' },
+              { label: '命主 / 身主', value: [data.soul, data.body].filter(Boolean).join(' / ') || '—' },
+              { label: '身宫', value: data.bodyPalaceBranch ? `${data.bodyPalaceBranch}位` : '—' },
+              { label: '来因宫', value: data.originalPalaceBranch ? `${data.originalPalaceBranch}位` : '—' },
             ]}
           />
 
@@ -227,6 +250,12 @@ export function ZiweiWorkspace() {
               </p>
             </div>
           </div>
+          <section className="mb-4 rounded-card border border-jade-500/20 bg-jade-500/10 px-3 py-2.5" aria-labelledby="ziwei-method-title">
+            <h4 id="ziwei-method-title" className="text-xs font-semibold text-jade-100/80">排盘口径</h4>
+            <p className="mt-1 text-xs leading-5 text-jade-100/60">
+              本命盘按公历出生日期与时辰换算，使用 {data.version || '本地引擎'} 排盘；动态层以 {transitDate} 为查询锚点，当前支持大限、流年、流月与小限。流日、流时及三方四正尚未启用。
+            </p>
+          </section>
           <div className="canvas-stage overflow-x-auto rounded-card border border-jade-500/18 bg-ink-950/92 p-3">
             {!ready ? (
               <LoadingSkeleton label="正在排盘" />
@@ -281,21 +310,34 @@ export function ZiweiWorkspace() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h4 id="ziwei-transit-title" className="text-sm font-semibold text-jade-100">大限 · 流年</h4>
-                  <p className="mt-1 text-xs leading-5 text-jade-100/50">按目标年份查看大限、流年四化与流年十二神。</p>
+                  <p className="mt-1 text-xs leading-5 text-jade-100/50">按目标年月查看大限、流年、流月、小限与流年十二神。</p>
                 </div>
-                <label className="flex items-center gap-2 text-xs text-jade-100/65">
-                  目标年份
-                  <input
-                    type="number"
-                    value={transitYear}
-                    min="1900"
-                    max="2100"
-                    onChange={(event) => setTransitYear(event.target.value)}
-                    className="w-24 rounded border border-white/10 bg-black/30 px-2 py-1 text-sm text-jade-50 outline-none focus:border-jade-500/60"
-                  />
-                </label>
+                <div className="flex items-center gap-2 text-xs text-jade-100/65">
+                  <label className="flex items-center gap-2">
+                    目标年份
+                    <input
+                      type="number"
+                      value={transitYear}
+                      min="1900"
+                      max="2100"
+                      onChange={(event) => setTransitYear(event.target.value)}
+                      className="w-24 rounded border border-white/10 bg-black/30 px-2 py-1 text-sm text-jade-50 outline-none focus:border-jade-500/60"
+                    />
+                  </label>
+                  <label className="flex items-center gap-2">
+                    月份
+                    <input
+                      type="number"
+                      value={transitMonth}
+                      min="1"
+                      max="12"
+                      onChange={(event) => setTransitMonth(event.target.value)}
+                      className="w-16 rounded border border-white/10 bg-black/30 px-2 py-1 text-sm text-jade-50 outline-none focus:border-jade-500/60"
+                    />
+                  </label>
+                </div>
               </div>
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                 <section className="rounded-card border border-jade-500/20 bg-jade-500/10 px-3 py-2.5">
                   <p className="text-xs font-semibold text-jade-100/70">大限</p>
                   <p className="mt-1 text-sm text-jade-50">{transit.decadal.stem}{transit.decadal.branch}</p>
@@ -306,6 +348,13 @@ export function ZiweiWorkspace() {
                   <p className="mt-1 text-sm text-jade-50">{transit.yearly.stem}{transit.yearly.branch} · 命宫落{transit.yearly.mingPalace.natalPalace}{transit.yearly.mingPalace.earthlyBranch}</p>
                   <p className="mt-1 text-xs text-jade-100/55">化禄 {transit.yearly.mutagen[0] || '—'} · 化权 {transit.yearly.mutagen[1] || '—'} · 化科 {transit.yearly.mutagen[2] || '—'} · 化忌 {transit.yearly.mutagen[3] || '—'}</p>
                 </section>
+                {horoscope.available && (
+                  <section className="rounded-card border border-gold-300/20 bg-gold-300/10 px-3 py-2.5">
+                    <p className="text-xs font-semibold text-jade-100/70">流月 · 小限</p>
+                    <p className="mt-1 text-sm text-jade-50">{transitQuery.month}月 {horoscope.monthly.stem}{horoscope.monthly.branch} · 虚岁 {horoscope.age.nominalAge || '—'}</p>
+                    <p className="mt-1 text-xs text-jade-100/55">小限在{horoscope.age.palace || '—'} · 化禄 {horoscope.monthly.mutagen[0] || '—'} · 化忌 {horoscope.monthly.mutagen[3] || '—'}</p>
+                  </section>
+                )}
               </div>
               <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                 {PALACE_NAMES.map((palace) => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateZiwei, calcZiweiEnveloped, getZiweiTransitSnapshot } from '@/legacy/ziweiEngine';
+import { calculateZiwei, calcZiweiEnveloped, getZiweiHoroscopeSummary, getZiweiTransitSnapshot } from '@/legacy/ziweiEngine';
 import type { ToolEnvelope } from '@/legacy/baseTypes';
 
 /**
@@ -104,6 +104,23 @@ describe('getZiweiTransitSnapshot 运限流年分层', () => {
   });
 });
 
+describe('getZiweiHoroscopeSummary 动态层摘要', () => {
+  it('返回目标年月的流月、小限与流年信息', () => {
+    const summary = getZiweiHoroscopeSummary(
+      { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      2025,
+      7,
+    );
+
+    expect(summary.available).toBe(true);
+    expect(summary.targetYear).toBe(2025);
+    expect(summary.monthly.stem).toBeTruthy();
+    expect(summary.monthly.branch).toBeTruthy();
+    expect(summary.age.nominalAge).toBeGreaterThan(0);
+    expect(summary.age.palace).toBeTruthy();
+  });
+});
+
 describe('calcZiweiEnveloped envelope 适配', () => {
   it('返回 ok=true 的完整 ToolEnvelope，data 含 export_snapshot', () => {
     const env: ToolEnvelope = calcZiweiEnveloped({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
@@ -121,5 +138,19 @@ describe('calcZiweiEnveloped envelope 适配', () => {
     const data = env.data as { export_snapshot: { sections: Array<{ heading: string }> } };
     expect(data.export_snapshot.sections.some((s) => s.heading === '命宫')).toBe(true);
     expect(data.export_snapshot.sections.some((s) => s.heading === '四化')).toBe(true);
+  });
+
+  it('导出使用调用方指定的动态年月，而非运行时当前年份', () => {
+    const env = calcZiweiEnveloped({
+      birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      transit: { year: 2025, month: 7 },
+    });
+    const data = env.data as { export_snapshot: { sections: Array<{ heading: string; body: string }> } };
+    const method = data.export_snapshot.sections.find((section) => section.heading === '排盘口径');
+    const transitSection = data.export_snapshot.sections.find((section) => section.heading === '大限与流年');
+
+    expect(method?.body).toContain('2025年7月15日');
+    expect(transitSection?.body).toContain('2025年');
+    expect(data.export_snapshot.sections.some((section) => section.heading === '流月与小限')).toBe(true);
   });
 });

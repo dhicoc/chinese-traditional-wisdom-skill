@@ -204,9 +204,15 @@ function extractMainStars(iztroPalaces: IztroPalace[]): string[] {
   return stars;
 }
 
+export interface ZiweiTransitQuery {
+  year: number;
+  month: number;
+}
+
 export interface ZiweiInput {
   birth: ZiweiBirth;
   mingGua?: ZiweiMingGua;
+  transit?: ZiweiTransitQuery;
 }
 
 /**
@@ -282,8 +288,16 @@ export function calcZiweiEnveloped(input: ZiweiInput): ToolEnvelope<ZiweiData> {
   const ming = result.palaces['命宫'];
   const mainStarsSummary = result.mainStars.slice(0, 14).join('、');
   const sihuaSummary = Object.keys(result.sihua).map((star) => `${star}${result.sihua[star]}`).join('、');
+  const now = new Date();
+  const transitYear = input.transit?.year ?? now.getFullYear();
+  const transitMonth = input.transit?.month ?? now.getMonth() + 1;
 
-  const sections: Array<{ heading: string; body: string }> = [];
+  const sections: Array<{ heading: string; body: string }> = [
+    {
+      heading: '排盘口径',
+      body: `本命盘以公历出生日期和时辰换算，使用 ${result.version} 排盘。动态层按${transitYear}年${transitMonth}月15日查询，当前展示大限、流年、流月与小限；流日、流时及三方四正尚未启用。`,
+    },
+  ];
   if (result.fiveElementsClass || result.soul || result.body) {
     sections.push({
       heading: '命盘元',
@@ -307,10 +321,10 @@ export function calcZiweiEnveloped(input: ZiweiInput): ToolEnvelope<ZiweiData> {
   });
   if (sihuaSummary) sections.push({ heading: '四化', body: sihuaSummary + '。' });
 
-  // 当前大限/流年（iztro horoscope 时间层）
   const hs = getZiweiHoroscopeSummary(
     { year: result.birthInfo.year, month: result.birthInfo.month, day: result.birthInfo.day, hour: result.birthInfo.hour, gender: result.birthInfo.gender as '男' | '女' },
-    new Date().getFullYear(),
+    transitYear,
+    transitMonth,
   );
   if (hs.available) {
     const hText = [
@@ -320,7 +334,14 @@ export function calcZiweiEnveloped(input: ZiweiInput): ToolEnvelope<ZiweiData> {
       hs.age.palace ? `小限在${hs.age.palace}` : '',
       hs.yearlyJiStar ? `流年化忌${hs.yearlyJiStar}` : '',
     ].filter(Boolean).join('，');
-    if (hText) sections.push({ heading: '当前大限流年', body: `${hs.targetYear}年${hText}。` });
+    if (hText) sections.push({ heading: '大限与流年', body: `${hs.targetYear}年${hText}。` });
+
+    const monthText = [
+      hs.monthly.stem ? `流月${hs.monthly.stem}${hs.monthly.branch}` : '',
+      hs.monthly.mutagen.length ? `流月四化${hs.monthly.mutagen.join('、')}` : '',
+      hs.yearlyMingPalace !== '未知' ? `流年命宫居${hs.yearlyMingPalace}` : '',
+    ].filter(Boolean).join('，');
+    if (monthText) sections.push({ heading: '流月与小限', body: `${transitMonth}月${monthText}。` });
   }
 
   const snapshot: ExportSnapshot = {
