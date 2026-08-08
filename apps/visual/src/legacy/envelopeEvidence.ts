@@ -69,6 +69,8 @@ export interface ResultMeta {
   algorithm?: string;
   /** 实际采用口径（如真太阳时/平太阳时、立春/正月初一分界） */
   calculationConfig?: Record<string, unknown>;
+  /** 当前 MCP 进程内的八字呈现校验凭证；仅供 validate_bazi_presentation 使用 */
+  presentationToken?: string;
 }
 
 /** 稳定序列化：拒绝 NaN/Infinity/循环引用，用于输入哈希 */

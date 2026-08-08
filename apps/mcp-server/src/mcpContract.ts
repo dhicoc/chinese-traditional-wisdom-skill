@@ -41,6 +41,7 @@ const deterministicTools = new Set([
   'get_daily_rhythm',
   'assess_constitution',
   'list_constitution_questionnaire',
+  'validate_bazi_presentation',
 ]);
 
 const toolTitles: Record<string, string> = {
@@ -76,6 +77,7 @@ const toolTitles: Record<string, string> = {
   get_daily_rhythm: '每日节律',
   assess_constitution: '中医体质自评',
   list_constitution_questionnaire: '体质问卷题目',
+  validate_bazi_presentation: '八字呈现依据校验',
   agent_guidance: '工具参数引导',
   wisdom_dispatch: '自然语言意图路由',
 };

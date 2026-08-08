@@ -45,6 +45,7 @@ export const GLOBAL_AGENT_RULES = [
   '任何确定性计算、规则匹配、干支/卦象/星曜/五行/吉凶结论都必须调用对应 MCP 工具；不得依据模型知识、记忆或参考资料自行推演、补全或改写结果。',
   'Agent 仅可理解意图、追问参数、核验外部事实，并将 MCP ToolEnvelope 转成用户可读说明；reference 文件只可提供文化背景，不能替代计算结果。',
   '呈现 ToolEnvelope 时，先处理 ok/error；如实说明 data.timeSource 与 warnings；正文优先采用 data.export_snapshot.summary 和 sections。不得默认展示 evidence、result_meta、sourceNotes，也不得重新计算、补全或改写确定性结论。',
+  '八字解读若写入四柱、日主、五行计数、日主强弱、大运或神煞等确定性结论，必须以本次 result_meta.presentationToken 调 validate_bazi_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次排盘结果。文化背景和建设性建议不进入 claims。',
   '不得替用户编造生辰、性别、出生地等关键参数；缺失时必须追问。',
   '真太阳时必须先核验地点经度、IANA 时区、出生时实际 UTC 偏移与夏令时依据；不得凭模型记忆填写或把民用时间伪称真太阳时。',
   '涉及八字的组合或增强分析也必须传入经核验的 baziTimeContext；民用时间路径须明确确认，并标注“未完成真太阳时复核”。',

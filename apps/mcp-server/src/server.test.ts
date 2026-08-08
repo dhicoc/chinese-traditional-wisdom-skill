@@ -104,7 +104,7 @@ describe('MCP Server 端到端协议', () => {
     expect(result.protocolVersion).toBe('2024-11-05');
   }, 30000);
 
-  it('tools/list 返回 34 个工具（32 计算 + 2 元工具）且 inputSchema 完整', async () => {
+  it('tools/list 返回 35 个工具（32 计算 + 3 元工具）且 inputSchema 完整', async () => {
     const responses = await runMcpSession([INIT_MSG, INITIALIZED_MSG, TOOLS_LIST_MSG]);
     const list = responses.find((r) => r.id === 2);
     expect(list).toBeDefined();
@@ -123,7 +123,7 @@ describe('MCP Server 端到端协议', () => {
         };
       }>;
     }).tools;
-    expect(tools.length).toBe(34);
+    expect(tools.length).toBe(35);
     tools.forEach((t) => {
       expect(t.name).toMatch(/^[a-z][a-z0-9_]*$/);
       expect(t.description.length).toBeGreaterThan(10);
@@ -137,6 +137,7 @@ describe('MCP Server 端到端协议', () => {
     expect(names).toContain('ziwei_chart');
     expect(names).toContain('dream_interpret');
     expect(names).toContain('agent_guidance');
+    expect(names).toContain('validate_bazi_presentation');
     expect(names).toContain('wisdom_dispatch');
     tools.forEach((tool) => {
       expect(tool.title).toBeTruthy();
@@ -168,6 +169,21 @@ describe('MCP Server 端到端协议', () => {
     expect(payload.tool).toBe('bazi_calculate');
     expect(payload.requiredParams.some((p) => p.name === 'birth.hour')).toBe(true);
     expect(payload.workflow).toBeTruthy();
+  }, 30000);
+
+  it('tools/call validate_bazi_presentation 拒绝无效凭证', async () => {
+    const responses = await runMcpSession([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(24, 'validate_bazi_presentation', {
+        presentationToken: '00000000-0000-4000-8000-000000000000',
+        claims: [{ kind: 'dayMaster', value: '甲' }],
+      }),
+    ]);
+    const call = responses.find((r) => r.id === 24);
+    const result = call!.result as { content: Array<{ type: string; text: string }>; structuredContent: { valid: boolean; violations: Array<{ kind: string }> } };
+    const payload = JSON.parse(result.content[0].text) as { valid: boolean; violations: Array<{ kind: string }> };
+    expect(result.structuredContent).toEqual(payload);
+    expect(payload).toEqual({ valid: false, violations: [expect.objectContaining({ kind: 'presentationToken' })] });
   }, 30000);
 
   it('tools/call wisdom_dispatch 将“排八字”路由为真太阳时预检', async () => {

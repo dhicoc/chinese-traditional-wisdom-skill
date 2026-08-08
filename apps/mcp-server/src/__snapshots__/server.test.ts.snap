@@ -4058,6 +4058,188 @@ exports[`MCP Server 端到端协议 > tools/list 的公开输入输出契约保�
   {
     "annotations": {
       "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+    },
+    "description": "八字呈现依据校验。对本次 bazi_calculate 返回的 result_meta.presentationToken 与 Agent 拟呈现的结构化确定性断言逐项比对；仅核验四柱、日主、五行计数、强弱、大运、神煞。文化背景和建议不进入 claims。校验器不生成、补全或修正解读；任一断言不符时必须移除或改为引擎实际结果。",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "claims": {
+          "description": "拟呈现文本中的确定性八字断言；不包含文化背景或建议",
+          "items": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "pillar",
+                    "type": "string",
+                  },
+                  "pillar": {
+                    "enum": [
+                      "year",
+                      "month",
+                      "day",
+                      "hour",
+                    ],
+                    "type": "string",
+                  },
+                  "value": {
+                    "maxLength": 2,
+                    "minLength": 2,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "pillar",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "dayMaster",
+                    "type": "string",
+                  },
+                  "value": {
+                    "maxLength": 1,
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "element": {
+                    "enum": [
+                      "木",
+                      "火",
+                      "土",
+                      "金",
+                      "水",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "elementCount",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minimum": 0,
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "element",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "strength",
+                    "type": "string",
+                  },
+                  "value": {
+                    "enum": [
+                      "身强",
+                      "身弱",
+                      "中和",
+                    ],
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "ageStart": {
+                    "minimum": 0,
+                    "type": "integer",
+                  },
+                  "kind": {
+                    "const": "luck",
+                    "type": "string",
+                  },
+                  "value": {
+                    "maxLength": 2,
+                    "minLength": 2,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "ageStart",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "shenSha",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "value",
+                ],
+                "type": "object",
+              },
+            ],
+          },
+          "type": "array",
+        },
+        "presentationToken": {
+          "description": "本次 bazi_calculate 返回的 result_meta.presentationToken，仅在当前 MCP 进程有效",
+          "format": "uuid",
+          "type": "string",
+        },
+      },
+      "required": [
+        "presentationToken",
+        "claims",
+      ],
+      "type": "object",
+    },
+    "name": "validate_bazi_presentation",
+    "outputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": true,
+      "properties": {},
+      "type": "object",
+    },
+    "title": "八字呈现依据校验",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
       "idempotentHint": false,
       "openWorldHint": false,
       "readOnlyHint": true,

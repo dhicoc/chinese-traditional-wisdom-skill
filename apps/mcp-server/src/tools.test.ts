@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { TOOLS } from './tools';
+import { validateBaziPresentation } from './baziClaimVerifier';
 import type { ToolEnvelope } from '../../visual/src/legacy/baseTypes';
 
 /**
@@ -94,6 +95,27 @@ describe('bazi_calculate', async () => {
     expect(data.pillars.year.stem).toBe('庚');
     expect(data.pillars.year.branch).toBe('午');
     expectExportSnapshot(e);
+  });
+
+  it('为本次排盘签发凭证，并拒绝不符合引擎事实的呈现断言', async () => {
+    const t = findTool('bazi_calculate');
+    const env = await t.handler({
+      birth: civilBirth,
+      timeBasis: 'civil-unverified',
+      civilFallbackConfirmed: true,
+    }) as ToolEnvelope;
+    const data = env.data as { pillars: { year: { stem: string; branch: string } }; dayMaster: string; elements: Record<string, number> };
+    const token = env.result_meta?.presentationToken;
+
+    expect(token).toMatch(/^[0-9a-f-]{36}$/);
+    expect(validateBaziPresentation(token!, [
+      { kind: 'pillar', pillar: 'year', value: `${data.pillars.year.stem}${data.pillars.year.branch}` },
+      { kind: 'dayMaster', value: data.dayMaster },
+      { kind: 'elementCount', element: '木', value: data.elements.木 },
+    ])).toEqual({ valid: true, violations: [] });
+    expect(validateBaziPresentation(token!, [
+      { kind: 'pillar', pillar: 'year', value: '甲子' },
+    ])).toMatchObject({ valid: false, violations: [expect.objectContaining({ kind: 'pillar' })] });
   });
 
   it('真太阳时路径必须使用当前 MCP 进程签发的令牌和原样校正时间', () => {

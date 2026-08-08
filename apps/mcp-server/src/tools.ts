@@ -34,6 +34,7 @@ import { calcBazhaiEnveloped } from '../../visual/src/legacy/bazhaiEngine';
 import { getDailyRhythmEnveloped } from '../../visual/src/legacy/rhythmEngine';
 import { assessConstitutionEnveloped, listConstitutionQuestionnaire } from '../../visual/src/legacy/constitutionAssessEngine';
 import { resolveTrueSolarTime } from '../../visual/src/legacy/trueSolarTime';
+import { registerBaziPresentation } from './baziClaimVerifier.js';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
 const solarEntry: unknown = (() => {
@@ -197,6 +198,9 @@ export const TOOLS: ToolDef[] = [
         ? { heading: '时间来源', body: '已核验真太阳时：使用 resolve_true_solar_time 返回并经校准令牌验证的 trueSolarBirth 排盘。' }
         : { heading: '时间来源', body: '未完成真太阳时复核：本次按用户确认的民用出生记录排盘。' };
 
+      const presentationToken = randomUUID();
+      registerBaziPresentation(envelope.data, presentationToken);
+
       return {
         ...envelope,
         data: {
@@ -216,6 +220,7 @@ export const TOOLS: ToolDef[] = [
             ...envelope.result_meta.calculationConfig,
             timeBasis: timeSource.timeBasis,
           },
+          presentationToken,
         } : undefined,
       };
     },

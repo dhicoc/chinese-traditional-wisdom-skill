@@ -18,13 +18,14 @@ import { TOOLS } from './tools.js';
 import { getToolContract, openObjectOutputSchema, toolEnvelopeOutputSchema, trueSolarOutputSchema } from './mcpContract.js';
 import { getToolGuidance, listToolGuidance, validateToolInput, GLOBAL_AGENT_RULES, TOOL_GUIDANCE } from './guidance.js';
 import { dispatchIntent } from './dispatch.js';
+import { validateBaziPresentation, type BaziPresentationClaim } from './baziClaimVerifier.js';
 
 const server = new McpServer({
   name: 'chinese-wisdom-mcp',
   version: '0.1.0',
 });
 
-const META_TOOLS_COUNT = 2;
+const META_TOOLS_COUNT = 3;
 
 // ─── 注册计算工具（Agent/MCP 硬闸门）───
 for (const tool of TOOLS) {
@@ -110,7 +111,43 @@ server.registerTool(
   },
 );
 
-// ─── 元工具 2: wisdom_dispatch（自然语言意图路由）───
+// ─── 元工具 2: validate_bazi_presentation（八字解读依据校验）───
+server.registerTool(
+  'validate_bazi_presentation',
+  {
+    ...getToolContract('validate_bazi_presentation'),
+    description: '八字呈现依据校验。对本次 bazi_calculate 返回的 result_meta.presentationToken 与 Agent 拟呈现的结构化确定性断言逐项比对；仅核验四柱、日主、五行计数、强弱、大运、神煞。文化背景和建议不进入 claims。校验器不生成、补全或修正解读；任一断言不符时必须移除或改为引擎实际结果。',
+    inputSchema: {
+      presentationToken: z.string().uuid().describe('本次 bazi_calculate 返回的 result_meta.presentationToken，仅在当前 MCP 进程有效'),
+      claims: z.array(z.discriminatedUnion('kind', [
+        z.object({ kind: z.literal('pillar'), pillar: z.enum(['year', 'month', 'day', 'hour']), value: z.string().length(2) }),
+        z.object({ kind: z.literal('dayMaster'), value: z.string().length(1) }),
+        z.object({ kind: z.literal('elementCount'), element: z.enum(['木', '火', '土', '金', '水']), value: z.number().int().min(0) }),
+        z.object({ kind: z.literal('strength'), value: z.enum(['身强', '身弱', '中和']) }),
+        z.object({ kind: z.literal('luck'), ageStart: z.number().int().min(0), value: z.string().length(2) }),
+        z.object({ kind: z.literal('shenSha'), value: z.string().min(1) }),
+      ])).describe('拟呈现文本中的确定性八字断言；不包含文化背景或建议'),
+    },
+    outputSchema: openObjectOutputSchema,
+  },
+  async (input: unknown) => {
+    const { presentationToken, claims } = input as { presentationToken: string; claims: BaziPresentationClaim[] };
+    const validation = validateBaziPresentation(presentationToken, claims);
+    const structuredContent = validation ? { ...validation } : {
+      valid: false,
+      violations: [{
+        kind: 'presentationToken',
+        message: 'presentationToken 无效、已失效或不属于当前 MCP 进程；请重新调用 bazi_calculate。',
+      }],
+    };
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(structuredContent, null, 2) }],
+      structuredContent,
+    };
+  },
+);
+
+// ─── 元工具 3: wisdom_dispatch（自然语言意图路由）───
 server.registerTool(
   'wisdom_dispatch',
   {
