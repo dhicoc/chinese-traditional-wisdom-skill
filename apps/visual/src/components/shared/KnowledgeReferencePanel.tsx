@@ -22,6 +22,9 @@ function HitCard({ hit }: { hit: KnowledgeReferenceHit }) {
         <span className="text-[10px] text-jade-100/55">{hit.category}</span>
       </div>
       <h4 className="mt-2 text-sm font-semibold text-jade-100">{hit.title}</h4>
+      {hit.citationId && (
+        <code className="mt-1 block break-all font-mono text-[10px] text-jade-400/80">{hit.citationId}</code>
+      )}
       <p className="mt-1 text-xs leading-5 text-jade-100/60">{hit.summary}</p>
       {hit.details.length > 0 && (
         <ul className="mt-2 space-y-1 text-[11px] leading-5 text-jade-100/45">

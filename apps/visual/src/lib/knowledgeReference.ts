@@ -4,12 +4,13 @@ import lifeTrigram from '@kb/fengshui/mappings/life-trigram.json';
 import threeEssentials from '@kb/fengshui/mappings/three-essentials.json';
 import twentyFourMountains from '@kb/fengshui/mappings/twenty-four-mountains.json';
 import yearlyFlyingStars from '@kb/fengshui/mappings/yearly-flying-stars.json';
-import fengshuiIndex from '@kb/fengshui/_index.md?raw';
+import { searchAll } from '@/legacy/searchEngine';
 
 export type KnowledgeReferenceKind = 'mapping' | 'ancient-index';
 
 export interface KnowledgeReferenceHit {
   id: string;
+  citationId?: string;
   kind: KnowledgeReferenceKind;
   title: string;
   source: string;
@@ -270,23 +271,25 @@ function queryFormSha(term: string, hits: KnowledgeReferenceHit[]): void {
 }
 
 function queryAncientIndex(term: string, hits: KnowledgeReferenceHit[]): void {
-  fengshuiIndex
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line && normalizeTerm(line).includes(term))
+  searchAll(term)
+    .kb
     .slice(0, 6)
-    .forEach((line, index) => {
-      const title = line.replace(/^[-*#\s]+/, '');
+    .forEach((entry) => {
       pushUnique(hits, {
-        id: 'fengshui-index:' + index + ':' + title,
+        id: entry.citationId,
+        citationId: entry.citationId,
         kind: 'ancient-index',
-        title,
-        source: '_index.md',
-        category: SOURCE_LABELS['_index.md'],
-        field: 'markdown line',
+        title: entry.title,
+        source: entry.file,
+        category: entry.category,
+        field: entry.file,
         completeness: '索引线索',
-        summary: line,
-        details: ['来自 knowledge-base/fengshui/_index.md，可作为继续阅读古籍正文的入口。'],
+        summary: entry.summary,
+        details: [
+          entry.author ? `作者：${entry.author}` : '作者：未标注',
+          `完整性：${entry.completeness}`,
+          '可作为继续阅读古籍正文的入口。',
+        ],
       });
     });
 }

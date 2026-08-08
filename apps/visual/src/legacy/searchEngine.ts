@@ -30,6 +30,7 @@ export interface MappingResult {
 
 export interface KbResult {
   file: string;
+  citationId: string;
   title: string;
   author: string;
   category: string;
@@ -123,6 +124,10 @@ function indexOf(haystack: string, needle: string): number {
   return haystack.toLowerCase().indexOf(needle.toLowerCase());
 }
 
+export function createKnowledgeCitationId(file: string, title: string): string {
+  return `kb://fengshui/${file}#${encodeURIComponent(title)}`;
+}
+
 /** 全文搜索三源，返回按 score 降序的结果 */
 export function searchAll(query: string): SearchResult {
   if (!query || query.length < 1) return { terms: [], mappings: [], kb: [] };
@@ -160,7 +165,16 @@ export function searchAll(query: string): SearchResult {
     if (k.author && indexOf(k.author, q) !== -1) score += 2;
     for (const t of k.tags) if (indexOf(t, q) !== -1) score += 3;
     if (score > 0) {
-      kb.push({ file: k.file, title: k.title, author: k.author, category: k.category, completeness: k.completeness, summary: k.summary, score });
+      kb.push({
+        file: k.file,
+        citationId: createKnowledgeCitationId(k.file, k.title),
+        title: k.title,
+        author: k.author,
+        category: k.category,
+        completeness: k.completeness,
+        summary: k.summary,
+        score,
+      });
     }
   }
   kb.sort((a, b) => b.score - a.score);

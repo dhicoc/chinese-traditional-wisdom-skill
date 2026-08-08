@@ -62,10 +62,12 @@ const panel = read(panelPath);
 ].forEach((file) => {
   check(knowledgeReference.includes(file), "knowledgeReference.ts 应导入 " + file);
 });
-check(knowledgeReference.includes("_index.md?raw"), "knowledgeReference.ts 应导入风水知识库索引原文");
+check(knowledgeReference.includes("searchAll"), "knowledgeReference.ts 应复用古籍书目索引");
+check(knowledgeReference.includes("citationId"), "knowledgeReference.ts 应传递稳定 citation ID");
 check(knowledgeReference.includes("queryKnowledgeReferences"), "knowledgeReference.ts 应导出 queryKnowledgeReferences");
 check(knowledgeReference.includes("KnowledgeReferenceHit"), "knowledgeReference.ts 应导出 KnowledgeReferenceHit 类型");
 check(panel.includes("queryKnowledgeReferences"), "KnowledgeReferencePanel 应调用 queryKnowledgeReferences");
+check(panel.includes("citationId"), "KnowledgeReferencePanel 应展示古籍 citation ID");
 check(panel.includes("映射表") && panel.includes("古籍索引"), "KnowledgeReferencePanel 应区分映射表与古籍索引");
 check(panel.includes("点击术语") || panel.includes("输入关键词"), "KnowledgeReferencePanel 应提示点击术语或输入关键词");
 
