@@ -85,6 +85,11 @@ describe('bazi_calculate', async () => {
     expect(e.data.mode).toBe('local-exact');
     expect(e.data.timeSource).toEqual({ timeBasis: 'civil-unverified', verification: null, notice: '未完成真太阳时复核' });
     expect(e.data.export_snapshot.summary).toContain('未完成真太阳时复核');
+    expect(e.result_meta?.calculationConfig).toMatchObject({
+      timeBasis: 'civil-unverified',
+      shenShaTrineSource: 'year',
+      dayBoundaryRule: 'zi-chu-next-day',
+    });
     const data = e.data as unknown as { pillars: { year: { stem: string; branch: string } }; dayMaster: string };
     expect(data.pillars.year.stem).toBe('庚');
     expect(data.pillars.year.branch).toBe('午');
@@ -178,7 +183,11 @@ describe('ziwei_chart', async () => {
     expect(data.export_snapshot.sections.find((section) => section.heading === '排盘口径')?.body).toContain('2025年7月15日');
     expect(e.evidence?.steps.some((step) => step.key === 'dynamic-transit')).toBe(true);
     expect(e.evidence?.limitations).toEqual(expect.arrayContaining([expect.stringContaining('流日、流时及三方四正') ]));
-    expect(e.result_meta?.calculationConfig).toMatchObject({ transitYear: 2025, transitMonth: 7 });
+    expect(e.result_meta?.calculationConfig).toMatchObject({
+      transit: { year: 2025, month: 7, day: 15 },
+      hourRule: '23:00-23:59=>early-zi',
+      enabledDynamicLayers: ['decadal', 'yearly', 'monthly', 'age'],
+    });
   });
 });
 

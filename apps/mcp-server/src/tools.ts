@@ -113,7 +113,10 @@ function resolveBaziTimeSource(birth: Record<string, unknown>, context: BaziTime
 }
 
 function withBaziTimeSource(result: unknown, timeSource: ReturnType<typeof resolveBaziTimeSource>) {
-  const envelope = result as { data: Record<string, unknown> };
+  const envelope = result as {
+    data: Record<string, unknown>;
+    result_meta?: { calculationConfig?: Record<string, unknown> };
+  };
   const snapshot = envelope.data.export_snapshot as { summary: string; sections: Array<{ heading: string; body: string }> } | undefined;
   const notice = 'notice' in timeSource ? '未完成真太阳时复核：本次涉及八字的部分按用户确认的民用出生记录计算。' : '已核验真太阳时：本次涉及八字的部分使用经校准令牌验证的 trueSolarBirth 计算。';
 
@@ -128,6 +131,13 @@ function withBaziTimeSource(result: unknown, timeSource: ReturnType<typeof resol
         sections: [...snapshot.sections, { heading: '八字时间来源', body: notice }],
       } : snapshot,
     },
+    result_meta: envelope.result_meta ? {
+      ...envelope.result_meta,
+      calculationConfig: {
+        ...envelope.result_meta.calculationConfig,
+        timeBasis: timeSource.timeBasis,
+      },
+    } : undefined,
   };
 }
 
@@ -200,6 +210,13 @@ export const TOOLS: ToolDef[] = [
             sections: [...exportSnapshot.sections, timeSourceSection],
           },
         },
+        result_meta: envelope.result_meta ? {
+          ...envelope.result_meta,
+          calculationConfig: {
+            ...envelope.result_meta.calculationConfig,
+            timeBasis: timeSource.timeBasis,
+          },
+        } : undefined,
       };
     },
   },

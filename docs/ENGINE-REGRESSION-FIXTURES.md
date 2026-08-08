@@ -11,6 +11,14 @@
 - 外部依赖的版本与许可证见 [tool-index.md](../tool-index.md#外部参考来源归档)。升级 `lunar-javascript`、`iztro` 或其适配层前，必须先复核本页夹具。
 - 流派不同的判断须显式标明边界；没有固定来源或尚未启用的能力不得伪装为计算结论。
 
+## 已解析 EngineConfig 口径
+
+- `result_meta.calculationConfig` 记录的是本次实际生效的已解析口径，不以调用方原始入参替代实际计算路径；对应口径也会出现在关键 `evidence.steps` 的输入摘要中。
+- 八字唯一可选的流派项为 `shenShaTrineSource`：默认 `year`（按年支查三合局），可显式为 `day`（按日支查）。`calendarMode`、`luckStartMethod`、`dayBoundaryRule` 由本次实际路径解析：精确历法与节气起运可用时分别为 `exact`、`lunar-solar-terms`；否则为 `approx`、`three-years-approx`；换日固定为 `zi-chu-next-day`。
+- MCP 八字调用还会写入 `timeBasis`：仅为 `true-solar-verified` 或经用户确认的 `civil-unverified`。校准令牌、地点和历史时区依据不进入该配置；详尽校验轨迹保留在 `data.timeSource`。
+- 紫微唯一可选项为动态层目标 `transit.year/month`；解析后固定补为该月 15 日。排盘固定使用 `iztro@2.5.8`、`23:00-23:59=>early-zi` 与 `仆役→交友`归一，已启用层级仅为大限、流年、流月、小限。
+- 流日、流时、三方四正和未定义的流派开关不属于当前 `EngineConfig`，Agent 不得自行指定或补全其结果。
+
 ## 八字
 
 | 规则或层级 | 运行来源 | 适用边界 | 回归夹具 |

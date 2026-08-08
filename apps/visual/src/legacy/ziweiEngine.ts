@@ -16,6 +16,7 @@
 
 import { astro } from 'iztro';
 import type { ToolEnvelope, ExportSnapshot } from './baseTypes';
+import { resolveZiweiEngineConfig } from './engineConfig';
 
 /** iztro palace 名称映射：iztro 中文输出 → 本项目渲染器宫名（仆役→交友） */
 const IZTRO_PALACE_MAP: Record<string, string> = {
@@ -289,8 +290,11 @@ export function calcZiweiEnveloped(input: ZiweiInput): ToolEnvelope<ZiweiData> {
   const mainStarsSummary = result.mainStars.slice(0, 14).join('、');
   const sihuaSummary = Object.keys(result.sihua).map((star) => `${star}${result.sihua[star]}`).join('、');
   const now = new Date();
-  const transitYear = input.transit?.year ?? now.getFullYear();
-  const transitMonth = input.transit?.month ?? now.getMonth() + 1;
+  const config = resolveZiweiEngineConfig({
+    year: input.transit?.year ?? now.getFullYear(),
+    month: input.transit?.month ?? now.getMonth() + 1,
+  });
+  const { year: transitYear, month: transitMonth } = config.transit;
 
   const sections: Array<{ heading: string; body: string }> = [
     {
@@ -390,7 +394,7 @@ export function calcZiweiEnveloped(input: ZiweiInput): ToolEnvelope<ZiweiData> {
           key: 'dynamic-transit',
           stage: '动态层查询',
           status: hs.available ? 'ok' : 'fallback',
-          inputs: { year: transitYear, month: transitMonth, day: 15 },
+          inputs: { config },
           result: dynamicTransitSummary,
           dependsOnStepKeys: ['natal-chart'],
           promptText: dynamicTransitSummary,
@@ -409,7 +413,7 @@ export function calcZiweiEnveloped(input: ZiweiInput): ToolEnvelope<ZiweiData> {
       engineVersion: result.version,
       evidenceSchemaVersion: '0.1.0',
       algorithm: 'iztro 紫微斗数本命盘与 horoscope 动态层',
-      calculationConfig: { transitYear, transitMonth, transitDay: 15, palaceNameNormalization: '仆役→交友' },
+      calculationConfig: { ...config },
     },
   };
   if (result.mode !== 'local-exact') {

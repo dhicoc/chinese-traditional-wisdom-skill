@@ -14,6 +14,7 @@ import type { ToolEnvelope, ExportSnapshot } from './baseTypes';
 import type { ResolvedBaziBirth } from './birthTimeCorrection';
 import { analyzeAdvancedBazi, type AdvancedBaziAnalysis } from './advancedBazi';
 import { relationBetweenPillars } from './ganZhiChongHe';
+import { resolveBaziEngineConfig } from './engineConfig';
 import { calcShenSha, type ShenShaItem, type TrineSource } from './shensha';
 
 const TG = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
@@ -638,6 +639,11 @@ function formatBirthTime(birth: BaziBirth): string {
 
 export function calcBaziEnveloped(input: BaziInput): ToolEnvelope<BaziData> {
   const result = calculateBazi(input);
+  const config = resolveBaziEngineConfig({
+    mode: result.mode,
+    shenShaTrineSource: result.shenShaTrineSource,
+    hasExactLuck: result.luck.some((luck) => luck.startYear !== undefined),
+  });
   const p = result.pillars;
   const pillarsStr = [p.year, p.month, p.day, p.hour].map((col) => col.stem + col.branch).join(' ');
   const dm = result.dayMaster;
@@ -682,7 +688,7 @@ export function calcBaziEnveloped(input: BaziInput): ToolEnvelope<BaziData> {
     warnings: [result.confidenceNote, ...(result.mode === 'local-approx' ? ['月柱信息仅作辅助参考'] : [])],
     evidence: {
       steps: [
-        { key: 'settle', stage: '定盘', status: result.mode === 'local-exact' ? 'ok' : 'approx', inputs: { year: input.birth.year, month: input.birth.month, day: input.birth.day, hour: input.birth.hour }, result: pillarsStr, promptText: `四柱 ${pillarsStr}` },
+        { key: 'settle', stage: '定盘', status: result.mode === 'local-exact' ? 'ok' : 'approx', inputs: { year: input.birth.year, month: input.birth.month, day: input.birth.day, hour: input.birth.hour, minute: input.birth.minute ?? 0, gender: input.birth.gender ?? '男', config }, result: pillarsStr, promptText: `四柱 ${pillarsStr}` },
         { key: 'elements', stage: '五行统计', status: 'ok', inputs: pillarsStr, result: elSummary, dependsOnStepKeys: ['settle'], promptText: `五行分布 ${elSummary}` },
         { key: 'daymaster', stage: '日主判定', status: 'ok', inputs: { dm, dmWx, dmYy }, result: `${dm}${dmYy}${dmWx}`, dependsOnStepKeys: ['settle'], promptText: `日主为${dm}（${dmYy}${dmWx}）` },
         { key: 'advanced', stage: '命局要览', status: 'ok', inputs: pillarsStr, result: `月令${result.advancedAnalysis.monthCommand.dayMasterState}、${result.advancedAnalysis.support.strength}、${result.advancedAnalysis.fuyii.principle}、${result.advancedAnalysis.pattern.name}${result.advancedAnalysis.pattern.status}、从格${result.advancedAnalysis.followPattern.status}、化气${result.advancedAnalysis.transformation.status}`, dependsOnStepKeys: ['settle', 'elements', 'daymaster'], promptText: `月令、通根、得势显示${result.advancedAnalysis.support.strength}，${result.advancedAnalysis.pattern.name}${result.advancedAnalysis.pattern.status}。判断次序：${result.advancedAnalysis.priority.join('；')}`, limitation: result.advancedAnalysis.confidenceNote },
@@ -702,7 +708,7 @@ export function calcBaziEnveloped(input: BaziInput): ToolEnvelope<BaziData> {
       engineVersion: result.mode,
       evidenceSchemaVersion: '0.1.0',
       algorithm: '四柱排盘',
-      calculationConfig: { exactCalendar: input.birth.useExactCalendar !== false, shenShaTrineSource: input.shenShaTrineSource ?? 'year' },
+      calculationConfig: { ...config },
     },
   };
 }

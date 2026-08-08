@@ -152,4 +152,21 @@ describe('calcZiweiEnveloped envelope 适配', () => {
     expect(transitSection?.body).toContain('2025年');
     expect(data.export_snapshot.sections.some((section) => section.heading === '流月与小限')).toBe(true);
   });
+
+  it('动态年月与固定口径统一写入证据和元数据', () => {
+    const env = calcZiweiEnveloped({
+      birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      transit: { year: 2025, month: 7 },
+    });
+
+    expect(env.result_meta?.calculationConfig).toMatchObject({
+      transit: { year: 2025, month: 7, day: 15 },
+      hourRule: '23:00-23:59=>early-zi',
+      palaceNameNormalization: '仆役→交友',
+      enabledDynamicLayers: ['decadal', 'yearly', 'monthly', 'age'],
+    });
+    expect(env.evidence?.steps.find((step) => step.key === 'dynamic-transit')?.inputs).toMatchObject({
+      config: { transit: { year: 2025, month: 7, day: 15 } },
+    });
+  });
 });

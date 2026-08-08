@@ -315,4 +315,23 @@ describe('calcBaziEnveloped envelope 适配', () => {
     // 每步骤有 promptText（供 AI 转述）
     env.evidence!.steps.forEach((s) => expect(s.promptText.length).toBeGreaterThan(0));
   });
+
+  it('默认与显式神煞口径均解析并写入证据与元数据', () => {
+    const defaultEnv = calcBaziEnveloped({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
+    const explicitEnv = calcBaziEnveloped({
+      birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      shenShaTrineSource: 'day',
+    });
+
+    expect(defaultEnv.result_meta?.calculationConfig).toMatchObject({
+      calendarMode: 'approx',
+      shenShaTrineSource: 'year',
+      dayBoundaryRule: 'zi-chu-next-day',
+      luckStartMethod: 'three-years-approx',
+    });
+    expect(explicitEnv.result_meta?.calculationConfig).toMatchObject({ shenShaTrineSource: 'day' });
+    expect(explicitEnv.evidence?.steps.find((step) => step.key === 'settle')?.inputs).toMatchObject({
+      config: { shenShaTrineSource: 'day' },
+    });
+  });
 });
