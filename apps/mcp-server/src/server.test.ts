@@ -81,6 +81,19 @@ function toolCallMsg(id: number, name: string, args: unknown): string {
   return JSON.stringify({ jsonrpc: '2.0', id, method: 'tools/call', params: { name, arguments: args } });
 }
 
+function toolCatalog(tools: Array<Record<string, unknown>>) {
+  return tools
+    .map(({ name, title, description, inputSchema, outputSchema, annotations }) => ({
+      name,
+      title,
+      description,
+      inputSchema,
+      outputSchema,
+      annotations,
+    }))
+    .sort((left, right) => String(left.name).localeCompare(String(right.name)));
+}
+
 describe('MCP Server 端到端协议', () => {
   it('initialize 握手返回 serverInfo', async () => {
     const responses = await runMcpSession([INIT_MSG, INITIALIZED_MSG]);
@@ -111,6 +124,23 @@ describe('MCP Server 端到端协议', () => {
     expect(names).toContain('dream_interpret');
     expect(names).toContain('agent_guidance');
     expect(names).toContain('wisdom_dispatch');
+    tools.forEach((tool) => {
+      expect(tool.title).toBeTruthy();
+      expect(tool.annotations).toMatchObject({
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: expect.any(Boolean),
+        openWorldHint: false,
+      });
+      expect(tool.outputSchema).toMatchObject({ type: 'object' });
+    });
+  }, 30000);
+
+  it('tools/list 的公开输入输出契约保持快照稳定', async () => {
+    const responses = await runMcpSession([INIT_MSG, INITIALIZED_MSG, TOOLS_LIST_MSG]);
+    const list = responses.find((response) => response.id === 2);
+    const tools = (list!.result as { tools: Array<Record<string, unknown>> }).tools;
+    expect(toolCatalog(tools)).toMatchSnapshot();
   }, 30000);
 
   it('tools/call agent_guidance 返回 bazi 引导', async () => {
@@ -200,9 +230,10 @@ describe('MCP Server 端到端协议', () => {
     ]);
     const call = responses.find((r) => r.id === 12);
     expect(call).toBeDefined();
-    const result = call!.result as { content: Array<{ type: string; text: string }>; isError?: boolean };
+    const result = call!.result as { content: Array<{ type: string; text: string }>; structuredContent: { ok: boolean; tool: string; data: { solarDate: string } }; isError?: boolean };
     expect(result.isError).toBeFalsy();
     const envelope = JSON.parse(result.content[0].text) as { ok: boolean; tool: string; data: { solarDate: string; dayGanZhi: string; yi: string[]; ji: string[]; hours: unknown[] } };
+    expect(result.structuredContent).toEqual(envelope);
     expect(envelope.ok).toBe(true);
     expect(envelope.tool).toBe('get_almanac');
     expect(envelope.data.solarDate).toContain('2026年8月1日');
