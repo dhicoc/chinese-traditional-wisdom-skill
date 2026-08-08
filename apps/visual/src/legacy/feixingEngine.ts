@@ -97,23 +97,24 @@ export function calcFeixing(input: FeixingInput = {}): ToolEnvelope<FeixingResul
     }
   }
 
-  const cautionLabels = remedies.filter((r) => r.luck === '凶').map((r) => `${r.direction}(${r.starName})`);
-  const favorableLabels = remedies.filter((r) => r.luck === '吉').map((r) => `${r.direction}(${r.starName})`);
+  // 凶位提示（五黄/二黑等）
+  const unluckyPos = remedies.filter((r) => r.luck === '凶').map((r) => `${r.direction}(${r.starName})`);
+  const luckyPos = remedies.filter((r) => r.luck === '吉').map((r) => `${r.direction}(${r.starName})`);
 
-  const synthesis = `${year}年${yuanYun.name}（当令${yuanYun.wangStar}白），中宫${summary.centerStar}白${summary.starName}（${summary.wuxing}，${summary.luck}）。${favorableLabels.length ? `传统吉性标签：${favorableLabels.join('、')}。` : ''}${cautionLabels.length ? `传统谨慎标签：${cautionLabels.join('、')}。` : ''}${mingGua ? `命卦${mingGua.trigram}（${mingGua.group}），生气标签方${mingGua.directions.shengqi}、天医标签方${mingGua.directions.tianyi}。` : ''}内容仅作传统文化阅读，不用于健康、财务、施工或其他现实决策。`;
+  const synthesis = `${year}年${yuanYun.name}（当令${yuanYun.wangStar}白），中宫${summary.centerStar}白${summary.starName}（${summary.wuxing}，${summary.luck}）。${luckyPos.length ? `吉位：${luckyPos.join('、')}。` : ''}${unluckyPos.length ? `凶位宜静：${unluckyPos.join('、')}。` : ''}${mingGua ? `命卦${mingGua.trigram}（${mingGua.group}），生气方${mingGua.directions.shengqi}、天医方${mingGua.directions.tianyi}。` : ''}`;
 
   const snapshot: ExportSnapshot = {
     summary: synthesis,
     tags: ['流年飞星', `${year}年`, yuanYun.name, `${summary.centerStar}白中宫`],
     sections: [
-      { heading: '元运', body: `${year}年属${yuanYun.name}（${yuanYun.startYear}-${yuanYun.endYear}），传统当令标签${yuanYun.wangStar}白，生气标签${yuanYun.shengStar}白，退气标签${yuanYun.tuiStar}白。` },
-      { heading: '中宫飞星', body: `中宫${summary.centerStar}白${summary.starName}，五行${summary.wuxing}，传统吉凶标签${summary.luck}。` },
+      { heading: '元运', body: `${year}年属${yuanYun.name}（${yuanYun.startYear}-${yuanYun.endYear}），当令旺星${yuanYun.wangStar}白，生气星${yuanYun.shengStar}白，退气星${yuanYun.tuiStar}白。` },
+      { heading: '中宫飞星', body: `中宫${summary.centerStar}白${summary.starName}，五行${summary.wuxing}，吉凶${summary.luck}。` },
       { heading: '九宫飞星盘', body: grid.flat().map((c) => `${c.palace}(${PALACE_TO_DIR[c.palace] ?? c.palace})${c.starNum}白${c.starName}(${c.luck})`).join('；') + '。' },
       { heading: '九星旺衰', body: starStatuses.map((s) => `${s.star}白${s.status}`).join('、') + '。' },
-      { heading: '传统方位提示', body: remedies.filter((r) => r.luck === '凶').map((r) => `${r.direction}(${r.starName})：${r.remedy.remedy || r.remedy.meaning || '传统谨慎标签'}`).join('；') + '。' },
-      ...(mingGua ? [{ heading: '命卦方位标签', body: `命卦${mingGua.trigram}（${mingGua.group}）：生气${mingGua.directions.shengqi}、天医${mingGua.directions.tianyi}、延年${mingGua.directions.niannian}、伏位${mingGua.directions.fuwei}；绝命${mingGua.directions.jueming}、五鬼${mingGua.directions.wugui}、六煞${mingGua.directions.liusha}、祸害${mingGua.directions.huohai}。以上均为传统八宅标签，不预示现实结果。` }] : []),
+      { heading: '凶位化解', body: remedies.filter((r) => r.luck === '凶').map((r) => `${r.direction}(${r.starName})：${r.remedy.remedy || r.remedy.meaning || '宜静不宜动'}`).join('；') + '。' },
+      ...(mingGua ? [{ heading: '命卦方位', body: `命卦${mingGua.trigram}（${mingGua.group}）：生气${mingGua.directions.shengqi}、天医${mingGua.directions.tianyi}、延年${mingGua.directions.niannian}、伏位${mingGua.directions.fuwei}；绝命${mingGua.directions.jueming}、五鬼${mingGua.directions.wugui}、六煞${mingGua.directions.liusha}、祸害${mingGua.directions.huohai}。` }] : []),
     ],
-    sourceNotes: '飞星按九宫顺飞推算；元运与方位说法属于玄空传统口径，仅供文化参考。',
+    sourceNotes: '飞星按九宫顺飞推算；元运旺衰与化解为玄空传统口径，民俗参考。',
   };
 
   const result: FeixingResult = {
@@ -129,7 +130,7 @@ export function calcFeixing(input: FeixingInput = {}): ToolEnvelope<FeixingResul
     export_snapshot: snapshot,
     engineName: 'feixingEngine',
     mode: 'local-exact',
-    confidenceNote: '飞星按九宫顺飞推算；元运与方位说法属于玄空传统口径，仅供文化参考。',
+    confidenceNote: '飞星按九宫顺飞推算；元运旺衰与化解为玄空传统口径，民俗参考。',
   };
 
   return {

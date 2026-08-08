@@ -73,7 +73,7 @@ export function FeixingWorkspace() {
     });
   }, [flatGrid]);
 
-  // Step 2: 传统方位标签一览
+  // Step 2: 方位用途一览
   const usageSummary = useMemo(() => {
     if (flatGrid.length === 0) return null;
     const findDir = (starNum: number) => {
@@ -81,11 +81,11 @@ export function FeixingWorkspace() {
       return cell ? PALACE_TO_DIR[cell.palace] ?? cell.palace : '';
     };
     return {
-      resources: findDir(8),
+      wealth: findDir(8),
       study: findDir(4),
       romance: findDir(1),
-      caution: findDir(2),
-      renovation: findDir(5),
+      illness: findDir(2),
+      danger: findDir(5),
     };
   }, [flatGrid]);
 
@@ -102,9 +102,9 @@ export function FeixingWorkspace() {
     () => [
       { label: '一白 / 水', color: 'var(--wz-water)', description: '偏向流动、信息与文昌语义。' },
       { label: '三碧四绿 / 木', color: 'var(--wz-wood)', description: '偏向生发、变动与学习语义。' },
-      { label: '二黑五黄八白 / 土', color: 'var(--wz-earth)', description: '偏向中宫、稳定与传统谨慎标签。' },
-      { label: '六白七赤 / 金', color: 'var(--wz-metal)', description: '偏向秩序、权责与收敛语义。' },
-      { label: '九紫 / 火', color: 'var(--wz-fire)', description: '偏向喜庆、显化与互动语义。' },
+      { label: '二黑五黄八白 / 土', color: 'var(--wz-earth)', description: '偏向中宫、稳定与病符风险提示。' },
+      { label: '六白七赤 / 金', color: 'var(--wz-metal)', description: '偏向秩序、权柄与肃杀语义。' },
+      { label: '九紫 / 火', color: 'var(--wz-fire)', description: '偏向喜庆、显化与未来运语义。' },
     ],
     [],
   );
@@ -120,11 +120,11 @@ export function FeixingWorkspace() {
     [year, summary, yuanYun, usageSummary],
   );
   const exportReport = useMemo(() => ({
-    summary: `${year}年流年飞星的传统方位标签参考，不用于健康、财务、施工或其他现实决策。`,
+    summary: `${year}年流年飞星方位参考。`,
     sections: [
       { heading: '中宫与元运', body: `中宫飞星：${summary ? `${summary.centerStar} · ${summary.starName} · ${summary.wuxing} · ${summary.luck}` : '—'}\n元运：${yuanYun.name}（${yuanYun.startYear}-${yuanYun.endYear}）` },
-      ...(usageSummary ? [{ heading: '传统方位标签', body: `资源主题：${usageSummary.resources}方\n学习主题：${usageSummary.study}方\n人际主题：${usageSummary.romance}方\n谨慎标签：${usageSummary.caution}方\n改造谨慎标签：${usageSummary.renovation}方` }] : []),
-      ...(mingGuaResult ? [{ heading: '个人方位标签对照', body: `生气：${mingGuaResult.shengqi}方\n天医：${mingGuaResult.tianyi}方\n延年：${mingGuaResult.niannian}方\n绝命：${mingGuaResult.jueming}方。以上为传统八宅标签，不预示个人健康、关系或财务结果。` }] : []),
+      ...(usageSummary ? [{ heading: '方位用途', body: `财位：${usageSummary.wealth}方\n文昌位：${usageSummary.study}方\n桃花位：${usageSummary.romance}方\n病符位：${usageSummary.illness}方\n五黄位：${usageSummary.danger}方` }] : []),
+      ...(mingGuaResult ? [{ heading: '个人方位参考', body: `生气位：${mingGuaResult.shengqi}方\n天医位：${mingGuaResult.tianyi}方\n延年位：${mingGuaResult.niannian}方\n绝命位：${mingGuaResult.jueming}方` }] : []),
       { heading: '九星方位', body: gridRemedies.map(({ cell, remedy }) => `${PALACE_TO_DIR[cell.palace] ?? cell.palace}方：${remedy?.name ?? `${cell.starNum}星`} · ${remedy?.usageLabel ?? '方位参考'}`).join('\n') },
     ],
   }), [gridRemedies, mingGuaResult, summary, usageSummary, year, yuanYun]);
@@ -136,7 +136,7 @@ export function FeixingWorkspace() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">流年飞星</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              输入年份，查看流年九宫飞星分布、传统方位标签与命卦对照；内容仅作文化阅读，不用于现实决策。
+              输入年份，查看流年九宫飞星分布、方位用途、化煞建议与命卦合参。
             </p>
           </div>
           <div className="flex gap-2">
@@ -182,43 +182,43 @@ export function FeixingWorkspace() {
             {!summary && <span className="text-jade-100/45">等待引擎加载。</span>}
           </InterpretationCard>
 
-          {/* Step 2: 传统方位标签一览 */}
+          {/* Step 2: 方位用途一览 */}
           {usageSummary && (
             <div className="rounded-card border border-white/8 bg-white/[0.025] p-4">
-              <p className="text-sm font-semibold text-jade-100/70">传统方位标签</p>
+              <p className="text-sm font-semibold text-jade-100/70">方位用途</p>
               <div className="mt-2 space-y-1.5 text-xs">
-                <div className="flex justify-between"><span className="text-gold-400">资源主题</span><span className="text-jade-100/70">{usageSummary.resources}方</span></div>
-                <div className="flex justify-between"><span className="text-jade-400">学习主题</span><span className="text-jade-100/70">{usageSummary.study}方</span></div>
-                <div className="flex justify-between"><span className="text-cinnabar-400">人际主题</span><span className="text-jade-100/70">{usageSummary.romance}方</span></div>
-                <div className="flex justify-between"><span className="text-cinnabar-300">谨慎标签</span><span className="text-jade-100/70">{usageSummary.caution}方</span></div>
-                <div className="flex justify-between"><span className="text-cinnabar-300">改造谨慎标签</span><span className="text-jade-100/70">{usageSummary.renovation}方</span></div>
+                <div className="flex justify-between"><span className="text-gold-400">财位</span><span className="text-jade-100/70">{usageSummary.wealth}方</span></div>
+                <div className="flex justify-between"><span className="text-jade-400">文昌位</span><span className="text-jade-100/70">{usageSummary.study}方</span></div>
+                <div className="flex justify-between"><span className="text-cinnabar-400">桃花位</span><span className="text-jade-100/70">{usageSummary.romance}方</span></div>
+                <div className="flex justify-between"><span className="text-cinnabar-300">病符位</span><span className="text-jade-100/70">{usageSummary.illness}方</span></div>
+                <div className="flex justify-between"><span className="text-cinnabar-300">五黄凶位</span><span className="text-jade-100/70">{usageSummary.danger}方</span></div>
               </div>
             </div>
           )}
 
-          {/* Step 4: 命卦标签对照 */}
+          {/* Step 4: 命卦合参 */}
           {mingGuaResult && (
             <div className="rounded-card border border-jade-500/20 bg-jade-500/5 p-4">
-              <p className="text-sm font-semibold text-jade-400">命卦标签对照</p>
-              <p className="mt-1 text-xs text-jade-100/45">基于出生信息的传统八宅标签，不预示个人结果</p>
+              <p className="text-sm font-semibold text-jade-400">命卦合参</p>
+              <p className="mt-1 text-xs text-jade-100/45">基于全局生辰推算个人吉方</p>
               <div className="mt-2 space-y-1.5 text-xs">
-                <div className="flex justify-between"><span className="text-jade-400">生气</span><span className="text-jade-100/70">{mingGuaResult.shengqi}方</span></div>
-                <div className="flex justify-between"><span className="text-jade-400">天医</span><span className="text-jade-100/70">{mingGuaResult.tianyi}方</span></div>
-                <div className="flex justify-between"><span className="text-jade-400">延年</span><span className="text-jade-100/70">{mingGuaResult.niannian}方</span></div>
-                <div className="flex justify-between"><span className="text-cinnabar-400">绝命</span><span className="text-jade-100/70">{mingGuaResult.jueming}方</span></div>
+                <div className="flex justify-between"><span className="text-jade-400">生气位</span><span className="text-jade-100/70">{mingGuaResult.shengqi}方</span></div>
+                <div className="flex justify-between"><span className="text-jade-400">天医位</span><span className="text-jade-100/70">{mingGuaResult.tianyi}方</span></div>
+                <div className="flex justify-between"><span className="text-jade-400">延年位</span><span className="text-jade-100/70">{mingGuaResult.niannian}方</span></div>
+                <div className="flex justify-between"><span className="text-cinnabar-400">绝命位</span><span className="text-jade-100/70">{mingGuaResult.jueming}方</span></div>
               </div>
-              {usageSummary && mingGuaResult.shengqi === usageSummary.resources && (
+              {usageSummary && mingGuaResult.shengqi === usageSummary.wealth && (
                 <p className="mt-2 rounded-card border border-gold-500/30 bg-gold-500/10 p-2 text-[11px] text-gold-400">
-                  ✦ 方位标签重合：个人生气标签与年度资源主题标签位于同一方位，仅作传统文化对照。
+                  ✦ 大利财运：个人生气位与年飞星财位重合，双重旺财方位！
                 </p>
               )}
             </div>
           )}
 
-          {/* Step 1: 九星传统布置说法 */}
+          {/* Step 1: 九星化煞建议 */}
           {gridRemedies.length > 0 && (
             <div className="rounded-card border border-white/8 bg-white/[0.025] p-4">
-              <p className="text-sm font-semibold text-jade-100/70">九星传统布置说法</p>
+              <p className="text-sm font-semibold text-jade-100/70">九星化煞建议</p>
               <div className="mt-2 space-y-2">
                 {gridRemedies.filter(({ remedy }) => remedy?.nature === '大凶' || remedy?.nature === '凶').map(({ cell, remedy }) => (
                   <div key={cell.palace} className="rounded-card border border-cinnabar-500/20 bg-cinnabar-500/5 p-2">
@@ -228,9 +228,9 @@ export function FeixingWorkspace() {
                         {remedy!.usageLabel}
                       </span>
                     </div>
-                    {remedy!.remedy && <p className="mt-1 text-[11px] leading-4 text-cinnabar-400/70">传统说法：{remedy!.remedy}</p>}
-                    {remedy!.colors && <p className="mt-0.5 text-[11px] leading-4 text-jade-100/55">传统配色：{remedy!.colors}</p>}
-                    {remedy!.items && <p className="mt-0.5 text-[11px] leading-4 text-jade-100/55">传统物件：{remedy!.items}</p>}
+                    {remedy!.remedy && <p className="mt-1 text-[11px] leading-4 text-cinnabar-400/70">化煞：{remedy!.remedy}</p>}
+                    {remedy!.colors && <p className="mt-0.5 text-[11px] leading-4 text-jade-100/55">色宜：{remedy!.colors}</p>}
+                    {remedy!.items && <p className="mt-0.5 text-[11px] leading-4 text-jade-100/55">摆设：{remedy!.items}</p>}
                     <p className="mt-0.5 text-[11px] leading-4 text-jade-100/45">{remedy!.health}</p>
                   </div>
                 ))}
@@ -242,9 +242,9 @@ export function FeixingWorkspace() {
                         {remedy!.usageLabel}
                       </span>
                     </div>
-                    <p className="mt-1 text-[11px] leading-4 text-jade-100/55">传统空间对照：{remedy!.roomUse.join('、')}</p>
-                    {remedy!.colors && <p className="mt-0.5 text-[11px] leading-4 text-jade-100/55">传统配色：{remedy!.colors}</p>}
-                    {remedy!.items && <p className="mt-0.5 text-[11px] leading-4 text-jade-100/55">传统物件：{remedy!.items}</p>}
+                    <p className="mt-1 text-[11px] leading-4 text-jade-100/55">宜：{remedy!.roomUse.join('、')}</p>
+                    {remedy!.colors && <p className="mt-0.5 text-[11px] leading-4 text-jade-100/55">色宜：{remedy!.colors}</p>}
+                    {remedy!.items && <p className="mt-0.5 text-[11px] leading-4 text-jade-100/55">摆设：{remedy!.items}</p>}
                     <p className="mt-0.5 text-[11px] leading-4 text-jade-100/45">{remedy!.career}</p>
                   </div>
                 ))}
@@ -254,12 +254,12 @@ export function FeixingWorkspace() {
 
           <LegendPanel
             title="九星五行图例"
-            description="九星五行配色与传统方位标签参考。"
+            description="九星五行配色与方位吉凶参考。"
             items={starLegend}
           />
 
           <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
-            飞星布局和传统布置说法仅作文化学习与方位阅读，不构成健康、财务、施工或其他现实决策建议。
+            飞星布局仅作传统文化学习与方位参考，不构成风水操作或决策建议。
           </p>
 
           <KnowledgeReferencePanel

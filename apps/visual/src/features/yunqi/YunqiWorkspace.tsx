@@ -68,7 +68,7 @@ export function YunqiWorkspace() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">五运六气</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              按大寒定年推算岁运、司天在泉与客气六步，结合客主加临阅读传统气候意象，不用于个人健康判断。
+              按大寒定年推算岁运、司天在泉与客气六步，结合客主加临看气候与疾病倾向。
             </p>
           </div>
           <div className="flex gap-2">
@@ -106,7 +106,7 @@ export function YunqiWorkspace() {
           </div>
 
           <p className="rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
-            五运六气输出仅作传统文化与气候意象学习参考，不用于个人健康预测、诊断或治疗建议。
+            五运六气输出仅作传统文化和气候病机理论学习参考，不替代医学诊断。
           </p>
         </aside>
 
@@ -115,7 +115,7 @@ export function YunqiWorkspace() {
             <div>
               <h3 className="text-lg font-semibold text-jade-50">岁运 · 司天 · 在泉</h3>
               <p className="mt-1 text-sm leading-6 text-jade-100/55">
-                岁运、司天、在泉、客气六步与传统季节提示的综合展示。
+                岁运·司天·在泉·客气六步·病势倾向·五行图例综合展示。
               </p>
             </div>
           </div>

@@ -54,11 +54,10 @@ describe('calculateYunqi 纯 TS 计算', () => {
     expect(r.wuyun.zhuyun).toEqual(['木', '火', '土', '金', '水']);
   });
 
-  it('传统季节提示含岁运与司天的气候意象，且不作疾病判断', () => {
+  it('疾病倾向含岁运与司天对应症状', () => {
     const r = calculateYunqi({ year: 2024, currentMonth: 6 });
-    expect(r.disease_tendency).toContain('湿土偏重'); // 土运太过
-    expect(r.disease_tendency).toContain('寒水当令'); // 太阳寒水
-    expect(r.disease_tendency).not.toMatch(/疾病|症状|感冒|脾湿/);
+    expect(r.disease_tendency).toContain('脾湿'); // 土运太过
+    expect(r.disease_tendency).toContain('风寒感冒'); // 太阳寒水
   });
 
   it('currentMonth 控制当前客气步（确定性）', () => {
