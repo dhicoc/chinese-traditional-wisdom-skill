@@ -42,5 +42,7 @@ apps/visual/pw_*.log
 artifacts/tmp/
 .playwright-mcp/
 prototype/
+apps/visual/.playwright-cli/
+.qwen/
 
 .gstack/
