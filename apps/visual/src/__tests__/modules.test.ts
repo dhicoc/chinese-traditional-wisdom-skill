@@ -105,6 +105,15 @@ describe('Daily Utility Tools (v0.4)', () => {
   });
 });
 
+describe('AppShell global reference notice', () => {
+  it('should present the shared ancient-text and folk-reference boundary', () => {
+    const source = readSource('components/app-shell/AppShell.tsx');
+
+    expect(source).toContain('整理自古籍、传统民俗与既有规则');
+    expect(source).toContain('未作现实世界验证，仅供学习和参考');
+  });
+});
+
 describe('XuanOrbitLogo', () => {
   it('should be a decorative celestial orbit icon with the approved structure', () => {
     const source = readSource('components/app-shell/XuanOrbitLogo.tsx');

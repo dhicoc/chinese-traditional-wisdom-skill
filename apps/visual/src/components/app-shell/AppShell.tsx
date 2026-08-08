@@ -48,6 +48,9 @@ export function AppShell({ activeModule, onSelectModule }: AppShellProps) {
           <div className="hidden lg:block">
             <WorkspaceTabs activeModule={activeModule} onSelectModule={onSelectModule} />
           </div>
+          <p className="rounded-card border border-gold-500/20 bg-gold-500/5 px-3 py-2 text-xs leading-5 text-jade-100/60">
+            本站术数、风水与运气相关内容整理自古籍、传统民俗与既有规则，未作现实世界验证，仅供学习和参考。
+          </p>
           <div data-testid={`workspace-${activeModule}`} className="ct-animate-fade-in">
             <Suspense fallback={<WorkspaceFallback />}>
               <Workspace activeModule={activeModule} onSelectModule={onSelectModule} />
