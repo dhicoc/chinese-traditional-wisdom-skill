@@ -90,6 +90,22 @@ function getTodayDate() {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
+function updateTransitYear(transitDate: string, year: string) {
+  const targetYear = Number(year);
+  if (!Number.isInteger(targetYear) || targetYear < 1900 || targetYear > 2100) return transitDate;
+  const [currentYear, month, day] = transitDate.split('-').map(Number);
+  if (!currentYear || !month || !day) return transitDate;
+  const lastDay = new Date(targetYear, month, 0).getDate();
+  return `${targetYear}-${String(month).padStart(2, '0')}-${String(Math.min(day, lastDay)).padStart(2, '0')}`;
+}
+
+function shiftTransitDate(transitDate: string, days: number) {
+  const [year, month, day] = transitDate.split('-').map(Number);
+  if (!year || !month || !day) return transitDate;
+  const next = new Date(year, month - 1, day + days);
+  return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`;
+}
+
 export function BaziWorkspace() {
   const { birth, baziTimeStatus } = useBirth();
   const solarBirth = baziTimeStatus.status === 'true-solar-verified'
@@ -97,8 +113,8 @@ export function BaziWorkspace() {
     : baziTimeStatus.civilBirth;
   const [trineSource, setTrineSource] = useState<TrineSource>('year');
   const [activeShenShaPillar, setActiveShenShaPillar] = useState<'年' | '月' | '日' | '时' | null>(null);
-  const [transitYear, setTransitYear] = useState(() => String(new Date().getFullYear()));
   const [transitDate, setTransitDate] = useState(getTodayDate);
+  const transitYear = transitDate.slice(0, 4);
 
   const ready = true;
   const { result, pillars, wuxing, envelope } = useMemo(
@@ -339,11 +355,12 @@ export function BaziWorkspace() {
                     value={transitYear}
                     min="1900"
                     max="2100"
-                    onChange={(event) => setTransitYear(event.target.value)}
+                    onChange={(event) => setTransitDate((current) => updateTransitYear(current, event.target.value))}
                     className="w-24 rounded border border-white/10 bg-black/30 px-2 py-1 text-sm text-jade-50 outline-none focus:border-jade-500/60"
                   />
                 </label>
               </div>
+              <p className="mt-2 text-xs leading-5 text-jade-100/45">流年、流月与流日均以同一目标日期为查询锚点；本命四柱不随浏览日期改变。</p>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 <section className="rounded-card border border-jade-500/20 bg-jade-500/10 px-3 py-2.5">
                   <p className="text-xs font-semibold text-jade-100/70">当前大运</p>
@@ -439,15 +456,31 @@ export function BaziWorkspace() {
                   <h3 id="bazi-month-day-title" className="text-lg font-semibold text-jade-50">流月 · 流日</h3>
                   <p className="mt-1 text-sm leading-6 text-jade-100/55">流月按节气月干支、流日按精确日干支推算，与本命、大运分层显示。</p>
                 </div>
-                <label className="flex items-center gap-2 text-xs text-jade-100/65">
-                  目标日期
-                  <input
-                    type="date"
-                    value={transitDate}
-                    onChange={(event) => setTransitDate(event.target.value)}
-                    className="rounded border border-white/10 bg-black/30 px-2 py-1 text-sm text-jade-50 outline-none focus:border-jade-500/60"
-                  />
-                </label>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-jade-100/65">
+                  <button
+                    type="button"
+                    onClick={() => setTransitDate((current) => shiftTransitDate(current, -1))}
+                    className="rounded border border-white/10 bg-black/30 px-2 py-1 text-jade-100/70 transition-colors hover:border-jade-500/40 hover:text-jade-50"
+                  >
+                    前一日
+                  </button>
+                  <label className="flex items-center gap-2">
+                    目标日期
+                    <input
+                      type="date"
+                      value={transitDate}
+                      onChange={(event) => setTransitDate(event.target.value)}
+                      className="rounded border border-white/10 bg-black/30 px-2 py-1 text-sm text-jade-50 outline-none focus:border-jade-500/60"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setTransitDate((current) => shiftTransitDate(current, 1))}
+                    className="rounded border border-white/10 bg-black/30 px-2 py-1 text-jade-100/70 transition-colors hover:border-jade-500/40 hover:text-jade-50"
+                  >
+                    后一日
+                  </button>
+                </div>
               </div>
               <div className="mt-3 grid gap-2 lg:grid-cols-2">
                 {([['流月', monthDayTransit.monthly], ['流日', monthDayTransit.daily]] as const).map(([label, pillar]) => (
