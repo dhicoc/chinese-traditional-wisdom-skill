@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { toFourLayer, toFocusedReport, detectQuestionDomain, type ReadingLike } from '@/legacy/reportLayers';
+import { toFourLayer, toFocusedReport, toUserPresentation, detectQuestionDomain, type ReadingLike } from '@/legacy/reportLayers';
 import { calcBaziEnveloped } from '@/legacy/baziEngine';
 import { calcLiuyaoEnveloped } from '@/legacy/liuyaoEngine';
 import { calcYunqiEnveloped } from '@/legacy/yunqiEngine';
@@ -135,6 +135,48 @@ describe('toFourLayer 向后兼容', () => {
     const report = toFourLayer(reading);
     expect(report.tags).toEqual(['八字', '身强']);
     expect(report.sourceNotes).toBe('来源说明');
+  });
+});
+
+describe('toUserPresentation 用户呈现适配', () => {
+  it('保留时间状态与去重 warnings，正文只来自 export_snapshot', () => {
+    const presentation = toUserPresentation({
+      ok: true,
+      data: {
+        export_snapshot: {
+          summary: '用户可见摘要',
+          sections: [{ heading: '结论', body: '用户可见内容' }],
+          sourceNotes: 'internal source',
+        },
+        timeSource: { notice: '未完成真太阳时复核' },
+      },
+      warnings: ['流派口径可能存在差异', '流派口径可能存在差异', ''],
+    });
+
+    expect(presentation.state).toBe('success');
+    expect(presentation.notices).toEqual(['未完成真太阳时复核']);
+    expect(presentation.warnings).toEqual(['流派口径可能存在差异']);
+    expect(presentation.report?.tldr).toBe('用户可见摘要');
+    expect(presentation.exportReport).toEqual({
+      summary: '用户可见摘要',
+      sections: [{ heading: '结论', body: '用户可见内容' }],
+    });
+    expect(presentation.exportReport).not.toHaveProperty('sourceNotes');
+  });
+
+  it('失败信封映射为用户可读错误，不尝试渲染正文', () => {
+    const presentation = toUserPresentation({
+      ok: false,
+      error: { code: 'validation_error', message: '请补充出生时辰。' },
+      data: { export_snapshot: { summary: '不应展示', sections: [] } },
+    });
+
+    expect(presentation).toMatchObject({
+      state: 'error',
+      report: null,
+      exportReport: null,
+      error: { code: 'validation_error', message: '请补充出生时辰。' },
+    });
   });
 });
 

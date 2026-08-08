@@ -90,6 +90,22 @@ describe('ExportReportButton', () => {
     expect(html).not.toContain('engineName');
   });
 
+  it('导出用户级计算状态与注意事项', () => {
+    const html = createExportReportHtml({
+      title: '测试报告',
+      generatedAt: '2026/8/7 12:00:00',
+      birthSummary: '1990年6月15日 12时',
+      report: { summary: '摘要', sections: [] },
+      notices: ['未完成真太阳时复核'],
+      warnings: ['流派口径可能存在差异'],
+    });
+
+    expect(html).toContain('计算状态');
+    expect(html).toContain('未完成真太阳时复核');
+    expect(html).toContain('使用限制与注意事项');
+    expect(html).toContain('流派口径可能存在差异');
+  });
+
   it('未传入报告时不读取页面文本或导出内部说明', async () => {
     let downloadedBlob: Blob | undefined;
     const pageContent = document.createElement('main');

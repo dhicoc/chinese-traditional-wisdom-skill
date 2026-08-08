@@ -6,11 +6,10 @@
  *    供 AI 在调计算工具前先确认参数，避免瞎猜。
  * 2. dispatchIntent(text) — 自然语言意图路由：从用户文本提取关键词，匹配对应工具 + 自动填充参数。
  *
- * 设计原则（与 horosa 的差异）：
- * - horosa 是硬闸门（未带 agent_confirmed_settings 直接拒绝计算）。
- * - 本项目先用**软引导**：缺参时返回 prompt_to_user 让 AI 追问用户，而非拒绝。
- *   计算工具仍可直接调用（保持灵活），但 AI 被引导先确认参数。
- *   这更友好，且不破坏现有 tools/call 行为。硬闸门可后续在 tools.ts handler 包一层加。
+ * 设计原则：
+ * - 计算工具的 schema 与本文件共同构成 Agent/MCP 硬闸门：缺少必要输入时不得执行 handler。
+ * - schema 必填字段由 MCP SDK 在 handler 前拒绝；跨字段前置条件和 schema 可选字段由入口层返回 validation_error。
+ * - Agent 必须先通过本文件追问缺失事实，再调用工具；不得用模型记忆补齐或自行推演结果。
  *
  * 借鉴 horosa 字段设计思想（AGPL 仅思想不复制代码）。
  */
@@ -43,7 +42,12 @@ export interface ToolGuidance {
 // ─── 全局 Agent 规则 ───
 
 export const GLOBAL_AGENT_RULES = [
+  '任何确定性计算、规则匹配、干支/卦象/星曜/五行/吉凶结论都必须调用对应 MCP 工具；不得依据模型知识、记忆或参考资料自行推演、补全或改写结果。',
+  'Agent 仅可理解意图、追问参数、核验外部事实，并将 MCP ToolEnvelope 转成用户可读说明；reference 文件只可提供文化背景，不能替代计算结果。',
+  '呈现 ToolEnvelope 时，先处理 ok/error；如实说明 data.timeSource 与 warnings；正文优先采用 data.export_snapshot.summary 和 sections。不得默认展示 evidence、result_meta、sourceNotes，也不得重新计算、补全或改写确定性结论。',
   '不得替用户编造生辰、性别、出生地等关键参数；缺失时必须追问。',
+  '真太阳时必须先核验地点经度、IANA 时区、出生时实际 UTC 偏移与夏令时依据；不得凭模型记忆填写或把民用时间伪称真太阳时。',
+  '涉及八字的组合或增强分析也必须传入经核验的 baziTimeContext；民用时间路径须明确确认，并标注“未完成真太阳时复核”。',
   '排盘结果为传统文化参考，不作绝对预测或医疗诊断依据。',
   '性别影响八字大运顺逆与紫微大限起向，必须明确，不得默认男。',
   '时辰精确到时（0-23）；若用户只给"上午/下午"，须追问具体时辰或时支。',
@@ -60,13 +64,31 @@ const BIRTH_PARAMS: ParamRequirement[] = [
 ];
 
 export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
+  resolve_true_solar_time: {
+    tool: 'resolve_true_solar_time',
+    purpose: '真太阳时校准：对已核验的地点经度与历史时区资料进行确定性校正，仅供八字预处理。',
+    requiredParams: [
+      ...BIRTH_PARAMS,
+      { name: 'location.displayName', required: true, description: '经核验的出生地点', promptToUser: '请提供可定位的出生城市/区县和国家或地区，不能只写“中国”或“美国”。' },
+      { name: 'location.longitude', required: true, description: '经核验的出生地经度', promptToUser: '需要先核验出生地点对应的经度，不能由模型凭记忆估算。' },
+      { name: 'location.ianaTimeZone', required: true, description: '经核验的 IANA 时区', promptToUser: '需要核验出生地点对应的 IANA 时区，例如 Asia/Shanghai。' },
+      { name: 'location.utcOffsetMinutes', required: true, description: '出生当时实际 UTC 偏移，含夏令时', promptToUser: '需要核验出生当日当地实际 UTC 偏移和夏令时状态，不能按当前时区或模型记忆猜测。' },
+      { name: 'location.utcOffsetEvidence', required: true, description: '历史时区与夏令时的核验依据', promptToUser: '请先取得可追溯的历史时区/夏令时核验依据；无法核验时必须降级为民用时间排盘。' },
+    ],
+    safeDefaults: { birth: { minute: 0 } },
+    doNotAssume: ['location.displayName', 'location.longitude', 'location.ianaTimeZone', 'location.utcOffsetMinutes', 'location.utcOffsetEvidence'],
+    workflow: '先收集完整民用生辰与可定位出生地 → Agent 核验经度、IANA 时区、历史 UTC 偏移和夏令时依据 → 调 resolve_true_solar_time → 仅将 trueSolarBirth 传给 bazi_calculate；无法核验时明确按民用时间排盘，禁止伪称真太阳时。',
+  },
   bazi_calculate: {
     tool: 'bazi_calculate',
-    purpose: '八字排盘：四柱、日主、五行、十神、大运。需完整生辰。',
-    requiredParams: BIRTH_PARAMS,
+    purpose: '八字排盘：四柱、日主、五行、十神、大运。必须声明已核验真太阳时或用户确认的民用时间降级。',
+    requiredParams: [
+      ...BIRTH_PARAMS,
+      { name: 'timeBasis', required: true, description: '排盘时间来源', promptToUser: '请选择时间来源：完成真太阳时核验后用 true-solar-verified；若您明确接受按民用出生记录排盘，则用 civil-unverified 并确认未完成真太阳时复核。' },
+    ],
     safeDefaults: { birth: { minute: 0 } },
-    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
-    workflow: '先确认完整生辰（年月日时+性别）→ 调 bazi_calculate → 如需喜用神再调 calc_xiyong（用返回的 dayMasterWuxing + elements）。',
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender', 'timeBasis', 'calibrationToken', 'civilFallbackConfirmed'],
+    workflow: '默认先调 resolve_true_solar_time；以返回的 trueSolarBirth 和当前 MCP 进程签发的 calibrationToken 调 bazi_calculate(timeBasis=true-solar-verified)。无法核验时，须由用户明确同意后才传 timeBasis=civil-unverified 与 civilFallbackConfirmed=true，结果强制标注“未完成真太阳时复核”。如需喜用神再调 calc_xiyong（用返回的 dayMasterWuxing + elements）。',
   },
   ziwei_chart: {
     tool: 'ziwei_chart',
@@ -84,48 +106,48 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
       { name: 'question', required: true, description: '求测事项', promptToUser: '请说明想测什么事（如"今年财运""能否升职"），用于自动选取用神。' },
       ...BIRTH_PARAMS.filter((p) => p.name !== 'birth.gender'),
     ],
-    safeDefaults: { method: 'coin', birth: { gender: '男', minute: 0 } },
-    doNotAssume: ['question', 'birth.year', 'birth.month', 'birth.day', 'birth.hour'],
-    workflow: '先确认求测事项 + 起卦方式 → 调 cast_liuyao → 看用神旺衰与动爻断吉凶。',
+    safeDefaults: { method: 'coin', birth: { minute: 0 } },
+    doNotAssume: ['question', 'birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
+    workflow: '先确认求测事项 + 起卦方式 → 调 cast_liuyao → 看用神旺衰与动爻断吉凶。'
   },
   arrange_qimen: {
     tool: 'arrange_qimen',
     purpose: '奇门遁甲排盘：需测当时的年月日时（起局时间）。',
     requiredParams: BIRTH_PARAMS,
-    safeDefaults: { birth: { minute: 0, gender: '男' } },
-    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour'],
+    safeDefaults: { birth: { minute: 0 } },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
     workflow: '先确认起局时间（测事的当前时间或指定时间）→ 调 arrange_qimen → 看值符值使与格局断吉凶。',
   },
   liuren_calculate: {
     tool: 'liuren_calculate',
     purpose: '大六壬排盘：需测当时的年月日时（占时）。传统三式之一，擅长事件细节与应期。',
     requiredParams: BIRTH_PARAMS,
-    safeDefaults: { birth: { minute: 0, gender: '男' } },
-    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour'],
+    safeDefaults: { birth: { minute: 0 } },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
     workflow: '先确认占时（测事的当前时间或指定时间）→ 调 liuren_calculate → 看三传四课与格局断吉凶。',
   },
   xingxiu_daily: {
     tool: 'xingxiu_daily',
     purpose: '二十八星宿每日值宿查询：需日期。返回值宿、禽星、四象、吉凶宜忌。',
     requiredParams: BIRTH_PARAMS,
-    safeDefaults: { birth: { minute: 0, gender: '男' } },
-    doNotAssume: ['birth.year', 'birth.month', 'birth.day'],
+    safeDefaults: { birth: { minute: 0 } },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.gender'],
     workflow: '确认日期 → 调 xingxiu_daily → 看当日值宿吉凶宜忌。',
   },
   taiyi_calculate: {
     tool: 'taiyi_calculate',
     purpose: '太乙神数排盘：需测当时的年月日时（占时）。传统三式之首，擅推事件吉凶、应期与主客胜负。',
     requiredParams: BIRTH_PARAMS,
-    safeDefaults: { birth: { minute: 0, gender: '男' }, jiStyle: '0', acumYear: '0' },
-    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour'],
+    safeDefaults: { birth: { minute: 0 }, jiStyle: '0', acumYear: '0' },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
     workflow: '先确认占时（测事的当前时间或指定时间）→ 调 taiyi_calculate → 看太乙落宫、主客算与格局断吉凶。',
   },
   huangji_calculate: {
     tool: 'huangji_calculate',
     purpose: '皇极经世排盘：邵雍元会运世宇宙周期 + 九卦配置。长期/宏观预测视角（一运360年、一世30年）。',
     requiredParams: BIRTH_PARAMS,
-    safeDefaults: { birth: { minute: 0, gender: '男' } },
-    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour'],
+    safeDefaults: { birth: { minute: 0 } },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
     workflow: '确认占时（年月日时）→ 调 huangji_calculate → 看会/运/世周期定位 + 正卦（主运大势）+ 世卦（当下30年气数）+ 年卦（本年应象）。',
   },
   combo_sanshi_classic: {
@@ -135,8 +157,8 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
       ...BIRTH_PARAMS,
       { name: 'question', required: true, description: '求测事项', promptToUser: '请描述要测算的具体事项（如：今年适合换工作吗）。' },
     ],
-    safeDefaults: { birth: { minute: 0, gender: '男' } },
-    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'question'],
+    safeDefaults: { birth: { minute: 0 } },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender', 'question'],
     workflow: '确认生辰 + 求测事项 → 调 combo_sanshi_classic → 看三式一致性，以大六壬三传为主、太乙格局次之、奇门方位为辅。',
   },
   combo_daily_wellness: {
@@ -145,8 +167,8 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     requiredParams: [
       ...BIRTH_PARAMS,
     ],
-    safeDefaults: { birth: { minute: 0, gender: '男' } },
-    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour'],
+    safeDefaults: { birth: { minute: 0 } },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
     workflow: '确认生辰 → （可选）问用户体质问卷结果（气虚质等），有则传 constitution；不传按五运六气倾向推断 → 调 combo_daily_wellness → 看节气饮食/起居/运动/穴位 + 体质针对性加减 + 当令时辰养生 + 方位借力。',
   },
   combo_zeri: {
@@ -158,8 +180,8 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
       { name: 'startDate', required: true, description: '区间起（yyyy-mm-dd）', promptToUser: '请给出择日区间起始日期（如 2026-08-01）。' },
       { name: 'endDate', required: true, description: '区间止（yyyy-mm-dd）', promptToUser: '请给出择日区间结束日期（如 2026-08-31）。' },
     ],
-    safeDefaults: { birth: { minute: 0, gender: '男' }, topN: 5 },
-    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'purpose', 'startDate', 'endDate'],
+    safeDefaults: { birth: { minute: 0 }, topN: 5 },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender', 'purpose', 'startDate', 'endDate'],
     workflow: '确认生辰 + 用途 + 日期区间 → 调 combo_zeri → 看 Top-N 吉日（评分+理由）+ 吉时 + 本年凶方规避 + 命卦吉方借力。动土/安葬用途已自动剔除犯太岁岁破日。',
   },
   combo_monthly_fortune: {
@@ -170,8 +192,8 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
       { name: 'targetYear', required: true, description: '欲测年份', promptToUser: '请给出欲测年份（如 2026）。' },
       { name: 'targetMonth', required: true, description: '欲测月份（1-12）', promptToUser: '请给出欲测月份（1-12）。' },
     ],
-    safeDefaults: { birth: { minute: 0, gender: '男' } },
-    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'targetYear', 'targetMonth'],
+    safeDefaults: { birth: { minute: 0 } },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender', 'targetYear', 'targetMonth'],
     workflow: '确认生辰 + 年份 + 月份 → （可选）问体质传 constitution → 调 combo_monthly_fortune → 看流月干支+客气步+节气调养+紫微流月四维度 + 本月建议。',
   },
   cast_meihua: {
@@ -181,8 +203,8 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
       { name: 'method', required: true, description: '起卦方式（time/number）', promptToUser: '请选择起卦方式：时间起卦(time，需生辰) 或 数字起卦(number，需两个数字)。' },
       ...BIRTH_PARAMS.filter((p) => p.name !== 'birth.gender'),
     ],
-    safeDefaults: { method: 'time', birth: { gender: '男', minute: 0 } },
-    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour'],
+    safeDefaults: { method: 'time', birth: { minute: 0 } },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
     workflow: '确认起卦方式与参数 → 调 cast_meihua → 看体用生克与吉凶分级。',
   },
   calc_yunqi: {
@@ -327,6 +349,45 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     safeDefaults: {},
     doNotAssume: ['answers'],
     workflow: '调 list_constitution_questionnaire 取题 → 逐题问用户得分（1-5）→ 汇总 answers → 调 assess_constitution → 解读主体质与调养方向。',
+  },
+  list_constitution_questionnaire: {
+    tool: 'list_constitution_questionnaire',
+    purpose: '列出九种体质问卷题目，供后续逐题收集用户评分。',
+    requiredParams: [],
+    safeDefaults: {},
+    doNotAssume: [],
+    workflow: '先调本工具取得题目 → 逐题询问用户 1-5 分 → 再调 assess_constitution。',
+  },
+  combo_marriage: {
+    tool: 'combo_marriage',
+    purpose: '合婚/合伙/合作配对：双方八字冲合、五行互补、命卦与可选姓名匹配。',
+    requiredParams: [
+      { name: 'personA.birth', required: true, description: '甲方完整生辰', promptToUser: '请提供甲方完整出生年月日时与性别。' },
+      { name: 'personA.baziTimeContext', required: true, description: '甲方八字时间来源', promptToUser: '请确认甲方真太阳时校验结果，或明确同意按民用时间计算并确认未完成真太阳时复核。' },
+      { name: 'personB.birth', required: true, description: '乙方完整生辰', promptToUser: '请提供乙方完整出生年月日时与性别。' },
+      { name: 'personB.baziTimeContext', required: true, description: '乙方八字时间来源', promptToUser: '请确认乙方真太阳时校验结果，或明确同意按民用时间计算并确认未完成真太阳时复核。' },
+    ],
+    safeDefaults: {},
+    doNotAssume: ['personA.birth', 'personA.baziTimeContext', 'personB.birth', 'personB.baziTimeContext'],
+    workflow: '分别完成双方八字时间来源核验或民用降级确认 → 调 combo_marriage → 基于返回的配对结构化结果解读。',
+  },
+  cast_cezi: {
+    tool: 'cast_cezi',
+    purpose: '测字/字占：按汉字数理、字义五行与字形结构给出传统文化参考；可选叠加八字用神补益。',
+    requiredParams: [
+      { name: 'char', required: true, description: '所测汉字', promptToUser: '请提供要测的汉字。' },
+    ],
+    safeDefaults: {},
+    doNotAssume: ['char', 'birth', 'baziTimeContext'],
+    workflow: '确认所测汉字 → 调 cast_cezi；只有用户提供完整生辰时才可叠加八字用神，并必须同时传 baziTimeContext。',
+  },
+  calc_chenguz: {
+    tool: 'calc_chenguz',
+    purpose: '袁天罡称骨：按完整出生年月日时和性别计算传统称骨结果。',
+    requiredParams: BIRTH_PARAMS,
+    safeDefaults: { birth: { minute: 0 }, version: 'standard' },
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
+    workflow: '确认完整生辰 → 调 calc_chenguz → 仅依据返回结果说明民俗参考。',
   },
 };
 

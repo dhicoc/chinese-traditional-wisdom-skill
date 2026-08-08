@@ -23,38 +23,52 @@ describe('agent_guidance 参数引导', () => {
     expect(getToolGuidance('nonexistent')).toBeNull();
   });
 
-  it('listToolGuidance 返回 27 个工具摘要', () => {
+  it('listToolGuidance 返回全部 32 个计算工具摘要', () => {
     const list = listToolGuidance();
-    expect(list.length).toBe(27);
+    expect(list.length).toBe(32);
+    expect(list.some((g) => g.tool === 'combo_marriage')).toBe(true);
+    expect(list.some((g) => g.tool === 'cast_cezi')).toBe(true);
+    expect(list.some((g) => g.tool === 'list_constitution_questionnaire')).toBe(true);
     list.forEach((g) => {
       expect(g.tool).toMatch(/^[a-z_]+$/);
       expect(g.purpose).toBeTruthy();
-      expect(g.requiredParams.length).toBeGreaterThan(0);
     });
   });
 
-  it('GLOBAL_AGENT_RULES 含不得编造生辰规则', () => {
+  it('GLOBAL_AGENT_RULES 含不得编造生辰与不得模型推演规则', () => {
     expect(GLOBAL_AGENT_RULES.some((r) => r.includes('不得') && r.includes('生辰'))).toBe(true);
+    expect(GLOBAL_AGENT_RULES.some((r) => r.includes('MCP') && r.includes('模型知识'))).toBe(true);
   });
 
-  it('validateToolInput: bazi 缺时辰与性别时返回追问', () => {
+  it('GLOBAL_AGENT_RULES 规定 ToolEnvelope 的用户呈现顺序', () => {
+    expect(GLOBAL_AGENT_RULES.some((r) => r.includes('data.timeSource') && r.includes('warnings'))).toBe(true);
+    expect(GLOBAL_AGENT_RULES.some((r) => r.includes('export_snapshot.summary') && r.includes('evidence'))).toBe(true);
+  });
+
+  it('safeDefaults 不包含默认男', () => {
+    const serializedDefaults = JSON.stringify(Object.values(listToolGuidance()).map((item) => getToolGuidance(item.tool)?.safeDefaults));
+    expect(serializedDefaults).not.toContain('"gender":"男"');
+  });
+
+  it('validateToolInput: bazi 缺时辰、性别和时间来源时返回追问', () => {
     const { missing, prompts } = validateToolInput('bazi_calculate', {
-      birth: { year: 1990, month: 6, day: 15 }, // 缺 hour + gender
+      birth: { year: 1990, month: 6, day: 15 }, // 缺 hour + gender + timeBasis
     });
-    expect(missing.length).toBe(2);
+    expect(missing.length).toBe(3);
     expect(missing.some((m) => m.name === 'birth.hour')).toBe(true);
     expect(missing.some((m) => m.name === 'birth.gender')).toBe(true);
-    expect(prompts.length).toBe(2);
+    expect(missing.some((m) => m.name === 'timeBasis')).toBe(true);
     expect(prompts.some((p) => p.includes('时辰'))).toBe(true);
     expect(prompts.some((p) => p.includes('性别'))).toBe(true);
+    expect(prompts.some((p) => p.includes('时间来源'))).toBe(true);
   });
 
-  it('validateToolInput: bazi 参数齐全时返回空', () => {
+  it('validateToolInput: bazi 生辰齐全但未声明时间来源时仍返回追问', () => {
     const { missing, prompts } = validateToolInput('bazi_calculate', {
       birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
     });
-    expect(missing).toEqual([]);
-    expect(prompts).toEqual([]);
+    expect(missing.map((item) => item.name)).toEqual(['timeBasis']);
+    expect(prompts.some((p) => p.includes('时间来源'))).toBe(true);
   });
 
   it('validateToolInput: dream_interpret 缺 keyword 返回追问', () => {
@@ -65,29 +79,45 @@ describe('agent_guidance 参数引导', () => {
 });
 
 describe('wisdom_dispatch 意图路由', () => {
-  it('排八字带完整生辰 → bazi_calculate + 参数齐全', () => {
+  it('排八字带完整生辰 → 真太阳时预检而非直接排盘', () => {
     const r = dispatchIntent('帮我排个八字，1990年6月15日12时男');
     expect(r.hit).toBe(true);
-    expect(r.tool).toBe('bazi_calculate');
+    expect(r.tool).toBe('resolve_true_solar_time');
     const args = r.arguments as { birth: { year: number; month: number; day: number; hour: number; gender: string } };
     expect(args.birth.year).toBe(1990);
     expect(args.birth.month).toBe(6);
     expect(args.birth.day).toBe(15);
     expect(args.birth.hour).toBe(12);
     expect(args.birth.gender).toBe('男');
-    expect(r.missingPrompts).toEqual([]);
+    expect(r.baziPreflight).toEqual(expect.objectContaining({
+      status: 'needs-true-solar-verification',
+      civilFallbackExplicitlyConfirmed: false,
+    }));
+    expect(r.missingPrompts.some((prompt) => prompt.includes('出生地'))).toBe(true);
   });
 
-  it('排八字缺时辰与性别 → 命中 bazi 但有缺参追问', () => {
+  it('排八字缺时辰与性别 → 真太阳时预检仍保留出生资料缺口', () => {
     const r = dispatchIntent('算一下八字，1995年3月20日');
     expect(r.hit).toBe(true);
-    expect(r.tool).toBe('bazi_calculate');
-    const args = r.arguments as { birth: { year: number; month: number; day: number; hour?: number; gender?: string } };
+    expect(r.tool).toBe('resolve_true_solar_time');
+    const args = r.arguments as { birth: { year: number; hour?: number; gender?: string } };
     expect(args.birth.year).toBe(1995);
     expect(args.birth.hour).toBeUndefined();
     expect(args.birth.gender).toBeUndefined();
-    expect(r.missingPrompts.some((p) => p.includes('时辰'))).toBe(true);
-    expect(r.missingPrompts.some((p) => p.includes('性别'))).toBe(true);
+    expect(r.baziPreflight?.status).toBe('needs-true-solar-verification');
+  });
+
+  it('明确按民用时间排八字 → bazi_calculate 降级参数可执行', () => {
+    const r = dispatchIntent('帮我按民用时间排八字，1990年6月15日12时男');
+    expect(r.tool).toBe('bazi_calculate');
+    expect(r.arguments).toMatchObject({
+      timeBasis: 'civil-unverified',
+      civilFallbackConfirmed: true,
+    });
+    expect(r.baziPreflight).toEqual(expect.objectContaining({
+      status: 'civil-fallback-ready',
+      civilFallbackExplicitlyConfirmed: true,
+    }));
   });
 
   it('梦见蛇 → dream_interpret', () => {

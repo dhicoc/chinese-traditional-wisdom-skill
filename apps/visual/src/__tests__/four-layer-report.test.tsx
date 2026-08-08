@@ -106,6 +106,22 @@ describe('FourLayerReport 渲染', () => {
     expect(screen.queryByText('已通过 lunar-javascript/Solar 读取节气干支')).not.toBeInTheDocument();
   });
 
+  it('渲染用户级计算状态与限制提醒', () => {
+    const report: LayerReport = { tldr: 't', overallTone: '中', highlights: [], details: [], actions: [] };
+    render(
+      <FourLayerReport
+        report={report}
+        notices={['未完成真太阳时复核']}
+        warnings={['流派口径可能存在差异']}
+      />,
+    );
+
+    expect(screen.getByText('计算状态')).toBeInTheDocument();
+    expect(screen.getAllByRole('listitem')[0].textContent).toContain('未完成真太阳时复核');
+    expect(screen.getByText('使用限制与注意事项')).toBeInTheDocument();
+    expect(screen.getAllByRole('listitem')[1].textContent).toContain('流派口径可能存在差异');
+  });
+
   it('highlight 含 strength 时渲染「身强/身弱」小标', () => {
     const report: LayerReport = {
       tldr: 't', overallTone: '中',

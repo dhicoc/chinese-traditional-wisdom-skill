@@ -7,9 +7,16 @@ export interface ExportReportSnapshot {
   sections: Array<{ heading: string; body: string }>;
 }
 
+export interface ExportUserPresentation {
+  report: ExportReportSnapshot;
+  notices?: string[];
+  warnings?: string[];
+}
+
 interface ExportReportButtonProps {
   module?: string;
   report?: ExportReportSnapshot | null;
+  presentation?: ExportUserPresentation | null;
 }
 
 function escapeHtml(value: string): string {
@@ -27,17 +34,31 @@ export function createExportReportHtml({
   generatedAt,
   birthSummary,
   report,
+  notices = [],
+  warnings = [],
 }: {
   title: string;
   generatedAt: string;
   birthSummary: string;
   report: ExportReportSnapshot;
+  notices?: string[];
+  warnings?: string[];
 }): string {
   const sections = report.sections.map((section) => `
     <section>
       <h2>${escapeHtml(section.heading)}</h2>
       <p>${escapeHtml(section.body).replace(/\n/g, '<br>')}</p>
     </section>`).join('');
+  const noticeSection = notices.length ? `
+    <aside class="notice">
+      <h2>计算状态</h2>
+      <ul>${notices.map((notice) => `<li>${escapeHtml(notice)}</li>`).join('')}</ul>
+    </aside>` : '';
+  const warningSection = warnings.length ? `
+    <aside class="warning">
+      <h2>使用限制与注意事项</h2>
+      <ul>${warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join('')}</ul>
+    </aside>` : '';
 
   return `<!doctype html>
 <html lang="zh-CN">
@@ -56,8 +77,12 @@ export function createExportReportHtml({
     h1 { margin: 6px 0 0; font-size: 30px; letter-spacing: 0.08em; }
     .meta { margin: 14px 0 0; color: #5c5348; font-size: 14px; }
     .summary { margin: 28px 0; padding: 18px 20px; border: 1px solid #c7bda5; background: #efe9da; font-family: "Noto Serif SC", "Songti SC", serif; font-size: 17px; }
+    aside { margin: 18px 0; padding: 14px 16px; border: 1px solid #d9d1bd; }
+    aside.notice { border-color: #b99b4d; background: #f4edda; }
+    aside.warning { border-color: #b86a52; background: #f7e9e2; }
     section { padding: 22px 0; border-top: 1px solid #d9d1bd; }
     h2 { margin: 0 0 10px; color: #3d6053; font-size: 20px; }
+    ul { margin: 0; padding-left: 20px; }
     p { margin: 0; white-space: normal; }
     footer { margin-top: 28px; padding-top: 16px; border-top: 1px solid #d9d1bd; color: #6f6659; font-size: 12px; }
     @media print { body { background: #fff; } main { width: 100%; margin: 0; border: 0; box-shadow: none; } }
@@ -71,6 +96,8 @@ export function createExportReportHtml({
       <p class="meta">生成时间：${escapeHtml(generatedAt)}<br>出生资料：${escapeHtml(birthSummary)}</p>
     </header>
     <div class="summary">${escapeHtml(report.summary).replace(/\n/g, '<br>')}</div>
+    ${noticeSection}
+    ${warningSection}
     ${sections}
     <footer>本报告内容仅作传统文化参考。</footer>
   </main>
@@ -85,7 +112,7 @@ function defaultReport(title: string): ExportReportSnapshot {
   };
 }
 
-export function ExportReportButton({ module, report }: ExportReportButtonProps) {
+export function ExportReportButton({ module, report, presentation }: ExportReportButtonProps) {
   const [exporting, setExporting] = useState(false);
   const { birth, solarBirth } = useBirth();
   const title = module ?? '命盘报告';
@@ -98,7 +125,9 @@ export function ExportReportButton({ module, report }: ExportReportButtonProps) 
         title,
         generatedAt: new Date().toLocaleString('zh-CN'),
         birthSummary,
-        report: report ?? defaultReport(title),
+        report: presentation?.report ?? report ?? defaultReport(title),
+        notices: presentation?.notices,
+        warnings: presentation?.warnings,
       });
       const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
       const url = URL.createObjectURL(blob);

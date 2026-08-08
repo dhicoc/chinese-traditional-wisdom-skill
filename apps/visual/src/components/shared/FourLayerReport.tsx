@@ -45,11 +45,15 @@ interface FourLayerReportProps {
   report: LayerReport;
   /** 标题（如"八字四层报告"） */
   title?: string;
+  /** 计算状态或时间来源提示 */
+  notices?: string[];
+  /** 用户应知的限制与注意事项 */
+  warnings?: string[];
   /** 默认是否展开 details，默认 false */
   defaultDetailsOpen?: boolean;
 }
 
-export function FourLayerReport({ report, title, defaultDetailsOpen = false }: FourLayerReportProps) {
+export function FourLayerReport({ report, title, notices = [], warnings = [], defaultDetailsOpen = false }: FourLayerReportProps) {
   const [detailsOpen, setDetailsOpen] = useState(defaultDetailsOpen);
   const toneStyle = TONE_STYLE[report.overallTone];
 
@@ -64,6 +68,24 @@ export function FourLayerReport({ report, title, defaultDetailsOpen = false }: F
   return (
     <section className="space-y-3">
       {title && <h4 className="text-sm font-semibold text-jade-100">{title}</h4>}
+
+      {notices.length > 0 && (
+        <div className="rounded-card border border-gold-500/30 bg-gold-500/8 px-3 py-2.5">
+          <p className="text-xs font-semibold text-gold-300">计算状态</p>
+          <ul className="mt-1 space-y-1 text-xs leading-5 text-jade-100/75">
+            {notices.map((notice) => <li key={notice}>· {notice}</li>)}
+          </ul>
+        </div>
+      )}
+
+      {warnings.length > 0 && (
+        <div className="rounded-card border border-cinnabar-500/25 bg-cinnabar-500/8 px-3 py-2.5">
+          <p className="text-xs font-semibold text-cinnabar-300">使用限制与注意事项</p>
+          <ul className="mt-1 space-y-1 text-xs leading-5 text-jade-100/75">
+            {warnings.map((warning) => <li key={warning}>· {warning}</li>)}
+          </ul>
+        </div>
+      )}
 
       {/* 第一层：tldr + 总体吉凶 */}
       <div className={`rounded-card border ${toneStyle.border} ${toneStyle.bg} p-3.5`}>

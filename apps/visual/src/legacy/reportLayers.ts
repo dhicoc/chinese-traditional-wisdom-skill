@@ -66,6 +66,15 @@ export interface LayerReport {
   tags?: string[];
 }
 
+export interface UserPresentation {
+  state: 'success' | 'error';
+  report: LayerReport | null;
+  exportReport: ReadingLike | null;
+  notices: string[];
+  warnings: string[];
+  error?: { code: string; message: string };
+}
+
 // ─── 归类规则 ───
 
 /** 核心结论类 heading → 归 highlights */
@@ -173,6 +182,55 @@ export function toFourLayer(reading: ReadingLike): LayerReport {
     actions,
     sourceNotes: reading.sourceNotes,
     tags: reading.tags,
+  };
+}
+
+type EnvelopeData = {
+  export_snapshot?: ReadingLike;
+  timeSource?: { notice?: unknown };
+};
+
+type EnvelopeLike = {
+  ok: boolean;
+  data?: EnvelopeData;
+  warnings?: unknown;
+  error?: { code?: unknown; message?: unknown };
+};
+
+function uniqueText(values: unknown[]): string[] {
+  return [...new Set(values.filter((value): value is string => typeof value === 'string' && value.trim().length > 0).map((value) => value.trim()))];
+}
+
+/**
+ * 将 ToolEnvelope 收束为用户可见呈现模型。
+ * 正文只取 export_snapshot；计算状态与 warnings 单独保留；内部 evidence、result_meta 与 sourceNotes 不进入导出内容。
+ */
+export function toUserPresentation(envelope: EnvelopeLike): UserPresentation {
+  if (!envelope.ok) {
+    const message = typeof envelope.error?.message === 'string' && envelope.error.message.trim()
+      ? envelope.error.message.trim()
+      : '本次计算未能完成，请核对输入后重试。';
+    return {
+      state: 'error',
+      report: null,
+      exportReport: null,
+      notices: [],
+      warnings: [],
+      error: {
+        code: typeof envelope.error?.code === 'string' && envelope.error.code.trim() ? envelope.error.code : 'calculation_failed',
+        message,
+      },
+    };
+  }
+
+  const snapshot = envelope.data?.export_snapshot;
+  const timeSourceNotice = envelope.data?.timeSource?.notice;
+  return {
+    state: 'success',
+    report: snapshot ? toFourLayer(snapshot) : null,
+    exportReport: snapshot ? { summary: snapshot.summary, sections: snapshot.sections } : null,
+    notices: uniqueText([timeSourceNotice]),
+    warnings: uniqueText(Array.isArray(envelope.warnings) ? envelope.warnings : []),
   };
 }
 

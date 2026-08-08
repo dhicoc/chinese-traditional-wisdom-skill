@@ -12,7 +12,7 @@ import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { calculateBazi as calculateBaziPure, calcBaziEnveloped, getBaziMonthDaySnapshot, getBaziTransitSnapshot } from '@/legacy/baziEngine';
 import type { AdvancedBaziAnalysis } from '@/legacy/advancedBazi';
 import type { TrineSource } from '@/legacy/shensha';
-import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
+import { toUserPresentation } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { type BaziPillars, type WuxingStats } from '@/legacy/canvasRenderers';
 import type { ShenShaItem } from '@/legacy/shensha';
@@ -54,14 +54,14 @@ interface BaziResult {
   shenShaTrineSource?: TrineSource;
 }
 
-function calculateBazi(solarBirth: SolarBirth, timeContext: ReturnType<typeof useBirth>['resolvedBaziBirth'], ready: boolean, trineSource: TrineSource) {
+function calculateBazi(solarBirth: SolarBirth, ready: boolean, trineSource: TrineSource) {
   if (!ready) {
     return { result: null, pillars: { ...DEFAULT_PILLARS, gender: solarBirth.gender }, wuxing: DEFAULT_WUXING, envelope: null };
   }
   try {
     const solarEntry = getSolarEntry();
-    const env = calcBaziEnveloped({ birth: solarBirth, timeContext, solar: solarEntry, shenShaTrineSource: trineSource });
-    const pure = calculateBaziPure({ birth: solarBirth, timeContext, solar: solarEntry, shenShaTrineSource: trineSource });
+    const env = calcBaziEnveloped({ birth: solarBirth, solar: solarEntry, shenShaTrineSource: trineSource });
+    const pure = calculateBaziPure({ birth: solarBirth, solar: solarEntry, shenShaTrineSource: trineSource });
     const pillars: BaziPillars = {
       year: { stem: pure.pillars.year.stem, branch: pure.pillars.year.branch, hidden: pure.hiddenStems.year },
       month: { stem: pure.pillars.month.stem, branch: pure.pillars.month.branch, hidden: pure.hiddenStems.month },
@@ -91,8 +91,10 @@ function getTodayDate() {
 }
 
 export function BaziWorkspace() {
-  const { birth, resolvedBaziBirth } = useBirth();
-  const solarBirth = resolvedBaziBirth.correctedBirth;
+  const { birth, baziTimeStatus } = useBirth();
+  const solarBirth = baziTimeStatus.status === 'true-solar-verified'
+    ? baziTimeStatus.resolution.trueSolarBirth
+    : baziTimeStatus.civilBirth;
   const [trineSource, setTrineSource] = useState<TrineSource>('year');
   const [activeShenShaPillar, setActiveShenShaPillar] = useState<'年' | '月' | '日' | '时' | null>(null);
   const [transitYear, setTransitYear] = useState(() => String(new Date().getFullYear()));
@@ -100,8 +102,8 @@ export function BaziWorkspace() {
 
   const ready = true;
   const { result, pillars, wuxing, envelope } = useMemo(
-    () => calculateBazi(solarBirth, resolvedBaziBirth, ready, trineSource),
-    [solarBirth, resolvedBaziBirth, ready, trineSource],
+    () => calculateBazi(solarBirth, ready, trineSource),
+    [solarBirth, ready, trineSource],
   );
   const transit = useMemo(() => getBaziTransitSnapshot(solarBirth, Number(transitYear), getSolarEntry()), [solarBirth, transitYear]);
   const monthDayTransit = useMemo(() => getBaziMonthDaySnapshot(solarBirth, transitDate, getSolarEntry()), [solarBirth, transitDate]);
@@ -113,10 +115,7 @@ export function BaziWorkspace() {
   const selectedShenShaItems = selectedShenShaPillar
     ? shenSha.filter((item) => item.pillar === selectedShenShaPillar)
     : [];
-  const fourLayer = useMemo<LayerReport | null>(() => {
-    if (!envelope) return null;
-    return toFourLayer(envelope.data.export_snapshot as ReadingLike);
-  }, [envelope]);
+  const presentation = useMemo(() => envelope ? toUserPresentation(envelope) : null, [envelope]);
   const pillarRows = [
     ['年柱', pillars.year],
     ['月柱', pillars.month],
@@ -132,13 +131,19 @@ export function BaziWorkspace() {
   const contextPayload = useMemo(
     () => ({
       项目: '八字命盘',
-      民用出生时间: resolvedBaziBirth.civilBirth,
+      民用出生时间: baziTimeStatus.status === 'true-solar-verified'
+        ? baziTimeStatus.resolution.civilBirth
+        : baziTimeStatus.civilBirth,
       排盘时间: solarBirth,
-      校时: resolvedBaziBirth.applied ? `${resolvedBaziBirth.correctionMinutes >= 0 ? '+' : ''}${resolvedBaziBirth.correctionMinutes} 分钟（地方平太阳时）` : '未启用经度校时',
+      时间来源: baziTimeStatus.status === 'true-solar-verified'
+        ? '已核验真太阳时'
+        : baziTimeStatus.status === 'civil-unverified'
+          ? '民用时间（未完成真太阳时复核）'
+          : '民用时间（等待 Agent 真太阳时核验）',
       四柱: pillars,
       五行: wuxing,
     }),
-    [resolvedBaziBirth, solarBirth, pillars, wuxing],
+    [baziTimeStatus, solarBirth, pillars, wuxing],
   );
 
   return (
@@ -152,22 +157,41 @@ export function BaziWorkspace() {
               根据出生时间排出四柱，并从五行平衡角度提供传统命理参考。
             </p>
             <p className="mt-2 text-xs text-jade-100/50">
-              民用时间：{birthSummary(resolvedBaziBirth.civilBirth)} · {birth.isLunar ? '农历' : '公历'} · {solarBirth.gender}
+              民用时间：{birthSummary(baziTimeStatus.status === 'true-solar-verified' ? baziTimeStatus.resolution.civilBirth : baziTimeStatus.civilBirth)} · {birth.isLunar ? '农历' : '公历'} · {solarBirth.gender}
             </p>
-            {resolvedBaziBirth.applied && (
+            {baziTimeStatus.status === 'true-solar-verified' && (
+              <>
+                <p className="mt-1 text-xs text-jade-300/80">
+                  排盘时间：{birthSummary(solarBirth)}（已核验真太阳时，校正 {baziTimeStatus.resolution.trueSolarCorrectionMinutes >= 0 ? '+' : ''}{baziTimeStatus.resolution.trueSolarCorrectionMinutes} 分钟）
+                </p>
+                {(baziTimeStatus.resolution.crossedDate || baziTimeStatus.resolution.crossedShichen || baziTimeStatus.resolution.crossedZiChu) && (
+                  <p className="mt-1 text-xs text-gold-300/80">
+                    真太阳时已跨越{[baziTimeStatus.resolution.crossedDate ? '日期' : '', baziTimeStatus.resolution.crossedShichen ? '时辰' : '', baziTimeStatus.resolution.crossedZiChu ? '子初换日边界' : ''].filter(Boolean).join('、')}，按子初换日口径定盘。
+                  </p>
+                )}
+              </>
+            )}
+            {baziTimeStatus.status === 'awaiting-agent-verification' && (
               <p className="mt-1 text-xs text-gold-300/80">
-                排盘时间：{birthSummary(solarBirth)}（地方平太阳时，校正 {resolvedBaziBirth.correctionMinutes >= 0 ? '+' : ''}{resolvedBaziBirth.correctionMinutes} 分钟）
+                等待 Agent 核验出生地点、历史时区与夏令时；当前暂按民用时间展示，尚未称为真太阳时排盘。
               </p>
             )}
-            {(resolvedBaziBirth.crossedDate || resolvedBaziBirth.crossedShichen || resolvedBaziBirth.crossedZiChu) && (
+            {baziTimeStatus.status === 'civil-unverified' && (
               <p className="mt-1 text-xs text-gold-300/80">
-                校时已跨越{[resolvedBaziBirth.crossedDate ? '日期' : '', resolvedBaziBirth.crossedShichen ? '时辰' : '', resolvedBaziBirth.crossedZiChu ? '子初换日边界' : ''].filter(Boolean).join('、')}，按子初换日口径定盘。
+                未完成真太阳时复核：已按用户确认的民用出生记录排盘。
               </p>
             )}
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="bazi" title="八字命盘摘要" payload={contextPayload} />
-            <ExportReportButton module="八字命盘" report={envelope?.data.export_snapshot ?? null} />
+            <ExportReportButton
+              module="八字命盘"
+              presentation={presentation?.exportReport ? {
+                report: presentation.exportReport,
+                notices: presentation.notices,
+                warnings: presentation.warnings,
+              } : null}
+            />
           </div>
         </div>
       </div>
@@ -506,9 +530,14 @@ export function BaziWorkspace() {
             description="读完盘面后，可在这里查看术语的通俗说明。"
           />
         </div>
-        {fourLayer && (
+        {presentation?.report && (
           <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument xl:col-span-7">
-            <FourLayerReport report={fourLayer} title="命盘解读" />
+            <FourLayerReport
+              report={presentation.report}
+              title="命盘解读"
+              notices={presentation.notices}
+              warnings={presentation.warnings}
+            />
           </div>
         )}
       </section>
