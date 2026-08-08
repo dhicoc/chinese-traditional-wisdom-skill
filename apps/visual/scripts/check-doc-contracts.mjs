@@ -31,6 +31,7 @@ const requiredFiles = [
   "README.md",
   "README_AI.md",
   "SKILL.md",
+  "apps/mcp-server/README.md",
   "RULES.md",
   "tool-index.md",
   "EVOLUTION.md",
@@ -57,6 +58,7 @@ requiredFiles.forEach((relPath) => check(exists(relPath), `缺少入口或数据
 const readme = read("README.md");
 const readmeAi = read("README_AI.md");
 const skill = read("SKILL.md");
+const mcpReadme = read("apps/mcp-server/README.md");
 const toolIndex = read("tool-index.md");
 const roadmap = read("ROADMAP.md");
 const reportTemplate = read("templates/visual-report.md");
@@ -123,6 +125,25 @@ check(trueSolarTime.includes("equationOfTimeMinutes"), "trueSolarTime.ts 缺少�
   check(content.includes("未完成真太阳时复核"), `${name} 缺少真太阳时降级标记`);
 });
 check(rules.includes("禁止凭模型记忆"), "RULES.md 缺少禁止凭模型记忆校时规则");
+[
+  ["README.md", readme],
+  ["apps/mcp-server/README.md", mcpReadme],
+].forEach(([name, content]) => {
+  check(content.includes("34 个工具"), `${name} 缺少 34 个工具当前统计`);
+  check(content.includes("32 个计算工具"), `${name} 缺少 32 个计算工具当前统计`);
+  check(content.includes("resolve_true_solar_time"), `${name} 缺少真太阳时 MCP 调用`);
+  check(content.includes("trueSolarBirth"), `${name} 缺少 trueSolarBirth 调用链`);
+});
+[
+  ["README.md", readme],
+  ["README_AI.md", readmeAi],
+  ["apps/mcp-server/README.md", mcpReadme],
+].forEach(([name, content]) => {
+  check(!content.includes("共 24 个工具"), `${name} 仍包含过期的 24 工具统计`);
+  check(!content.includes("共 27 个工具"), `${name} 仍包含过期的 27 工具统计`);
+  check(!content.includes("25 个计算工具"), `${name} 仍包含过期的 25 个计算工具统计`);
+});
+check(!rules.includes("按子时处理"), "RULES.md 不得在未知时辰时默认按子时处理");
 check(ziweiBootstrap.includes("只定义八字预处理"), "ziwei-engine.md 应明确真太阳时仅为八字预处理契约");
 check(!ziweiBootstrap.includes("cities.ts"), "ziwei-engine.md 不应依赖不存在的 cities.ts 城市坐标表");
 

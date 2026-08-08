@@ -15,8 +15,8 @@
 === Chinese Traditional Wisdom AI Agent Workflow - Setup ===
 
 [1/2] 计算引擎（纯 TS，零 Python 依赖）:
-  - apps/visual/src/legacy/*Engine.ts  22 个纯 TS 引擎
-    （八字/紫微/六爻/奇门/大六壬/星宿/太乙/梅花/五运六气/姓名/喜用神/体质/解梦 + 9 联合分析）
+  - apps/visual/src/legacy/  本地纯 TS 确定性引擎与适配器
+    （排盘、日用工具、真太阳时校准与联合分析；实际 MCP 工具清单见 SKILL.md）
   - 精确历法: lunar-javascript (npm ESM import)
   - 紫微: iztro v2.5.8 (npm ESM)    奇门: 3meta v2.6.0 (npm ESM)
   - 可视化: apps/visual (React + Vite + SVG)，pnpm dev 启动
@@ -145,8 +145,8 @@ Dashboard 中能力状态由 `apps/visual/src/lib/modules.ts` 的 `MODULES` 注�
 ```markdown
 1. 执行 node scripts/setup-mcp.mjs 自动配置客户端
 2. 重启 Claude Code/Desktop/Cursor/Cline
-3. 对话中直接说「排个八字」「解梦」「今日养生」「合婚」等，AI 自动调用 25 个计算工具之一
-4. 工具返回 ToolEnvelope（含 export_snapshot 段表），AI 据此生成解读
+3. 对话中直接说「排个八字」「解梦」「今日养生」「合婚」等，AI 经 `wisdom_dispatch`、`agent_guidance` 后调用 32 个计算工具之一
+4. 常规工具返回 ToolEnvelope（含 export_snapshot 段表），AI 据此生成解读；八字先完成 `resolve_true_solar_time` 校准，再用 `trueSolarBirth` 调用 `bazi_calculate`
 ```
 
 ## 4. 关键入口文件
@@ -161,8 +161,7 @@ Dashboard 中能力状态由 `apps/visual/src/lib/modules.ts` 的 `MODULES` 注�
 | [bootstrap/](bootstrap/) | 引擎接入引导 |
 | [templates/visual-report.md](templates/visual-report.md) | 静态 HTML 报告模板 |
 | [apps/visual/](apps/visual/) | React + Vite + TS Dashboard（SVG 可视化，主开发入口） |
-| [apps/visual/](apps/visual/) | React + SVG Dashboard（vite，`pnpm dev` 启动） |
-| [apps/mcp-server/](apps/mcp-server/) | MCP Server（27 工具薄壳）+ `README.md` 挂载指南 |
+| [apps/mcp-server/](apps/mcp-server/) | MCP Server（34 工具：32 计算 + 2 元工具）+ `README.md` 挂载指南 |
 | [scripts/setup-mcp.mjs](scripts/setup-mcp.mjs) | MCP 一键自动配置脚本（AI 自主激活） |
 
 ## 5. 全局搜索

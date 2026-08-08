@@ -33,16 +33,12 @@ export function BirthPanel() {
   const [draftDay, setDraftDay] = useState(String(birth.day));
   const [draftHour, setDraftHour] = useState(String(birth.hour));
   const [draftMinute, setDraftMinute] = useState(String(birth.minute));
-  const [draftLongitude, setDraftLongitude] = useState(birth.longitude?.toString() ?? '');
-  const [draftOffset, setDraftOffset] = useState(birth.utcOffsetMinutes?.toString() ?? '');
   // birth 外部变化（reset / 路由跳转）时同步回 draft
   useEffect(() => { setDraftYear(String(birth.year)); }, [birth.year]);
   useEffect(() => { setDraftMonth(String(birth.month)); }, [birth.month]);
   useEffect(() => { setDraftDay(String(birth.day)); }, [birth.day]);
   useEffect(() => { setDraftHour(String(birth.hour)); }, [birth.hour]);
   useEffect(() => { setDraftMinute(String(birth.minute)); }, [birth.minute]);
-  useEffect(() => { setDraftLongitude(birth.longitude?.toString() ?? ''); }, [birth.longitude]);
-  useEffect(() => { setDraftOffset(birth.utcOffsetMinutes?.toString() ?? ''); }, [birth.utcOffsetMinutes]);
 
   /** blur 时把 draft 提交为 number；空或非法时回退到当前 birth 值 */
   const commitDraft = (field: 'year' | 'month' | 'day' | 'hour' | 'minute', draft: string, fallback: number) => {
@@ -58,11 +54,6 @@ export function BirthPanel() {
     }
     updateBirth({ [field]: n } as Partial<typeof birth>);
     void fallback;
-  };
-
-  const commitOptionalNumber = (field: 'longitude' | 'utcOffsetMinutes', draft: string) => {
-    const n = Number(draft);
-    updateBirth({ [field]: draft.trim() === '' || !Number.isFinite(n) ? undefined : n } as Partial<typeof birth>);
   };
 
   const summary = `${birth.year}-${String(birth.month).padStart(2, '0')}-${String(birth.day).padStart(2, '0')} ${String(birth.hour).padStart(2, '0')}:${String(birth.minute).padStart(2, '0')} ${birth.gender} ${birth.isLunar ? '农历' : '公历'}`;
@@ -232,39 +223,9 @@ export function BirthPanel() {
               </p>
             )}
             {baziTimeStatus.status === 'awaiting-agent-verification' && (
-              <div className="mt-2 space-y-2">
-                <p className="text-[11px] leading-5 text-jade-100/45">
-                  等待 Agent 核验出生地点、历史时区与夏令时。请提供可定位出生地；前端不会自行猜测经度、UTC 偏移或夏令时。
-                </p>
-                <details className="rounded border border-white/10 px-2 py-1.5">
-                  <summary className="cursor-pointer text-[11px] text-jade-100/55">专业核验资料（不直接改写排盘）</summary>
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    <ControlField
-                      label="经度（东正西负）"
-                      type="number"
-                      min={-180}
-                      max={180}
-                      inputMode="decimal"
-                      value={draftLongitude}
-                      onChange={(e) => setDraftLongitude(e.target.value)}
-                      onBlur={() => commitOptionalNumber('longitude', draftLongitude)}
-                    />
-                    <ControlField
-                      label="实际 UTC 偏移（分钟）"
-                      type="number"
-                      min={-720}
-                      max={840}
-                      inputMode="numeric"
-                      value={draftOffset}
-                      onChange={(e) => setDraftOffset(e.target.value)}
-                      onBlur={() => commitOptionalNumber('utcOffsetMinutes', draftOffset)}
-                    />
-                  </div>
-                  <p className="mt-2 text-[11px] leading-5 text-jade-100/35">
-                    仅供 Agent 核验地点与历史时区时参考；必须连同 IANA 时区、夏令时依据交给 MCP。前端不会据此计算或改写八字排盘时间。
-                  </p>
-                </details>
-              </div>
+              <p className="mt-2 text-[11px] leading-5 text-jade-100/45">
+                请在对话中提供可定位的出生地。AI Agent 会核验地点、历史时区与夏令时，再调用 MCP 计算真太阳时；MCP 返回校正后的出生时间后，才会用于八字排盘。
+              </p>
             )}
             {baziTimeStatus.status === 'civil-unverified' && (
               <p className="mt-2 text-[11px] leading-5 text-gold-300/80">

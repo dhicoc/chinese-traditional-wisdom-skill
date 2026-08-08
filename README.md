@@ -52,7 +52,7 @@
 > 市面上多数命理平台需付费解锁完整解读，且生辰等敏感信息要上传服务器、安全性未知。本项目正是为解决这个问题而设计：**所有排盘在浏览器本地完成，不上传完整生辰，核心能力全部免费开放**。
 
 - **本地优先 · 不上传生辰**：所有引擎纯 TS 本地计算（lunar-javascript/iztro/3meta 内置），生辰只收集年/月/日/时拆分字段，不存完整日期、不传服务器，比要你上传的平台隐私风险更低
-- **零付费 · 全功能开放**：无解锁、无会员、无付费墙，25 个引擎与可视化全部免费；MCP server 也是本地 stdio，不依赖任何付费远端
+- **零付费 · 全功能开放**：无解锁、无会员、无付费墙，确定性计算与可视化全部免费；MCP server 也是本地 stdio，不依赖任何付费远端
 - **多学科统一入口**：八字、紫微、六爻、梅花、风水、五运六气、体质等散落不同工具，此处统一聚合，AI Agent 可直接调用
 - **古籍可检索**：内置 16+ 部风水经典全文，同一问题不必每次重新查证
 - **零安装即刻体验**：纯前端可视化，打开即用
@@ -93,7 +93,7 @@ cd apps/visual && pnpm build && pnpm preview
 
 ### 方式 C：MCP Server（AI 客户端直接调用）
 
-把 25 个计算引擎（八字/紫微/六爻/奇门/大六壬/二十八星宿/太乙/皇极经世/梅花/五运六气/姓名/喜用神/体质/周公解梦/测字/称骨 + 9 个跨系统联合分析）挂载到 Claude Code、Claude Desktop、Cursor、Cline 等 MCP 客户端，AI 可直接调用排盘工具。
+MCP server 提供 **34 个工具**：32 个确定性计算工具，以及 `agent_guidance` 参数引导与 `wisdom_dispatch` 意图路由。它可挂载到 Claude Code、Claude Desktop、Cursor、Cline 等 MCP 客户端，供 AI 调用本地计算能力。
 
 **一键自动配置**（无需手动编辑配置文件）：
 
@@ -116,7 +116,9 @@ node scripts/setup-mcp.mjs
 }
 ```
 
-MCP server 是三层架构 Layer 2 的薄壳，复用 `apps/visual/src/legacy` 的纯 TS 引擎，统一返回 `ToolEnvelope` 结构化结果，共 27 个工具（25 计算 + `agent_guidance` 防参数瞎猜 + `wisdom_dispatch` 自然语言意图路由）。与 Dashboard 共享同一份计算逻辑，互不依赖。
+MCP server 是三层架构 Layer 2 的薄壳，复用 `apps/visual/src/legacy` 的纯 TS 引擎。常规计算返回 `ToolEnvelope`；对话 Agent 必须经 `wisdom_dispatch` 路由、`agent_guidance` 核对参数后再调用计算工具，不得凭模型知识自行推演。
+
+八字默认先尝试真太阳时：用户提供可定位出生地后，Agent 核验地点、历史时区、夏令时与 `utcOffsetEvidence`，调用 `resolve_true_solar_time`，再将返回的 `trueSolarBirth` 与 `calibrationToken` 用于 `bazi_calculate`。无法可靠核验时，仅在用户明确确认后使用民用出生时间，并标注“未完成真太阳时复核”。Dashboard 只展示等待核验、已核验和民用降级状态，不要求用户填写经度或历史 UTC 偏移。
 
 <p align="right">(<a href="#快速开始">返回顶部</a>)</p>
 
@@ -182,10 +184,10 @@ Dashboard 会在每个标签页显示能力状态，避免把演示数据误认�
 │
 ├── apps/                       # 主架构（React Shell + MCP Server）
 │   ├── visual/                 # React + Vite + TS Dashboard（SVG 可视化，主开发入口）
-│   │   └── src/legacy/         # 纯 TS 引擎 + 21 个 ToolEnvelope 适配器
-│   └── mcp-server/             # MCP Server（三层架构 Layer 2，27 工具薄壳）
+│   │   └── src/legacy/         # 纯 TS 引擎与 ToolEnvelope 适配器
+│   └── mcp-server/             # MCP Server（三层架构 Layer 2，34 工具薄壳）
 │       ├── src/index.ts        # McpServer + StdioServerTransport 入口
-│       ├── src/tools.ts        # 25 个计算工具定义（zod schema）
+│       ├── src/tools.ts        # 32 个计算工具定义（zod schema）
 │       ├── examples/           # Claude Desktop / Cursor / Cline 配置示例
 │       └── README.md           # 安装与挂载指南
 │
@@ -287,8 +289,9 @@ A holistic life consulting AI Agent workflow integrating BaZi, Ziwei, Liuyao, Me
 
 **Features:**
 - React + Vite + TypeScript dashboard with SVG visualization, capability badges and offline Mermaid fallback
-- 22 pure-TS calculation engines (14 divination + 8 cross-system combo) with unified `ToolEnvelope` output, shared by MCP server and Dashboard
-- MCP server (23 tools) for Claude Code / Desktop / Cursor / Cline direct invocation
+- Local TypeScript calculation engines with unified `ToolEnvelope` output, shared by MCP server and Dashboard
+- MCP server (34 tools: 32 calculation + 2 meta tools) for Claude Code / Desktop / Cursor / Cline direct invocation
+- BaZi true-solar-time flow: Agent verifies location and historical offset evidence, then calls `resolve_true_solar_time` before `bazi_calculate`
 - 30-file classic text knowledge base (16+ Fengshui classics)
 - 6 deterministic JSON mapping tables
 - Automated tests (unit + e2e + contract)

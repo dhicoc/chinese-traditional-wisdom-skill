@@ -136,8 +136,10 @@ describe('Bazi true solar time runtime boundary', () => {
     expect(workspaceSource).toContain("baziTimeStatus.status === 'true-solar-verified'");
     expect(workspaceSource).toContain('baziTimeStatus.resolution.trueSolarBirth');
     expect(workspaceSource).not.toContain('地方平太阳时');
-    expect(panelSource).toContain('专业核验资料（不直接改写排盘）');
-    expect(panelSource).toContain('前端不会据此计算或改写八字排盘时间');
+    expect(panelSource).toContain('AI Agent 会核验地点、历史时区与夏令时，再调用 MCP 计算真太阳时');
+    expect(panelSource).toContain('MCP 返回校正后的出生时间后，才会用于八字排盘');
+    expect(panelSource).not.toContain('经度（东正西负）');
+    expect(panelSource).not.toContain('实际 UTC 偏移（分钟）');
   });
 });
 
