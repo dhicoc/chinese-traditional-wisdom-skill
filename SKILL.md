@@ -27,7 +27,7 @@ description: 中国传统文化整体智慧咨询系统。融合玄学五术（�
 
 3. 向用户报告就绪状态（源码随仓库就绪，依赖按需安装，不预装）：
    - 纯 TS 引擎源码: apps/visual/src/legacy/*Engine.ts 与 trueSolarTime.ts（随仓库存在，零预装）
-   - MCP Server 源码: apps/mcp-server/（34 工具：32 计算 + agent_guidance + wisdom_dispatch）
+   - MCP Server 源码: apps/mcp-server/（35 工具：32 计算 + 3 个元工具）
    - Web Dashboard 源码: apps/visual（React+SVG；负责输入和结果可视化，不独立核验真太阳时）
    - 依赖按路径触发安装：用 Dashboard 时 `pnpm dev` 装 visual 依赖；
      用 AI 直调时 `setup-mcp.mjs` 装 mcp-server 依赖；不用则不装
@@ -63,14 +63,14 @@ node <SKILL_ROOT>/scripts/setup-mcp.mjs
 - 仅检查不写入：`node scripts/setup-mcp.mjs --check`
 - 只配指定客户端：`node scripts/setup-mcp.mjs --client=claude-code`（支持 claude-code / claude-desktop / cursor / cline）
 
-**MCP 工具列表**（34 个 = 32 计算 + 2 元工具）：
+**MCP 工具列表**（35 个 = 32 计算 + 3 元工具）：
 
 - 时间校准（1）：`resolve_true_solar_time`（真太阳时：只对 Agent 已核验的地点、历史 UTC 偏移与夏令时依据做确定性计算）
 - 排盘计算（22）：`bazi_calculate` / `ziwei_chart` / `cast_liuyao` / `arrange_qimen` / `liuren_calculate` / `xingxiu_daily` / `taiyi_calculate` / `huangji_calculate` / `cast_meihua` / `calc_yunqi` / `analyze_name` / `calc_xiyong` / `get_constitution_tendency` / `dream_interpret` / `cast_cezi` / `calc_chenguz` / `get_almanac`（每日黄历）/ `calc_feixing`（流年飞星）/ `calc_bazhai`（八宅大游年）/ `get_daily_rhythm`（节气调养+时辰经络）/ `assess_constitution`（体质问卷自评）/ `list_constitution_questionnaire`（取体质问卷题目，配合 assess_constitution）
 - 跨系统联合分析（9）：`combo_annual_fortune` / `combo_monthly_fortune` / `combo_decision` / `combo_space_time` / `combo_sanshi` / `combo_sanshi_classic` / `combo_daily_wellness` / `combo_zeri` / `combo_marriage`
-- 元工具（2）：`agent_guidance`（参数引导，防瞎猜）+ `wisdom_dispatch`（自然语言意图路由）
+- 元工具（3）：`agent_guidance`（参数引导，防瞎猜）/ `validate_bazi_presentation`（核验八字确定性呈现依据）/ `wisdom_dispatch`（自然语言意图路由）
 
-> 运行边界：对话 / Agent 必须走 `SKILL/RULES → wisdom_dispatch → agent_guidance → MCP 计算工具 → ToolEnvelope → 语言化解读`；Agent 不得凭模型知识、记忆或 reference 文件自行给出确定性结论。Dashboard 保持原有浏览器端纯 TypeScript 确定性计算和可视化入口，不需要经 MCP 转发；这不是模型推演，也不授权对话 Agent 绕过 MCP。
+> 运行边界：对话 / Agent 必须走 `SKILL/RULES → wisdom_dispatch → agent_guidance → MCP 计算工具 → ToolEnvelope → 语言化解读`；八字的确定性结论还须先通过 `validate_bazi_presentation`。Agent 不得凭模型知识、记忆或 reference 文件自行给出确定性结论。Dashboard 保持原有浏览器端纯 TypeScript 确定性计算和可视化入口，不需要经 MCP 转发；这不是模型推演，也不授权对话 Agent 绕过 MCP。
 > MCP server 与 Dashboard 可共享纯 TS 引擎。用户纯对话即可用全部功能：`wisdom_dispatch` 按关键词路由，`agent_guidance` 确认参数，计算工具返回结构化结果后再语言化解读（RULES.md §11）。
 
 ---
@@ -181,6 +181,16 @@ node <SKILL_ROOT>/scripts/setup-mcp.mjs
 2. 调用对应 reference 获取领域知识（仅作解读框架辅助，不作为排盘数据源）
 3. 基于引擎返回的结构化结果，运用该学科的分析框架进行语言化解读
 4. 记录关键发现和交叉点
+
+### 八字最终呈现校验
+
+当八字最终文本要写入四柱、日主、五行计数、日主强弱、大运或神煞等确定性结论时，必须在输出文本前执行以下闭环：
+
+1. 只从本次 `bazi_calculate` 的 `ToolEnvelope` 提取待呈现事实及 `result_meta.presentationToken`；不得沿用旧会话的 token，也不得自行构造结果。
+2. 将每条待呈现事实转换成 `validate_bazi_presentation` 的 `claims`：`pillar`、`dayMaster`、`elementCount`、`strength`、`luck` 或 `shenSha`。
+3. 以该 `presentationToken` 调用 `validate_bazi_presentation`。仅在返回 `{ valid: true }` 时，才可将同一批 claims 表述为本次排盘结果。
+4. 若返回 `{ valid: false }`，删除不一致断言；可回到当前 `ToolEnvelope` 重新提取事实后再校验，但不得猜测、补全或把失败断言改写为本次排盘结论。
+5. 文化背景、条件性说明和建设性建议不进入 `claims`；它们必须与确定性结果明确区分，不能伪装为当前排盘已经验证的事实。
 
 > ⚠️ 引擎是数据源，reference 是解读辅助。排盘、干支、数值、吉凶判定必须来自引擎；模型只负责把引擎结果转成用户易懂的话 + 补充文化背景与建议。引擎不可用时告知用户激活 MCP，不凭知识凑答。
 

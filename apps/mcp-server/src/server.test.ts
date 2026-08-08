@@ -70,6 +70,65 @@ function runMcpSession(messages: string[], timeoutMs = 30000): Promise<JsonRpcRe
   });
 }
 
+function runMcpSessionWithFollowUp(
+  initialMessages: string[],
+  followUp: (response: JsonRpcResponse) => string[] | null,
+  timeoutMs = 30000,
+): Promise<JsonRpcResponse[]> {
+  return new Promise((resolveP, rejectP) => {
+    const proc = spawn('npx', ['tsx', SERVER_PATH], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      shell: process.platform === 'win32',
+    });
+    const responses: JsonRpcResponse[] = [];
+    let buffer = '';
+    let stderr = '';
+    let followUpSent = false;
+
+    proc.stdout.on('data', (chunk: Buffer) => {
+      buffer += chunk.toString();
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        try {
+          const parsed = JSON.parse(trimmed) as JsonRpcResponse;
+          if (parsed.id === null || parsed.id === undefined) continue;
+          responses.push(parsed);
+          const messages = followUpSent ? null : followUp(parsed);
+          if (messages) {
+            followUpSent = true;
+            proc.stdin.write(`${messages.join('\n')}\n`);
+            proc.stdin.end();
+          }
+        } catch {
+          /* 非 JSON 行忽略 */
+        }
+      }
+    });
+
+    proc.stderr.on('data', (chunk: Buffer) => { stderr += chunk.toString(); });
+
+    const timeout = setTimeout(() => {
+      proc.kill();
+      rejectP(new Error(`MCP session 超时。stderr: ${stderr}`));
+    }, timeoutMs);
+
+    proc.on('error', (err) => {
+      clearTimeout(timeout);
+      rejectP(err);
+    });
+
+    proc.stdin.write(`${initialMessages.join('\n')}\n`);
+
+    proc.on('close', () => {
+      clearTimeout(timeout);
+      resolveP(responses);
+    });
+  });
+}
+
 const INIT_MSG = JSON.stringify({
   jsonrpc: '2.0', id: 1, method: 'initialize',
   params: { protocolVersion: '2024-11-05', capabilities: {}, clientInfo: { name: 'vitest', version: '1.0' } },
@@ -184,6 +243,64 @@ describe('MCP Server 端到端协议', () => {
     const payload = JSON.parse(result.content[0].text) as { valid: boolean; violations: Array<{ kind: string }> };
     expect(result.structuredContent).toEqual(payload);
     expect(payload).toEqual({ valid: false, violations: [expect.objectContaining({ kind: 'presentationToken' })] });
+  }, 30000);
+
+  it('同一会话中仅允许通过校验的八字断言进入呈现', async () => {
+    const responses = await runMcpSessionWithFollowUp([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(25, 'bazi_calculate', {
+        birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+        timeBasis: 'civil-unverified',
+        civilFallbackConfirmed: true,
+      }),
+    ], (calculation) => {
+      if (calculation.id !== 25) return null;
+      const envelope = (calculation.result as {
+        structuredContent: {
+          data: {
+            pillars: { year: { stem: string; branch: string } };
+            dayMaster: string;
+            elements: Record<string, number>;
+          };
+          result_meta: { presentationToken: string };
+        };
+      }).structuredContent;
+      const claims = [
+        { kind: 'pillar', pillar: 'year', value: `${envelope.data.pillars.year.stem}${envelope.data.pillars.year.branch}` },
+        { kind: 'dayMaster', value: envelope.data.dayMaster },
+        { kind: 'elementCount', element: '木', value: envelope.data.elements.木 },
+      ];
+
+      return [
+        toolCallMsg(26, 'validate_bazi_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims,
+        }),
+        toolCallMsg(27, 'validate_bazi_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [...claims.slice(0, 2), { kind: 'elementCount', element: '木', value: envelope.data.elements.木 + 1 }],
+        }),
+      ];
+    });
+
+    const validResult = responses.find((response) => response.id === 26)!.result as {
+      content: Array<{ text: string }>;
+      structuredContent: { valid: boolean; violations: unknown[] };
+    };
+    const invalidResult = responses.find((response) => response.id === 27)!.result as {
+      content: Array<{ text: string }>;
+      structuredContent: { valid: boolean; violations: Array<{ kind: string; expected: number; actual: number }> };
+    };
+    const validPayload = JSON.parse(validResult.content[0].text) as { valid: boolean; violations: unknown[] };
+    const invalidPayload = JSON.parse(invalidResult.content[0].text) as { valid: boolean; violations: Array<{ kind: string; expected: number; actual: number }> };
+
+    expect(validResult.structuredContent).toEqual(validPayload);
+    expect(validPayload).toEqual({ valid: true, violations: [] });
+    expect(invalidResult.structuredContent).toEqual(invalidPayload);
+    expect(invalidPayload).toEqual({
+      valid: false,
+      violations: [expect.objectContaining({ kind: 'elementCount', actual: expect.any(Number), expected: expect.any(Number) })],
+    });
   }, 30000);
 
   it('tools/call wisdom_dispatch 将“排八字”路由为真太阳时预检', async () => {
