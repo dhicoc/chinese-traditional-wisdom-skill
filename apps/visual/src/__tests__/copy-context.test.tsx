@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { act, render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { toMarkdown, CopyContextButton } from '@/components/shared/CopyContextButton';
 import { COPY_CONTEXT_INTENT } from '@/lib/commandIntents';
 
@@ -47,8 +47,11 @@ describe('CopyContextButton 组件', () => {
   it('点击后调用 clipboard.writeText 并写入摘要', async () => {
     render(<CopyContextButton title="八字摘要" payload={{ 年份: 1990 }} />);
     const btn = screen.getByRole('button', { name: '复制解读摘要' });
-    fireEvent.click(btn);
-    await vi.waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
+    await act(async () => {
+      fireEvent.click(btn);
+      await Promise.resolve();
+    });
+    expect(writeText).toHaveBeenCalledTimes(1);
     const written = writeText.mock.calls[0][0] as string;
     expect(written).toContain('# 八字摘要');
     expect(written).toContain('- 年份：1990');
@@ -56,10 +59,13 @@ describe('CopyContextButton 组件', () => {
 
   it('commandScope 匹配时响应 COPY_CONTEXT_INTENT 事件并复制', async () => {
     render(<CopyContextButton title="八字上下文" payload={{ x: 1 }} commandScope="bazi" />);
-    window.dispatchEvent(
-      new CustomEvent(COPY_CONTEXT_INTENT, { detail: { scope: 'bazi' } }),
-    );
-    await vi.waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
+    await act(async () => {
+      window.dispatchEvent(
+        new CustomEvent(COPY_CONTEXT_INTENT, { detail: { scope: 'bazi' } }),
+      );
+      await Promise.resolve();
+    });
+    expect(writeText).toHaveBeenCalledTimes(1);
     const written = writeText.mock.calls[0][0] as string;
     expect(written).toContain('# 八字上下文');
   });
