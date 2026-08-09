@@ -689,6 +689,40 @@ describe('MCP Server 端到端协议', () => {
     });
   }, 30000);
 
+  it('同一会话中仅允许通过校验的梦象基础断言进入呈现', async () => {
+    const responses = await runMcpSessionWithFollowUp([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(74, 'dream_interpret', { keyword: '蛇' }),
+    ], (calculation) => {
+      if (calculation.id !== 74) return null;
+      const envelope = (calculation.result as {
+        structuredContent: {
+          data: { hit: boolean; entries: Array<{ title: string; luck: string; biglx: string }> };
+          result_meta: { presentationToken: string };
+        };
+      }).structuredContent;
+      return [
+        toolCallMsg(75, 'validate_daily_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [
+            { tool: 'dream_interpret', kind: 'dreamSearch', field: 'hit', value: envelope.data.hit },
+            { tool: 'dream_interpret', kind: 'dreamEntry', index: 0, field: 'title', value: envelope.data.entries[0]!.title },
+            { tool: 'dream_interpret', kind: 'dreamEntry', index: 0, field: 'luck', value: envelope.data.entries[0]!.luck },
+            { tool: 'dream_interpret', kind: 'dreamEntry', index: 0, field: 'biglx', value: envelope.data.entries[0]!.biglx },
+          ],
+        }),
+        toolCallMsg(76, 'validate_daily_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [{ tool: 'dream_interpret', kind: 'dreamEntry', index: 0, field: 'luck', value: '吉' }],
+        }),
+      ];
+    });
+    const valid = (responses.find((response) => response.id === 75)!.result as { structuredContent: { valid: boolean; violations: unknown[] } }).structuredContent;
+    const invalid = (responses.find((response) => response.id === 76)!.result as { structuredContent: { valid: boolean; violations: Array<{ tool: string; kind: string }> } }).structuredContent;
+    expect(valid).toEqual({ valid: true, violations: [] });
+    expect(invalid).toMatchObject({ valid: false, violations: [expect.objectContaining({ tool: 'dream_interpret', kind: 'dreamEntry' })] });
+  }, 30000);
+
   it('同一会话中仅允许通过校验的喜用神基础断言进入呈现', async () => {
     const responses = await runMcpSessionWithFollowUp([
       INIT_MSG, INITIALIZED_MSG,

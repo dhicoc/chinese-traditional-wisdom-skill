@@ -1,12 +1,13 @@
 import type { ConstitutionTendencyData, NameRatingData, XiYongData } from '../../visual/src/legacy/envelopeAdapters';
+import type { DreamSearchData } from '../../visual/src/legacy/envelopeSample';
 import type { CeziResult } from '../../visual/src/legacy/ceziEngine';
 import type { ChenguzResult } from '../../visual/src/legacy/chenguzEngine';
 import type { RhythmResult } from '../../visual/src/legacy/rhythmEngine';
 import type { AssessResult } from '../../visual/src/legacy/constitutionAssessEngine';
 
-export type DailyPresentationTool = 'analyze_name' | 'calc_xiyong' | 'get_constitution_tendency' | 'cast_cezi' | 'calc_chenguz' | 'get_daily_rhythm' | 'assess_constitution';
+export type DailyPresentationTool = 'analyze_name' | 'calc_xiyong' | 'get_constitution_tendency' | 'dream_interpret' | 'cast_cezi' | 'calc_chenguz' | 'get_daily_rhythm' | 'assess_constitution';
 
-type DailyPresentationData = NameRatingData | XiYongData | ConstitutionTendencyData | CeziResult | ChenguzResult | RhythmResult | AssessResult;
+type DailyPresentationData = NameRatingData | XiYongData | ConstitutionTendencyData | DreamSearchData | CeziResult | ChenguzResult | RhythmResult | AssessResult;
 
 export type DailyPresentationClaim =
   | { tool: 'analyze_name'; kind: 'nameRating'; field: 'totalScore' | 'grade'; value: number | string }
@@ -16,6 +17,8 @@ export type DailyPresentationClaim =
   | { tool: 'calc_xiyong'; kind: 'xiyongElements'; group: 'similar' | 'heterogeneous'; value: string[] }
   | { tool: 'get_constitution_tendency'; kind: 'constitutionTendencySource'; field: 'dayun' | 'sitian' | 'zaiquan'; value: string }
   | { tool: 'get_constitution_tendency'; kind: 'constitutionTendency'; index: number; field: 'type'; value: string }
+  | { tool: 'dream_interpret'; kind: 'dreamSearch'; field: 'hit'; value: boolean }
+  | { tool: 'dream_interpret'; kind: 'dreamEntry'; index: number; field: 'title' | 'biglx' | 'smalllx' | 'luck'; value: string }
   | { tool: 'cast_cezi'; kind: 'cezi'; field: 'char' | 'strokes' | 'strokesEstimated' | 'charWuxing'; value: string | number | boolean }
   | { tool: 'cast_cezi'; kind: 'ceziShuli'; field: 'number' | 'lucky' | 'skyNine'; value: string | number }
   | { tool: 'cast_cezi'; kind: 'ceziStructure'; field: 'structure' | 'radical'; value: string }
@@ -110,6 +113,11 @@ function getExpectedValue(
       return claim.kind === 'constitutionTendencySource'
         ? result[claim.field]
         : result.tendencies[claim.index]?.type;
+    }
+    case 'dream_interpret': {
+      const result = data as DreamSearchData;
+      if (claim.kind === 'dreamSearch') return result[claim.field];
+      return result.entries[claim.index]?.[claim.field];
     }
     case 'cast_cezi': {
       const result = data as CeziResult;

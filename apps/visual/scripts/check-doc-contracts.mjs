@@ -147,6 +147,7 @@ check(rules.includes("numericAssertionToken") && rules.includes("data.*") && rul
   check(content.includes("validate_daily_presentation"), `${name} 缺少日用与民俗呈现校验工具`);
   check(content.includes("喜用神日主/同异类五行及分数/强弱/用神"), `${name} 缺少喜用神呈现校验边界`);
   check(content.includes("五运六气体质倾向的岁运/司天/在泉与倾向类型"), `${name} 缺少五运六气体质倾向校验边界`);
+  check(content.includes("梦象命中状态及条目标题/分类/吉凶标签"), `${name} 缺少梦象呈现校验边界`);
   check(content.includes("validate_numeric_assertions"), `${name} 缺少数值断言校验工具`);
   check(content.includes("resolve_true_solar_time"), `${name} 缺少真太阳时 MCP 调用`);
   check(content.includes("trueSolarBirth"), `${name} 缺少 trueSolarBirth 调用链`);

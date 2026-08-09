@@ -500,10 +500,18 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: async (i) => {
       const { searchDreamEnveloped } = await loadDream();
-      return searchDreamEnveloped(
+      const envelope = searchDreamEnveloped(
         (i as { keyword: string }).keyword,
         (i as { useFull?: boolean }).useFull ?? false,
       );
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerDailyPresentation('dream_interpret', envelope.data, presentationToken);
+      return {
+        ...envelope,
+        result_meta: { ...envelope.result_meta, presentationToken },
+      };
     },
   },
   // ─── 跨系统联合分析（ROADMAP 功能层增强 Step 1）───

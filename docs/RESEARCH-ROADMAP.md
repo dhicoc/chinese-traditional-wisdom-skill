@@ -183,6 +183,7 @@
 9. ✅ P2.4d 占测／卦象呈现校验试点：六爻、梅花、奇门、大六壬、太乙与皇极对成功盘面签发进程内 `presentationToken`；`validate_divination_presentation` 按工具隔离校验卦名、动爻、局式、宫位、干支、三传与周期等基础盘面事实；同 stdio 会话覆盖有效与篡改断言。吉凶、应期、策略、传统解释与行动建议不进入 claims。
 10. ✅ P2.4e 日用与民俗呈现校验试点：`analyze_name`、`cast_cezi`、`calc_chenguz`、`get_daily_rhythm` 与 `assess_constitution` 对成功结果签发进程内 `presentationToken`；`validate_daily_presentation` 按工具隔离校验姓名分数/等级/维度、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、节律日期/节气/经络及体质主体质/转化分；单元与同 stdio 会话覆盖五类工具的有效、篡改与跨工具断言。断语、歌诀、解释、调养方案与医疗建议不进入 claims。
 11. ✅ P2.4f 日用与民俗呈现校验扩展：`calc_xiyong` 与 `get_constitution_tendency` 对成功结果签发进程内 `presentationToken`；`validate_daily_presentation` 按工具隔离校验喜用神日主、同异类五行及分数、强弱与用神，以及五运六气体质倾向的岁运、司天、在泉与倾向类型；单元与同 stdio 会话覆盖有效、篡改、数组精确匹配与跨工具断言。置信说明、倾向理由、边界说明和任何养生／医疗建议不进入 claims。
+12. ✅ P2.4g 梦象呈现校验扩展：`dream_interpret` 对成功查询签发进程内 `presentationToken`；`validate_daily_presentation` 按工具隔离校验命中状态及梦象条目的标题、分类和吉凶标签；单元与同 stdio 会话覆盖有效、篡改与跨工具断言。现代释义、古文断语、心理学解释及任何建议不进入 claims。
 
 ### 4.2 工程规范
 

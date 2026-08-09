@@ -369,7 +369,7 @@ server.registerTool(
   'validate_daily_presentation',
   {
     ...getToolContract('validate_daily_presentation'),
-    description: '日用与民俗呈现依据校验。对本次姓名分析、喜用神推算、五运六气体质倾向、测字、称骨、每日节律或体质问卷返回的 result_meta.presentationToken 与拟呈现的结构化基础事实逐项比对。仅核验姓名分数/等级/维度、喜用神日主/同异类五行及分数/强弱/用神、体质倾向岁运/司天/在泉与倾向类型、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、节律日期/节气/经络、问卷主体质/转化分；不核验置信说明、倾向理由、边界说明、断语、歌诀、解释、调养方案与医疗建议。校验器不生成、补全或修正解读。',
+    description: '日用与民俗呈现依据校验。对本次姓名分析、喜用神推算、五运六气体质倾向、周公解梦查询、测字、称骨、每日节律或体质问卷返回的 result_meta.presentationToken 与拟呈现的结构化基础事实逐项比对。仅核验姓名分数/等级/维度、喜用神日主/同异类五行及分数/强弱/用神、体质倾向岁运/司天/在泉与倾向类型、梦象命中状态及条目标题/分类/吉凶标签、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、节律日期/节气/经络、问卷主体质/转化分；不核验置信说明、倾向理由、边界说明、现代释义、古文断语、心理学解释、调养方案与医疗建议。校验器不生成、补全或修正解读。',
     inputSchema: {
       presentationToken: z.string().uuid().describe('本次日用或民俗工具返回的 result_meta.presentationToken，仅在当前 MCP 进程有效'),
       claims: z.array(z.union([
@@ -380,6 +380,8 @@ server.registerTool(
         z.object({ tool: z.literal('calc_xiyong'), kind: z.literal('xiyongElements'), group: z.enum(['similar', 'heterogeneous']), value: z.array(z.string().min(1)) }),
         z.object({ tool: z.literal('get_constitution_tendency'), kind: z.literal('constitutionTendencySource'), field: z.enum(['dayun', 'sitian', 'zaiquan']), value: z.string() }),
         z.object({ tool: z.literal('get_constitution_tendency'), kind: z.literal('constitutionTendency'), index: z.number().int().min(0), field: z.literal('type'), value: z.string().min(1) }),
+        z.object({ tool: z.literal('dream_interpret'), kind: z.literal('dreamSearch'), field: z.literal('hit'), value: z.boolean() }),
+        z.object({ tool: z.literal('dream_interpret'), kind: z.literal('dreamEntry'), index: z.number().int().min(0), field: z.enum(['title', 'biglx', 'smalllx', 'luck']), value: z.string().min(1) }),
         z.object({ tool: z.literal('cast_cezi'), kind: z.literal('cezi'), field: z.enum(['char', 'strokes', 'strokesEstimated', 'charWuxing']), value: z.union([z.string().min(1), z.number().int(), z.boolean()]) }),
         z.object({ tool: z.literal('cast_cezi'), kind: z.literal('ceziShuli'), field: z.enum(['number', 'lucky', 'skyNine']), value: z.union([z.number().int(), z.string().min(1)]) }),
         z.object({ tool: z.literal('cast_cezi'), kind: z.literal('ceziStructure'), field: z.enum(['structure', 'radical']), value: z.string().min(1) }),
