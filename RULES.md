@@ -156,6 +156,7 @@
 - **解读边界**：模型可以转述结果、说明不确定性、补充文化背景；但**不得自行计算、修正或填补**排盘、干支、数值、吉凶与规则结论。
 - **引擎依据与调用轨迹**：每段包含确定性结论的最终说明，必须附上最小可复核轨迹：本次 `ToolEnvelope.tool` 与 `version`；若该事实受呈现校验约束，还须注明对应 validator 已返回 `valid: true`。仅可引用本次 MCP 调用的结果，不能沿用旧会话或自行构造轨迹；不得向用户暴露 `presentationToken`、`evidence`、`result_meta` 等内部字段。推荐格式：`引擎依据：bazi_calculate（local-exact）；呈现校验：validate_bazi_presentation 已通过。`
 - **八字呈现校验（试点）**：当最终说明写入四柱、日主、五行计数、日主强弱、大运或神煞等可验证的确定性结论时，Agent 必须用本次 `bazi_calculate` 返回的 `result_meta.presentationToken` 调用 `validate_bazi_presentation`，将每条结论以结构化 `claims` 提交。任何校验失败的断言不得表述为本次排盘结果；文化背景、条件性说明和建设性建议不属于 `claims`，不得伪装成确定性结论。
+- **日用与民俗呈现校验（试点）**：当最终说明写入姓名分数/等级/维度、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、每日节律日期/节气/经络或体质问卷主体质/转化分等可验证基础事实时，Agent 必须用本次对应工具返回的 `result_meta.presentationToken` 调用 `validate_daily_presentation`。断语、称骨歌、解释、调养方案与医疗建议不属于 claims，不能伪装成已验证结论。
 - **数值断言校验**：未由专用呈现校验器覆盖的数值事实，必须使用本次成功计算结果的 `result_meta.numericAssertionToken` 调用 `validate_numeric_assertions`，每条 claim 仅可引用有限的 `data.*` 数值。`valid: true` 只表示结构化 claims 与本次 ToolEnvelope 一致，**不得声称自由文本已自动校验**；自由文本只能是已验证 claims 的转述。
 - **反模式表**：
 

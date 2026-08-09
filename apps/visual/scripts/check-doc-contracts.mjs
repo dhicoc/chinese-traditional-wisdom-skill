@@ -136,7 +136,7 @@ check(rules.includes("numericAssertionToken") && rules.includes("data.*") && rul
   ["tool-index.md", toolIndex],
   ["apps/mcp-server/README.md", mcpReadme],
 ].forEach(([name, content]) => {
-  check(content.includes("41 个工具"), `${name} 缺少 41 个工具当前统计`);
+  check(content.includes("42 个工具"), `${name} 缺少 42 个工具当前统计`);
   check(content.includes("32 个计算工具"), `${name} 缺少 32 个计算工具当前统计`);
   check(content.includes("validate_bazi_presentation"), `${name} 缺少八字呈现校验工具`);
   check(content.includes("validate_ziwei_presentation"), `${name} 缺少紫微呈现校验工具`);
@@ -144,6 +144,7 @@ check(rules.includes("numericAssertionToken") && rules.includes("data.*") && rul
   check(content.includes("validate_feixing_presentation"), `${name} 缺少流年飞星呈现校验工具`);
   check(content.includes("validate_calendar_presentation"), `${name} 缺少历法与年度盘面呈现校验工具`);
   check(content.includes("validate_divination_presentation"), `${name} 缺少占测／卦象呈现校验工具`);
+  check(content.includes("validate_daily_presentation"), `${name} 缺少日用与民俗呈现校验工具`);
   check(content.includes("validate_numeric_assertions"), `${name} 缺少数值断言校验工具`);
   check(content.includes("resolve_true_solar_time"), `${name} 缺少真太阳时 MCP 调用`);
   check(content.includes("trueSolarBirth"), `${name} 缺少 trueSolarBirth 调用链`);

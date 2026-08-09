@@ -4676,6 +4676,590 @@ exports[`MCP Server 端到端协议 > tools/list 的公开输入输出契约保�
       "openWorldHint": false,
       "readOnlyHint": true,
     },
+    "description": "日用与民俗呈现依据校验。对本次姓名分析、测字、称骨、每日节律或体质问卷返回的 result_meta.presentationToken 与拟呈现的结构化基础事实逐项比对。仅核验姓名分数/等级/维度、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、节律日期/节气/经络、问卷主体质/转化分；断语、歌诀、解释、调养方案与医疗建议不进入 claims。校验器不生成、补全或修正解读。",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "claims": {
+          "description": "拟呈现的基础日用或民俗事实；不包含断语、歌诀、解释、调养方案或医疗建议",
+          "items": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "totalScore",
+                      "grade",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "nameRating",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "analyze_name",
+                    "type": "string",
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                      },
+                      {
+                        "minLength": 1,
+                        "type": "string",
+                      },
+                    ],
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "score",
+                      "weight",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "nameDimension",
+                    "type": "string",
+                  },
+                  "name": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "analyze_name",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "number",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "name",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "char",
+                      "strokes",
+                      "strokesEstimated",
+                      "charWuxing",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "cezi",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "cast_cezi",
+                    "type": "string",
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "minLength": 1,
+                        "type": "string",
+                      },
+                      {
+                        "type": "integer",
+                      },
+                      {
+                        "type": "boolean",
+                      },
+                    ],
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "number",
+                      "lucky",
+                      "skyNine",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "ceziShuli",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "cast_cezi",
+                    "type": "string",
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                      },
+                      {
+                        "minLength": 1,
+                        "type": "string",
+                      },
+                    ],
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "structure",
+                      "radical",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "ceziStructure",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "cast_cezi",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "complement",
+                      "score",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "ceziBaziComplement",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "cast_cezi",
+                    "type": "string",
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "minLength": 1,
+                        "type": "string",
+                      },
+                      {
+                        "type": "number",
+                      },
+                      {
+                        "type": "null",
+                      },
+                    ],
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "component": {
+                    "enum": [
+                      "yearBone",
+                      "hourBone",
+                    ],
+                    "type": "string",
+                  },
+                  "field": {
+                    "enum": [
+                      "branch",
+                      "liang",
+                      "qian",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "chenguzBone",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "calc_chenguz",
+                    "type": "string",
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "minLength": 1,
+                        "type": "string",
+                      },
+                      {
+                        "type": "integer",
+                      },
+                    ],
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "component",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "component": {
+                    "const": "monthBone",
+                    "type": "string",
+                  },
+                  "field": {
+                    "enum": [
+                      "lunarMonth",
+                      "liang",
+                      "qian",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "chenguzBone",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "calc_chenguz",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "component",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "component": {
+                    "const": "dayBone",
+                    "type": "string",
+                  },
+                  "field": {
+                    "enum": [
+                      "lunarDay",
+                      "liang",
+                      "qian",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "chenguzBone",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "calc_chenguz",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "component",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "liang",
+                      "qian",
+                      "text",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "chenguzTotal",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "calc_chenguz",
+                    "type": "string",
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "minLength": 1,
+                        "type": "string",
+                      },
+                      {
+                        "type": "integer",
+                      },
+                    ],
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "id",
+                      "name",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "chenguzVersion",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "calc_chenguz",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "date",
+                      "jieqi",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "rhythm",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "get_daily_rhythm",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "time",
+                      "hours",
+                      "meridian",
+                      "organ",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "rhythmMeridian",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "get_daily_rhythm",
+                    "type": "string",
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "minLength": 1,
+                        "type": "string",
+                      },
+                      {
+                        "type": "null",
+                      },
+                    ],
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "dominantType",
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "constitution",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "assess_constitution",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "constitutionScore",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "assess_constitution",
+                    "type": "string",
+                  },
+                  "type": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "number",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "type",
+                  "value",
+                ],
+                "type": "object",
+              },
+            ],
+          },
+          "minItems": 1,
+          "type": "array",
+        },
+        "presentationToken": {
+          "description": "本次日用或民俗工具返回的 result_meta.presentationToken，仅在当前 MCP 进程有效",
+          "format": "uuid",
+          "type": "string",
+        },
+      },
+      "required": [
+        "presentationToken",
+        "claims",
+      ],
+      "type": "object",
+    },
+    "name": "validate_daily_presentation",
+    "outputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": true,
+      "properties": {},
+      "type": "object",
+    },
+    "title": "日用与民俗呈现依据校验",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+    },
     "description": "占测／卦象呈现依据校验。对本次六爻、梅花易数、奇门遁甲、大六壬、太乙神数或皇极经世返回的 result_meta.presentationToken 与拟呈现的基础盘面事实逐项比对。仅核验卦名、动爻、局式、宫位、干支、三传、周期等盘面字段；吉凶、应期、策略、传统解释与行动建议不进入 claims。校验器不生成、补全或修正解读。",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",

@@ -54,7 +54,7 @@ Quick start:
 8. 开始执行任务
 ```
 
-> **MCP 自动激活**（2026-07-10 架构重构后新增）：当用户在支持 MCP 的客户端（Claude Code/Desktop/Cursor/Cline）中想直接调用排盘工具时，AI 跑 `node scripts/setup-mcp.mjs` 一键自动检测并配置客户端，用户无需手动编辑 JSON。配置后 `chinese-wisdom` server 提供 41 个工具（32 计算 + `agent_guidance` 参数引导 + `validate_bazi_presentation`、`validate_ziwei_presentation`、`validate_bazhai_presentation`、`validate_feixing_presentation`、`validate_calendar_presentation`、`validate_divination_presentation` 六个呈现依据校验器 + `validate_numeric_assertions` 结构化数值断言校验器 + `wisdom_dispatch` 意图路由）。数值校验只覆盖显式 `data.*` claims，不能宣称自由文本已自动验证。常规计算统一返回 ToolEnvelope；`resolve_true_solar_time` 返回可审计的校准结果。详见 `apps/mcp-server/README.md`。
+> **MCP 自动激活**（2026-07-10 架构重构后新增）：当用户在支持 MCP 的客户端（Claude Code/Desktop/Cursor/Cline）中想直接调用排盘工具时，AI 跑 `node scripts/setup-mcp.mjs` 一键自动检测并配置客户端，用户无需手动编辑 JSON。配置后 `chinese-wisdom` server 提供 42 个工具（32 计算 + `agent_guidance` 参数引导 + `validate_bazi_presentation`、`validate_ziwei_presentation`、`validate_bazhai_presentation`、`validate_feixing_presentation`、`validate_calendar_presentation`、`validate_divination_presentation`、`validate_daily_presentation` 七个呈现依据校验器 + `validate_numeric_assertions` 结构化数值断言校验器 + `wisdom_dispatch` 意图路由）。日用校验只覆盖姓名分数/等级/维度、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、节律日期/节气/经络、体质主体质/转化分；不校验断语、歌诀、解释、调养方案或医疗建议。数值校验只覆盖显式 `data.*` claims，不能宣称自由文本已自动验证。常规计算统一返回 ToolEnvelope；`resolve_true_solar_time` 返回可审计的校准结果。详见 `apps/mcp-server/README.md`。
 
 ## 1. 三层路由矩阵
 

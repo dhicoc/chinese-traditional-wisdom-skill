@@ -163,7 +163,7 @@ describe('MCP Server 端到端协议', () => {
     expect(result.protocolVersion).toBe('2024-11-05');
   }, 30000);
 
-  it('tools/list 返回 41 个工具（32 计算 + 9 元工具）且 inputSchema 完整', async () => {
+  it('tools/list 返回 42 个工具（32 计算 + 10 元工具）且 inputSchema 完整', async () => {
     const responses = await runMcpSession([INIT_MSG, INITIALIZED_MSG, TOOLS_LIST_MSG]);
     const list = responses.find((r) => r.id === 2);
     expect(list).toBeDefined();
@@ -182,7 +182,7 @@ describe('MCP Server 端到端协议', () => {
         };
       }>;
     }).tools;
-    expect(tools.length).toBe(41);
+    expect(tools.length).toBe(42);
     tools.forEach((t) => {
       expect(t.name).toMatch(/^[a-z][a-z0-9_]*$/);
       expect(t.description.length).toBeGreaterThan(10);
@@ -202,6 +202,7 @@ describe('MCP Server 端到端协议', () => {
     expect(names).toContain('validate_feixing_presentation');
     expect(names).toContain('validate_calendar_presentation');
     expect(names).toContain('validate_divination_presentation');
+    expect(names).toContain('validate_daily_presentation');
     expect(names).toContain('validate_numeric_assertions');
     expect(names).toContain('wisdom_dispatch');
     tools.forEach((tool) => {
@@ -629,6 +630,81 @@ describe('MCP Server 端到端协议', () => {
     const invalid = (responses.find((response) => response.id === 48)!.result as { structuredContent: { valid: boolean; violations: Array<{ kind: string }> } }).structuredContent;
     expect(valid).toEqual({ valid: true, violations: [] });
     expect(invalid).toMatchObject({ valid: false, violations: [expect.objectContaining({ kind: 'almanac' })] });
+  }, 30000);
+
+  it('tools/call validate_daily_presentation 拒绝无效凭证', async () => {
+    const responses = await runMcpSession([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(57, 'validate_daily_presentation', {
+        presentationToken: '00000000-0000-4000-8000-000000000000',
+        claims: [{ tool: 'analyze_name', kind: 'nameRating', field: 'grade', value: '上吉' }],
+      }),
+    ]);
+    const call = responses.find((response) => response.id === 57);
+    const result = call!.result as { content: Array<{ text: string }>; structuredContent: { valid: boolean; violations: Array<{ kind: string }> } };
+    const payload = JSON.parse(result.content[0].text) as { valid: boolean; violations: Array<{ kind: string }> };
+    expect(result.structuredContent).toEqual(payload);
+    expect(payload).toEqual({ valid: false, violations: [expect.objectContaining({ kind: 'presentationToken' })] });
+  }, 30000);
+
+  it('同一会话中仅允许通过校验的日用与民俗基础断言进入呈现', async () => {
+    const responses = await runMcpSessionWithFollowUp([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(58, 'cast_cezi', { char: '明' }),
+    ], (calculation) => {
+      if (calculation.id !== 58) return null;
+      const envelope = (calculation.result as {
+        structuredContent: {
+          data: { char: string; strokes: number; shuli: { number: number }; structure: { structure: string } };
+          result_meta: { presentationToken: string };
+        };
+      }).structuredContent;
+      return [
+        toolCallMsg(59, 'validate_daily_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [
+            { tool: 'cast_cezi', kind: 'cezi', field: 'char', value: envelope.data.char },
+            { tool: 'cast_cezi', kind: 'ceziShuli', field: 'number', value: envelope.data.shuli.number },
+            { tool: 'cast_cezi', kind: 'ceziStructure', field: 'structure', value: envelope.data.structure.structure },
+          ],
+        }),
+        toolCallMsg(60, 'validate_daily_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [
+            { tool: 'cast_cezi', kind: 'cezi', field: 'strokes', value: envelope.data.strokes + 1 },
+            { tool: 'analyze_name', kind: 'nameRating', field: 'grade', value: '上吉' },
+          ],
+        }),
+      ];
+    });
+    const valid = (responses.find((response) => response.id === 59)!.result as { structuredContent: { valid: boolean; violations: unknown[] } }).structuredContent;
+    const invalid = (responses.find((response) => response.id === 60)!.result as { structuredContent: { valid: boolean; violations: Array<{ tool: string; kind: string }> } }).structuredContent;
+    expect(valid).toEqual({ valid: true, violations: [] });
+    expect(invalid).toMatchObject({
+      valid: false,
+      violations: [
+        expect.objectContaining({ tool: 'cast_cezi', kind: 'cezi' }),
+        expect.objectContaining({ tool: 'analyze_name', kind: 'nameRating' }),
+      ],
+    });
+  }, 30000);
+
+  it('五个日用与民俗工具都签发进程内呈现凭证', async () => {
+    const responses = await runMcpSession([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(61, 'analyze_name', { surname: '张', givenName: '伟', birthYear: 1990 }),
+      toolCallMsg(62, 'cast_cezi', { char: '明' }),
+      toolCallMsg(63, 'calc_chenguz', { birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } }),
+      toolCallMsg(64, 'get_daily_rhythm', { date: '2026-08-01', hour: 12 }),
+      toolCallMsg(65, 'assess_constitution', { answers: [{ type: '气虚质', score: 5 }, { type: '平和质', score: 3 }] }),
+    ]);
+    [61, 62, 63, 64, 65].forEach((id) => {
+      const envelope = (responses.find((response) => response.id === id)!.result as {
+        structuredContent: { ok: boolean; result_meta: { presentationToken: string } };
+      }).structuredContent;
+      expect(envelope.ok).toBe(true);
+      expect(envelope.result_meta.presentationToken).toMatch(/^[0-9a-f-]{36}$/i);
+    });
   }, 30000);
 
   it('tools/call validate_numeric_assertions 拒绝无效凭证', async () => {

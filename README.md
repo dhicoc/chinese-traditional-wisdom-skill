@@ -93,7 +93,7 @@ cd apps/visual && pnpm build && pnpm preview
 
 ### 方式 C：MCP Server（AI 客户端直接调用）
 
-MCP server 提供 **41 个工具**：32 个确定性计算工具，以及 `agent_guidance` 参数引导、`validate_bazi_presentation` 八字呈现依据校验、`validate_ziwei_presentation` 紫微呈现依据校验、`validate_bazhai_presentation` 八宅呈现依据校验、`validate_feixing_presentation` 流年飞星呈现依据校验、`validate_calendar_presentation` 历法与年度盘面呈现依据校验、`validate_divination_presentation` 占测／卦象呈现依据校验、`validate_numeric_assertions` 数值断言依据校验与 `wisdom_dispatch` 意图路由。数值校验仅核验显式结构化 `data.*` 数值 claims，不解析或验证自由文本。它可挂载到 Claude Code、Claude Desktop、Cursor、Cline 等 MCP 客户端，供 AI 调用本地计算能力。
+MCP server 提供 **42 个工具**：32 个确定性计算工具，以及 `agent_guidance` 参数引导、`validate_bazi_presentation` 八字呈现依据校验、`validate_ziwei_presentation` 紫微呈现依据校验、`validate_bazhai_presentation` 八宅呈现依据校验、`validate_feixing_presentation` 流年飞星呈现依据校验、`validate_calendar_presentation` 历法与年度盘面呈现依据校验、`validate_divination_presentation` 占测／卦象呈现依据校验、`validate_daily_presentation` 日用与民俗呈现依据校验、`validate_numeric_assertions` 数值断言依据校验与 `wisdom_dispatch` 意图路由。日用校验仅核验姓名分数/等级/维度、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、节律日期/节气/经络、体质主体质/转化分；断语、歌诀、解释、调养方案与医疗建议不进入 claims。数值校验仅核验显式结构化 `data.*` 数值 claims，不解析或验证自由文本。它可挂载到 Claude Code、Claude Desktop、Cursor、Cline 等 MCP 客户端，供 AI 调用本地计算能力。
 
 **一键自动配置**（无需手动编辑配置文件）：
 

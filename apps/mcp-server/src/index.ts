@@ -22,6 +22,7 @@ import { dispatchIntent } from './dispatch.js';
 import { validateBaziPresentation, type BaziPresentationClaim } from './baziClaimVerifier.js';
 import { validateBazhaiPresentation, type BazhaiPresentationClaim } from './bazhaiClaimVerifier.js';
 import { validateCalendarPresentation, type CalendarPresentationClaim } from './calendarClaimVerifier.js';
+import { validateDailyPresentation, type DailyPresentationClaim } from './dailyClaimVerifier.js';
 import { validateDivinationPresentation, type DivinationPresentationClaim } from './divinationClaimVerifier.js';
 import { validateFeixingPresentation, type FeixingPresentationClaim } from './feixingClaimVerifier.js';
 import { validateNumericAssertions, registerNumericAssertions, type NumericAssertionClaim } from './numericAssertionVerifier.js';
@@ -32,7 +33,7 @@ const server = new McpServer({
   version: '0.1.0',
 });
 
-const META_TOOLS_COUNT = 9;
+const META_TOOLS_COUNT = 10;
 
 function attachNumericAssertionToken(tool: string, result: Record<string, unknown>) {
   if (result.ok !== true) return result;
@@ -363,7 +364,49 @@ server.registerTool(
   },
 );
 
-// ─── 元工具 8: validate_numeric_assertions（数值断言依据校验）───
+// ─── 元工具 8: validate_daily_presentation（日用与民俗呈现依据校验）───
+server.registerTool(
+  'validate_daily_presentation',
+  {
+    ...getToolContract('validate_daily_presentation'),
+    description: '日用与民俗呈现依据校验。对本次姓名分析、测字、称骨、每日节律或体质问卷返回的 result_meta.presentationToken 与拟呈现的结构化基础事实逐项比对。仅核验姓名分数/等级/维度、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、节律日期/节气/经络、问卷主体质/转化分；断语、歌诀、解释、调养方案与医疗建议不进入 claims。校验器不生成、补全或修正解读。',
+    inputSchema: {
+      presentationToken: z.string().uuid().describe('本次日用或民俗工具返回的 result_meta.presentationToken，仅在当前 MCP 进程有效'),
+      claims: z.array(z.union([
+        z.object({ tool: z.literal('analyze_name'), kind: z.literal('nameRating'), field: z.enum(['totalScore', 'grade']), value: z.union([z.number(), z.string().min(1)]) }),
+        z.object({ tool: z.literal('analyze_name'), kind: z.literal('nameDimension'), name: z.string().min(1), field: z.enum(['score', 'weight']), value: z.number().finite() }),
+        z.object({ tool: z.literal('cast_cezi'), kind: z.literal('cezi'), field: z.enum(['char', 'strokes', 'strokesEstimated', 'charWuxing']), value: z.union([z.string().min(1), z.number().int(), z.boolean()]) }),
+        z.object({ tool: z.literal('cast_cezi'), kind: z.literal('ceziShuli'), field: z.enum(['number', 'lucky', 'skyNine']), value: z.union([z.number().int(), z.string().min(1)]) }),
+        z.object({ tool: z.literal('cast_cezi'), kind: z.literal('ceziStructure'), field: z.enum(['structure', 'radical']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('cast_cezi'), kind: z.literal('ceziBaziComplement'), field: z.enum(['complement', 'score']), value: z.union([z.string().min(1), z.number(), z.null()]) }),
+        z.object({ tool: z.literal('calc_chenguz'), kind: z.literal('chenguzBone'), component: z.enum(['yearBone', 'hourBone']), field: z.enum(['branch', 'liang', 'qian']), value: z.union([z.string().min(1), z.number().int()]) }),
+        z.object({ tool: z.literal('calc_chenguz'), kind: z.literal('chenguzBone'), component: z.literal('monthBone'), field: z.enum(['lunarMonth', 'liang', 'qian']), value: z.number().int() }),
+        z.object({ tool: z.literal('calc_chenguz'), kind: z.literal('chenguzBone'), component: z.literal('dayBone'), field: z.enum(['lunarDay', 'liang', 'qian']), value: z.number().int() }),
+        z.object({ tool: z.literal('calc_chenguz'), kind: z.literal('chenguzTotal'), field: z.enum(['liang', 'qian', 'text']), value: z.union([z.string().min(1), z.number().int()]) }),
+        z.object({ tool: z.literal('calc_chenguz'), kind: z.literal('chenguzVersion'), field: z.enum(['id', 'name']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('get_daily_rhythm'), kind: z.literal('rhythm'), field: z.enum(['date', 'jieqi']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('get_daily_rhythm'), kind: z.literal('rhythmMeridian'), field: z.enum(['time', 'hours', 'meridian', 'organ']), value: z.string().min(1).nullable() }),
+        z.object({ tool: z.literal('assess_constitution'), kind: z.literal('constitution'), field: z.literal('dominantType'), value: z.string().min(1) }),
+        z.object({ tool: z.literal('assess_constitution'), kind: z.literal('constitutionScore'), type: z.string().min(1), value: z.number().finite() }),
+      ])).min(1).describe('拟呈现的基础日用或民俗事实；不包含断语、歌诀、解释、调养方案或医疗建议'),
+    },
+    outputSchema: openObjectOutputSchema,
+  },
+  async (input: unknown) => {
+    const { presentationToken, claims } = input as { presentationToken: string; claims: DailyPresentationClaim[] };
+    const validation = validateDailyPresentation(presentationToken, claims);
+    const structuredContent = validation ?? {
+      valid: false,
+      violations: [{ kind: 'presentationToken', message: 'presentationToken 无效、已失效或不属于当前 MCP 进程；请重新调用对应日用或民俗工具。' }],
+    };
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(structuredContent, null, 2) }],
+      structuredContent: { ...structuredContent },
+    };
+  },
+);
+
+// ─── 元工具 9: validate_numeric_assertions（数值断言依据校验）───
 server.registerTool(
   'validate_numeric_assertions',
   {
@@ -393,7 +436,7 @@ server.registerTool(
   },
 );
 
-// ─── 元工具 9: wisdom_dispatch（自然语言意图路由）───
+// ─── 元工具 10: wisdom_dispatch（自然语言意图路由）───
 server.registerTool(
   'wisdom_dispatch',
   {

@@ -14,6 +14,7 @@ import type { TrueSolarTimeResolution } from '../../visual/src/legacy/trueSolarT
 import { registerBaziPresentation } from './baziClaimVerifier.js';
 import { registerBazhaiPresentation } from './bazhaiClaimVerifier.js';
 import { registerCalendarPresentation } from './calendarClaimVerifier.js';
+import { registerDailyPresentation } from './dailyClaimVerifier.js';
 import { registerDivinationPresentation } from './divinationClaimVerifier.js';
 import { registerFeixingPresentation } from './feixingClaimVerifier.js';
 import { registerZiweiPresentation } from './ziweiClaimVerifier.js';
@@ -434,7 +435,15 @@ export const TOOLS: ToolDef[] = [
         input.birth as never,
         solar,
       );
-      return timeSource ? withBaziTimeSource(result, timeSource) : result;
+      if (!result.ok) return result;
+
+      const presentationToken = randomUUID();
+      registerDailyPresentation('analyze_name', result.data, presentationToken);
+      const withPresentationToken = {
+        ...result,
+        result_meta: { ...result.result_meta, presentationToken },
+      };
+      return timeSource ? withBaziTimeSource(withPresentationToken, timeSource) : withPresentationToken;
     },
   },
   {
@@ -719,13 +728,21 @@ export const TOOLS: ToolDef[] = [
       }
       const timeSource = input.birth ? resolveBaziTimeSource(input.birth, input.baziTimeContext!) : null;
       const [{ calcCeziEnveloped }, solar] = await Promise.all([loadCezi(), loadSolar()]);
-      const envelope = calcCeziEnveloped({
+      const envelope = await calcCeziEnveloped({
         char: input.char,
         aspect: input.aspect,
         birth: input.birth as never,
         solar: solar as never,
       });
-      return timeSource ? withBaziTimeSource(envelope, timeSource) : envelope;
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerDailyPresentation('cast_cezi', envelope.data, presentationToken);
+      const withPresentationToken = {
+        ...envelope,
+        result_meta: { ...envelope.result_meta, presentationToken },
+      };
+      return timeSource ? withBaziTimeSource(withPresentationToken, timeSource) : withPresentationToken;
     },
   },
   {
@@ -737,11 +754,19 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: async (i) => {
       const [{ calcChenguzEnveloped }, solar] = await Promise.all([loadChenguz(), loadSolar()]);
-      return calcChenguzEnveloped({
+      const envelope = calcChenguzEnveloped({
         birth: (i as { birth: unknown }).birth as never,
         solar: solar as never,
         version: (i as { version?: 'standard' | 'folk' | 'full' }).version,
       });
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerDailyPresentation('calc_chenguz', envelope.data, presentationToken);
+      return {
+        ...envelope,
+        result_meta: { ...envelope.result_meta, presentationToken },
+      };
     },
   },
   {
@@ -836,12 +861,20 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: async (i) => {
       const [{ getDailyRhythmEnveloped }, solar] = await Promise.all([loadRhythm(), loadSolar()]);
-      return getDailyRhythmEnveloped({
+      const envelope = getDailyRhythmEnveloped({
         date: (i as { date?: string }).date,
         hour: (i as { hour?: number }).hour,
         constitution: (i as { constitution?: string }).constitution,
         solar: solar as never,
       });
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerDailyPresentation('get_daily_rhythm', envelope.data, presentationToken);
+      return {
+        ...envelope,
+        result_meta: { ...envelope.result_meta, presentationToken },
+      };
     },
   },
   {
@@ -855,9 +888,17 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: async (i) => {
       const { assessConstitutionEnveloped } = await loadConstitution();
-      return assessConstitutionEnveloped({
+      const envelope = assessConstitutionEnveloped({
         answers: (i as { answers: Array<{ type: string; score: number }> }).answers,
       });
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerDailyPresentation('assess_constitution', envelope.data, presentationToken);
+      return {
+        ...envelope,
+        result_meta: { ...envelope.result_meta, presentationToken },
+      };
     },
   },
   {
