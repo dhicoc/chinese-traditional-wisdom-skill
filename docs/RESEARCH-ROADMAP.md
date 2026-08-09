@@ -187,6 +187,7 @@
 13. ✅ P2.4h 组合择日基础事实呈现校验：`combo_zeri` 对成功结果签发进程内 `presentationToken`；`validate_combo_presentation` 校验用途、搜索范围、已排序候选条目的日期/农历日期/日干支/分数/标签/冲命主与犯年煞状态、本年凶方及命卦吉方条目；单元与同 stdio 会话覆盖有效、篡改与无效凭证。评分理由、淘汰理由、黄历全文、首选结论、吉时、行动建议及任何吉凶保证不进入 claims。
 14. ✅ P2.4i 组合养生传统规则输出校验：`combo_daily_wellness` 对成功结果签发进程内 `presentationToken`；`validate_combo_presentation` 校验节气、体质、时辰经络、方位提示及节气饮食/起居/运动/穴位、体质加减、时辰养护等本次传统规则／知识输出；单元与同 stdio 会话覆盖有效、篡改、越界与跨工具断言。`valid: true` 仅表示与本次传统规则输出一致，不代表现实效果、医疗安全性或个体结果保证；结果仅供传统文化与日常参考，切勿盲目相信。
 15. ✅ P2.4j 组合月度基础事实校验：`combo_monthly_fortune` 对成功结果签发进程内 `presentationToken`；`validate_combo_presentation` 仅校验目标年月、流月干支、节气与 `local-exact`/`local-approx` 模式；单元与同 stdio 会话覆盖有效、篡改与跨工具断言。运势结论、子系统摘要、综合文本和建议不进入 claims。
+16. ✅ P2.4k 组合合婚基础事实校验：`combo_marriage` 对成功结果签发进程内 `presentationToken`；`validate_combo_presentation` 仅校验场景、双方日柱/日主/五行计数/命卦，以及逐柱干支与冲合关系布尔值；单元与同 stdio 会话覆盖有效、篡改、越界与跨工具断言。姓名、紫微、评分、合婚结论、风水建议和建议文本不进入 claims。
 
 ### 4.2 工程规范
 

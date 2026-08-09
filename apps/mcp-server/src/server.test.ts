@@ -754,6 +754,71 @@ describe('MCP Server 端到端协议', () => {
     expect(invalid).toMatchObject({ valid: false, violations: [expect.objectContaining({ tool: 'combo_monthly_fortune', kind: 'monthlyContext' })] });
   }, 30000);
 
+  it('同一会话中仅允许通过校验的组合合婚基础事实进入呈现', async () => {
+    const responses = await runMcpSessionWithFollowUp([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(87, 'combo_marriage', {
+        personA: {
+          birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+          baziTimeContext: { timeBasis: 'civil-unverified', civilFallbackConfirmed: true },
+        },
+        personB: {
+          birth: { year: 1992, month: 9, day: 20, hour: 8, gender: '女' },
+          baziTimeContext: { timeBasis: 'civil-unverified', civilFallbackConfirmed: true },
+        },
+        scene: '婚恋',
+        targetYear: 2026,
+      }),
+    ], (calculation) => {
+      if (calculation.id !== 87) return null;
+      const envelope = (calculation.result as {
+        structuredContent: {
+          data: {
+            scene: '婚恋' | '合伙' | '合作';
+            personA: { dayGanZhi: string; dayMaster: string; elements: Record<string, number>; mingGua: { trigram: string } };
+            personB: { dayMasterWuxing: string; mingGua: { group: string } };
+            chongHeScan: Array<{ pillar: string; aGanZhi: string; relation: { ganHe: boolean } }>;
+          };
+          result_meta: { presentationToken: string };
+        };
+      }).structuredContent;
+      return [
+        toolCallMsg(88, 'validate_combo_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [
+            { tool: 'combo_marriage', kind: 'marriageScene', value: envelope.data.scene },
+            { tool: 'combo_marriage', kind: 'marriagePerson', person: 'personA', field: 'dayGanZhi', value: envelope.data.personA.dayGanZhi },
+            { tool: 'combo_marriage', kind: 'marriagePerson', person: 'personA', field: 'dayMaster', value: envelope.data.personA.dayMaster },
+            { tool: 'combo_marriage', kind: 'marriagePerson', person: 'personB', field: 'dayMasterWuxing', value: envelope.data.personB.dayMasterWuxing },
+            { tool: 'combo_marriage', kind: 'marriageElement', person: 'personA', element: '木', value: envelope.data.personA.elements['木']! },
+            { tool: 'combo_marriage', kind: 'marriageMingGua', person: 'personA', field: 'trigram', value: envelope.data.personA.mingGua.trigram },
+            { tool: 'combo_marriage', kind: 'marriageMingGua', person: 'personB', field: 'group', value: envelope.data.personB.mingGua.group },
+            { tool: 'combo_marriage', kind: 'marriageChongHe', index: 0, field: 'pillar', value: envelope.data.chongHeScan[0]!.pillar },
+            { tool: 'combo_marriage', kind: 'marriageChongHe', index: 0, field: 'aGanZhi', value: envelope.data.chongHeScan[0]!.aGanZhi },
+            { tool: 'combo_marriage', kind: 'marriageChongHeRelation', index: 0, field: 'ganHe', value: envelope.data.chongHeScan[0]!.relation.ganHe },
+          ],
+        }),
+        toolCallMsg(89, 'validate_combo_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [
+            { tool: 'combo_marriage', kind: 'marriageElement', person: 'personA', element: '木', value: envelope.data.personA.elements['木']! + 1 },
+            { tool: 'combo_marriage', kind: 'marriageChongHe', index: 99, field: 'pillar', value: '年柱' },
+          ],
+        }),
+      ];
+    });
+    const valid = (responses.find((response) => response.id === 88)!.result as { structuredContent: { valid: boolean; violations: unknown[] } }).structuredContent;
+    const invalid = (responses.find((response) => response.id === 89)!.result as { structuredContent: { valid: boolean; violations: Array<{ tool: string; kind: string }> } }).structuredContent;
+    expect(valid).toEqual({ valid: true, violations: [] });
+    expect(invalid).toMatchObject({
+      valid: false,
+      violations: [
+        expect.objectContaining({ tool: 'combo_marriage', kind: 'marriageElement' }),
+        expect.objectContaining({ tool: 'combo_marriage', kind: 'marriageChongHe' }),
+      ],
+    });
+  }, 30000);
+
   it('同一会话中仅允许通过校验的组合养生传统规则输出进入呈现', async () => {
     const responses = await runMcpSessionWithFollowUp([
       INIT_MSG, INITIALIZED_MSG,

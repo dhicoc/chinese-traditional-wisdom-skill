@@ -55,6 +55,7 @@ export const GLOBAL_AGENT_RULES = [
   '六爻、梅花、奇门、大六壬、太乙与皇极如呈现卦名、动爻、局式、宫位、干支、三传或周期等基础盘面事实，必须以本次 result_meta.presentationToken 调 validate_divination_presentation；吉凶、应期、策略、传统解释与行动建议不进入 claims。',
   '综合择日如呈现用途、搜索范围、已排序候选日期的日期/农历日期/干支/分数/标签/冲命主与犯年煞状态、本年凶方或命卦吉方条目，必须以本次 combo_zeri 的 result_meta.presentationToken 调 validate_combo_presentation；评分理由、淘汰理由、黄历全文、首选结论、吉时、行动建议与任何吉凶保证不进入 claims。',
   '组合月度如呈现本次目标年月、流月干支、节气或 local-exact/local-approx 模式，必须以本次 combo_monthly_fortune 的 result_meta.presentationToken 调 validate_combo_presentation；运势结论、子系统摘要、综合文本和建议不进入 claims。',
+  '组合合婚如呈现场景、双方日柱/日主/五行计数/命卦，或逐柱干支与冲合关系布尔值，必须以本次 combo_marriage 的 result_meta.presentationToken 调 validate_combo_presentation；姓名、紫微、评分、合婚结论、风水建议和建议文本不进入 claims。',
   '组合养生如呈现本次节气、体质、时辰经络、方位提示或节气饮食/起居/运动/穴位、体质加减、时辰养护等传统规则建议，必须以本次 combo_daily_wellness 的 result_meta.presentationToken 调 validate_combo_presentation；valid:true 仅表示与本次传统规则／知识输出一致，不代表现实效果、医疗安全性或个体结果保证。结果仅供传统文化与日常参考，切勿盲目相信。',
   '不得替用户编造生辰、性别、出生地等关键参数；缺失时必须追问。',
   '真太阳时必须先核验地点经度、IANA 时区、出生时实际 UTC 偏移与夏令时依据；不得凭模型记忆填写或把民用时间伪称真太阳时。',
@@ -380,7 +381,7 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     ],
     safeDefaults: {},
     doNotAssume: ['personA.birth', 'personA.baziTimeContext', 'personB.birth', 'personB.baziTimeContext'],
-    workflow: '分别完成双方八字时间来源核验或民用降级确认 → 调 combo_marriage → 基于返回的配对结构化结果解读。',
+    workflow: '分别完成双方八字时间来源核验或民用降级确认 → 调 combo_marriage → 若呈现场景、双方日柱/日主/五行计数/命卦或逐柱干支与冲合关系布尔值，以本次 presentationToken 调 validate_combo_presentation 后再呈现；姓名、紫微、评分、合婚结论、风水建议和建议文本不进入 claims。',
   },
   cast_cezi: {
     tool: 'cast_cezi',

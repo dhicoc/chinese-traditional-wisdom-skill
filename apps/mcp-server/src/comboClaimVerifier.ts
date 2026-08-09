@@ -1,6 +1,11 @@
 import type { DailyWellnessResult, MonthlyFortuneResult, ZeriResult } from '../../visual/src/legacy/comboEngine';
+import type { MarriageResult } from '../../visual/src/legacy/marriageCombo';
 
-export type ComboPresentationTool = 'combo_zeri' | 'combo_daily_wellness' | 'combo_monthly_fortune';
+export type ComboPresentationTool = 'combo_zeri' | 'combo_daily_wellness' | 'combo_monthly_fortune' | 'combo_marriage';
+
+type MarriagePerson = 'personA' | 'personB';
+type Wuxing = '木' | '火' | '土' | '金' | '水';
+type ChongHeRelationField = 'chong' | 'liuHe' | 'sanHe' | 'hai' | 'xing' | 'ganHe' | 'ganChong';
 
 export type ComboPresentationClaim =
   | { tool: string; kind: 'zeriPurpose'; value: ZeriResult['zeriPurpose'] }
@@ -15,7 +20,13 @@ export type ComboPresentationClaim =
   | { tool: string; kind: 'wellnessJieqi'; field: 'jieqi' | 'season' | 'feature' | 'diet' | 'lifestyle' | 'exercise' | 'acupoints' | 'principle'; value: string }
   | { tool: string; kind: 'wellnessMeridian'; field: 'name' | 'time' | 'hours' | 'meridian' | 'organ' | 'function' | 'advice' | 'wuxing'; value: string }
   | { tool: string; kind: 'wellnessDirection'; value: string }
-  | { tool: string; kind: 'wellnessRecommendation'; index: number; field: 'label' | 'value' | 'tone'; value: string };
+  | { tool: string; kind: 'wellnessRecommendation'; index: number; field: 'label' | 'value' | 'tone'; value: string }
+  | { tool: string; kind: 'marriageScene'; value: MarriageResult['scene'] }
+  | { tool: string; kind: 'marriagePerson'; person: MarriagePerson; field: 'dayGanZhi' | 'dayMaster' | 'dayMasterWuxing'; value: string }
+  | { tool: string; kind: 'marriageElement'; person: MarriagePerson; element: Wuxing; value: number }
+  | { tool: string; kind: 'marriageMingGua'; person: MarriagePerson; field: 'trigram' | 'group'; value: string }
+  | { tool: string; kind: 'marriageChongHe'; index: number; field: 'pillar' | 'aGanZhi' | 'bGanZhi'; value: string }
+  | { tool: string; kind: 'marriageChongHeRelation'; index: number; field: ChongHeRelationField; value: boolean };
 
 export interface ComboClaimViolation {
   index: number;
@@ -31,7 +42,7 @@ export interface ComboClaimValidation {
   violations: ComboClaimViolation[];
 }
 
-type ComboPresentationData = ZeriResult | DailyWellnessResult | MonthlyFortuneResult;
+type ComboPresentationData = ZeriResult | DailyWellnessResult | MonthlyFortuneResult | MarriageResult;
 
 const presentationResults = new Map<string, { tool: ComboPresentationTool; data: ComboPresentationData }>();
 
@@ -100,6 +111,26 @@ function getExpectedValue(
         return monthly.context[claim.field];
       case 'monthlyMode':
         return monthly.mode;
+      default:
+        return undefined;
+    }
+  }
+
+  if (tool === 'combo_marriage') {
+    const marriage = data as MarriageResult;
+    switch (claim.kind) {
+      case 'marriageScene':
+        return marriage.scene;
+      case 'marriagePerson':
+        return marriage[claim.person][claim.field];
+      case 'marriageElement':
+        return marriage[claim.person].elements[claim.element];
+      case 'marriageMingGua':
+        return marriage[claim.person].mingGua[claim.field];
+      case 'marriageChongHe':
+        return marriage.chongHeScan[claim.index]?.[claim.field];
+      case 'marriageChongHeRelation':
+        return marriage.chongHeScan[claim.index]?.relation[claim.field];
       default:
         return undefined;
     }

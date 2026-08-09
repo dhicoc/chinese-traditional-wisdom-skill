@@ -419,9 +419,9 @@ server.registerTool(
   'validate_combo_presentation',
   {
     ...getToolContract('validate_combo_presentation'),
-    description: '组合工具呈现依据校验。对本次 combo_zeri 的结构化基础事实、combo_monthly_fortune 的年月/流月干支/节气/模式，或 combo_daily_wellness 的传统规则／知识输出逐项比对。择日仅核验用途、搜索范围、候选条目与方位基础字段；月度仅核验结构化上下文，不核验运势结论或建议；养生可核验本次节气、体质、时辰经络、方位提示及传统规则建议条目是否与工具输出一致。养生 valid:true 仅表示与本次传统规则输出一致，不代表现实效果、医疗安全性或个体结果保证；结果仅供传统文化与日常参考，切勿盲目相信。校验器不生成、补全或修正解读。',
+    description: '组合工具呈现依据校验。对本次 combo_zeri 的结构化基础事实、combo_monthly_fortune 的年月/流月干支/节气/模式、combo_marriage 的场景/双方日柱日主五行命卦/逐柱干支冲合布尔关系，或 combo_daily_wellness 的传统规则／知识输出逐项比对。择日仅核验用途、搜索范围、候选条目与方位基础字段；月度仅核验结构化上下文，不核验运势结论或建议；合婚不核验姓名、紫微、评分、结论、风水或建议；养生可核验本次节气、体质、时辰经络、方位提示及传统规则建议条目是否与工具输出一致。养生 valid:true 仅表示与本次传统规则输出一致，不代表现实效果、医疗安全性或个体结果保证；结果仅供传统文化与日常参考，切勿盲目相信。校验器不生成、补全或修正解读。',
     inputSchema: {
-      presentationToken: z.string().uuid().describe('本次 combo_zeri、combo_monthly_fortune 或 combo_daily_wellness 返回的 result_meta.presentationToken，仅在当前 MCP 进程有效'),
+      presentationToken: z.string().uuid().describe('本次 combo_zeri、combo_monthly_fortune、combo_marriage 或 combo_daily_wellness 返回的 result_meta.presentationToken，仅在当前 MCP 进程有效'),
       claims: z.array(z.union([
         z.object({ tool: z.literal('combo_zeri'), kind: z.literal('zeriPurpose'), value: z.enum(['开业', '结婚', '搬家', '动土', '出行', '签约', '安葬', '祈福']) }),
         z.object({ tool: z.literal('combo_zeri'), kind: z.literal('zeriRange'), field: z.enum(['start', 'end']), value: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }),
@@ -434,6 +434,12 @@ server.registerTool(
         z.object({ tool: z.literal('combo_monthly_fortune'), kind: z.literal('monthlyContext'), field: z.enum(['year', 'month']), value: z.number().int() }),
         z.object({ tool: z.literal('combo_monthly_fortune'), kind: z.literal('monthlyContext'), field: z.enum(['monthGanZhi', 'jieqi']), value: z.string().min(1) }),
         z.object({ tool: z.literal('combo_monthly_fortune'), kind: z.literal('monthlyMode'), value: z.enum(['local-exact', 'local-approx']) }),
+        z.object({ tool: z.literal('combo_marriage'), kind: z.literal('marriageScene'), value: z.enum(['婚恋', '合伙', '合作']) }),
+        z.object({ tool: z.literal('combo_marriage'), kind: z.literal('marriagePerson'), person: z.enum(['personA', 'personB']), field: z.enum(['dayGanZhi', 'dayMaster', 'dayMasterWuxing']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('combo_marriage'), kind: z.literal('marriageElement'), person: z.enum(['personA', 'personB']), element: z.enum(['木', '火', '土', '金', '水']), value: z.number().int().min(0) }),
+        z.object({ tool: z.literal('combo_marriage'), kind: z.literal('marriageMingGua'), person: z.enum(['personA', 'personB']), field: z.enum(['trigram', 'group']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('combo_marriage'), kind: z.literal('marriageChongHe'), index: z.number().int().min(0), field: z.enum(['pillar', 'aGanZhi', 'bGanZhi']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('combo_marriage'), kind: z.literal('marriageChongHeRelation'), index: z.number().int().min(0), field: z.enum(['chong', 'liuHe', 'sanHe', 'hai', 'xing', 'ganHe', 'ganChong']), value: z.boolean() }),
         z.object({ tool: z.literal('combo_daily_wellness'), kind: z.literal('wellnessContext'), field: z.enum(['date', 'jieqi', 'season', 'shichen', 'meridian']), value: z.string().min(1) }),
         z.object({ tool: z.literal('combo_daily_wellness'), kind: z.literal('wellnessConstitution'), field: z.enum(['type', 'source', 'reason']), value: z.string().min(1) }),
         z.object({ tool: z.literal('combo_daily_wellness'), kind: z.literal('wellnessJieqi'), field: z.enum(['jieqi', 'season', 'feature', 'diet', 'lifestyle', 'exercise', 'acupoints', 'principle']), value: z.string().min(1) }),

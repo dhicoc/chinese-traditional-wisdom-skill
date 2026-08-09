@@ -729,7 +729,7 @@ export const TOOLS: ToolDef[] = [
       const personATimeSource = resolveBaziTimeSource(input.personA.birth, input.personA.baziTimeContext);
       const personBTimeSource = resolveBaziTimeSource(input.personB.birth, input.personB.baziTimeContext);
       const [{ calcMarriageCombo }, solar] = await Promise.all([loadMarriageCombo(), loadSolar()]);
-      const envelope = withBaziTimeSource(withBaziTimeSource(calcMarriageCombo({
+      const marriageEnvelope = await calcMarriageCombo({
         personA: {
           birth: input.personA.birth as never,
           surname: input.personA.surname,
@@ -745,14 +745,24 @@ export const TOOLS: ToolDef[] = [
         },
         scene: input.scene,
         targetYear: input.targetYear,
-      }), personATimeSource), personBTimeSource);
+      });
+      const envelope = withBaziTimeSource(
+        withBaziTimeSource(marriageEnvelope, personATimeSource),
+        personBTimeSource,
+      ) as unknown as typeof marriageEnvelope;
 
+      if (!envelope.ok) return envelope;
+
+      const data = {
+        ...envelope.data,
+        timeSource: { personA: personATimeSource, personB: personBTimeSource },
+      };
+      const presentationToken = randomUUID();
+      registerComboPresentation('combo_marriage', data, presentationToken);
       return {
         ...envelope,
-        data: {
-          ...envelope.data,
-          timeSource: { personA: personATimeSource, personB: personBTimeSource },
-        },
+        data,
+        result_meta: { ...envelope.result_meta, presentationToken },
       };
     },
   },

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Solar } from 'lunar-typescript';
 import { calcDailyWellnessCombo, calcMonthlyFortuneCombo, calcZeriCombo } from '../../visual/src/legacy/comboEngine';
+import { calcMarriageCombo } from '../../visual/src/legacy/marriageCombo';
 import { validateComboClaims, type ComboPresentationClaim } from './comboClaimVerifier';
 
 const envelope = calcZeriCombo({
@@ -123,6 +124,56 @@ describe('组合养生传统规则输出校验', () => {
     expect(result.violations).toEqual(expect.arrayContaining([
       expect.objectContaining({ tool: 'combo_daily_wellness', kind: 'wellnessJieqi' }),
       expect.objectContaining({ tool: 'combo_daily_wellness', kind: 'wellnessRecommendation' }),
+      expect.objectContaining({ tool: 'combo_zeri', kind: 'zeriPurpose' }),
+    ]));
+  });
+});
+
+describe('组合合婚基础事实校验', () => {
+  it('接受本次场景、双方日柱日主五行命卦与逐柱冲合布尔事实', async () => {
+    const envelope = await calcMarriageCombo({
+      personA: { birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, solar: Solar },
+      personB: { birth: { year: 1992, month: 9, day: 20, hour: 8, gender: '女' }, solar: Solar },
+      scene: '婚恋',
+      targetYear: 2026,
+    });
+    const data = envelope.data;
+    const scan = data.chongHeScan[0]!;
+    const claims: ComboPresentationClaim[] = [
+      { tool: 'combo_marriage', kind: 'marriageScene', value: data.scene },
+      { tool: 'combo_marriage', kind: 'marriagePerson', person: 'personA', field: 'dayGanZhi', value: data.personA.dayGanZhi },
+      { tool: 'combo_marriage', kind: 'marriagePerson', person: 'personA', field: 'dayMaster', value: data.personA.dayMaster },
+      { tool: 'combo_marriage', kind: 'marriagePerson', person: 'personB', field: 'dayMasterWuxing', value: data.personB.dayMasterWuxing },
+      { tool: 'combo_marriage', kind: 'marriageElement', person: 'personA', element: '木', value: data.personA.elements['木']! },
+      { tool: 'combo_marriage', kind: 'marriageMingGua', person: 'personB', field: 'trigram', value: data.personB.mingGua.trigram },
+      { tool: 'combo_marriage', kind: 'marriageMingGua', person: 'personB', field: 'group', value: data.personB.mingGua.group },
+      { tool: 'combo_marriage', kind: 'marriageChongHe', index: 0, field: 'pillar', value: scan.pillar },
+      { tool: 'combo_marriage', kind: 'marriageChongHe', index: 0, field: 'aGanZhi', value: scan.aGanZhi },
+      { tool: 'combo_marriage', kind: 'marriageChongHe', index: 0, field: 'bGanZhi', value: scan.bGanZhi },
+      { tool: 'combo_marriage', kind: 'marriageChongHeRelation', index: 0, field: 'ganHe', value: scan.relation.ganHe },
+    ];
+
+    expect(validateComboClaims('combo_marriage', data, claims)).toEqual({ valid: true, violations: [] });
+  });
+
+  it('拒绝伪造五行、越界逐柱冲合与跨工具断言', async () => {
+    const envelope = await calcMarriageCombo({
+      personA: { birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' }, solar: Solar },
+      personB: { birth: { year: 1992, month: 9, day: 20, hour: 8, gender: '女' }, solar: Solar },
+      scene: '婚恋',
+      targetYear: 2026,
+    });
+    const data = envelope.data;
+    const result = validateComboClaims('combo_marriage', data, [
+      { tool: 'combo_marriage', kind: 'marriageElement', person: 'personA', element: '木', value: data.personA.elements['木']! + 1 },
+      { tool: 'combo_marriage', kind: 'marriageChongHe', index: 99, field: 'pillar', value: '年柱' },
+      { tool: 'combo_zeri', kind: 'zeriPurpose', value: '开业' },
+    ]);
+
+    expect(result.valid).toBe(false);
+    expect(result.violations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ tool: 'combo_marriage', kind: 'marriageElement' }),
+      expect.objectContaining({ tool: 'combo_marriage', kind: 'marriageChongHe' }),
       expect.objectContaining({ tool: 'combo_zeri', kind: 'zeriPurpose' }),
     ]));
   });

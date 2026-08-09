@@ -95,6 +95,14 @@ describe('agent_guidance 参数引导', () => {
     expect(workflow).toContain('运势结论、子系统摘要、综合文本和建议不进入 claims');
   });
 
+  it('GLOBAL_AGENT_RULES 约束组合合婚基础事实呈现校验', () => {
+    expect(GLOBAL_AGENT_RULES.some((r) => r.includes('combo_marriage') && r.includes('validate_combo_presentation') && r.includes('合婚结论'))).toBe(true);
+    const workflow = getToolGuidance('combo_marriage')!.workflow;
+    expect(workflow).toContain('validate_combo_presentation');
+    expect(workflow).toContain('逐柱干支与冲合关系布尔值');
+    expect(workflow).toContain('姓名、紫微、评分、合婚结论、风水建议和建议文本不进入 claims');
+  });
+
   it('safeDefaults 不包含默认男', () => {
     const serializedDefaults = JSON.stringify(Object.values(listToolGuidance()).map((item) => getToolGuidance(item.tool)?.safeDefaults));
     expect(serializedDefaults).not.toContain('"gender":"男"');
