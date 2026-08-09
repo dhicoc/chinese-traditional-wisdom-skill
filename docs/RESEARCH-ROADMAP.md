@@ -1,57 +1,127 @@
-# 深度调研实施路线图
+# 本地直调 Skill 技术实施路线图
 
-> 更新日期：2026-08-09。本文记录当前本地 Skill 架构下的后续工程方向。
+> 更新日期：2026-08-09。本文是 [`ROADMAP.md`](../ROADMAP.md) 的技术实施细则，不重复定义产品优先级或架构历史。
 
-## 当前架构
+## 当前链路与实现落点
 
 ```text
 SKILL.md / RULES.md
-  → Agent 收集并核验必要输入
+  → Agent 收集、核验必要输入
   → apps/visual/scripts/run-engine.ts
   → apps/visual/src/legacy/directRunner.ts
   → 本地 TypeScript 引擎
   → ToolEnvelope
-  → claimVerification 的纯 validate*Claims(data, claims)
-  → 用户可读说明或 Dashboard
+  → apps/visual/src/legacy/claimVerification/validate*Claims(data, claims)
+  → Dashboard、报告或用户可读说明
 ```
 
-所有确定性计算都在本地执行。`run-engine.ts` 通过 `pnpm engine <tool> <input-json-file>` 接收一次性 JSON 输入并输出结果；它不维护会话状态。呈现校验器直接接收同一次结果的 `data` 与结构化 `claims`，不校验自由文本、解释、建议或预测。
-
-## 已完成基线
-
-| 项目 | 状态 | 说明 |
+| 责任 | 主入口 | 实施约束 |
 | --- | --- | --- |
-| CI | ✅ | `apps/visual` 的类型检查、单元测试、契约、烟测和构建均在 GitHub Actions 运行。 |
-| 本地引擎 | ✅ | 32 个工具名由 `directRunner.ts` 映射到纯 TS 引擎，统一返回 `ToolEnvelope` 或真太阳时校准结果。 |
-| 真太阳时 | ✅ | Agent 核验地点与历史时区事实后，直接调用 `resolve_true_solar_time`，并将 `trueSolarBirth` 或 `trueSolarResolution` 传入涉及八字的计算。 |
-| 民用时间降级 | ✅ | 无法完成核验时，必须显式确认 `civilFallbackConfirmed=true` 并展示“未完成真太阳时复核”。 |
-| 防编造校验 | ✅ | 八字、紫微、八宅、飞星、历法、占测、日用、组合和数值校验器均为无状态纯函数。 |
-| P2.4l 年度组合校验 | ✅ | `combo_annual_fortune` 显式输出目标年份和命卦 context；只校验这些原子字段，不校验综合结论或建议。 |
+| Skill 路由与输入边界 | `SKILL.md`、`RULES.md`、`tool-index.md` | Agent 不自行计算确定性事实。 |
+| CLI 调度 | `apps/visual/scripts/run-engine.ts` | 一次性 JSON 输入、JSON 输出、不维护会话状态。 |
+| 工具注册 | `apps/visual/src/legacy/directRunner.ts` | 32 个工具名是唯一运行注册表。 |
+| 计算结果 | `apps/visual/src/legacy/*Engine.ts` | 返回 `ToolEnvelope` 或真太阳时校正结果。 |
+| 事实校验 | `apps/visual/src/legacy/claimVerification/` | 仅接受本次 `data` 与结构化 `claims`。 |
+| 可视化与报告 | `apps/visual/src/features/`、`templates/visual-report.md` | 显示能力模式、降级状态与解释边界。 |
 
-## 后续优先级
+`run-engine.ts` 通过 `pnpm engine <tool> <input-json-file>` 执行。输入来自 stdin 时同样是一次性 JSON。模型不得自行推演确定性盘面、干支、数值或规则匹配。校验器不验证自由文本、解释、建议、预测、医疗安全性或现实效果。
 
-### P1：收敛引擎边界
+## 实施阶段 A：输入与公开引擎边界
 
-1. 把 `apps/visual/src/legacy` 的公开 API 按领域整理为稳定导出层，减少跨模块直接引用。
-2. 为各工具输入建立共享 TypeScript 类型与轻量运行时边界校验，保持 CLI、Dashboard 和测试使用同一份输入契约。
-3. 将八字神煞、紫微动态层和风水口径收敛为可披露的 `calculationConfig`，并以固定夹具覆盖不同流派边界。
+### 目标
 
-### P2：强化可验证呈现
+将当前 `legacy` 内的可用能力收敛为可追踪、可测试的本地公开接口。
 
-1. 扩展结构化 claims 的覆盖范围时，坚持只纳入独立、稳定的基础事实。
-2. 为每个校验器增加直接结果、篡改值与跨工具 claims 的回归测试。
-3. 保持 `valid: true` 的窄含义：只代表所给结构化 claims 与该次引擎结果一致，不能用于声明自由文本或现实效果已验证。
-4. 继续维护古籍条目的稳定引用 ID，使文化背景与确定性计算结果清晰分层。
+### 工作包
 
-### P3：产品与分发
+1. 为工具输入建立按领域复用的 TypeScript 类型，供 CLI、Dashboard、组合工具和 fixture 使用。
+2. 以 `directRunner.ts` 为工具名、输入类型、结果类型和错误语义的唯一注册来源，避免文档手写清单漂移。
+3. 为每个工具维护最小成功输入、边界输入和失败输入 fixture；可从 `apps/visual/src/__tests__/` 的现有 Vitest 模式扩展。
+4. 将口径差异写入 `result_meta.calculationConfig`，优先覆盖八字神煞、紫微动态层、飞星/八宅与历法边界。
 
-1. 提供更完整的本地命令行示例、输入模板和可复现报告导出。
-2. 完善 Dashboard 的隐私标识、运限时间轴和本地历史版本化。
-3. 评估将引擎拆为独立本地包的成本，但必须保持离线、无服务端和一次性直接调用的运行模型。
+### 完成定义
 
-## 变更验收
+- 所有公开工具均可由 Runner 使用 fixture 执行。
+- 类型、输入示例、错误文案与工具注册表一致。
+- 口径变动有固定 fixture，而非只依赖人工截图判断。
 
-每次修改引擎、运行器、校验器或用户可见架构说明后，至少运行：
+## 实施阶段 B：结构化事实校验
+
+### 目标
+
+在不扩大校验语义的前提下，补齐结构化、稳定、可重复计算的原子事实。
+
+### 工作包
+
+1. 统一 `claimVerification/` 内 `validate*Claims` 的类型、violation 表达和跨工具拒绝模式。
+2. 对每个 verifier 维护三组测试：正确 claims、篡改值、跨工具 claims。
+3. 仅为柱、宫位、星曜、日期、枚举、数值、映射、排序等稳定字段增加 claims；不为综合结论添加伪校验。
+4. 维持年度组合的窄范围原则：如 `combo_annual_fortune` 只校验 `targetYear` 与命卦 context，不校验 tone、建议或综合结论。
+
+### 完成定义
+
+- `valid: true` 只表示 claims 与同次结果一致。
+- 校验测试能说明拒绝原因，而非仅断言布尔值。
+- 用户可见文案不把通过 claims 的结果扩大成传统解释或现实效果验证。
+
+## 实施阶段 C：真太阳时与可信输入
+
+### 目标
+
+保持计算边界清晰：引擎只校正已核验输入，Agent 不猜地点、历史时区或夏令时。
+
+### 工作包
+
+1. 固化 `resolve_true_solar_time` 的输入 fixture，包括经度、IANA 时区、UTC 偏移、夏令时与 `utcOffsetEvidence`。
+2. 覆盖跨日期、时辰边界、子初边界和民用时间 fallback。
+3. 维持 `timeBasis='true-solar-verified'` 必须传入 `trueSolarBirth` 或 `trueSolarResolution` 且与出生字段一致的运行时边界。
+4. 维持 `timeBasis='civil-unverified'` 必须显式 `civilFallbackConfirmed=true` 的知情降级。
+
+### 完成定义
+
+- 结果始终显示 `timeSource`，民用降级明确为“未完成真太阳时复核”。
+- Dashboard 与 CLI 均不能绕过核验边界自行生成真太阳时。
+
+## 实施阶段 D：报告、隐私与跨浏览器体验
+
+### 目标
+
+让本地结果可阅读、可导出、可回归测试，同时最小化敏感数据留存。
+
+### 工作包
+
+1. 将结构化事实、古籍背景、传统解释、建议和免责声明作为不同报告层维护。
+2. 为静态报告版本、能力模式、脱敏输入摘要和引用 ID 建立稳定输出规则。
+3. 扩展 `apps/visual/e2e/` 的隐私、响应式、导航、图表和本地能力标识测试。
+4. 保留桌面 Chromium/WebKit、移动 Chrome/Safari 的完整 E2E 项目；资源紧张时以单线程按项目运行。
+
+### 完成定义
+
+- 历史、收藏、报告和浏览器存储不泄露完整出生日期、地点或身份信息。
+- 所有工作区可在四类浏览器视口中打开、导航、生成图表并导出摘要。
+- 结果的 `local-exact`、`local-approx`、民俗体验和降级状态始终可见。
+
+## 实施阶段 E：分发、依赖与规则维护
+
+### 目标
+
+使本地 Skill 的安装、更新和规则变更可预测且可回归。
+
+### 工作包
+
+1. 将 `tool-index.md` 的 CLI 示例与各领域 `bootstrap/` 输入模板保持同步。
+2. 在依赖升级时运行规则 fixture、文档契约、映射 schema 与完整浏览器 E2E。
+3. 记录映射表和古籍引用 ID 的变动来源与兼容性影响。
+4. 仅评估不破坏 CLI 契约的本地包拆分；不增加远程调用、账户、服务端状态或协议适配层。
+
+### 完成定义
+
+- 新安装环境可按文档完成工具调用和完整质量门。
+- 依赖或规则变动有可审计的测试证据与变更记录。
+
+## 验收命令
+
+基础质量门：
 
 ```text
 cd apps/visual
@@ -59,7 +129,17 @@ pnpm typecheck
 pnpm test:unit
 node scripts/smoke-react-shell.mjs
 node scripts/check-doc-contracts.mjs
+node scripts/check-knowledge-references.mjs
+node scripts/check-mapping-schema.mjs
+node scripts/check-react-migration.mjs
+node scripts/check-search-index.mjs
 pnpm build
 ```
 
-涉及具体盘面规则时，还应运行对应的固定夹具测试。修改测试断言不能替代对上游依赖版本、规则口径和用户可见边界的说明。
+涉及 Dashboard 交互、隐私、可访问性或响应式布局时：
+
+```text
+pnpm test:e2e
+```
+
+若同机多浏览器并发造成资源竞争，可保留同一测试矩阵，改为按 `chromium`、`webkit`、`Mobile Chrome`、`Mobile Safari` 项目单线程执行；不得因资源限制跳过移动端或 WebKit 覆盖。

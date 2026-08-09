@@ -32,6 +32,7 @@ const requiredFiles = [
   "tool-index.md",
   "EVOLUTION.md",
   "ROADMAP.md",
+  "docs/RESEARCH-ROADMAP.md",
   "apps/visual/package.json",
   "apps/visual/scripts/run-engine.ts",
   "apps/visual/src/legacy/directRunner.ts",
@@ -63,7 +64,8 @@ const docs = Object.fromEntries([
   "RULES.md",
   "tool-index.md",
   "ROADMAP.md",
-  "EVOLUTION.md"
+  "EVOLUTION.md",
+  "docs/RESEARCH-ROADMAP.md"
 ].map((relPath) => [relPath, read(relPath)]));
 const runner = read("apps/visual/scripts/run-engine.ts");
 const packageJson = read("apps/visual/package.json");
