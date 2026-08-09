@@ -115,6 +115,22 @@ export interface DreamToolInput {
   useFull: boolean;
 }
 
+export interface ConstitutionTendencyToolInput {
+  wuyun?: { dayun: string };
+  liuqi?: { sitian: string; zaquan: string };
+}
+
+export interface ConstitutionAnswerToolInput {
+  type: '气虚质' | '阳虚质' | '阴虚质' | '痰湿质' | '湿热质' | '血瘀质' | '气郁质' | '特禀质';
+  score: 1 | 2 | 3 | 4 | 5;
+}
+
+export interface ConstitutionAssessmentToolInput {
+  answers: ConstitutionAnswerToolInput[];
+}
+
+export interface ConstitutionQuestionnaireToolInput extends Input {}
+
 export type LocalToolContractInput =
   | TrueSolarTimeToolInput
   | BaziToolInput
@@ -135,10 +151,24 @@ export type LocalToolContractInput =
   | NameToolInput
   | CeziToolInput
   | HuangjiToolInput
-  | DreamToolInput;
+  | DreamToolInput
+  | ConstitutionTendencyToolInput
+  | ConstitutionAssessmentToolInput
+  | ConstitutionQuestionnaireToolInput;
 
 type Input = Record<string, unknown>;
 
+const CONSTITUTION_TYPES = ['气虚质', '阳虚质', '阴虚质', '痰湿质', '湿热质', '血瘀质', '气郁质', '特禀质'] as const;
+const CONSTITUTION_QUESTION_COUNTS: Record<ConstitutionAnswerToolInput['type'], number> = {
+  气虚质: 8,
+  阳虚质: 6,
+  阴虚质: 8,
+  痰湿质: 7,
+  湿热质: 5,
+  血瘀质: 6,
+  气郁质: 7,
+  特禀质: 5,
+};
 const DIRECTIONS = new Set(['东', '东南', '南', '西南', '西', '西北', '北', '东北']);
 
 function object(value: unknown, label: string): Input {
@@ -390,6 +420,38 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
     }
     case 'huangji_calculate':
       return { birth: huangjiBirth(input.birth) } as HuangjiToolInput;
+    case 'get_constitution_tendency': {
+      const wuyun = input.wuyun === undefined ? undefined : object(input.wuyun, 'wuyun');
+      const liuqi = input.liuqi === undefined ? undefined : object(input.liuqi, 'liuqi');
+      if (wuyun?.dayun !== undefined && typeof wuyun.dayun !== 'string') throw new Error('wuyun.dayun 必须是字符串。');
+      if (liuqi?.sitian !== undefined && typeof liuqi.sitian !== 'string') throw new Error('liuqi.sitian 必须是字符串。');
+      if (liuqi?.zaquan !== undefined && typeof liuqi.zaquan !== 'string') throw new Error('liuqi.zaquan 必须是字符串。');
+      return {
+        wuyun: wuyun ? { dayun: (wuyun.dayun as string | undefined) ?? '' } : undefined,
+        liuqi: liuqi ? { sitian: (liuqi.sitian as string | undefined) ?? '', zaquan: (liuqi.zaquan as string | undefined) ?? '' } : undefined,
+      } as ConstitutionTendencyToolInput;
+    }
+    case 'assess_constitution': {
+      if (input.answers === undefined) return { answers: [] } as ConstitutionAssessmentToolInput;
+      if (!Array.isArray(input.answers)) throw new Error('answers 必须是答题数组。');
+      if (input.answers.length === 0) return { answers: [] } as ConstitutionAssessmentToolInput;
+      const counts: Record<string, number> = {};
+      const answers = input.answers.map((value, index) => {
+        const answer = object(value, `answers[${index}]`);
+        if (!CONSTITUTION_TYPES.includes(answer.type as ConstitutionAnswerToolInput['type'])) throw new Error(`answers[${index}].type 必须是八种偏颇体质之一。`);
+        const score = integer(answer.score, `answers[${index}].score`, 1, 5) as ConstitutionAnswerToolInput['score'];
+        const type = answer.type as ConstitutionAnswerToolInput['type'];
+        counts[type] = (counts[type] ?? 0) + 1;
+        return { type, score };
+      });
+      for (const type of CONSTITUTION_TYPES) {
+        if (counts[type] !== CONSTITUTION_QUESTION_COUNTS[type]) throw new Error(`${type}必须提供 ${CONSTITUTION_QUESTION_COUNTS[type]} 题答案。`);
+      }
+      return { answers } as ConstitutionAssessmentToolInput;
+    }
+    case 'list_constitution_questionnaire':
+      if (Object.keys(input).length > 0) throw new Error('list_constitution_questionnaire 不接受输入字段。');
+      return {} as ConstitutionQuestionnaireToolInput;
     default:
       return null;
   }

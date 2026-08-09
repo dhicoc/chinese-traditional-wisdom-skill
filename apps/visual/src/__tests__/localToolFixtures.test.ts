@@ -220,11 +220,56 @@ const successCases: SuccessCase[] = [
     name: 'huangji_calculate.boundary.json',
     assert: (result) => expect(result).toMatchObject({ ok: true, data: { mode: 'local-exact', solarDate: expect.stringContaining('23:59'), gua: { minute: expect.any(String) } } }),
   },
+  {
+    tool: 'get_constitution_tendency',
+    name: 'get_constitution_tendency.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, input_normalized: { dayun: '木运太过', sitian: '厥阴风木', zaquan: '少阳相火' }, data: { tendencies: expect.arrayContaining([expect.objectContaining({ type: '气郁质' })]), engineName: 'ConstitutionTendencyAdapter' } }),
+  },
+  {
+    tool: 'list_constitution_questionnaire',
+    name: 'list_constitution_questionnaire.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, input_normalized: {}, data: { groups: expect.any(Array) }, summary: [expect.stringContaining('8 组、52 题')] }),
+  },
+  {
+    tool: 'list_constitution_questionnaire',
+    name: 'list_constitution_questionnaire.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { groups: expect.arrayContaining([{ type: '气虚质', questions: expect.any(Array) }]) } }),
+  },
+  {
+    tool: 'assess_constitution',
+    name: 'assess_constitution.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, input_normalized: { answerCount: 52, dominantType: '平和质' }, data: { dominantType: '平和质', scores: { 平和质: 100 }, tone: '吉' } }),
+  },
+];
+
+type BoundaryCase = {
+  tool: string;
+  name: string;
+  assert: (result: any) => void;
+};
+
+const boundaryCases: BoundaryCase[] = [
+  {
+    tool: 'get_constitution_tendency',
+    name: 'get_constitution_tendency.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: false, error: { code: 'insufficient_input' }, input_normalized: { dayun: '', sitian: '', zaquan: '' } }),
+  },
+  {
+    tool: 'assess_constitution',
+    name: 'assess_constitution.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: false, error: { code: 'NO_ANSWERS' }, input_normalized: { answerCount: 0 } }),
+  },
 ];
 
 describe('local tool input fixtures', () => {
   successCases.forEach(({ tool, name, assert }) => {
     it(`${tool} executes ${name}`, async () => {
+      assert(await runLocalTool(tool, await fixture(name)));
+    });
+  });
+
+  boundaryCases.forEach(({ tool, name, assert }) => {
+    it(`${tool} returns its business boundary for ${name}`, async () => {
       assert(await runLocalTool(tool, await fixture(name)));
     });
   });
@@ -250,6 +295,9 @@ describe('local tool input fixtures', () => {
     ['analyze_name', 'analyze_name.failure.json'],
     ['cast_cezi', 'cast_cezi.failure.json'],
     ['huangji_calculate', 'huangji_calculate.failure.json'],
+    ['get_constitution_tendency', 'get_constitution_tendency.failure.json'],
+    ['assess_constitution', 'assess_constitution.failure.json'],
+    ['list_constitution_questionnaire', 'list_constitution_questionnaire.failure.json'],
   ].forEach(([tool, name]) => {
     it(`${tool} rejects ${name}`, async () => {
       await expect(runLocalTool(tool, await fixture(name))).rejects.toThrow();
