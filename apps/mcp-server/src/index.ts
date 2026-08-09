@@ -193,7 +193,7 @@ server.registerTool(
   'validate_bazhai_presentation',
   {
     ...getToolContract('validate_bazhai_presentation'),
-    description: '八宅呈现依据校验。对本次 calc_bazhai 返回的 result_meta.presentationToken 与拟呈现的结构化确定性八宅断言逐项比对；仅核验命卦、八方游年星与吉凶、指定年份的太岁、岁破、三煞和五黄方位。传统释义、布局建议、门主灶与化解建议不进入 claims。校验器不生成、补全或修正解读；任一断言不符时必须移除或改为引擎实际结果。',
+    description: '八宅\u5448\u73b0依据校验。对本次 calc_bazhai 返回的 result_meta.presentationToken 与拟\u5448\u73b0的结构化确定性八宅断言逐项比对；仅核验命卦、八方游年星与吉凶、指定年份的太岁、岁破、三煞和五黄方位。传统释义、布局建议、门主灶与化解建议不进入 claims。校验器不生成、补全或修正解读；任一断言不符时必须移除或改为引擎实际结果。',
     inputSchema: {
       presentationToken: z.string().uuid().describe('本次 calc_bazhai 返回的 result_meta.presentationToken，仅在当前 MCP 进程有效'),
       claims: z.array(z.union([
