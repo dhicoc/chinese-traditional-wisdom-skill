@@ -22,6 +22,7 @@ import { getDailyRhythmEnveloped } from './rhythmEngine';
 import { assessConstitutionEnveloped, listConstitutionQuestionnaire } from './constitutionAssessEngine';
 import { calcNameRatingEnveloped, calcXiYongEnveloped, getConstitutionTendencyEnveloped } from './envelopeAdapters';
 import { searchDreamEnveloped } from './envelopeSample';
+import { parseFirstBatchToolInput } from './toolContracts';
 
 type Input = Record<string, any>;
 type DirectResult = ToolEnvelope<any> | TrueSolarTimeResolution;
@@ -68,7 +69,8 @@ function withTimeSource(envelope: ToolEnvelope<any>, source: ReturnType<typeof t
 
 /** 直接调用 legacy enveloped 引擎，使用一次性输入和结果对象。 */
 export async function runLocalTool(tool: string, rawInput: unknown): Promise<DirectResult> {
-  const input = record(rawInput);
+  const rawRecord = record(rawInput);
+  const input = (parseFirstBatchToolInput(tool, rawRecord) ?? rawRecord) as Input;
   switch (tool) {
     case 'resolve_true_solar_time': return resolveTrueSolarTime({ ...input.birth, minute: input.birth.minute ?? 0, useExactCalendar: true }, input.location);
     case 'bazi_calculate': return withTimeSource(calcBaziEnveloped({ birth: input.birth, solar: Solar, shenShaTrineSource: input.shenShaTrineSource }), timeSource(input.birth, input));
