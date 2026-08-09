@@ -10,42 +10,39 @@
 
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { Solar } from 'lunar-typescript';
-
-import { searchDreamEnveloped } from '../../visual/src/legacy/envelopeSample';
-import { calcXiYongEnveloped, calcNameRatingEnveloped, getConstitutionTendencyEnveloped } from '../../visual/src/legacy/envelopeAdapters';
-import { calcMeihuaEnveloped } from '../../visual/src/legacy/meihuaEngine';
-import { calcYunqiEnveloped } from '../../visual/src/legacy/yunqiEngine';
-import { calcLiuyaoEnveloped } from '../../visual/src/legacy/liuyaoEngine';
-import { calcBaziEnveloped } from '../../visual/src/legacy/baziEngine';
-import { calcZiweiEnveloped } from '../../visual/src/legacy/ziweiEngine';
-import { calcQimenEnveloped } from '../../visual/src/legacy/qimenEngine';
-import { calcDaliurenEnveloped } from '../../visual/src/legacy/daliurenEngine';
-import { calcXingXiuEnveloped } from '../../visual/src/legacy/xingxiuEngine';
-import { calcTaiyiEnveloped } from '../../visual/src/legacy/taiyiEngine';
-import { calcHuangjiEnveloped } from '../../visual/src/legacy/huangjiEngine';
-import { calcAnnualFortuneCombo, calcDecisionCombo, calcSpaceTimeCombo, calcSanshiCombo, calcSanshiClassicCombo, calcDailyWellnessCombo, calcZeriCombo, calcMonthlyFortuneCombo } from '../../visual/src/legacy/comboEngine';
-import { calcMarriageCombo } from '../../visual/src/legacy/marriageCombo';
-import { calcCeziEnveloped } from '../../visual/src/legacy/ceziEngine';
-import { calcChenguzEnveloped } from '../../visual/src/legacy/chenguzEngine';
-import { getAlmanacEnveloped } from '../../visual/src/legacy/almanacData';
-import { calcFeixingEnveloped } from '../../visual/src/legacy/feixingEngine';
-import { calcBazhaiEnveloped } from '../../visual/src/legacy/bazhaiEngine';
-import { getDailyRhythmEnveloped } from '../../visual/src/legacy/rhythmEngine';
-import { assessConstitutionEnveloped, listConstitutionQuestionnaire } from '../../visual/src/legacy/constitutionAssessEngine';
-import { resolveTrueSolarTime } from '../../visual/src/legacy/trueSolarTime';
+import type { TrueSolarTimeResolution } from '../../visual/src/legacy/trueSolarTime';
 import { registerBaziPresentation } from './baziClaimVerifier.js';
 import { registerBazhaiPresentation } from './bazhaiClaimVerifier.js';
 import { registerZiweiPresentation } from './ziweiClaimVerifier.js';
 
-/** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
-const solarEntry: unknown = (() => {
-  try {
-    return Solar;
-  } catch {
-    return null;
-  }
-})();
+function lazyModule<T>(load: () => Promise<T>): () => Promise<T> {
+  let modulePromise: Promise<T> | undefined;
+  return () => modulePromise ??= load();
+}
+
+const loadSolar = lazyModule(() => import('lunar-typescript').then(({ Solar }) => Solar).catch(() => null));
+const loadDream = lazyModule(() => import('../../visual/src/legacy/envelopeSample'));
+const loadEnvelopeAdapters = lazyModule(() => import('../../visual/src/legacy/envelopeAdapters'));
+const loadMeihua = lazyModule(() => import('../../visual/src/legacy/meihuaEngine'));
+const loadYunqi = lazyModule(() => import('../../visual/src/legacy/yunqiEngine'));
+const loadLiuyao = lazyModule(() => import('../../visual/src/legacy/liuyaoEngine'));
+const loadBazi = lazyModule(() => import('../../visual/src/legacy/baziEngine'));
+const loadZiwei = lazyModule(() => import('../../visual/src/legacy/ziweiEngine'));
+const loadQimen = lazyModule(() => import('../../visual/src/legacy/qimenEngine'));
+const loadDaliuren = lazyModule(() => import('../../visual/src/legacy/daliurenEngine'));
+const loadXingxiu = lazyModule(() => import('../../visual/src/legacy/xingxiuEngine'));
+const loadTaiyi = lazyModule(() => import('../../visual/src/legacy/taiyiEngine'));
+const loadHuangji = lazyModule(() => import('../../visual/src/legacy/huangjiEngine'));
+const loadCombo = lazyModule(() => import('../../visual/src/legacy/comboEngine'));
+const loadMarriageCombo = lazyModule(() => import('../../visual/src/legacy/marriageCombo'));
+const loadCezi = lazyModule(() => import('../../visual/src/legacy/ceziEngine'));
+const loadChenguz = lazyModule(() => import('../../visual/src/legacy/chenguzEngine'));
+const loadAlmanac = lazyModule(() => import('../../visual/src/legacy/almanacData'));
+const loadFeixing = lazyModule(() => import('../../visual/src/legacy/feixingEngine'));
+const loadBazhai = lazyModule(() => import('../../visual/src/legacy/bazhaiEngine'));
+const loadRhythm = lazyModule(() => import('../../visual/src/legacy/rhythmEngine'));
+const loadConstitution = lazyModule(() => import('../../visual/src/legacy/constitutionAssessEngine'));
+const loadTrueSolarTime = lazyModule(() => import('../../visual/src/legacy/trueSolarTime'));
 
 // ─── 通用输入 schema 片段 ───
 
@@ -64,7 +61,7 @@ export interface ToolDef {
   name: string;
   description: string;
   schema: z.ZodObject<z.ZodRawShape>;
-  handler: (input: unknown) => unknown;
+  handler: (input: unknown) => unknown | Promise<unknown>;
 }
 
 type BaziTimeBasis = 'true-solar-verified' | 'civil-unverified';
@@ -76,7 +73,7 @@ type BaziTimeContext = {
 };
 
 interface TrueSolarCalibration {
-  resolution: ReturnType<typeof resolveTrueSolarTime>;
+  resolution: TrueSolarTimeResolution;
 }
 
 const baziTimeContextSchema = z.object({
@@ -158,11 +155,12 @@ export const TOOLS: ToolDef[] = [
         utcOffsetEvidence: z.string().min(1).describe('历史时区与夏令时核验依据；禁止仅凭模型记忆填写'),
       }),
     }),
-    handler: (i) => {
+    handler: async (i) => {
       const input = i as {
         birth: { year: number; month: number; day: number; hour: number; minute?: number; gender: '男' | '女' };
         location: { displayName: string; longitude: number; ianaTimeZone: string; utcOffsetMinutes: number; utcOffsetEvidence: string };
       };
+      const { resolveTrueSolarTime } = await loadTrueSolarTime();
       const resolution = resolveTrueSolarTime({ ...input.birth, minute: input.birth.minute ?? 0, useExactCalendar: true }, input.location);
       const calibrationToken = randomUUID();
       trueSolarCalibrations.set(calibrationToken, { resolution });
@@ -179,7 +177,7 @@ export const TOOLS: ToolDef[] = [
       civilFallbackConfirmed: z.literal(true).optional().describe('timeBasis=civil-unverified 时必须为 true，表示用户知情确认未完成真太阳时复核'),
       shenShaTrineSource: z.enum(['year', 'day']).optional().describe('神煞三合局查取口径：year 按年支查（传统主流，默认）/ day 按日支查'),
     }),
-    handler: (i) => {
+    handler: async (i) => {
       const input = i as {
         birth: Record<string, unknown>;
         timeBasis: BaziTimeBasis;
@@ -188,10 +186,11 @@ export const TOOLS: ToolDef[] = [
         shenShaTrineSource?: 'year' | 'day';
       };
       const timeSource = resolveBaziTimeSource(input.birth, input);
+      const [{ calcBaziEnveloped }, solar] = await Promise.all([loadBazi(), loadSolar()]);
 
       const envelope = calcBaziEnveloped({
         birth: input.birth as never,
-        solar: solarEntry as never,
+        solar: solar as never,
         shenShaTrineSource: input.shenShaTrineSource,
       });
       const data = envelope.data as unknown as Record<string, unknown>;
@@ -237,8 +236,9 @@ export const TOOLS: ToolDef[] = [
         month: z.number().int().min(1).max(12).describe('动态层目标月份'),
       }).optional(),
     }),
-    handler: (i) => {
+    handler: async (i) => {
       const input = i as { birth: never; transit?: { year: number; month: number } };
+      const { calcZiweiEnveloped } = await loadZiwei();
       const envelope = calcZiweiEnveloped(input);
       if (!envelope.ok) return envelope;
 
@@ -263,7 +263,10 @@ export const TOOLS: ToolDef[] = [
       question: z.string().optional().describe('求测事项（用于自动选取用神）'),
       seed: z.number().int().optional().describe('铜钱法随机种子（同 seed 同结果）'),
     }),
-    handler: (i) => calcLiuyaoEnveloped({ ...(i as Record<string, unknown>), solar: solarEntry } as never),
+    handler: async (i) => {
+      const [{ calcLiuyaoEnveloped }, solar] = await Promise.all([loadLiuyao(), loadSolar()]);
+      return calcLiuyaoEnveloped({ ...(i as Record<string, unknown>), solar } as never);
+    },
   },
   {
     name: 'arrange_qimen',
@@ -272,7 +275,10 @@ export const TOOLS: ToolDef[] = [
       birth: birthSchema,
       question: z.string().optional().describe('求测事项'),
     }),
-    handler: (i) => calcQimenEnveloped({ ...(i as Record<string, unknown>) } as never),
+    handler: async (i) => {
+      const { calcQimenEnveloped } = await loadQimen();
+      return calcQimenEnveloped({ ...(i as Record<string, unknown>) } as never);
+    },
   },
   {
     name: 'liuren_calculate',
@@ -280,7 +286,10 @@ export const TOOLS: ToolDef[] = [
     schema: z.object({
       birth: birthSchema,
     }),
-    handler: (i) => calcDaliurenEnveloped({ birth: (i as { birth: unknown }).birth as never, solar: solarEntry as never }),
+    handler: async (i) => {
+      const [{ calcDaliurenEnveloped }, solar] = await Promise.all([loadDaliuren(), loadSolar()]);
+      return calcDaliurenEnveloped({ birth: (i as { birth: unknown }).birth as never, solar: solar as never });
+    },
   },
   {
     name: 'xingxiu_daily',
@@ -288,7 +297,10 @@ export const TOOLS: ToolDef[] = [
     schema: z.object({
       birth: birthSchema,
     }),
-    handler: (i) => calcXingXiuEnveloped({ birth: (i as { birth: unknown }).birth as never, solar: solarEntry as never }),
+    handler: async (i) => {
+      const [{ calcXingXiuEnveloped }, solar] = await Promise.all([loadXingxiu(), loadSolar()]);
+      return calcXingXiuEnveloped({ birth: (i as { birth: unknown }).birth as never, solar: solar as never });
+    },
   },
   {
     name: 'taiyi_calculate',
@@ -298,12 +310,15 @@ export const TOOLS: ToolDef[] = [
       jiStyle: z.enum(['0', '1', '2', '3', '4']).optional().describe('太乙计式：0年计/1月计/2日计/3時計/4分计，默认年计'),
       acumYear: z.enum(['0', '1', '2', '3']).optional().describe('积年法：0统宗/1金镜/2淘金歌/3太乙局，默认统宗'),
     }),
-    handler: (i) => calcTaiyiEnveloped({
-      birth: (i as { birth: unknown }).birth as never,
-      jiStyle: ((i as { jiStyle?: string }).jiStyle ?? '0') as never,
-      acumYear: ((i as { acumYear?: string }).acumYear ?? '0') as never,
-      solar: solarEntry as never,
-    }),
+    handler: async (i) => {
+      const [{ calcTaiyiEnveloped }, solar] = await Promise.all([loadTaiyi(), loadSolar()]);
+      return calcTaiyiEnveloped({
+        birth: (i as { birth: unknown }).birth as never,
+        jiStyle: ((i as { jiStyle?: string }).jiStyle ?? '0') as never,
+        acumYear: ((i as { acumYear?: string }).acumYear ?? '0') as never,
+        solar: solar as never,
+      });
+    },
   },
   {
     name: 'huangji_calculate',
@@ -311,10 +326,13 @@ export const TOOLS: ToolDef[] = [
     schema: z.object({
       birth: birthSchema,
     }),
-    handler: (i) => calcHuangjiEnveloped({
-      birth: (i as { birth: unknown }).birth as never,
-      solar: solarEntry as never,
-    }),
+    handler: async (i) => {
+      const [{ calcHuangjiEnveloped }, solar] = await Promise.all([loadHuangji(), loadSolar()]);
+      return calcHuangjiEnveloped({
+        birth: (i as { birth: unknown }).birth as never,
+        solar: solar as never,
+      });
+    },
   },
   {
     name: 'cast_meihua',
@@ -325,7 +343,10 @@ export const TOOLS: ToolDef[] = [
       numberA: z.number().int().optional().describe('method=number 时的第一个数字'),
       numberB: z.number().int().optional().describe('method=number 时的第二个数字'),
     }),
-    handler: (i) => calcMeihuaEnveloped({ ...(i as Record<string, unknown>), solar: solarEntry } as never),
+    handler: async (i) => {
+      const [{ calcMeihuaEnveloped }, solar] = await Promise.all([loadMeihua(), loadSolar()]);
+      return calcMeihuaEnveloped({ ...(i as Record<string, unknown>), solar } as never);
+    },
   },
   {
     name: 'calc_yunqi',
@@ -336,7 +357,10 @@ export const TOOLS: ToolDef[] = [
       birthDay: z.number().int().min(1).max(31).optional().describe('生辰日'),
       currentMonth: z.number().int().min(1).max(12).optional().describe('当前月（1-12，用于当前客气步；不传用系统当前月）'),
     }),
-    handler: (i) => calcYunqiEnveloped({ ...(i as Record<string, unknown>), solar: solarEntry } as never),
+    handler: async (i) => {
+      const [{ calcYunqiEnveloped }, solar] = await Promise.all([loadYunqi(), loadSolar()]);
+      return calcYunqiEnveloped({ ...(i as Record<string, unknown>), solar } as never);
+    },
   },
   {
     name: 'analyze_name',
@@ -351,12 +375,13 @@ export const TOOLS: ToolDef[] = [
     handler: async (i) => {
       const input = i as { surname: string; givenName: string; birthYear?: number; birth?: Record<string, unknown>; baziTimeContext?: BaziTimeContext };
       const timeSource = input.birth ? resolveBaziTimeSource(input.birth, input.baziTimeContext!) : null;
+      const [{ calcNameRatingEnveloped }, solar] = await Promise.all([loadEnvelopeAdapters(), loadSolar()]);
       const result = await calcNameRatingEnveloped(
         input.surname,
         input.givenName,
         input.birthYear,
         input.birth as never,
-        solarEntry,
+        solar,
       );
       return timeSource ? withBaziTimeSource(result, timeSource) : result;
     },
@@ -370,10 +395,13 @@ export const TOOLS: ToolDef[] = [
         木: z.number(), 火: z.number(), 土: z.number(), 金: z.number(), 水: z.number(),
       }).describe('五行计数 {木,火,土,金,水}'),
     }),
-    handler: (i) => calcXiYongEnveloped(
-      (i as { dayMasterWuxing: string }).dayMasterWuxing,
-      (i as { elements: Record<string, number> }).elements,
-    ),
+    handler: async (i) => {
+      const { calcXiYongEnveloped } = await loadEnvelopeAdapters();
+      return calcXiYongEnveloped(
+        (i as { dayMasterWuxing: string }).dayMasterWuxing,
+        (i as { elements: Record<string, number> }).elements,
+      );
+    },
   },
   {
     name: 'get_constitution_tendency',
@@ -382,7 +410,10 @@ export const TOOLS: ToolDef[] = [
       wuyun: z.object({ dayun: z.string() }).optional(),
       liuqi: z.object({ sitian: z.string(), zaquan: z.string() }).optional(),
     }),
-    handler: (i) => getConstitutionTendencyEnveloped(i as never),
+    handler: async (i) => {
+      const { getConstitutionTendencyEnveloped } = await loadEnvelopeAdapters();
+      return getConstitutionTendencyEnveloped(i as never);
+    },
   },
   {
     name: 'dream_interpret',
@@ -391,10 +422,13 @@ export const TOOLS: ToolDef[] = [
       keyword: z.string().min(1).describe('梦象关键词（如「蛇」「水」「棺材」「结婚」）'),
       useFull: z.boolean().optional().describe('是否使用全量库（9548条，需加载；默认 false 用精选 137 条）'),
     }),
-    handler: (i) => searchDreamEnveloped(
-      (i as { keyword: string }).keyword,
-      (i as { useFull?: boolean }).useFull ?? false,
-    ),
+    handler: async (i) => {
+      const { searchDreamEnveloped } = await loadDream();
+      return searchDreamEnveloped(
+        (i as { keyword: string }).keyword,
+        (i as { useFull?: boolean }).useFull ?? false,
+      );
+    },
   },
   // ─── 跨系统联合分析（ROADMAP 功能层增强 Step 1）───
   {
@@ -406,14 +440,15 @@ export const TOOLS: ToolDef[] = [
       targetYear: z.number().int().min(1900).max(2100).optional().describe('欲测年份（默认用出生年）'),
       currentMonth: z.number().int().min(1).max(12).optional().describe('当前月（五运六气用，不传用系统月）'),
     }),
-    handler: (i) => {
+    handler: async (i) => {
       const input = i as { birth: Record<string, unknown>; baziTimeContext: BaziTimeContext; targetYear?: number; currentMonth?: number };
       const timeSource = resolveBaziTimeSource(input.birth, input.baziTimeContext);
+      const [{ calcAnnualFortuneCombo }, solar] = await Promise.all([loadCombo(), loadSolar()]);
       return withBaziTimeSource(calcAnnualFortuneCombo({
         birth: input.birth as never,
         targetYear: input.targetYear,
         currentMonth: input.currentMonth,
-        solar: solarEntry as never,
+        solar: solar as never,
       }), timeSource);
     },
   },
@@ -425,12 +460,15 @@ export const TOOLS: ToolDef[] = [
       question: z.string().min(1).describe('求测事项（如"今年适合换工作吗"）'),
       seed: z.number().int().optional().describe('铜钱法随机种子（可选，同 seed 同结果）'),
     }),
-    handler: (i) => calcDecisionCombo({
-      birth: (i as { birth: unknown }).birth as never,
-      question: (i as { question: string }).question,
-      seed: (i as { seed?: number }).seed,
-      solar: solarEntry as never,
-    }),
+    handler: async (i) => {
+      const [{ calcDecisionCombo }, solar] = await Promise.all([loadCombo(), loadSolar()]);
+      return calcDecisionCombo({
+        birth: (i as { birth: unknown }).birth as never,
+        question: (i as { question: string }).question,
+        seed: (i as { seed?: number }).seed,
+        solar: solar as never,
+      });
+    },
   },
   {
     name: 'combo_space_time',
@@ -440,12 +478,15 @@ export const TOOLS: ToolDef[] = [
       targetYear: z.number().int().min(1900).max(2100).optional().describe('欲测年份（默认用出生年）'),
       facing: z.string().optional().describe('房屋朝向（可选，八宅宅卦用）'),
     }),
-    handler: (i) => calcSpaceTimeCombo({
-      birth: (i as { birth: unknown }).birth as never,
-      targetYear: (i as { targetYear?: number }).targetYear,
-      facing: (i as { facing?: string }).facing,
-      solar: solarEntry as never,
-    }),
+    handler: async (i) => {
+      const [{ calcSpaceTimeCombo }, solar] = await Promise.all([loadCombo(), loadSolar()]);
+      return calcSpaceTimeCombo({
+        birth: (i as { birth: unknown }).birth as never,
+        targetYear: (i as { targetYear?: number }).targetYear,
+        facing: (i as { facing?: string }).facing,
+        solar: solar as never,
+      });
+    },
   },
   {
     name: 'combo_sanshi',
@@ -454,11 +495,14 @@ export const TOOLS: ToolDef[] = [
       birth: birthSchema,
       question: z.string().min(1).describe('求测事项'),
     }),
-    handler: (i) => calcSanshiCombo({
-      birth: (i as { birth: unknown }).birth as never,
-      question: (i as { question: string }).question,
-      solar: solarEntry as never,
-    }),
+    handler: async (i) => {
+      const [{ calcSanshiCombo }, solar] = await Promise.all([loadCombo(), loadSolar()]);
+      return calcSanshiCombo({
+        birth: (i as { birth: unknown }).birth as never,
+        question: (i as { question: string }).question,
+        solar: solar as never,
+      });
+    },
   },
   {
     name: 'combo_sanshi_classic',
@@ -467,11 +511,14 @@ export const TOOLS: ToolDef[] = [
       birth: birthSchema,
       question: z.string().min(1).describe('求测事项'),
     }),
-    handler: (i) => calcSanshiClassicCombo({
-      birth: (i as { birth: unknown }).birth as never,
-      question: (i as { question: string }).question,
-      solar: solarEntry as never,
-    }),
+    handler: async (i) => {
+      const [{ calcSanshiClassicCombo }, solar] = await Promise.all([loadCombo(), loadSolar()]);
+      return calcSanshiClassicCombo({
+        birth: (i as { birth: unknown }).birth as never,
+        question: (i as { question: string }).question,
+        solar: solar as never,
+      });
+    },
   },
   {
     name: 'combo_daily_wellness',
@@ -487,13 +534,16 @@ export const TOOLS: ToolDef[] = [
       }).optional().describe('当前日期时辰（不传用系统当前时间）'),
       targetYear: z.number().int().min(1900).max(2100).optional().describe('方位推算年份（太岁/飞星，默认取 now 或当前年）'),
     }),
-    handler: (i) => calcDailyWellnessCombo({
-      birth: (i as { birth: unknown }).birth as never,
-      constitution: (i as { constitution?: string }).constitution,
-      now: (i as { now?: { year: number; month: number; day: number; hour: number } }).now,
-      targetYear: (i as { targetYear?: number }).targetYear,
-      solar: solarEntry as never,
-    }),
+    handler: async (i) => {
+      const [{ calcDailyWellnessCombo }, solar] = await Promise.all([loadCombo(), loadSolar()]);
+      return calcDailyWellnessCombo({
+        birth: (i as { birth: unknown }).birth as never,
+        constitution: (i as { constitution?: string }).constitution,
+        now: (i as { now?: { year: number; month: number; day: number; hour: number } }).now,
+        targetYear: (i as { targetYear?: number }).targetYear,
+        solar: solar as never,
+      });
+    },
   },
   {
     name: 'combo_zeri',
@@ -506,15 +556,18 @@ export const TOOLS: ToolDef[] = [
       targetYear: z.number().int().min(1900).max(2100).optional().describe('太岁/飞星推算年份（默认取 startDate 年）'),
       topN: z.number().int().min(1).max(20).optional().describe('返回前 N 个吉日（默认 5）'),
     }),
-    handler: (i) => calcZeriCombo({
-      birth: (i as { birth: unknown }).birth as never,
-      purpose: (i as { purpose: string }).purpose as never,
-      startDate: (i as { startDate: string }).startDate,
-      endDate: (i as { endDate: string }).endDate,
-      targetYear: (i as { targetYear?: number }).targetYear,
-      topN: (i as { topN?: number }).topN,
-      solar: solarEntry as never,
-    }),
+    handler: async (i) => {
+      const [{ calcZeriCombo }, solar] = await Promise.all([loadCombo(), loadSolar()]);
+      return calcZeriCombo({
+        birth: (i as { birth: unknown }).birth as never,
+        purpose: (i as { purpose: string }).purpose as never,
+        startDate: (i as { startDate: string }).startDate,
+        endDate: (i as { endDate: string }).endDate,
+        targetYear: (i as { targetYear?: number }).targetYear,
+        topN: (i as { topN?: number }).topN,
+        solar: solar as never,
+      });
+    },
   },
   {
     name: 'combo_monthly_fortune',
@@ -525,13 +578,16 @@ export const TOOLS: ToolDef[] = [
       targetMonth: z.number().int().min(1).max(12).describe('欲测月份（1-12）'),
       constitution: z.string().optional().describe('体质类型（节气调养针对性加减；不传则按通用节气调养）'),
     }),
-    handler: (i) => calcMonthlyFortuneCombo({
-      birth: (i as { birth: unknown }).birth as never,
-      targetYear: (i as { targetYear: number }).targetYear,
-      targetMonth: (i as { targetMonth: number }).targetMonth,
-      constitution: (i as { constitution?: string }).constitution,
-      solar: solarEntry as never,
-    }),
+    handler: async (i) => {
+      const [{ calcMonthlyFortuneCombo }, solar] = await Promise.all([loadCombo(), loadSolar()]);
+      return calcMonthlyFortuneCombo({
+        birth: (i as { birth: unknown }).birth as never,
+        targetYear: (i as { targetYear: number }).targetYear,
+        targetMonth: (i as { targetMonth: number }).targetMonth,
+        constitution: (i as { constitution?: string }).constitution,
+        solar: solar as never,
+      });
+    },
   },
   {
     name: 'combo_marriage',
@@ -554,7 +610,7 @@ export const TOOLS: ToolDef[] = [
       scene: z.enum(['婚恋', '合伙', '合作']).optional().describe('关系类型（默认婚恋）'),
       targetYear: z.number().int().min(1900).max(2100).optional().describe('择吉日年份（默认双方出生较大年）'),
     }),
-    handler: (i) => {
+    handler: async (i) => {
       const input = i as {
         personA: { birth: Record<string, unknown>; baziTimeContext: BaziTimeContext; surname?: string; givenName?: string; label?: string };
         personB: { birth: Record<string, unknown>; baziTimeContext: BaziTimeContext; surname?: string; givenName?: string; label?: string };
@@ -563,13 +619,14 @@ export const TOOLS: ToolDef[] = [
       };
       const personATimeSource = resolveBaziTimeSource(input.personA.birth, input.personA.baziTimeContext);
       const personBTimeSource = resolveBaziTimeSource(input.personB.birth, input.personB.baziTimeContext);
+      const [{ calcMarriageCombo }, solar] = await Promise.all([loadMarriageCombo(), loadSolar()]);
       const envelope = withBaziTimeSource(withBaziTimeSource(calcMarriageCombo({
         personA: {
           birth: input.personA.birth as never,
           surname: input.personA.surname,
           givenName: input.personA.givenName,
           label: input.personA.label,
-          solar: solarEntry as never,
+          solar: solar as never,
         },
         personB: {
           birth: input.personB.birth as never,
@@ -599,7 +656,7 @@ export const TOOLS: ToolDef[] = [
       birth: birthSchema.optional().describe('可选生辰，结合八字用神补益判断'),
       baziTimeContext: baziTimeContextSchema.optional().describe('仅提供 birth 时必填：八字用神补益判断的时间来源'),
     }),
-    handler: (i) => {
+    handler: async (i) => {
       const input = i as {
         char: string;
         aspect?: '事业' | '感情' | '财利' | '健康' | '综合';
@@ -610,11 +667,12 @@ export const TOOLS: ToolDef[] = [
         throw new Error('提供 birth 时必须提供 baziTimeContext，以声明真太阳时核验或民用时间降级。');
       }
       const timeSource = input.birth ? resolveBaziTimeSource(input.birth, input.baziTimeContext!) : null;
+      const [{ calcCeziEnveloped }, solar] = await Promise.all([loadCezi(), loadSolar()]);
       const envelope = calcCeziEnveloped({
         char: input.char,
         aspect: input.aspect,
         birth: input.birth as never,
-        solar: solarEntry as never,
+        solar: solar as never,
       });
       return timeSource ? withBaziTimeSource(envelope, timeSource) : envelope;
     },
@@ -626,11 +684,14 @@ export const TOOLS: ToolDef[] = [
       birth: birthSchema,
       version: z.enum(['standard', 'folk', 'full']).optional().describe('称骨歌版本：standard 通行工整本（默认）/ folk 民间传抄本 / full 全本异文'),
     }),
-    handler: (i) => calcChenguzEnveloped({
-      birth: (i as { birth: unknown }).birth as never,
-      solar: solarEntry as never,
-      version: (i as { version?: 'standard' | 'folk' | 'full' }).version,
-    }),
+    handler: async (i) => {
+      const [{ calcChenguzEnveloped }, solar] = await Promise.all([loadChenguz(), loadSolar()]);
+      return calcChenguzEnveloped({
+        birth: (i as { birth: unknown }).birth as never,
+        solar: solar as never,
+        version: (i as { version?: 'standard' | 'folk' | 'full' }).version,
+      });
+    },
   },
   {
     name: 'get_almanac',
@@ -638,10 +699,13 @@ export const TOOLS: ToolDef[] = [
     schema: z.object({
       date: z.string().optional().describe('公历日期 yyyy-mm-dd，不传默认今天'),
     }),
-    handler: (i) => getAlmanacEnveloped({
-      date: (i as { date?: string }).date,
-      solar: solarEntry as never,
-    }),
+    handler: async (i) => {
+      const [{ getAlmanacEnveloped }, solar] = await Promise.all([loadAlmanac(), loadSolar()]);
+      return getAlmanacEnveloped({
+        date: (i as { date?: string }).date,
+        solar: solar as never,
+      });
+    },
   },
   {
     name: 'calc_feixing',
@@ -651,11 +715,14 @@ export const TOOLS: ToolDef[] = [
       gender: z.enum(['男', '女']).optional().describe('性别，用于推算命卦方位'),
       birthYear: z.number().int().min(1900).max(2100).optional().describe('出生年（推命卦用，不传则用 year'),
     }),
-    handler: (i) => calcFeixingEnveloped({
-      year: (i as { year?: number }).year,
-      gender: (i as { gender?: '男' | '女' }).gender,
-      birthYear: (i as { birthYear?: number }).birthYear,
-    }),
+    handler: async (i) => {
+      const { calcFeixingEnveloped } = await loadFeixing();
+      return calcFeixingEnveloped({
+        year: (i as { year?: number }).year,
+        gender: (i as { gender?: '男' | '女' }).gender,
+        birthYear: (i as { birthYear?: number }).birthYear,
+      });
+    },
   },
   {
     name: 'calc_bazhai',
@@ -668,7 +735,8 @@ export const TOOLS: ToolDef[] = [
       kitchen: z.string().optional().describe('厨房灶位方位'),
       year: z.number().int().min(1900).max(2100).optional().describe('查太岁三煞的年份，默认今年'),
     }),
-    handler: (i) => {
+    handler: async (i) => {
+      const { calcBazhaiEnveloped } = await loadBazhai();
       const envelope = calcBazhaiEnveloped({
         birthYear: (i as { birthYear: number }).birthYear,
         gender: (i as { gender: '男' | '女' }).gender,
@@ -698,12 +766,15 @@ export const TOOLS: ToolDef[] = [
       hour: z.number().int().min(0).max(23).optional().describe('时辰 0-23，不传默认当前小时'),
       constitution: z.string().optional().describe('体质类型（如气虚质），命中节气针对性建议'),
     }),
-    handler: (i) => getDailyRhythmEnveloped({
-      date: (i as { date?: string }).date,
-      hour: (i as { hour?: number }).hour,
-      constitution: (i as { constitution?: string }).constitution,
-      solar: solarEntry as never,
-    }),
+    handler: async (i) => {
+      const [{ getDailyRhythmEnveloped }, solar] = await Promise.all([loadRhythm(), loadSolar()]);
+      return getDailyRhythmEnveloped({
+        date: (i as { date?: string }).date,
+        hour: (i as { hour?: number }).hour,
+        constitution: (i as { constitution?: string }).constitution,
+        solar: solar as never,
+      });
+    },
   },
   {
     name: 'assess_constitution',
@@ -714,15 +785,19 @@ export const TOOLS: ToolDef[] = [
         score: z.number().int().min(1).max(5).describe('该题得分 1-5（1没有/2很少/3有时/4经常/5总是）'),
       })).describe('用户答题数组'),
     }),
-    handler: (i) => assessConstitutionEnveloped({
-      answers: (i as { answers: Array<{ type: string; score: number }> }).answers,
-    }),
+    handler: async (i) => {
+      const { assessConstitutionEnveloped } = await loadConstitution();
+      return assessConstitutionEnveloped({
+        answers: (i as { answers: Array<{ type: string; score: number }> }).answers,
+      });
+    },
   },
   {
     name: 'list_constitution_questionnaire',
     description: '列出中医九种体质问卷全部题目（按体质分组），供 AI 取题问用户后调 assess_constitution 自评。无入参。',
     schema: z.object({}),
-    handler: () => {
+    handler: async () => {
+      const { listConstitutionQuestionnaire } = await loadConstitution();
       const list = listConstitutionQuestionnaire();
       return {
         ok: true,

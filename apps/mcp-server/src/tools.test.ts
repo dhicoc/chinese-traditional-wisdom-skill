@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { TOOLS } from './tools';
 import { validateBaziPresentation } from './baziClaimVerifier';
@@ -68,6 +69,15 @@ describe('MCP TOOLS 注册完整性', async () => {
       expect(t.name).toMatch(/^[a-z][a-z0-9_]*$/);
     });
   });
+
+  it('延迟加载 legacy 引擎与 lunar 历法入口', () => {
+    const source = readFileSync(new URL('./tools.ts', import.meta.url), 'utf8');
+
+    expect(source).not.toMatch(/^import\s+(?!type\s).*from\s+['"]\.\.\/\.\.\/visual\/src\/legacy\//m);
+    expect(source).not.toMatch(/^import\s+(?!type\s).*from\s+['"]lunar-typescript['"]/m);
+    expect(source).toContain("import('../../visual/src/legacy/");
+    expect(source).toContain("import('lunar-typescript')");
+  });
 });
 
 describe('bazi_calculate', async () => {
@@ -75,7 +85,7 @@ describe('bazi_calculate', async () => {
 
   it('民用时间降级必须显式确认，并输出未完成真太阳时复核', async () => {
     const t = findTool('bazi_calculate');
-    expect(() => t.handler({ birth: civilBirth, timeBasis: 'civil-unverified' })).toThrow('civilFallbackConfirmed=true');
+    await expect(t.handler({ birth: civilBirth, timeBasis: 'civil-unverified' })).rejects.toThrow('civilFallbackConfirmed=true');
 
     const env = await t.handler({
       birth: civilBirth,
@@ -119,9 +129,9 @@ describe('bazi_calculate', async () => {
     ])).toMatchObject({ valid: false, violations: [expect.objectContaining({ kind: 'pillar' })] });
   });
 
-  it('真太阳时路径必须使用当前 MCP 进程签发的令牌和原样校正时间', () => {
+  it('真太阳时路径必须使用当前 MCP 进程签发的令牌和原样校正时间', async () => {
     const resolver = findTool('resolve_true_solar_time');
-    const resolution = resolver.handler({
+    const resolution = await resolver.handler({
       birth: civilBirth,
       location: {
         displayName: '纽约市，纽约州，美国',
@@ -133,13 +143,13 @@ describe('bazi_calculate', async () => {
     }) as { calibrationToken: string; trueSolarBirth: Record<string, unknown> };
     const t = findTool('bazi_calculate');
 
-    expect(() => t.handler({
+    await expect(t.handler({
       birth: civilBirth,
       timeBasis: 'true-solar-verified',
       calibrationToken: resolution.calibrationToken,
-    })).toThrow('trueSolarBirth 与 birth.hour 不一致');
+    })).rejects.toThrow('trueSolarBirth 与 birth.hour 不一致');
 
-    const env = t.handler({
+    const env = await t.handler({
       birth: resolution.trueSolarBirth,
       timeBasis: 'true-solar-verified',
       calibrationToken: resolution.calibrationToken,
@@ -151,9 +161,9 @@ describe('bazi_calculate', async () => {
 });
 
 describe('resolve_true_solar_time', () => {
-  it('uses agent-verified location and historical offset to return auditable true solar time', () => {
+  it('uses agent-verified location and historical offset to return auditable true solar time', async () => {
     const t = findTool('resolve_true_solar_time');
-    const result = t.handler({
+    const result = await t.handler({
       birth: { year: 1990, month: 6, day: 15, hour: 12, minute: 0, gender: '男' },
       location: {
         displayName: '纽约市，纽约州，美国',
@@ -216,9 +226,9 @@ describe('ziwei_chart', async () => {
 });
 
 describe('calc_bazhai', () => {
-  it('为本次推算签发凭证，并拒绝不符合引擎事实的呈现断言', () => {
+  it('为本次推算签发凭证，并拒绝不符合引擎事实的呈现断言', async () => {
     const tool = findTool('calc_bazhai');
-    const env = tool.handler({ birthYear: 1990, gender: '男', year: 2026 }) as ToolEnvelope;
+    const env = await tool.handler({ birthYear: 1990, gender: '男', year: 2026 }) as ToolEnvelope;
     const data = env.data as {
       mingGua: { trigram: string };
       directions: Array<{ direction: string; star: string }>;
