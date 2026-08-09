@@ -13,6 +13,7 @@ import { z } from 'zod';
 import type { TrueSolarTimeResolution } from '../../visual/src/legacy/trueSolarTime';
 import { registerBaziPresentation } from './baziClaimVerifier.js';
 import { registerBazhaiPresentation } from './bazhaiClaimVerifier.js';
+import { registerCalendarPresentation } from './calendarClaimVerifier.js';
 import { registerFeixingPresentation } from './feixingClaimVerifier.js';
 import { registerZiweiPresentation } from './ziweiClaimVerifier.js';
 
@@ -294,13 +295,23 @@ export const TOOLS: ToolDef[] = [
   },
   {
     name: 'xingxiu_daily',
-    description: '二十八星宿每日值宿查询：当日值宿、禽星全称、四象分组、五行七曜、吉凶宜忌、歌诀。传统择吉与天文历法基础。',
+    description: '二十八星宿每日值宿查询：当日值宿、禽星全称、四象分组、五行七曜、吉凶宜忌、歌诀。传 queryDate 可查询并复现指定日期的值宿。传统择吉与天文历法基础。',
     schema: z.object({
       birth: birthSchema,
+      queryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe('显式查询日 yyyy-mm-dd；不传默认系统当天，且不签发呈现校验凭证'),
     }),
     handler: async (i) => {
       const [{ calcXingXiuEnveloped }, solar] = await Promise.all([loadXingxiu(), loadSolar()]);
-      return calcXingXiuEnveloped({ birth: (i as { birth: unknown }).birth as never, solar: solar as never });
+      const input = i as { birth: unknown; queryDate?: string };
+      const envelope = calcXingXiuEnveloped({ birth: input.birth as never, queryDate: input.queryDate, solar: solar as never });
+      if (!envelope.ok || !input.queryDate) return envelope;
+
+      const presentationToken = randomUUID();
+      registerCalendarPresentation('xingxiu', envelope.data, presentationToken);
+      return {
+        ...envelope,
+        result_meta: { ...envelope.result_meta, presentationToken },
+      };
     },
   },
   {
@@ -360,7 +371,15 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: async (i) => {
       const [{ calcYunqiEnveloped }, solar] = await Promise.all([loadYunqi(), loadSolar()]);
-      return calcYunqiEnveloped({ ...(i as Record<string, unknown>), solar } as never);
+      const envelope = calcYunqiEnveloped({ ...(i as Record<string, unknown>), solar } as never);
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerCalendarPresentation('yunqi', envelope.data, presentationToken);
+      return {
+        ...envelope,
+        result_meta: { ...envelope.result_meta, presentationToken },
+      };
     },
   },
   {
@@ -702,10 +721,16 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: async (i) => {
       const [{ getAlmanacEnveloped }, solar] = await Promise.all([loadAlmanac(), loadSolar()]);
-      return getAlmanacEnveloped({
-        date: (i as { date?: string }).date,
-        solar: solar as never,
-      });
+      const input = i as { date?: string };
+      const envelope = getAlmanacEnveloped({ date: input.date, solar: solar as never });
+      if (!envelope.ok || !input.date) return envelope;
+
+      const presentationToken = randomUUID();
+      registerCalendarPresentation('almanac', envelope.data, presentationToken);
+      return {
+        ...envelope,
+        result_meta: { ...envelope.result_meta, presentationToken },
+      };
     },
   },
   {

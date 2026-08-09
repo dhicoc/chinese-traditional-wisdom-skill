@@ -64,6 +64,13 @@ describe('agent_guidance 参数引导', () => {
     expect(getToolGuidance('calc_feixing')!.workflow).toContain('validate_feixing_presentation');
   });
 
+  it('GLOBAL_AGENT_RULES 约束历法与年度盘面呈现校验', () => {
+    expect(GLOBAL_AGENT_RULES.some((r) => r.includes('calc_yunqi') && r.includes('validate_calendar_presentation') && r.includes('queryDate'))).toBe(true);
+    expect(getToolGuidance('calc_yunqi')!.workflow).toContain('validate_calendar_presentation');
+    expect(getToolGuidance('xingxiu_daily')!.workflow).toContain('显式传 queryDate');
+    expect(getToolGuidance('get_almanac')!.workflow).toContain('显式传 date');
+  });
+
   it('safeDefaults 不包含默认男', () => {
     const serializedDefaults = JSON.stringify(Object.values(listToolGuidance()).map((item) => getToolGuidance(item.tool)?.safeDefaults));
     expect(serializedDefaults).not.toContain('"gender":"男"');

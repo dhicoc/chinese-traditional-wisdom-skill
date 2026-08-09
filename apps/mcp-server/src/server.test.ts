@@ -163,7 +163,7 @@ describe('MCP Server 端到端协议', () => {
     expect(result.protocolVersion).toBe('2024-11-05');
   }, 30000);
 
-  it('tools/list 返回 38 个工具（32 计算 + 6 元工具）且 inputSchema 完整', async () => {
+  it('tools/list 返回 39 个工具（32 计算 + 7 元工具）且 inputSchema 完整', async () => {
     const responses = await runMcpSession([INIT_MSG, INITIALIZED_MSG, TOOLS_LIST_MSG]);
     const list = responses.find((r) => r.id === 2);
     expect(list).toBeDefined();
@@ -182,7 +182,7 @@ describe('MCP Server 端到端协议', () => {
         };
       }>;
     }).tools;
-    expect(tools.length).toBe(38);
+    expect(tools.length).toBe(39);
     tools.forEach((t) => {
       expect(t.name).toMatch(/^[a-z][a-z0-9_]*$/);
       expect(t.description.length).toBeGreaterThan(10);
@@ -200,6 +200,7 @@ describe('MCP Server 端到端协议', () => {
     expect(names).toContain('validate_ziwei_presentation');
     expect(names).toContain('validate_bazhai_presentation');
     expect(names).toContain('validate_feixing_presentation');
+    expect(names).toContain('validate_calendar_presentation');
     expect(names).toContain('wisdom_dispatch');
     tools.forEach((tool) => {
       expect(tool.title).toBeTruthy();
@@ -272,6 +273,21 @@ describe('MCP Server 端到端协议', () => {
       }),
     ]);
     const call = responses.find((r) => r.id === 35);
+    const result = call!.result as { content: Array<{ type: string; text: string }>; structuredContent: { valid: boolean; violations: Array<{ kind: string }> } };
+    const payload = JSON.parse(result.content[0].text) as { valid: boolean; violations: Array<{ kind: string }> };
+    expect(result.structuredContent).toEqual(payload);
+    expect(payload).toEqual({ valid: false, violations: [expect.objectContaining({ kind: 'presentationToken' })] });
+  }, 30000);
+
+  it('tools/call validate_calendar_presentation 拒绝无效凭证', async () => {
+    const responses = await runMcpSession([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(39, 'validate_calendar_presentation', {
+        presentationToken: '00000000-0000-4000-8000-000000000000',
+        claims: [{ kind: 'yunqiYear', field: 'year', value: 2026 }],
+      }),
+    ]);
+    const call = responses.find((r) => r.id === 39);
     const result = call!.result as { content: Array<{ type: string; text: string }>; structuredContent: { valid: boolean; violations: Array<{ kind: string }> } };
     const payload = JSON.parse(result.content[0].text) as { valid: boolean; violations: Array<{ kind: string }> };
     expect(result.structuredContent).toEqual(payload);
@@ -501,6 +517,101 @@ describe('MCP Server 端到端协议', () => {
       valid: false,
       violations: [expect.objectContaining({ kind: 'center', actual: expect.any(Number) })],
     });
+  }, 30000);
+
+  it('同一会话中仅允许通过校验的五运六气年度断言进入呈现', async () => {
+    const responses = await runMcpSessionWithFollowUp([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(40, 'calc_yunqi', { year: 2026, currentMonth: 6 }),
+    ], (calculation) => {
+      if (calculation.id !== 40) return null;
+      const envelope = (calculation.result as {
+        structuredContent: {
+          data: { year: number; tiangan: string; liuqi: { sitian: string } };
+          result_meta: { presentationToken: string };
+        };
+      }).structuredContent;
+      const claims = [
+        { kind: 'yunqiYear', field: 'year', value: envelope.data.year },
+        { kind: 'yunqiYear', field: 'tiangan', value: envelope.data.tiangan },
+        { kind: 'yunqiLiuqi', field: 'sitian', value: envelope.data.liuqi.sitian },
+      ];
+      return [
+        toolCallMsg(41, 'validate_calendar_presentation', { presentationToken: envelope.result_meta.presentationToken, claims }),
+        toolCallMsg(42, 'validate_calendar_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [{ kind: 'yunqiYear', field: 'year', value: envelope.data.year + 1 }],
+        }),
+      ];
+    });
+    const valid = (responses.find((response) => response.id === 41)!.result as { structuredContent: { valid: boolean } }).structuredContent;
+    const invalid = (responses.find((response) => response.id === 42)!.result as { structuredContent: { valid: boolean; violations: Array<{ kind: string }> } }).structuredContent;
+    expect(valid).toEqual({ valid: true, violations: [] });
+    expect(invalid).toMatchObject({ valid: false, violations: [expect.objectContaining({ kind: 'yunqiYear' })] });
+  }, 30000);
+
+  it('同一会话中只为显式星宿日期签发可校验断言', async () => {
+    const responses = await runMcpSessionWithFollowUp([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(43, 'xingxiu_daily', {
+        birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+        queryDate: '2026-08-09',
+      }),
+    ], (calculation) => {
+      if (calculation.id !== 43) return null;
+      const envelope = (calculation.result as {
+        structuredContent: { data: { queryDate: string; zhiXiu: string }; result_meta: { presentationToken: string } };
+      }).structuredContent;
+      return [
+        toolCallMsg(44, 'validate_calendar_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [
+            { kind: 'xingxiu', field: 'queryDate', value: envelope.data.queryDate },
+            { kind: 'xingxiu', field: 'zhiXiu', value: envelope.data.zhiXiu },
+          ],
+        }),
+        toolCallMsg(45, 'validate_calendar_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [{ kind: 'xingxiu', field: 'queryDate', value: '2026-08-10' }],
+        }),
+      ];
+    });
+    const valid = (responses.find((response) => response.id === 44)!.result as { structuredContent: { valid: boolean } }).structuredContent;
+    const invalid = (responses.find((response) => response.id === 45)!.result as { structuredContent: { valid: boolean; violations: Array<{ kind: string }> } }).structuredContent;
+    expect(valid).toEqual({ valid: true, violations: [] });
+    expect(invalid).toMatchObject({ valid: false, violations: [expect.objectContaining({ kind: 'xingxiu' })] });
+  }, 30000);
+
+  it('同一会话中只为显式黄历日期签发可校验断言', async () => {
+    const responses = await runMcpSessionWithFollowUp([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(46, 'get_almanac', { date: '2026-08-09' }),
+    ], (calculation) => {
+      if (calculation.id !== 46) return null;
+      const envelope = (calculation.result as {
+        structuredContent: {
+          data: { solarDate: string; dayGanZhi: string };
+          result_meta: { presentationToken: string };
+        };
+      }).structuredContent;
+      return [
+        toolCallMsg(47, 'validate_calendar_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [
+            { kind: 'almanac', field: 'solarDate', value: envelope.data.solarDate },
+            { kind: 'almanac', field: 'dayGanZhi', value: envelope.data.dayGanZhi },
+          ],
+        }),
+        toolCallMsg(48, 'validate_calendar_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [{ kind: 'almanac', field: 'dayGanZhi', value: '甲子' }],
+        }),
+      ];
+    });
+    const valid = (responses.find((response) => response.id === 47)!.result as { structuredContent: { valid: boolean } }).structuredContent;
+    const invalid = (responses.find((response) => response.id === 48)!.result as { structuredContent: { valid: boolean; violations: Array<{ kind: string }> } }).structuredContent;
+    expect(valid).toEqual({ valid: true, violations: [] });
+    expect(invalid).toMatchObject({ valid: false, violations: [expect.objectContaining({ kind: 'almanac' })] });
   }, 30000);
 
   it('tools/call wisdom_dispatch 将“排八字”路由为真太阳时预检', async () => {

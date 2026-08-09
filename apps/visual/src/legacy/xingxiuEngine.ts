@@ -94,6 +94,8 @@ interface SolarLike {
 // ─── 结果类型 ───
 
 export interface XingXiuResult {
+  /** 查询日 yyyy-mm-dd；未显式传入时为系统当天 */
+  queryDate: string;
   /** 当日值宿名（单字）—— 查询日/今天的值宿 */
   zhiXiu: string;
   /** 当日值宿禽星全称 */
@@ -155,6 +157,8 @@ export interface XingXiuInput {
   solar?: SolarLike | null;
   /** 值宿算法：lookup=日支+星期查表（默认），rotational=公历连续日轮转 */
   method?: XiuMethod;
+  /** 显式查询日 yyyy-mm-dd；不传时仍查询系统当天，但该结果不能用于呈现校验 */
+  queryDate?: string;
 }
 
 // ─── 连续轮转法 ───
@@ -186,11 +190,13 @@ export function calculateXingXiu(input: XingXiuInput): XingXiuResult {
   let dayGanZhi = '';
   let mode: 'local-exact' | 'local-approx' = 'local-approx';
 
-  // 当日值宿用"今天"的日期算（不是出生日）
+  // 当日值宿默认用系统当天；显式 queryDate 时按指定日期计算。
   const today = new Date();
-  const todayY = today.getFullYear();
-  const todayM = today.getMonth() + 1;
-  const todayD = today.getDate();
+  const parsedQueryDate = input.queryDate?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const todayY = parsedQueryDate ? Number(parsedQueryDate[1]) : today.getFullYear();
+  const todayM = parsedQueryDate ? Number(parsedQueryDate[2]) : today.getMonth() + 1;
+  const todayD = parsedQueryDate ? Number(parsedQueryDate[3]) : today.getDate();
+  const queryDate = `${todayY}-${String(todayM).padStart(2, '0')}-${String(todayD).padStart(2, '0')}`;
 
   if (solar && method === 'lookup') {
     try {
@@ -243,6 +249,7 @@ export function calculateXingXiu(input: XingXiuInput): XingXiuResult {
   const benMingEntry = XINGXIU_DATA[benMingXiuName] ?? XINGXIU_DATA['角'];
 
   return {
+    queryDate,
     zhiXiu,
     zhiXiuFull: entry.fullName,
     xiang: entry.xiang,

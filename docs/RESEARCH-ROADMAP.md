@@ -179,6 +179,7 @@
 5. ✅ P2.3 紫微呈现校验试点：`ziwei_chart` 对成功命盘签发进程内 `presentationToken`，`validate_ziwei_presentation` 校验宫位、星曜、四化、元资料与本次动态层 claims；同 stdio 会话覆盖有效与篡改断言。
 6. ✅ P2.4a 八宅呈现校验试点：`calc_bazhai` 对成功推算签发进程内 `presentationToken`，`validate_bazhai_presentation` 校验命卦、八方游年星与吉凶、以及本次年份的太岁、岁破、三煞、五黄方位 claims；同 stdio 会话覆盖有效与篡改断言。传统释义、布局建议、门主灶与化解建议不进入 claims。
 7. ✅ P2.4b 流年飞星呈现校验试点：`calc_feixing` 对成功推算签发进程内 `presentationToken`，`validate_feixing_presentation` 校验年度、元运、中宫与指定九宫飞星/吉凶 claims；同 stdio 会话覆盖有效与篡改断言。化解、布局、财位、个人命卦解释与综合推论不进入 claims。
+8. ✅ P2.4c 历法与年度盘面呈现校验试点：`calc_yunqi` 对年度稳定字段签发进程内 `presentationToken`；`xingxiu_daily` 与 `get_almanac` 仅在显式传入 `queryDate` 或 `date` 后签发。`validate_calendar_presentation` 按来源隔离校验五运六气年度/干支/岁运/司天在泉/客气步骤，或星宿/黄历的基础历法字段；同 stdio 会话覆盖有效与篡改断言。宜忌、疾病/养生建议、歌诀与传统解释不进入 claims。
 
 ### 4.2 工程规范
 

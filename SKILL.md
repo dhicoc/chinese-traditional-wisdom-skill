@@ -63,14 +63,14 @@ node <SKILL_ROOT>/scripts/setup-mcp.mjs
 - 仅检查不写入：`node scripts/setup-mcp.mjs --check`
 - 只配指定客户端：`node scripts/setup-mcp.mjs --client=claude-code`（支持 claude-code / claude-desktop / cursor / cline）
 
-**MCP 工具列表**（38 个工具 = 32 个计算工具 + 6 个元工具）：
+**MCP 工具列表**（39 个工具 = 32 个计算工具 + 7 个元工具）：
 
 - 时间校准（1）：`resolve_true_solar_time`（真太阳时：只对 Agent 已核验的地点、历史 UTC 偏移与夏令时依据做确定性计算）
 - 排盘计算（22）：`bazi_calculate` / `ziwei_chart` / `cast_liuyao` / `arrange_qimen` / `liuren_calculate` / `xingxiu_daily` / `taiyi_calculate` / `huangji_calculate` / `cast_meihua` / `calc_yunqi` / `analyze_name` / `calc_xiyong` / `get_constitution_tendency` / `dream_interpret` / `cast_cezi` / `calc_chenguz` / `get_almanac`（每日黄历）/ `calc_feixing`（流年飞星）/ `calc_bazhai`（八宅大游年）/ `get_daily_rhythm`（节气调养+时辰经络）/ `assess_constitution`（体质问卷自评）/ `list_constitution_questionnaire`（取体质问卷题目，配合 assess_constitution）
 - 跨系统联合分析（9）：`combo_annual_fortune` / `combo_monthly_fortune` / `combo_decision` / `combo_space_time` / `combo_sanshi` / `combo_sanshi_classic` / `combo_daily_wellness` / `combo_zeri` / `combo_marriage`
-- 元工具（6）：`agent_guidance`（参数引导，防瞎猜）/ `validate_bazi_presentation`（核验八字确定性呈现依据）/ `validate_ziwei_presentation`（核验紫微确定性呈现依据）/ `validate_bazhai_presentation`（核验八宅确定性呈现依据）/ `validate_feixing_presentation`（核验流年飞星确定性呈现依据）/ `wisdom_dispatch`（自然语言意图路由）
+- 元工具（7）：`agent_guidance`（参数引导，防瞎猜）/ `validate_bazi_presentation`（核验八字确定性呈现依据）/ `validate_ziwei_presentation`（核验紫微确定性呈现依据）/ `validate_bazhai_presentation`（核验八宅确定性呈现依据）/ `validate_feixing_presentation`（核验流年飞星确定性呈现依据）/ `validate_calendar_presentation`（核验历法与年度盘面基础事实）/ `wisdom_dispatch`（自然语言意图路由）
 
-> 运行边界：对话 / Agent 必须走 `SKILL/RULES → wisdom_dispatch → agent_guidance → MCP 计算工具 → ToolEnvelope → 语言化解读`；八字的确定性结论还须先通过 `validate_bazi_presentation`，紫微的宫位、星曜、四化、元资料与本次动态层确定性结论还须先通过 `validate_ziwei_presentation`，八宅的命卦、八方游年星与吉凶、年度太岁/岁破/三煞/五黄方位确定性结论还须先通过 `validate_bazhai_presentation`，流年飞星的年度、元运、中宫及指定九宫飞星/吉凶确定性结论还须先通过 `validate_feixing_presentation`。化解、布局、财位、个人命卦解释与综合推论不进入飞星 claims。Agent 不得凭模型知识、记忆或 reference 文件自行给出确定性结论。Dashboard 保持原有浏览器端纯 TypeScript 确定性计算和可视化入口，不需要经 MCP 转发；这不是模型推演，也不授权对话 Agent 绕过 MCP。
+> 运行边界：对话 / Agent 必须走 `SKILL/RULES → wisdom_dispatch → agent_guidance → MCP 计算工具 → ToolEnvelope → 语言化解读`；八字、紫微、八宅与流年飞星的确定性结论分别须先通过对应的 presentation validator。五运六气的年度、干支、岁运、司天、在泉和客气步骤必须通过 `validate_calendar_presentation`；星宿与黄历只有显式传入 `queryDate` 或 `date` 后才可校验基础历法字段。宜忌、疾病/养生建议、歌诀与传统解释不进入历法 claims。Agent 不得凭模型知识、记忆或 reference 文件自行给出确定性结论。Dashboard 保持原有浏览器端纯 TypeScript 确定性计算和可视化入口，不需要经 MCP 转发；这不是模型推演，也不授权对话 Agent 绕过 MCP。
 > MCP server 与 Dashboard 可共享纯 TS 引擎。用户纯对话即可用全部功能：`wisdom_dispatch` 按关键词路由，`agent_guidance` 确认参数，计算工具返回结构化结果后再语言化解读（RULES.md §11）。
 
 ---

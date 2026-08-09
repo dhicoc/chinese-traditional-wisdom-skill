@@ -49,6 +49,7 @@ export const GLOBAL_AGENT_RULES = [
   '紫微解读若写入宫位、星曜、四化、五行局、命主、身主或本次动态层等确定性结论，必须以本次 ziwei_chart 的 result_meta.presentationToken 调 validate_ziwei_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次命盘结果。传统解释、条件性推论和建议不进入 claims。',
   '八宅解读若写入命卦、东四/西四命、八方游年星与吉凶、或本次年份的太岁、岁破、三煞、五黄方位等确定性结论，必须以本次 calc_bazhai 的 result_meta.presentationToken 调 validate_bazhai_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次推算结果。传统释义、布局建议、门主灶与化解建议不进入 claims。',
   '流年飞星解读若写入本次年份、元运、中宫飞星或指定九宫的飞星与吉凶等确定性结论，必须以本次 calc_feixing 的 result_meta.presentationToken 调 validate_feixing_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次盘面结果。化解、布局、财位与个人命卦解释不进入 claims。',
+  '五运六气如呈现年度、干支、岁运、司天、在泉或客气步骤，必须以本次 calc_yunqi 的 result_meta.presentationToken 调 validate_calendar_presentation；二十八星宿和黄历仅在显式传入 queryDate 或 date 后才可取得该凭证并校验基础历法字段。宜忌、疾病/养生建议、歌诀与传统解释不进入 claims。',
   '不得替用户编造生辰、性别、出生地等关键参数；缺失时必须追问。',
   '真太阳时必须先核验地点经度、IANA 时区、出生时实际 UTC 偏移与夏令时依据；不得凭模型记忆填写或把民用时间伪称真太阳时。',
   '涉及八字的组合或增强分析也必须传入经核验的 baziTimeContext；民用时间路径须明确确认，并标注“未完成真太阳时复核”。',
@@ -132,11 +133,11 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
   },
   xingxiu_daily: {
     tool: 'xingxiu_daily',
-    purpose: '二十八星宿每日值宿查询：需日期。返回值宿、禽星、四象、吉凶宜忌。',
+    purpose: '二十八星宿每日值宿查询：返回值宿、禽星与四象等基础字段；不传 queryDate 时仅查询系统当天。',
     requiredParams: BIRTH_PARAMS,
     safeDefaults: { birth: { minute: 0 } },
-    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.gender'],
-    workflow: '确认日期 → 调 xingxiu_daily → 看当日值宿吉凶宜忌。',
+    doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.gender', 'queryDate'],
+    workflow: '如需把值宿、禽星、四象、五行、七曜或禽星呈现为本次确定性事实，必须确认并显式传 queryDate → 调 xingxiu_daily → 用本次 presentationToken 调 validate_calendar_presentation；valid:true 后才呈现。未传 queryDate 的系统当天结果不签发凭证；吉凶宜忌、歌诀与传统解释不进入 claims。',
   },
   taiyi_calculate: {
     tool: 'taiyi_calculate',
@@ -219,7 +220,7 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     ],
     safeDefaults: { currentMonth: new Date().getMonth() + 1 },
     doNotAssume: ['year'],
-    workflow: '确认年份 → 调 calc_yunqi → 可联动 get_constitution_tendency 看体质倾向。',
+    workflow: '确认年份 → 调 calc_yunqi → 呈现年度、干支、岁运、司天、在泉或客气步骤前，以本次 presentationToken 调 validate_calendar_presentation；valid:true 后才呈现。疾病倾向、养生建议与传统解释不进入 claims。',
   },
   analyze_name: {
     tool: 'analyze_name',
@@ -305,13 +306,13 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
   },
   get_almanac: {
     tool: 'get_almanac',
-    purpose: '每日黄历：干支纳音、宜忌、吉神凶煞、神位方位、冲煞、时辰吉凶。按公历日期查。',
+    purpose: '每日黄历：干支、纳音、冲煞与时辰等基础历法字段；不传 date 时仅查询系统当天。',
     requiredParams: [
       { name: 'date', required: true, description: '公历日期 yyyy-mm-dd', promptToUser: '请提供要查询的公历日期（如 2026-08-01）；若查今天可不传。' },
     ],
     safeDefaults: {},
     doNotAssume: ['date'],
-    workflow: '确认日期（不传默认今天）→ 调 get_almanac → 解读宜忌、神位方位、时辰吉凶。',
+    workflow: '如需把基础历法字段呈现为本次确定性事实，必须确认并显式传 date → 调 get_almanac → 用本次 presentationToken 调 validate_calendar_presentation；valid:true 后才呈现。未传 date 的系统当天结果不签发凭证；宜忌、神位建议与传统解释不进入 claims。',
   },
   calc_feixing: {
     tool: 'calc_feixing',

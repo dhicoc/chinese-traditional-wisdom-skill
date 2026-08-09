@@ -3570,7 +3570,7 @@ exports[`MCP Server 端到端协议 > tools/list 的公开输入输出契约保�
       "openWorldHint": false,
       "readOnlyHint": true,
     },
-    "description": "列出中医九种体质问卷全部题目（按体质分组），供 AI 取题���用户后调 assess_constitution 自评。无入参。",
+    "description": "列出中医九种体质问卷全部题目（按体质分组），供 AI 取题问用户后调 assess_constitution 自评。无入参。",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "properties": {},
@@ -4401,6 +4401,281 @@ exports[`MCP Server 端到端协议 > tools/list 的公开输入输出契约保�
       "openWorldHint": false,
       "readOnlyHint": true,
     },
+    "description": "历法与年度盘面呈现依据校验。对本次 calc_yunqi、显式 queryDate 的 xingxiu_daily 或显式 date 的 get_almanac 返回的 result_meta.presentationToken 与拟呈现的结构化基础事实逐项比对。仅核验年度干支、岁运司天在泉与客气步骤，或显式日期的星宿/黄历基础历法字段；宜忌、疾病与养生建议、歌诀和传统解释不进入 claims。校验器不生成、补全或修正解读。",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "claims": {
+          "description": "拟呈现的可复现历法或年度盘面基础事实；不包含宜忌、疾病/养生建议、歌诀或传统解释",
+          "items": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "year",
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "yunqiYear",
+                    "type": "string",
+                  },
+                  "value": {
+                    "maximum": 2100,
+                    "minimum": 1900,
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "tiangan",
+                      "dizhi",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "yunqiYear",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "dayun",
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "yunqiWuyun",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "sitian",
+                      "zaiquan",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "yunqiLiuqi",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "qi",
+                      "start",
+                      "end",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "yunqiStep",
+                    "type": "string",
+                  },
+                  "step": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "step",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "queryDate",
+                      "zhiXiu",
+                      "zhiXiuFull",
+                      "xiang",
+                      "wuxing",
+                      "yao",
+                      "animal",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "xingxiu",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "solarDate",
+                      "lunarDate",
+                      "yearGanZhi",
+                      "monthGanZhi",
+                      "dayGanZhi",
+                      "zodiac",
+                      "jieQi",
+                      "dayNaYin",
+                      "dayXiu",
+                      "dayTianShen",
+                      "dayTianShenType",
+                      "chong",
+                      "sha",
+                      "liuYao",
+                      "dayNineStar",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "almanac",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "ganZhi",
+                      "tianShen",
+                      "tianShenType",
+                      "luck",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "almanacHour",
+                    "type": "string",
+                  },
+                  "label": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "label",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+            ],
+          },
+          "type": "array",
+        },
+        "presentationToken": {
+          "description": "本次可复现历法或年度盘面工具返回的 result_meta.presentationToken，仅在当前 MCP 进程有效",
+          "format": "uuid",
+          "type": "string",
+        },
+      },
+      "required": [
+        "presentationToken",
+        "claims",
+      ],
+      "type": "object",
+    },
+    "name": "validate_calendar_presentation",
+    "outputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": true,
+      "properties": {},
+      "type": "object",
+    },
+    "title": "历法与年度盘面呈现依据校验",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+    },
     "description": "流年飞星呈现依据校验。对本次 calc_feixing 返回的 result_meta.presentationToken 与拟呈现的结构化年度盘面断言逐项比对；仅核验年度、元运、中宫与指定九宫的飞星及吉凶。化解、布局、财位与个人命卦解释不进入 claims。校验器不生成、补全或修正解读；任一断言不符时必须移除或改为引擎实际结果。",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -4862,7 +5137,7 @@ exports[`MCP Server 端到端协议 > tools/list 的公开输入输出契约保�
       "openWorldHint": false,
       "readOnlyHint": true,
     },
-    "description": "二十八星宿每日值宿查询：当日值宿、禽星全称、四象分组、五行七曜、吉凶宜忌、歌诀。传统择吉与天文历法基础。",
+    "description": "二十八星宿每日值宿查询：当日值宿、禽星全称、四象分组、五行七曜、吉凶宜忌、歌诀。传 queryDate 可查询并复现指定日期的值宿。传统择吉与天文历法基础。",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "additionalProperties": false,
@@ -4917,6 +5192,11 @@ exports[`MCP Server 端到端协议 > tools/list 的公开输入输出契约保�
             "gender",
           ],
           "type": "object",
+        },
+        "queryDate": {
+          "description": "显式查询日 yyyy-mm-dd；不传默认系统当天，且不签发呈现校验凭证",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "type": "string",
         },
       },
       "required": [

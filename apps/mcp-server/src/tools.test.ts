@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { TOOLS } from './tools';
 import { validateBaziPresentation } from './baziClaimVerifier';
 import { validateBazhaiPresentation } from './bazhaiClaimVerifier';
+import { validateCalendarPresentation } from './calendarClaimVerifier';
 import { validateFeixingPresentation } from './feixingClaimVerifier';
 import type { ToolEnvelope } from '../../visual/src/legacy/baseTypes';
 
@@ -372,6 +373,70 @@ describe('calc_yunqi', async () => {
     expect(data.wuyun.dayun).toBe('土运太过');
     expect(data.liuqi.sitian).toBe('太阳寒水');
     expectExportSnapshot(e);
+  });
+
+  it('为年度稳定字段签发凭证，并拒绝伪造断言', async () => {
+    const tool = findTool('calc_yunqi');
+    const env = await tool.handler({ year: 2026, currentMonth: 6 }) as ToolEnvelope;
+    const data = env.data as {
+      year: number;
+      tiangan: string;
+      wuyun: { dayun: string };
+      liuqi: { sitian: string; zhuke: Array<{ step: string; qi: string }> };
+    };
+    const token = env.result_meta?.presentationToken;
+
+    expect(token).toMatch(/^[0-9a-f-]{36}$/);
+    expect(validateCalendarPresentation(token!, [
+      { kind: 'yunqiYear', field: 'year', value: data.year },
+      { kind: 'yunqiYear', field: 'tiangan', value: data.tiangan },
+      { kind: 'yunqiWuyun', field: 'dayun', value: data.wuyun.dayun },
+      { kind: 'yunqiLiuqi', field: 'sitian', value: data.liuqi.sitian },
+      { kind: 'yunqiStep', step: data.liuqi.zhuke[0]!.step, field: 'qi', value: data.liuqi.zhuke[0]!.qi },
+    ])).toEqual({ valid: true, violations: [] });
+    expect(validateCalendarPresentation(token!, [
+      { kind: 'yunqiYear', field: 'year', value: data.year + 1 },
+    ])).toMatchObject({ valid: false, violations: [expect.objectContaining({ kind: 'yunqiYear' })] });
+  });
+});
+
+describe('可复现日期的历法呈现凭证', () => {
+  const birth = { year: 1990, month: 6, day: 15, hour: 12, gender: '男' as const };
+
+  it('xingxiu_daily 仅在显式 queryDate 时签发凭证', async () => {
+    const tool = findTool('xingxiu_daily');
+    const defaultEnv = await tool.handler({ birth }) as ToolEnvelope;
+    const explicitEnv = await tool.handler({ birth, queryDate: '2026-08-09' }) as ToolEnvelope;
+    const data = explicitEnv.data as { queryDate: string; zhiXiu: string; wuxing: string };
+    const token = explicitEnv.result_meta?.presentationToken;
+
+    expect(defaultEnv.result_meta?.presentationToken).toBeUndefined();
+    expect(token).toMatch(/^[0-9a-f-]{36}$/);
+    expect(validateCalendarPresentation(token!, [
+      { kind: 'xingxiu', field: 'queryDate', value: data.queryDate },
+      { kind: 'xingxiu', field: 'zhiXiu', value: data.zhiXiu },
+      { kind: 'xingxiu', field: 'wuxing', value: data.wuxing },
+    ])).toEqual({ valid: true, violations: [] });
+  });
+
+  it('get_almanac 仅在显式 date 时签发凭证', async () => {
+    const tool = findTool('get_almanac');
+    const defaultEnv = await tool.handler({}) as ToolEnvelope;
+    const explicitEnv = await tool.handler({ date: '2026-08-09' }) as ToolEnvelope;
+    const data = explicitEnv.data as { solarDate: string; dayGanZhi: string; hours: Array<{ label: string; ganZhi: string }> };
+    const token = explicitEnv.result_meta?.presentationToken;
+    const hour = data.hours[0]!;
+
+    expect(defaultEnv.result_meta?.presentationToken).toBeUndefined();
+    expect(token).toMatch(/^[0-9a-f-]{36}$/);
+    expect(validateCalendarPresentation(token!, [
+      { kind: 'almanac', field: 'solarDate', value: data.solarDate },
+      { kind: 'almanac', field: 'dayGanZhi', value: data.dayGanZhi },
+      { kind: 'almanacHour', label: hour.label, field: 'ganZhi', value: hour.ganZhi },
+    ])).toEqual({ valid: true, violations: [] });
+    expect(validateCalendarPresentation(token!, [
+      { kind: 'almanac', field: 'dayGanZhi', value: '甲子' },
+    ])).toMatchObject({ valid: false, violations: [expect.objectContaining({ kind: 'almanac' })] });
   });
 });
 

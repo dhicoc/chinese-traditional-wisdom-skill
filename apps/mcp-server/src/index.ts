@@ -20,6 +20,7 @@ import { getToolGuidance, listToolGuidance, validateToolInput, GLOBAL_AGENT_RULE
 import { dispatchIntent } from './dispatch.js';
 import { validateBaziPresentation, type BaziPresentationClaim } from './baziClaimVerifier.js';
 import { validateBazhaiPresentation, type BazhaiPresentationClaim } from './bazhaiClaimVerifier.js';
+import { validateCalendarPresentation, type CalendarPresentationClaim } from './calendarClaimVerifier.js';
 import { validateFeixingPresentation, type FeixingPresentationClaim } from './feixingClaimVerifier.js';
 import { validateZiweiPresentation, type ZiweiPresentationClaim } from './ziweiClaimVerifier.js';
 
@@ -28,7 +29,7 @@ const server = new McpServer({
   version: '0.1.0',
 });
 
-const META_TOOLS_COUNT = 6;
+const META_TOOLS_COUNT = 7;
 
 // ─── 注册计算工具（Agent/MCP 硬闸门）───
 for (const tool of TOOLS) {
@@ -257,7 +258,45 @@ server.registerTool(
   },
 );
 
-// ─── 元工具 6: wisdom_dispatch（自然语言意图路由）───
+// ─── 元工具 6: validate_calendar_presentation（历法与年度盘面解读依据校验）───
+server.registerTool(
+  'validate_calendar_presentation',
+  {
+    ...getToolContract('validate_calendar_presentation'),
+    description: '历法与年度盘面呈现依据校验。对本次 calc_yunqi、显式 queryDate 的 xingxiu_daily 或显式 date 的 get_almanac 返回的 result_meta.presentationToken 与拟呈现的结构化基础事实逐项比对。仅核验年度干支、岁运司天在泉与客气步骤，或显式日期的星宿/黄历基础历法字段；宜忌、疾病与养生建议、歌诀和传统解释不进入 claims。校验器不生成、补全或修正解读。',
+    inputSchema: {
+      presentationToken: z.string().uuid().describe('本次可复现历法或年度盘面工具返回的 result_meta.presentationToken，仅在当前 MCP 进程有效'),
+      claims: z.array(z.union([
+        z.object({ kind: z.literal('yunqiYear'), field: z.literal('year'), value: z.number().int().min(1900).max(2100) }),
+        z.object({ kind: z.literal('yunqiYear'), field: z.enum(['tiangan', 'dizhi']), value: z.string().min(1) }),
+        z.object({ kind: z.literal('yunqiWuyun'), field: z.literal('dayun'), value: z.string().min(1) }),
+        z.object({ kind: z.literal('yunqiLiuqi'), field: z.enum(['sitian', 'zaiquan']), value: z.string().min(1) }),
+        z.object({ kind: z.literal('yunqiStep'), step: z.string().min(1), field: z.enum(['qi', 'start', 'end']), value: z.string().min(1) }),
+        z.object({ kind: z.literal('xingxiu'), field: z.enum(['queryDate', 'zhiXiu', 'zhiXiuFull', 'xiang', 'wuxing', 'yao', 'animal']), value: z.string().min(1) }),
+        z.object({ kind: z.literal('almanac'), field: z.enum(['solarDate', 'lunarDate', 'yearGanZhi', 'monthGanZhi', 'dayGanZhi', 'zodiac', 'jieQi', 'dayNaYin', 'dayXiu', 'dayTianShen', 'dayTianShenType', 'chong', 'sha', 'liuYao', 'dayNineStar']), value: z.string().min(1) }),
+        z.object({ kind: z.literal('almanacHour'), label: z.string().min(1), field: z.enum(['ganZhi', 'tianShen', 'tianShenType', 'luck']), value: z.string().min(1) }),
+      ])).describe('拟呈现的可复现历法或年度盘面基础事实；不包含宜忌、疾病/养生建议、歌诀或传统解释'),
+    },
+    outputSchema: openObjectOutputSchema,
+  },
+  async (input: unknown) => {
+    const { presentationToken, claims } = input as { presentationToken: string; claims: CalendarPresentationClaim[] };
+    const validation = validateCalendarPresentation(presentationToken, claims);
+    const structuredContent = validation ?? {
+      valid: false,
+      violations: [{
+        kind: 'presentationToken',
+        message: 'presentationToken 无效、已失效、非显式可复现输入或不属于当前 MCP 进程；请重新调用对应工具并传入 year、queryDate 或 date。',
+      }],
+    };
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(structuredContent, null, 2) }],
+      structuredContent: { ...structuredContent },
+    };
+  },
+);
+
+// ─── 元工具 7: wisdom_dispatch（自然语言意图路由）───
 server.registerTool(
   'wisdom_dispatch',
   {
