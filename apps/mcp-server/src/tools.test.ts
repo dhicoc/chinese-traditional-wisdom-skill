@@ -4,6 +4,7 @@ import { TOOLS } from './tools';
 import { validateBaziPresentation } from './baziClaimVerifier';
 import { validateBazhaiPresentation } from './bazhaiClaimVerifier';
 import { validateCalendarPresentation } from './calendarClaimVerifier';
+import { validateDivinationPresentation, type DivinationPresentationClaim } from './divinationClaimVerifier';
 import { validateFeixingPresentation } from './feixingClaimVerifier';
 import type { ToolEnvelope } from '../../visual/src/legacy/baseTypes';
 
@@ -358,6 +359,36 @@ describe('cast_meihua', async () => {
     expect(data.changingLine).toBe(2);
     expect(data.sourceMethod).toBe('数字起卦');
     expectExportSnapshot(e);
+  });
+});
+
+describe('占测／卦象工具', async () => {
+  it('为六爻、梅花、奇门、大六壬、太乙与皇极签发可校验凭证', async () => {
+    const input = { birth: { year: 2024, month: 3, day: 15, hour: 9, gender: '男' } };
+    const liuyao = await findTool('cast_liuyao').handler({ ...input, method: 'manual', yaoValues: '777777' }) as ToolEnvelope;
+    const meihua = await findTool('cast_meihua').handler({ ...input, method: 'number', numberA: 3, numberB: 5 }) as ToolEnvelope;
+    const qimen = await findTool('arrange_qimen').handler(input) as ToolEnvelope;
+    const liuren = await findTool('liuren_calculate').handler(input) as ToolEnvelope;
+    const taiyi = await findTool('taiyi_calculate').handler(input) as ToolEnvelope;
+    const huangji = await findTool('huangji_calculate').handler(input) as ToolEnvelope;
+
+    const entries = [
+      [liuyao, [{ tool: 'cast_liuyao', kind: 'hexagram', field: 'name', value: (liuyao.data as { hexagramName: string }).hexagramName }]],
+      [meihua, [{ tool: 'cast_meihua', kind: 'hexagram', field: 'name', value: (meihua.data as { hexagramName: string }).hexagramName }]],
+      [qimen, [{ tool: 'arrange_qimen', kind: 'basic', field: 'ju', value: (qimen.data as { ju: string }).ju }]],
+      [liuren, [{ tool: 'liuren_calculate', kind: 'basic', field: 'dayGanZhi', value: (liuren.data as { basicInfo: { dayGanZhi: string } }).basicInfo.dayGanZhi }]],
+      [taiyi, [{ tool: 'taiyi_calculate', kind: 'kook', field: 'num', value: (taiyi.data as { kook: { num: number } }).kook.num }]],
+      [huangji, [{ tool: 'huangji_calculate', kind: 'gua', layer: 'zheng', value: (huangji.data as { gua: { zheng: string } }).gua.zheng }]],
+    ] as const;
+
+    entries.forEach(([envelope, claims]) => {
+      const token = envelope.result_meta?.presentationToken;
+      expect(token).toMatch(/^[0-9a-f-]{36}$/);
+      expect(validateDivinationPresentation(token!, [...claims] as DivinationPresentationClaim[])).toEqual({ valid: true, violations: [] });
+    });
+    expect(validateDivinationPresentation(liuyao.result_meta!.presentationToken!, [
+      { tool: 'cast_meihua', kind: 'yao', field: 'changingLine', value: 1 },
+    ])).toMatchObject({ valid: false, violations: [expect.objectContaining({ tool: 'cast_meihua' })] });
   });
 });
 

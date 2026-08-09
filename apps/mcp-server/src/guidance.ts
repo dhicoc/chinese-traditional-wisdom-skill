@@ -50,6 +50,7 @@ export const GLOBAL_AGENT_RULES = [
   '八宅解读若写入命卦、东四/西四命、八方游年星与吉凶、或本次年份的太岁、岁破、三煞、五黄方位等确定性结论，必须以本次 calc_bazhai 的 result_meta.presentationToken 调 validate_bazhai_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次推算结果。传统释义、布局建议、门主灶与化解建议不进入 claims。',
   '流年飞星解读若写入本次年份、元运、中宫飞星或指定九宫的飞星与吉凶等确定性结论，必须以本次 calc_feixing 的 result_meta.presentationToken 调 validate_feixing_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次盘面结果。化解、布局、财位与个人命卦解释不进入 claims。',
   '五运六气如呈现年度、干支、岁运、司天、在泉或客气步骤，必须以本次 calc_yunqi 的 result_meta.presentationToken 调 validate_calendar_presentation；二十八星宿和黄历仅在显式传入 queryDate 或 date 后才可取得该凭证并校验基础历法字段。宜忌、疾病/养生建议、歌诀与传统解释不进入 claims。',
+  '六爻、梅花、奇门、大六壬、太乙与皇极如呈现卦名、动爻、局式、宫位、干支、三传或周期等基础盘面事实，必须以本次 result_meta.presentationToken 调 validate_divination_presentation；吉凶、应期、策略、传统解释与行动建议不进入 claims。',
   '不得替用户编造生辰、性别、出生地等关键参数；缺失时必须追问。',
   '真太阳时必须先核验地点经度、IANA 时区、出生时实际 UTC 偏移与夏令时依据；不得凭模型记忆填写或把民用时间伪称真太阳时。',
   '涉及八字的组合或增强分析也必须传入经核验的 baziTimeContext；民用时间路径须明确确认，并标注“未完成真太阳时复核”。',
@@ -113,7 +114,7 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     ],
     safeDefaults: { method: 'coin', birth: { minute: 0 } },
     doNotAssume: ['question', 'birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
-    workflow: '先确认求测事项 + 起卦方式 → 调 cast_liuyao → 看用神旺衰与动爻断吉凶。'
+    workflow: '先确认求测事项 + 起卦方式 → 调 cast_liuyao → 呈现卦名、变卦、世应、动爻或干支前，以本次 presentationToken 调 validate_divination_presentation；valid:true 后才呈现。用神旺衰、吉凶与应期解释不进入 claims。'
   },
   arrange_qimen: {
     tool: 'arrange_qimen',
@@ -121,7 +122,7 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     requiredParams: BIRTH_PARAMS,
     safeDefaults: { birth: { minute: 0 } },
     doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
-    workflow: '先确认起局时间（测事的当前时间或指定时间）→ 调 arrange_qimen → 看值符值使与格局断吉凶。',
+    workflow: '先确认起局时间（测事的当前时间或指定时间）→ 调 arrange_qimen → 呈现遁局、值符值使、宫位或干支前，以本次 presentationToken 调 validate_divination_presentation；valid:true 后才呈现。格局吉凶与策略解释不进入 claims。',
   },
   liuren_calculate: {
     tool: 'liuren_calculate',
@@ -129,7 +130,7 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     requiredParams: BIRTH_PARAMS,
     safeDefaults: { birth: { minute: 0 } },
     doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
-    workflow: '先确认占时（测事的当前时间或指定时间）→ 调 liuren_calculate → 看三传四课与格局断吉凶。',
+    workflow: '先确认占时（测事的当前时间或指定时间）→ 调 liuren_calculate → 呈现节气、月将、四课或三传前，以本次 presentationToken 调 validate_divination_presentation；valid:true 后才呈现。格局吉凶、应期与事件解释不进入 claims。',
   },
   xingxiu_daily: {
     tool: 'xingxiu_daily',
@@ -145,7 +146,7 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     requiredParams: BIRTH_PARAMS,
     safeDefaults: { birth: { minute: 0 }, jiStyle: '0', acumYear: '0' },
     doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
-    workflow: '先确认占时（测事的当前时间或指定时间）→ 调 taiyi_calculate → 看太乙落宫、主客算与格局断吉凶。',
+    workflow: '先确认占时（测事的当前时间或指定时间）→ 调 taiyi_calculate → 呈现干支、局式、太乙/文昌/始击落宫或主客算前，以本次 presentationToken 调 validate_divination_presentation；valid:true 后才呈现。格局断语、主客胜负、吉凶与应期不进入 claims。',
   },
   huangji_calculate: {
     tool: 'huangji_calculate',
@@ -153,7 +154,7 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     requiredParams: BIRTH_PARAMS,
     safeDefaults: { birth: { minute: 0 } },
     doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
-    workflow: '确认占时（年月日时）→ 调 huangji_calculate → 看会/运/世周期定位 + 正卦（主运大势）+ 世卦（当下30年气数）+ 年卦（本年应象）。',
+    workflow: '确认占时（年月日时）→ 调 huangji_calculate → 呈现干支、会运世周期、九卦或动爻前，以本次 presentationToken 调 validate_divination_presentation；valid:true 后才呈现。主运大势、三十年气数与本年应象等解释不进入 claims。',
   },
   combo_sanshi_classic: {
     tool: 'combo_sanshi_classic',
@@ -210,7 +211,7 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     ],
     safeDefaults: { method: 'time', birth: { minute: 0 } },
     doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
-    workflow: '确认起卦方式与参数 → 调 cast_meihua → 看体用生克与吉凶分级。',
+    workflow: '确认起卦方式与参数 → 调 cast_meihua → 呈现本卦、变卦、上下卦、动爻或体用关系前，以本次 presentationToken 调 validate_divination_presentation；valid:true 后才呈现。吉凶分级、策略与传统解释不进入 claims。',
   },
   calc_yunqi: {
     tool: 'calc_yunqi',

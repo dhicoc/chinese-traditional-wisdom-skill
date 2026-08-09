@@ -4676,6 +4676,955 @@ exports[`MCP Server 端到端协议 > tools/list 的公开输入输出契约保�
       "openWorldHint": false,
       "readOnlyHint": true,
     },
+    "description": "占测／卦象呈现依据校验。对本次六爻、梅花易数、奇门遁甲、大六壬、太乙神数或皇极经世返回的 result_meta.presentationToken 与拟呈现的基础盘面事实逐项比对。仅核验卦名、动爻、局式、宫位、干支、三传、周期等盘面字段；吉凶、应期、策略、传统解释与行动建议不进入 claims。校验器不生成、补全或修正解读。",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "claims": {
+          "description": "拟呈现的基础占测／卦象盘面事实；不包含吉凶、应期、策略、传统解释或行动建议",
+          "items": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "name",
+                      "changedName",
+                      "palace",
+                      "palaceElement",
+                      "dayGanZhi",
+                      "monthGanZhi",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "hexagram",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "cast_liuyao",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "shiYao",
+                      "yingYao",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "yao",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "cast_liuyao",
+                    "type": "string",
+                  },
+                  "value": {
+                    "maximum": 6,
+                    "minimum": 1,
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "changingYao",
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "yao",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "cast_liuyao",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "name",
+                      "changedName",
+                      "bodyTrigram",
+                      "useTrigram",
+                      "bodyUseRelation",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "hexagram",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "cast_meihua",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "changingLine",
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "yao",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "cast_meihua",
+                    "type": "string",
+                  },
+                  "value": {
+                    "maximum": 6,
+                    "minimum": 1,
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "name",
+                      "nature",
+                      "element",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "trigram",
+                    "type": "string",
+                  },
+                  "position": {
+                    "enum": [
+                      "upper",
+                      "lower",
+                    ],
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "cast_meihua",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "position",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "dun",
+                      "ju",
+                      "yuan",
+                      "season",
+                      "monthElement",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "basic",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "arrange_qimen",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "star",
+                      "heavenlyStem",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "zhiFu",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "arrange_qimen",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "position",
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "zhiFu",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "arrange_qimen",
+                    "type": "string",
+                  },
+                  "value": {
+                    "maximum": 9,
+                    "minimum": 1,
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "gate",
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "zhiShi",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "arrange_qimen",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "position",
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "zhiShi",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "arrange_qimen",
+                    "type": "string",
+                  },
+                  "value": {
+                    "maximum": 9,
+                    "minimum": 1,
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "trigram",
+                      "gate",
+                      "star",
+                      "deity",
+                      "heavenlyStem",
+                      "earthlyStem",
+                      "earthBranch",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "palace",
+                    "type": "string",
+                  },
+                  "position": {
+                    "maximum": 9,
+                    "minimum": 1,
+                    "type": "integer",
+                  },
+                  "tool": {
+                    "const": "arrange_qimen",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "position",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "jieqi",
+                      "dayGanZhi",
+                      "hourGanZhi",
+                      "dayNight",
+                      "yueJiang",
+                      "yueJiangName",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "basic",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "liuren_calculate",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "shangShen",
+                      "xiaShen",
+                      "tianJiang",
+                      "relation",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "sike",
+                    "type": "string",
+                  },
+                  "position": {
+                    "enum": [
+                      1,
+                      2,
+                      3,
+                      4,
+                    ],
+                    "type": "number",
+                  },
+                  "tool": {
+                    "const": "liuren_calculate",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "position",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "diZhi",
+                      "tianJiang",
+                      "liuQin",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "sanchuan",
+                    "type": "string",
+                  },
+                  "stage": {
+                    "enum": [
+                      "chuChuan",
+                      "zhongChuan",
+                      "moChuan",
+                    ],
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "liuren_calculate",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "stage",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "xunKong",
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "sanchuan",
+                    "type": "string",
+                  },
+                  "stage": {
+                    "enum": [
+                      "chuChuan",
+                      "zhongChuan",
+                      "moChuan",
+                    ],
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "liuren_calculate",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": [
+                      "string",
+                      "null",
+                    ],
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "stage",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "yearGz",
+                      "monthGz",
+                      "dayGz",
+                      "hourGz",
+                      "jieqi",
+                      "jiStyleName",
+                      "acumYearName",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "basic",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "taiyi_calculate",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "wen",
+                      "nian",
+                      "dun",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "kook",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "taiyi_calculate",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "num",
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "kook",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "taiyi_calculate",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "gong",
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "position",
+                    "type": "string",
+                  },
+                  "subject": {
+                    "enum": [
+                      "taiyi",
+                      "wenchang",
+                      "shiji",
+                      "dingmu",
+                    ],
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "taiyi_calculate",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "subject",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "num",
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "position",
+                    "type": "string",
+                  },
+                  "subject": {
+                    "const": "taiyi",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "taiyi_calculate",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "subject",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "cal",
+                      "general",
+                      "vgen",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "calculation",
+                    "type": "string",
+                  },
+                  "side": {
+                    "enum": [
+                      "home",
+                      "away",
+                    ],
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "taiyi_calculate",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "side",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "ganZhi",
+                    "type": "string",
+                  },
+                  "pillar": {
+                    "enum": [
+                      "year",
+                      "month",
+                      "day",
+                      "hour",
+                    ],
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "huangji_calculate",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "pillar",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "lunarMonth",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "huangji_calculate",
+                    "type": "string",
+                  },
+                  "value": {
+                    "maximum": 12,
+                    "minimum": 1,
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "acumYear",
+                      "hui",
+                      "yun",
+                      "shi",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "cycle",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "huangji_calculate",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "gua",
+                    "type": "string",
+                  },
+                  "layer": {
+                    "enum": [
+                      "zheng",
+                      "yun",
+                      "shi",
+                      "xun",
+                      "year",
+                      "month",
+                      "day",
+                      "hour",
+                      "minute",
+                    ],
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "huangji_calculate",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "layer",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "movingLine",
+                    "type": "string",
+                  },
+                  "layer": {
+                    "enum": [
+                      "yun",
+                      "shi",
+                      "xun",
+                    ],
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "huangji_calculate",
+                    "type": "string",
+                  },
+                  "value": {
+                    "maximum": 6,
+                    "minimum": 1,
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "layer",
+                  "value",
+                ],
+                "type": "object",
+              },
+            ],
+          },
+          "type": "array",
+        },
+        "presentationToken": {
+          "description": "本次占测／卦象工具返回的 result_meta.presentationToken，仅在当前 MCP 进程有效",
+          "format": "uuid",
+          "type": "string",
+        },
+      },
+      "required": [
+        "presentationToken",
+        "claims",
+      ],
+      "type": "object",
+    },
+    "name": "validate_divination_presentation",
+    "outputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": true,
+      "properties": {},
+      "type": "object",
+    },
+    "title": "占测／卦象呈现依据校验",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+    },
     "description": "流年飞星呈现依据校验。对本次 calc_feixing 返回的 result_meta.presentationToken 与拟呈现的结构化年度盘面断言逐项比对；仅核验年度、元运、中宫与指定九宫的飞星及吉凶。化解、布局、财位与个人命卦解释不进入 claims。校验器不生成、补全或修正解读；任一断言不符时必须移除或改为引擎实际结果。",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",

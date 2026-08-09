@@ -14,6 +14,7 @@ import type { TrueSolarTimeResolution } from '../../visual/src/legacy/trueSolarT
 import { registerBaziPresentation } from './baziClaimVerifier.js';
 import { registerBazhaiPresentation } from './bazhaiClaimVerifier.js';
 import { registerCalendarPresentation } from './calendarClaimVerifier.js';
+import { registerDivinationPresentation } from './divinationClaimVerifier.js';
 import { registerFeixingPresentation } from './feixingClaimVerifier.js';
 import { registerZiweiPresentation } from './ziweiClaimVerifier.js';
 
@@ -267,7 +268,12 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: async (i) => {
       const [{ calcLiuyaoEnveloped }, solar] = await Promise.all([loadLiuyao(), loadSolar()]);
-      return calcLiuyaoEnveloped({ ...(i as Record<string, unknown>), solar } as never);
+      const envelope = calcLiuyaoEnveloped({ ...(i as Record<string, unknown>), solar } as never);
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerDivinationPresentation('cast_liuyao', envelope.data, presentationToken);
+      return { ...envelope, result_meta: { ...envelope.result_meta, presentationToken } };
     },
   },
   {
@@ -279,7 +285,12 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: async (i) => {
       const { calcQimenEnveloped } = await loadQimen();
-      return calcQimenEnveloped({ ...(i as Record<string, unknown>) } as never);
+      const envelope = calcQimenEnveloped({ ...(i as Record<string, unknown>) } as never);
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerDivinationPresentation('arrange_qimen', envelope.data, presentationToken);
+      return { ...envelope, result_meta: { ...envelope.result_meta, presentationToken } };
     },
   },
   {
@@ -290,7 +301,12 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: async (i) => {
       const [{ calcDaliurenEnveloped }, solar] = await Promise.all([loadDaliuren(), loadSolar()]);
-      return calcDaliurenEnveloped({ birth: (i as { birth: unknown }).birth as never, solar: solar as never });
+      const envelope = calcDaliurenEnveloped({ birth: (i as { birth: unknown }).birth as never, solar: solar as never });
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerDivinationPresentation('liuren_calculate', envelope.data, presentationToken);
+      return { ...envelope, result_meta: { ...envelope.result_meta, presentationToken } };
     },
   },
   {
@@ -324,12 +340,17 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: async (i) => {
       const [{ calcTaiyiEnveloped }, solar] = await Promise.all([loadTaiyi(), loadSolar()]);
-      return calcTaiyiEnveloped({
+      const envelope = calcTaiyiEnveloped({
         birth: (i as { birth: unknown }).birth as never,
         jiStyle: ((i as { jiStyle?: string }).jiStyle ?? '0') as never,
         acumYear: ((i as { acumYear?: string }).acumYear ?? '0') as never,
         solar: solar as never,
       });
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerDivinationPresentation('taiyi_calculate', envelope.data, presentationToken);
+      return { ...envelope, result_meta: { ...envelope.result_meta, presentationToken } };
     },
   },
   {
@@ -340,10 +361,15 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: async (i) => {
       const [{ calcHuangjiEnveloped }, solar] = await Promise.all([loadHuangji(), loadSolar()]);
-      return calcHuangjiEnveloped({
+      const envelope = calcHuangjiEnveloped({
         birth: (i as { birth: unknown }).birth as never,
         solar: solar as never,
       });
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerDivinationPresentation('huangji_calculate', envelope.data, presentationToken);
+      return { ...envelope, result_meta: { ...envelope.result_meta, presentationToken } };
     },
   },
   {
@@ -357,7 +383,12 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: async (i) => {
       const [{ calcMeihuaEnveloped }, solar] = await Promise.all([loadMeihua(), loadSolar()]);
-      return calcMeihuaEnveloped({ ...(i as Record<string, unknown>), solar } as never);
+      const envelope = calcMeihuaEnveloped({ ...(i as Record<string, unknown>), solar } as never);
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerDivinationPresentation('cast_meihua', envelope.data, presentationToken);
+      return { ...envelope, result_meta: { ...envelope.result_meta, presentationToken } };
     },
   },
   {

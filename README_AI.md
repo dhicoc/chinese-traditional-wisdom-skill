@@ -54,7 +54,7 @@ Quick start:
 8. 开始执行任务
 ```
 
-> **MCP 自动激活**（2026-07-10 架构重构后新增）：当用户在支持 MCP 的客户端（Claude Code/Desktop/Cursor/Cline）中想直接调用排盘工具时，AI 跑 `node scripts/setup-mcp.mjs` 一键自动检测并配置客户端，用户无需手动编辑 JSON。配置后 `chinese-wisdom` server 提供 39 个工具（32 计算 + `agent_guidance` 参数引导 + `validate_bazi_presentation`、`validate_ziwei_presentation`、`validate_bazhai_presentation`、`validate_feixing_presentation`、`validate_calendar_presentation` 五个呈现依据校验器 + `wisdom_dispatch` 意图路由）。常规计算统一返回 ToolEnvelope；`resolve_true_solar_time` 返回可审计的校准结果。详见 `apps/mcp-server/README.md`。
+> **MCP 自动激活**（2026-07-10 架构重构后新增）：当用户在支持 MCP 的客户端（Claude Code/Desktop/Cursor/Cline）中想直接调用排盘工具时，AI 跑 `node scripts/setup-mcp.mjs` 一键自动检测并配置客户端，用户无需手动编辑 JSON。配置后 `chinese-wisdom` server 提供 40 个工具（32 计算 + `agent_guidance` 参数引导 + `validate_bazi_presentation`、`validate_ziwei_presentation`、`validate_bazhai_presentation`、`validate_feixing_presentation`、`validate_calendar_presentation`、`validate_divination_presentation` 六个呈现依据校验器 + `wisdom_dispatch` 意图路由）。常规计算统一返回 ToolEnvelope；`resolve_true_solar_time` 返回可审计的校准结果。详见 `apps/mcp-server/README.md`。
 
 ## 1. 三层路由矩阵
 
@@ -93,7 +93,7 @@ else → 提示用户提供更多信息（参照 §10 输入完整性）
 
 ### Agent 与 Dashboard 的计算边界
 
-1. **对话 Agent**：必须通过 MCP 调用确定性工具；`wisdom_dispatch` 路由、`agent_guidance` 核对参数、计算工具返回 `ToolEnvelope`，Agent 仅据此解读。八字、紫微、八宅和飞星的确定性 facts 必须用各自 validator 校验。五运六气的年度、干支、岁运、司天、在泉和客气步骤必须以本次 `calc_yunqi` 的 `presentationToken` 调用 `validate_calendar_presentation`；星宿与黄历仅在显式传入 `queryDate` 或 `date` 后才能校验基础历法字段。宜忌、疾病/养生建议、歌诀与传统解释不进入历法 claims。不得直接调用 legacy 引擎，或用模型知识、记忆和 reference 文件自行推演。
+1. **对话 Agent**：必须通过 MCP 调用确定性工具；`wisdom_dispatch` 路由、`agent_guidance` 核对参数、计算工具返回 `ToolEnvelope`，Agent 仅据此解读。八字、紫微、八宅和飞星的确定性 facts 必须用各自 validator 校验。五运六气的年度、干支、岁运、司天、在泉和客气步骤必须以本次 `calc_yunqi` 的 `presentationToken` 调用 `validate_calendar_presentation`；星宿与黄历仅在显式传入 `queryDate` 或 `date` 后才能校验基础历法字段。六爻、梅花、奇门、大六壬、太乙与皇极的卦名、动爻、局式、宫位、干支、三传与周期等基础盘面事实必须以本次 `presentationToken` 调用 `validate_divination_presentation`；吉凶、应期、策略、传统解释与行动建议不进入 claims。不得直接调用 legacy 引擎，或用模型知识、记忆和 reference 文件自行推演。
 2. **React Dashboard**：保留浏览器端纯 TS 引擎与可视化能力，`pnpm dev` 启动；这条路径不是模型推演，不需要经 MCP 转发。
 3. **可选 Python oracle**：仅作命令行交叉验证（`ichingshifa` 六爻 / `iztro-py` 紫微），默认不需要；不得作为 Agent 对话计算的替代入口。
 
@@ -146,7 +146,7 @@ Dashboard 中能力状态由 `apps/visual/src/lib/modules.ts` 的 `MODULES` 注�
 1. 执行 node scripts/setup-mcp.mjs 自动配置客户端
 2. 重启 Claude Code/Desktop/Cursor/Cline
 3. 对话中直接说「排个八字」「解梦」「今日养生」「合婚」等，AI 经 `wisdom_dispatch`、`agent_guidance` 后调用 32 个计算工具之一
-4. 常规工具返回 ToolEnvelope（含 export_snapshot 段表），AI 据此生成解读；八字、紫微、八宅和飞星的确定性 facts 先经对应 validator 校验；五运六气呈现年度、干支、岁运、司天、在泉或客气步骤前，用 `validate_calendar_presentation` 校验本次 `calc_yunqi` token；星宿和黄历仅在显式传 `queryDate` 或 `date` 后才可校验基础历法字段，宜忌、疾病/养生建议、歌诀与传统解释不进入 claims
+4. 常规工具返回 ToolEnvelope（含 export_snapshot 段表），AI 据此生成解读；八字、紫微、八宅和飞星的确定性 facts 先经对应 validator 校验；五运六气呈现年度、干支、岁运、司天、在泉或客气步骤前，用 `validate_calendar_presentation` 校验本次 `calc_yunqi` token；星宿和黄历仅在显式传 `queryDate` 或 `date` 后才可校验基础历法字段，宜忌、疾病/养生建议、歌诀与传统解释不进入 claims；六爻、梅花、奇门、大六壬、太乙与皇极呈现基础盘面事实前，用 `validate_divination_presentation` 校验本次 token，吉凶、应期、策略、传统解释与行动建议不进入 claims
 ```
 
 ## 4. 关键入口文件
@@ -161,7 +161,7 @@ Dashboard 中能力状态由 `apps/visual/src/lib/modules.ts` 的 `MODULES` 注�
 | [bootstrap/](bootstrap/) | 引擎接入引导 |
 | [templates/visual-report.md](templates/visual-report.md) | 静态 HTML 报告模板 |
 | [apps/visual/](apps/visual/) | React + Vite + TS Dashboard（SVG 可视化，主开发入口） |
-| [apps/mcp-server/](apps/mcp-server/) | MCP Server（39 工具：32 计算 + 7 元工具）+ `README.md` 挂载指南 |
+| [apps/mcp-server/](apps/mcp-server/) | MCP Server（40 工具：32 计算 + 8 元工具）+ `README.md` 挂载指南 |
 | [scripts/setup-mcp.mjs](scripts/setup-mcp.mjs) | MCP 一键自动配置脚本（AI 自主激活） |
 
 ## 5. 全局搜索

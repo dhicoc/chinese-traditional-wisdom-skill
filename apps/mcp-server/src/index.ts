@@ -21,6 +21,7 @@ import { dispatchIntent } from './dispatch.js';
 import { validateBaziPresentation, type BaziPresentationClaim } from './baziClaimVerifier.js';
 import { validateBazhaiPresentation, type BazhaiPresentationClaim } from './bazhaiClaimVerifier.js';
 import { validateCalendarPresentation, type CalendarPresentationClaim } from './calendarClaimVerifier.js';
+import { validateDivinationPresentation, type DivinationPresentationClaim } from './divinationClaimVerifier.js';
 import { validateFeixingPresentation, type FeixingPresentationClaim } from './feixingClaimVerifier.js';
 import { validateZiweiPresentation, type ZiweiPresentationClaim } from './ziweiClaimVerifier.js';
 
@@ -29,7 +30,7 @@ const server = new McpServer({
   version: '0.1.0',
 });
 
-const META_TOOLS_COUNT = 7;
+const META_TOOLS_COUNT = 8;
 
 // ─── 注册计算工具（Agent/MCP 硬闸门）───
 for (const tool of TOOLS) {
@@ -296,7 +297,61 @@ server.registerTool(
   },
 );
 
-// ─── 元工具 7: wisdom_dispatch（自然语言意图路由）───
+// ─── 元工具 7: validate_divination_presentation（占测／卦象呈现依据校验）───
+server.registerTool(
+  'validate_divination_presentation',
+  {
+    ...getToolContract('validate_divination_presentation'),
+    description: '占测／卦象呈现依据校验。对本次六爻、梅花易数、奇门遁甲、大六壬、太乙神数或皇极经世返回的 result_meta.presentationToken 与拟呈现的基础盘面事实逐项比对。仅核验卦名、动爻、局式、宫位、干支、三传、周期等盘面字段；吉凶、应期、策略、传统解释与行动建议不进入 claims。校验器不生成、补全或修正解读。',
+    inputSchema: {
+      presentationToken: z.string().uuid().describe('本次占测／卦象工具返回的 result_meta.presentationToken，仅在当前 MCP 进程有效'),
+      claims: z.array(z.union([
+        z.object({ tool: z.literal('cast_liuyao'), kind: z.literal('hexagram'), field: z.enum(['name', 'changedName', 'palace', 'palaceElement', 'dayGanZhi', 'monthGanZhi']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('cast_liuyao'), kind: z.literal('yao'), field: z.enum(['shiYao', 'yingYao']), value: z.number().int().min(1).max(6) }),
+        z.object({ tool: z.literal('cast_liuyao'), kind: z.literal('yao'), field: z.literal('changingYao'), value: z.string() }),
+        z.object({ tool: z.literal('cast_meihua'), kind: z.literal('hexagram'), field: z.enum(['name', 'changedName', 'bodyTrigram', 'useTrigram', 'bodyUseRelation']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('cast_meihua'), kind: z.literal('yao'), field: z.literal('changingLine'), value: z.number().int().min(1).max(6) }),
+        z.object({ tool: z.literal('cast_meihua'), kind: z.literal('trigram'), position: z.enum(['upper', 'lower']), field: z.enum(['name', 'nature', 'element']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('arrange_qimen'), kind: z.literal('basic'), field: z.enum(['dun', 'ju', 'yuan', 'season', 'monthElement']), value: z.string() }),
+        z.object({ tool: z.literal('arrange_qimen'), kind: z.literal('zhiFu'), field: z.enum(['star', 'heavenlyStem']), value: z.string() }),
+        z.object({ tool: z.literal('arrange_qimen'), kind: z.literal('zhiFu'), field: z.literal('position'), value: z.number().int().min(1).max(9) }),
+        z.object({ tool: z.literal('arrange_qimen'), kind: z.literal('zhiShi'), field: z.literal('gate'), value: z.string() }),
+        z.object({ tool: z.literal('arrange_qimen'), kind: z.literal('zhiShi'), field: z.literal('position'), value: z.number().int().min(1).max(9) }),
+        z.object({ tool: z.literal('arrange_qimen'), kind: z.literal('palace'), position: z.number().int().min(1).max(9), field: z.enum(['trigram', 'gate', 'star', 'deity', 'heavenlyStem', 'earthlyStem', 'earthBranch']), value: z.string() }),
+        z.object({ tool: z.literal('liuren_calculate'), kind: z.literal('basic'), field: z.enum(['jieqi', 'dayGanZhi', 'hourGanZhi', 'dayNight', 'yueJiang', 'yueJiangName']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('liuren_calculate'), kind: z.literal('sike'), position: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]), field: z.enum(['shangShen', 'xiaShen', 'tianJiang', 'relation']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('liuren_calculate'), kind: z.literal('sanchuan'), stage: z.enum(['chuChuan', 'zhongChuan', 'moChuan']), field: z.enum(['diZhi', 'tianJiang', 'liuQin']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('liuren_calculate'), kind: z.literal('sanchuan'), stage: z.enum(['chuChuan', 'zhongChuan', 'moChuan']), field: z.literal('xunKong'), value: z.string().nullable() }),
+        z.object({ tool: z.literal('taiyi_calculate'), kind: z.literal('basic'), field: z.enum(['yearGz', 'monthGz', 'dayGz', 'hourGz', 'jieqi', 'jiStyleName', 'acumYearName']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('taiyi_calculate'), kind: z.literal('kook'), field: z.enum(['wen', 'nian', 'dun']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('taiyi_calculate'), kind: z.literal('kook'), field: z.literal('num'), value: z.number().int() }),
+        z.object({ tool: z.literal('taiyi_calculate'), kind: z.literal('position'), subject: z.enum(['taiyi', 'wenchang', 'shiji', 'dingmu']), field: z.literal('gong'), value: z.string().min(1) }),
+        z.object({ tool: z.literal('taiyi_calculate'), kind: z.literal('position'), subject: z.literal('taiyi'), field: z.literal('num'), value: z.number().int() }),
+        z.object({ tool: z.literal('taiyi_calculate'), kind: z.literal('calculation'), side: z.enum(['home', 'away']), field: z.enum(['cal', 'general', 'vgen']), value: z.number().int() }),
+        z.object({ tool: z.literal('huangji_calculate'), kind: z.literal('ganZhi'), pillar: z.enum(['year', 'month', 'day', 'hour']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('huangji_calculate'), kind: z.literal('lunarMonth'), value: z.number().int().min(1).max(12) }),
+        z.object({ tool: z.literal('huangji_calculate'), kind: z.literal('cycle'), field: z.enum(['acumYear', 'hui', 'yun', 'shi']), value: z.number().int() }),
+        z.object({ tool: z.literal('huangji_calculate'), kind: z.literal('gua'), layer: z.enum(['zheng', 'yun', 'shi', 'xun', 'year', 'month', 'day', 'hour', 'minute']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('huangji_calculate'), kind: z.literal('movingLine'), layer: z.enum(['yun', 'shi', 'xun']), value: z.number().int().min(1).max(6) }),
+      ])).describe('拟呈现的基础占测／卦象盘面事实；不包含吉凶、应期、策略、传统解释或行动建议'),
+    },
+    outputSchema: openObjectOutputSchema,
+  },
+  async (input: unknown) => {
+    const { presentationToken, claims } = input as { presentationToken: string; claims: DivinationPresentationClaim[] };
+    const validation = validateDivinationPresentation(presentationToken, claims);
+    const structuredContent = validation ?? {
+      valid: false,
+      violations: [{ kind: 'presentationToken', message: 'presentationToken 无效、已失效或不属于当前 MCP 进程；请重新调用对应占测／卦象工具。' }],
+    };
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(structuredContent, null, 2) }],
+      structuredContent: { ...structuredContent },
+    };
+  },
+);
+
+// ─── 元工具 8: wisdom_dispatch（自然语言意图路由）───
 server.registerTool(
   'wisdom_dispatch',
   {

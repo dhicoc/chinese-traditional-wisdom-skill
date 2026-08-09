@@ -163,7 +163,7 @@ describe('MCP Server 端到端协议', () => {
     expect(result.protocolVersion).toBe('2024-11-05');
   }, 30000);
 
-  it('tools/list 返回 39 个工具（32 计算 + 7 元工具）且 inputSchema 完整', async () => {
+  it('tools/list 返回 40 个工具（32 计算 + 8 元工具）且 inputSchema 完整', async () => {
     const responses = await runMcpSession([INIT_MSG, INITIALIZED_MSG, TOOLS_LIST_MSG]);
     const list = responses.find((r) => r.id === 2);
     expect(list).toBeDefined();
@@ -182,7 +182,7 @@ describe('MCP Server 端到端协议', () => {
         };
       }>;
     }).tools;
-    expect(tools.length).toBe(39);
+    expect(tools.length).toBe(40);
     tools.forEach((t) => {
       expect(t.name).toMatch(/^[a-z][a-z0-9_]*$/);
       expect(t.description.length).toBeGreaterThan(10);
@@ -201,6 +201,7 @@ describe('MCP Server 端到端协议', () => {
     expect(names).toContain('validate_bazhai_presentation');
     expect(names).toContain('validate_feixing_presentation');
     expect(names).toContain('validate_calendar_presentation');
+    expect(names).toContain('validate_divination_presentation');
     expect(names).toContain('wisdom_dispatch');
     tools.forEach((tool) => {
       expect(tool.title).toBeTruthy();
@@ -273,6 +274,21 @@ describe('MCP Server 端到端协议', () => {
       }),
     ]);
     const call = responses.find((r) => r.id === 35);
+    const result = call!.result as { content: Array<{ type: string; text: string }>; structuredContent: { valid: boolean; violations: Array<{ kind: string }> } };
+    const payload = JSON.parse(result.content[0].text) as { valid: boolean; violations: Array<{ kind: string }> };
+    expect(result.structuredContent).toEqual(payload);
+    expect(payload).toEqual({ valid: false, violations: [expect.objectContaining({ kind: 'presentationToken' })] });
+  }, 30000);
+
+  it('tools/call validate_divination_presentation 拒绝无效凭证', async () => {
+    const responses = await runMcpSession([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(49, 'validate_divination_presentation', {
+        presentationToken: '00000000-0000-4000-8000-000000000000',
+        claims: [{ tool: 'cast_liuyao', kind: 'hexagram', field: 'name', value: '乾为天' }],
+      }),
+    ]);
+    const call = responses.find((r) => r.id === 49);
     const result = call!.result as { content: Array<{ type: string; text: string }>; structuredContent: { valid: boolean; violations: Array<{ kind: string }> } };
     const payload = JSON.parse(result.content[0].text) as { valid: boolean; violations: Array<{ kind: string }> };
     expect(result.structuredContent).toEqual(payload);
@@ -612,6 +628,41 @@ describe('MCP Server 端到端协议', () => {
     const invalid = (responses.find((response) => response.id === 48)!.result as { structuredContent: { valid: boolean; violations: Array<{ kind: string }> } }).structuredContent;
     expect(valid).toEqual({ valid: true, violations: [] });
     expect(invalid).toMatchObject({ valid: false, violations: [expect.objectContaining({ kind: 'almanac' })] });
+  }, 30000);
+
+  it('同一会话中仅允许通过校验的占测／卦象盘面断言进入呈现', async () => {
+    const responses = await runMcpSessionWithFollowUp([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(50, 'cast_liuyao', {
+        birth: { year: 2024, month: 3, day: 15, hour: 9, gender: '男' },
+        method: 'manual',
+        yaoValues: '777777',
+        question: '本次校验测试',
+      }),
+    ], (calculation) => {
+      if (calculation.id !== 50) return null;
+      const envelope = (calculation.result as {
+        structuredContent: {
+          data: { hexagramName: string; shiYao: number };
+          result_meta: { presentationToken: string };
+        };
+      }).structuredContent;
+      const claims = [
+        { tool: 'cast_liuyao', kind: 'hexagram', field: 'name', value: envelope.data.hexagramName },
+        { tool: 'cast_liuyao', kind: 'yao', field: 'shiYao', value: envelope.data.shiYao },
+      ];
+      return [
+        toolCallMsg(51, 'validate_divination_presentation', { presentationToken: envelope.result_meta.presentationToken, claims }),
+        toolCallMsg(52, 'validate_divination_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [{ tool: 'cast_liuyao', kind: 'hexagram', field: 'name', value: '不存在卦象' }],
+        }),
+      ];
+    });
+    const valid = (responses.find((response) => response.id === 51)!.result as { structuredContent: { valid: boolean } }).structuredContent;
+    const forged = (responses.find((response) => response.id === 52)!.result as { structuredContent: { valid: boolean; violations: Array<{ tool: string }> } }).structuredContent;
+    expect(valid).toEqual({ valid: true, violations: [] });
+    expect(forged).toMatchObject({ valid: false, violations: [expect.objectContaining({ tool: 'cast_liuyao' })] });
   }, 30000);
 
   it('tools/call wisdom_dispatch 将“排八字”路由为真太阳时预检', async () => {
