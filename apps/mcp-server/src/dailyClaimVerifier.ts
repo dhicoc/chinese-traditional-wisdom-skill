@@ -1,16 +1,21 @@
-import type { NameRatingData } from '../../visual/src/legacy/envelopeAdapters';
+import type { ConstitutionTendencyData, NameRatingData, XiYongData } from '../../visual/src/legacy/envelopeAdapters';
 import type { CeziResult } from '../../visual/src/legacy/ceziEngine';
 import type { ChenguzResult } from '../../visual/src/legacy/chenguzEngine';
 import type { RhythmResult } from '../../visual/src/legacy/rhythmEngine';
 import type { AssessResult } from '../../visual/src/legacy/constitutionAssessEngine';
 
-export type DailyPresentationTool = 'analyze_name' | 'cast_cezi' | 'calc_chenguz' | 'get_daily_rhythm' | 'assess_constitution';
+export type DailyPresentationTool = 'analyze_name' | 'calc_xiyong' | 'get_constitution_tendency' | 'cast_cezi' | 'calc_chenguz' | 'get_daily_rhythm' | 'assess_constitution';
 
-type DailyPresentationData = NameRatingData | CeziResult | ChenguzResult | RhythmResult | AssessResult;
+type DailyPresentationData = NameRatingData | XiYongData | ConstitutionTendencyData | CeziResult | ChenguzResult | RhythmResult | AssessResult;
 
 export type DailyPresentationClaim =
   | { tool: 'analyze_name'; kind: 'nameRating'; field: 'totalScore' | 'grade'; value: number | string }
   | { tool: 'analyze_name'; kind: 'nameDimension'; name: string; field: 'score' | 'weight'; value: number }
+  | { tool: 'calc_xiyong'; kind: 'xiyong'; field: 'dayMasterWuxing' | 'qiangRuo' | 'shen'; value: string }
+  | { tool: 'calc_xiyong'; kind: 'xiyong'; field: 'similarPoint' | 'heterogeneousPoint'; value: number }
+  | { tool: 'calc_xiyong'; kind: 'xiyongElements'; group: 'similar' | 'heterogeneous'; value: string[] }
+  | { tool: 'get_constitution_tendency'; kind: 'constitutionTendencySource'; field: 'dayun' | 'sitian' | 'zaiquan'; value: string }
+  | { tool: 'get_constitution_tendency'; kind: 'constitutionTendency'; index: number; field: 'type'; value: string }
   | { tool: 'cast_cezi'; kind: 'cezi'; field: 'char' | 'strokes' | 'strokesEstimated' | 'charWuxing'; value: string | number | boolean }
   | { tool: 'cast_cezi'; kind: 'ceziShuli'; field: 'number' | 'lucky' | 'skyNine'; value: string | number }
   | { tool: 'cast_cezi'; kind: 'ceziStructure'; field: 'structure' | 'radical'; value: string }
@@ -30,8 +35,8 @@ export interface DailyClaimViolation {
   tool: DailyPresentationClaim['tool'];
   kind: DailyPresentationClaim['kind'];
   message: string;
-  expected?: string | number | boolean | null;
-  actual: string | number | boolean | null;
+  expected?: string | number | boolean | string[] | null;
+  actual: string | number | boolean | string[] | null;
 }
 
 export interface DailyClaimValidation {
@@ -59,7 +64,7 @@ export function validateDailyClaims(
 
   claims.forEach((claim, index) => {
     const expected = claim.tool === tool ? getExpectedValue(data, claim) : undefined;
-    if (claim.value !== expected) {
+    if (!valuesEqual(claim.value, expected)) {
       violations.push({
         index,
         tool: claim.tool,
@@ -74,15 +79,37 @@ export function validateDailyClaims(
   return { valid: violations.length === 0, violations };
 }
 
+function valuesEqual(
+  actual: DailyPresentationClaim['value'],
+  expected: string | number | boolean | string[] | null | undefined,
+): boolean {
+  if (Array.isArray(actual) || Array.isArray(expected)) {
+    return Array.isArray(actual) && Array.isArray(expected)
+      && actual.length === expected.length
+      && actual.every((value, index) => value === expected[index]);
+  }
+  return actual === expected;
+}
+
 function getExpectedValue(
   data: DailyPresentationData,
   claim: DailyPresentationClaim,
-): string | number | boolean | null | undefined {
+): string | number | boolean | string[] | null | undefined {
   switch (claim.tool) {
     case 'analyze_name': {
       const result = data as NameRatingData;
       if (claim.kind === 'nameRating') return result[claim.field];
       return result.dimensions.find((dimension) => dimension.name === claim.name)?.[claim.field];
+    }
+    case 'calc_xiyong': {
+      const result = data as XiYongData;
+      return claim.kind === 'xiyongElements' ? result[claim.group] : result[claim.field];
+    }
+    case 'get_constitution_tendency': {
+      const result = data as ConstitutionTendencyData;
+      return claim.kind === 'constitutionTendencySource'
+        ? result[claim.field]
+        : result.tendencies[claim.index]?.type;
     }
     case 'cast_cezi': {
       const result = data as CeziResult;

@@ -689,16 +689,83 @@ describe('MCP Server 端到端协议', () => {
     });
   }, 30000);
 
-  it('五个日用与民俗工具都签发进程内呈现凭证', async () => {
+  it('同一会话中仅允许通过校验的喜用神基础断言进入呈现', async () => {
+    const responses = await runMcpSessionWithFollowUp([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(68, 'calc_xiyong', { dayMasterWuxing: '金', elements: { 木: 1, 火: 2, 土: 3, 金: 4, 水: 5 } }),
+    ], (calculation) => {
+      if (calculation.id !== 68) return null;
+      const envelope = (calculation.result as {
+        structuredContent: {
+          data: { dayMasterWuxing: string; similarPoint: number; similar: string[] };
+          result_meta: { presentationToken: string };
+        };
+      }).structuredContent;
+      return [
+        toolCallMsg(69, 'validate_daily_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [
+            { tool: 'calc_xiyong', kind: 'xiyong', field: 'dayMasterWuxing', value: envelope.data.dayMasterWuxing },
+            { tool: 'calc_xiyong', kind: 'xiyong', field: 'similarPoint', value: envelope.data.similarPoint },
+            { tool: 'calc_xiyong', kind: 'xiyongElements', group: 'similar', value: envelope.data.similar },
+          ],
+        }),
+        toolCallMsg(70, 'validate_daily_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [{ tool: 'calc_xiyong', kind: 'xiyong', field: 'similarPoint', value: envelope.data.similarPoint + 1 }],
+        }),
+      ];
+    });
+    const valid = (responses.find((response) => response.id === 69)!.result as { structuredContent: { valid: boolean; violations: unknown[] } }).structuredContent;
+    const invalid = (responses.find((response) => response.id === 70)!.result as { structuredContent: { valid: boolean; violations: Array<{ tool: string; kind: string }> } }).structuredContent;
+    expect(valid).toEqual({ valid: true, violations: [] });
+    expect(invalid).toMatchObject({ valid: false, violations: [expect.objectContaining({ tool: 'calc_xiyong', kind: 'xiyong' })] });
+  }, 30000);
+
+  it('同一会话中仅允许通过校验的五运六气体质倾向基础断言进入呈现', async () => {
+    const responses = await runMcpSessionWithFollowUp([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(71, 'get_constitution_tendency', { wuyun: { dayun: '木运太过' }, liuqi: { sitian: '厥阴风木', zaquan: '少阳相火' } }),
+    ], (calculation) => {
+      if (calculation.id !== 71) return null;
+      const envelope = (calculation.result as {
+        structuredContent: {
+          data: { dayun: string; tendencies: Array<{ type: string }> };
+          result_meta: { presentationToken: string };
+        };
+      }).structuredContent;
+      return [
+        toolCallMsg(72, 'validate_daily_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [
+            { tool: 'get_constitution_tendency', kind: 'constitutionTendencySource', field: 'dayun', value: envelope.data.dayun },
+            { tool: 'get_constitution_tendency', kind: 'constitutionTendency', index: 0, field: 'type', value: envelope.data.tendencies[0]!.type },
+          ],
+        }),
+        toolCallMsg(73, 'validate_daily_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [{ tool: 'get_constitution_tendency', kind: 'constitutionTendency', index: 0, field: 'type', value: '不存在体质' }],
+        }),
+      ];
+    });
+    const valid = (responses.find((response) => response.id === 72)!.result as { structuredContent: { valid: boolean; violations: unknown[] } }).structuredContent;
+    const invalid = (responses.find((response) => response.id === 73)!.result as { structuredContent: { valid: boolean; violations: Array<{ tool: string; kind: string }> } }).structuredContent;
+    expect(valid).toEqual({ valid: true, violations: [] });
+    expect(invalid).toMatchObject({ valid: false, violations: [expect.objectContaining({ tool: 'get_constitution_tendency', kind: 'constitutionTendency' })] });
+  }, 30000);
+
+  it('七个日用与民俗工具都签发进程内呈现凭证', async () => {
     const responses = await runMcpSession([
       INIT_MSG, INITIALIZED_MSG,
       toolCallMsg(61, 'analyze_name', { surname: '张', givenName: '伟', birthYear: 1990 }),
-      toolCallMsg(62, 'cast_cezi', { char: '明' }),
-      toolCallMsg(63, 'calc_chenguz', { birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } }),
-      toolCallMsg(64, 'get_daily_rhythm', { date: '2026-08-01', hour: 12 }),
-      toolCallMsg(65, 'assess_constitution', { answers: [{ type: '气虚质', score: 5 }, { type: '平和质', score: 3 }] }),
+      toolCallMsg(62, 'calc_xiyong', { dayMasterWuxing: '金', elements: { 木: 1, 火: 2, 土: 3, 金: 4, 水: 5 } }),
+      toolCallMsg(63, 'get_constitution_tendency', { wuyun: { dayun: '木运太过' }, liuqi: { sitian: '厥阴风木', zaquan: '少阳相火' } }),
+      toolCallMsg(64, 'cast_cezi', { char: '明' }),
+      toolCallMsg(65, 'calc_chenguz', { birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } }),
+      toolCallMsg(66, 'get_daily_rhythm', { date: '2026-08-01', hour: 12 }),
+      toolCallMsg(67, 'assess_constitution', { answers: [{ type: '气虚质', score: 5 }, { type: '平和质', score: 3 }] }),
     ]);
-    [61, 62, 63, 64, 65].forEach((id) => {
+    [61, 62, 63, 64, 65, 66, 67].forEach((id) => {
       const envelope = (responses.find((response) => response.id === id)!.result as {
         structuredContent: { ok: boolean; result_meta: { presentationToken: string } };
       }).structuredContent;

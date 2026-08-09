@@ -4676,7 +4676,7 @@ exports[`MCP Server 端到端协议 > tools/list 的公开输入输出契约保�
       "openWorldHint": false,
       "readOnlyHint": true,
     },
-    "description": "日用与民俗呈现依据校验。对本次姓名分析、测字、称骨、每日节律或体质问卷返回的 result_meta.presentationToken 与拟呈现的结构化基础事实逐项比对。仅核验姓名分数/等级/维度、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、节律日期/节气/经络、问卷主体质/转化分；断语、歌诀、解释、调养方案与医疗建议不进入 claims。校验器不生成、补全或修正解读。",
+    "description": "日用与民俗呈现依据校验。对本次姓名分析、喜用神推算、五运六气体质倾向、测字、称骨、每日节律或体质问卷返回的 result_meta.presentationToken 与拟呈现的结构化基础事实逐项比对。仅核验姓名分数/等级/维度、喜用神日主/同异类五行及分数/强弱/用神、体质倾向岁运/司天/在泉与倾向类型、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、节律日期/节气/经络、问卷主体质/转化分；不核验置信说明、倾向理由、边界说明、断语、歌诀、解释、调养方案与医疗建议。校验器不生成、补全或修正解读。",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "additionalProperties": false,
@@ -4753,6 +4753,166 @@ exports[`MCP Server 端到端协议 > tools/list 的公开输入输出契约保�
                   "tool",
                   "kind",
                   "name",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "dayMasterWuxing",
+                      "qiangRuo",
+                      "shen",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "xiyong",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "calc_xiyong",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "similarPoint",
+                      "heterogeneousPoint",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "xiyong",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "calc_xiyong",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "number",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "group": {
+                    "enum": [
+                      "similar",
+                      "heterogeneous",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "xiyongElements",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "calc_xiyong",
+                    "type": "string",
+                  },
+                  "value": {
+                    "items": {
+                      "minLength": 1,
+                      "type": "string",
+                    },
+                    "type": "array",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "group",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "dayun",
+                      "sitian",
+                      "zaiquan",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "constitutionTendencySource",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "get_constitution_tendency",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "type",
+                    "type": "string",
+                  },
+                  "index": {
+                    "minimum": 0,
+                    "type": "integer",
+                  },
+                  "kind": {
+                    "const": "constitutionTendency",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "get_constitution_tendency",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "index",
                   "field",
                   "value",
                 ],

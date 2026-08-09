@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { calcNameRatingEnveloped } from '../../visual/src/legacy/envelopeAdapters';
+import {
+  calcNameRatingEnveloped,
+  calcXiYongEnveloped,
+  getConstitutionTendencyEnveloped,
+} from '../../visual/src/legacy/envelopeAdapters';
 import { calcCeziEnveloped } from '../../visual/src/legacy/ceziEngine';
 import { calcChenguzEnveloped } from '../../visual/src/legacy/chenguzEngine';
 import { getDailyRhythmEnveloped } from '../../visual/src/legacy/rhythmEngine';
@@ -10,6 +14,11 @@ import { validateDailyClaims, type DailyPresentationClaim } from './dailyClaimVe
 describe('日用与民俗呈现断言校验', () => {
   it('接受姓名、测字、称骨、每日节律与体质问卷的基础事实', async () => {
     const name = (await calcNameRatingEnveloped('张', '伟', 1990)).data;
+    const xiyong = calcXiYongEnveloped('金', { 木: 1, 火: 2, 土: 3, 金: 4, 水: 5 }).data;
+    const tendency = getConstitutionTendencyEnveloped({
+      wuyun: { dayun: '木运太过' },
+      liuqi: { sitian: '厥阴风木', zaquan: '少阳相火' },
+    }).data;
     const cezi = (await calcCeziEnveloped({ char: '明', solar: Solar })).data;
     const chenguz = calcChenguzEnveloped({
       birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
@@ -23,6 +32,15 @@ describe('日用与民俗呈现断言校验', () => {
     const nameClaims: DailyPresentationClaim[] = [
       { tool: 'analyze_name', kind: 'nameRating', field: 'totalScore', value: name.totalScore },
       { tool: 'analyze_name', kind: 'nameDimension', name: name.dimensions[0]!.name, field: 'weight', value: name.dimensions[0]!.weight },
+    ];
+    const xiyongClaims: DailyPresentationClaim[] = [
+      { tool: 'calc_xiyong', kind: 'xiyong', field: 'dayMasterWuxing', value: xiyong.dayMasterWuxing },
+      { tool: 'calc_xiyong', kind: 'xiyong', field: 'similarPoint', value: xiyong.similarPoint },
+      { tool: 'calc_xiyong', kind: 'xiyongElements', group: 'similar', value: xiyong.similar },
+    ];
+    const tendencyClaims: DailyPresentationClaim[] = [
+      { tool: 'get_constitution_tendency', kind: 'constitutionTendencySource', field: 'dayun', value: tendency.dayun },
+      { tool: 'get_constitution_tendency', kind: 'constitutionTendency', index: 0, field: 'type', value: tendency.tendencies[0]!.type },
     ];
     const ceziClaims: DailyPresentationClaim[] = [
       { tool: 'cast_cezi', kind: 'cezi', field: 'strokes', value: cezi.strokes },
@@ -45,6 +63,8 @@ describe('日用与民俗呈现断言校验', () => {
     ];
 
     expect(validateDailyClaims('analyze_name', name, nameClaims)).toEqual({ valid: true, violations: [] });
+    expect(validateDailyClaims('calc_xiyong', xiyong, xiyongClaims)).toEqual({ valid: true, violations: [] });
+    expect(validateDailyClaims('get_constitution_tendency', tendency, tendencyClaims)).toEqual({ valid: true, violations: [] });
     expect(validateDailyClaims('cast_cezi', cezi, ceziClaims)).toEqual({ valid: true, violations: [] });
     expect(validateDailyClaims('calc_chenguz', chenguz, chenguzClaims)).toEqual({ valid: true, violations: [] });
     expect(validateDailyClaims('get_daily_rhythm', rhythm, rhythmClaims)).toEqual({ valid: true, violations: [] });
@@ -53,15 +73,25 @@ describe('日用与民俗呈现断言校验', () => {
 
   it('拒绝跨工具 token 与伪造基础字段', async () => {
     const name = (await calcNameRatingEnveloped('张', '伟', 1990)).data;
+    const xiyong = calcXiYongEnveloped('金', { 木: 1, 火: 2, 土: 3, 金: 4, 水: 5 }).data;
     const result = validateDailyClaims('analyze_name', name, [
       { tool: 'cast_cezi', kind: 'cezi', field: 'char', value: '明' },
       { tool: 'analyze_name', kind: 'nameRating', field: 'totalScore', value: name.totalScore + 1 },
+    ]);
+    const xiyongResult = validateDailyClaims('calc_xiyong', xiyong, [
+      { tool: 'calc_xiyong', kind: 'xiyongElements', group: 'similar', value: [...xiyong.similar, '火'] },
+      { tool: 'get_constitution_tendency', kind: 'constitutionTendencySource', field: 'dayun', value: '木运太过' },
     ]);
 
     expect(result.valid).toBe(false);
     expect(result.violations).toEqual(expect.arrayContaining([
       expect.objectContaining({ tool: 'cast_cezi' }),
       expect.objectContaining({ tool: 'analyze_name' }),
+    ]));
+    expect(xiyongResult.valid).toBe(false);
+    expect(xiyongResult.violations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ tool: 'calc_xiyong', actual: [...xiyong.similar, '火'] }),
+      expect.objectContaining({ tool: 'get_constitution_tendency' }),
     ]));
   });
 });

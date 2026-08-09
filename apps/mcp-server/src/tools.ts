@@ -457,10 +457,18 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: async (i) => {
       const { calcXiYongEnveloped } = await loadEnvelopeAdapters();
-      return calcXiYongEnveloped(
+      const envelope = calcXiYongEnveloped(
         (i as { dayMasterWuxing: string }).dayMasterWuxing,
         (i as { elements: Record<string, number> }).elements,
       );
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerDailyPresentation('calc_xiyong', envelope.data, presentationToken);
+      return {
+        ...envelope,
+        result_meta: { ...envelope.result_meta, presentationToken },
+      };
     },
   },
   {
@@ -472,7 +480,15 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: async (i) => {
       const { getConstitutionTendencyEnveloped } = await loadEnvelopeAdapters();
-      return getConstitutionTendencyEnveloped(i as never);
+      const envelope = getConstitutionTendencyEnveloped(i as never);
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerDailyPresentation('get_constitution_tendency', envelope.data, presentationToken);
+      return {
+        ...envelope,
+        result_meta: { ...envelope.result_meta, presentationToken },
+      };
     },
   },
   {

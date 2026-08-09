@@ -48,7 +48,7 @@
 8. 若要呈现流年飞星的年度、元运、中宫或指定九宫飞星与吉凶，先以本次 `calc_feixing` 的 `result_meta.presentationToken` 调 `validate_feixing_presentation`；化解、布局、财位、个人命卦解释与综合推论不进入 claims。
 9. 若要呈现五运六气的年度、干支、岁运、司天、在泉或客气步骤，先以本次 `calc_yunqi` 的 `result_meta.presentationToken` 调 `validate_calendar_presentation`。星宿与黄历只有显式传入 `queryDate` 或 `date` 后才签发该凭证；仅基础历法字段可进入 claims，宜忌、疾病/养生建议、歌诀与传统解释不进入 claims。
 10. 若要呈现六爻、梅花易数、奇门遁甲、大六壬、太乙神数或皇极经世的卦名、动爻、局式、宫位、干支、三传或周期等基础盘面事实，先以对应本次计算结果的 `result_meta.presentationToken` 调 `validate_divination_presentation`；吉凶、应期、策略、传统解释与行动建议不进入 claims。
-11. 若要呈现姓名分数/等级/维度、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、每日节律日期/节气/经络或体质问卷主体质/转化分，先以对应本次计算结果的 `result_meta.presentationToken` 调 `validate_daily_presentation`；断语、歌诀、解释、调养方案与医疗建议不进入 claims。
+11. 若要呈现姓名分数/等级/维度、喜用神日主/同异类五行及分数/强弱/用神、五运六气体质倾向的岁运/司天/在泉与倾向类型、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、每日节律日期/节气/经络或体质问卷主体质/转化分，先以对应本次计算结果的 `result_meta.presentationToken` 调 `validate_daily_presentation`；喜用神置信说明、倾向理由、边界说明、断语、歌诀、解释、调养方案与医疗建议不进入 claims。
 12. 未被专用呈现校验器覆盖的数值事实，使用本次成功计算结果的 `result_meta.numericAssertionToken` 调 `validate_numeric_assertions`。每条 claim 只能引用有限的 `data.*` 数值；`valid: true` 只表示结构化 claims 已核验，不能表示自由文本已自动校验。
 
 如果地点或历史时区、夏令时无法可靠核验，必须先说明限制。仅在用户明确确认后，才可使用民用出生记录调用 `bazi_calculate`，并设置 `timeBasis=civil-unverified`、`civilFallbackConfirmed=true`；输出必须标注**“未完成真太阳时复核”**。不得把该结果称为真太阳时排盘。
