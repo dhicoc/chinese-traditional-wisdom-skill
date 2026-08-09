@@ -93,7 +93,7 @@ cd apps/visual && pnpm build && pnpm preview
 
 ### 方式 C：MCP Server（AI 客户端直接调用）
 
-MCP server 提供 **35 个工具**：32 个确定性计算工具，以及 `agent_guidance` 参数引导、`validate_bazi_presentation` 八字呈现依据校验与 `wisdom_dispatch` 意图路由。它可挂载到 Claude Code、Claude Desktop、Cursor、Cline 等 MCP 客户端，供 AI 调用本地计算能力。
+MCP server 提供 **36 个工具**：32 个确定性计算工具，以及 `agent_guidance` 参数引导、`validate_bazi_presentation` 八字呈现依据校验、`validate_ziwei_presentation` 紫微呈现依据校验与 `wisdom_dispatch` 意图路由。它可挂载到 Claude Code、Claude Desktop、Cursor、Cline 等 MCP 客户端，供 AI 调用本地计算能力。
 
 **一键自动配置**（无需手动编辑配置文件）：
 
@@ -118,7 +118,7 @@ node scripts/setup-mcp.mjs
 
 MCP server 是三层架构 Layer 2 的薄壳，复用 `apps/visual/src/legacy` 的纯 TS 引擎。常规计算返回 `ToolEnvelope`；对话 Agent 必须经 `wisdom_dispatch` 路由、`agent_guidance` 核对参数后再调用计算工具，不得凭模型知识自行推演。
 
-八字默认先尝试真太阳时：用户提供可定位出生地后，Agent 核验地点、历史时区、夏令时与 `utcOffsetEvidence`，调用 `resolve_true_solar_time`，再将返回的 `trueSolarBirth` 与 `calibrationToken` 用于 `bazi_calculate`。呈现四柱、日主、五行计数、日主强弱、大运或神煞前，Agent 必须以本次结果的 `presentationToken` 调用 `validate_bazi_presentation`，仅呈现校验通过的 claims。无法可靠核验时，仅在用户明确确认后使用民用出生时间，并标注“未完成真太阳时复核”。Dashboard 只展示等待核验、已核验和民用降级状态，不要求用户填写经度或历史 UTC 偏移。
+八字默认先尝试真太阳时：用户提供可定位出生地后，Agent 核验地点、历史时区、夏令时与 `utcOffsetEvidence`，调用 `resolve_true_solar_time`，再将返回的 `trueSolarBirth` 与 `calibrationToken` 用于 `bazi_calculate`。呈现四柱、日主、五行计数、日主强弱、大运或神煞前，Agent 必须以本次结果的 `presentationToken` 调用 `validate_bazi_presentation`，仅呈现校验通过的 claims。紫微呈现宫位、星曜、四化、命主、身主或本次动态层等确定性事实前，也必须以本次 `ziwei_chart` 的 `presentationToken` 调用 `validate_ziwei_presentation`；传统解释和建议不进入 claims。无法可靠核验时，仅在用户明确确认后使用民用出生时间，并标注“未完成真太阳时复核”。Dashboard 只展示等待核验、已核验和民用降级状态，不要求用户填写经度或历史 UTC 偏移。
 
 <p align="right">(<a href="#快速开始">返回顶部</a>)</p>
 

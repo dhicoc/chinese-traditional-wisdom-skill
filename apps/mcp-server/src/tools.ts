@@ -35,6 +35,7 @@ import { getDailyRhythmEnveloped } from '../../visual/src/legacy/rhythmEngine';
 import { assessConstitutionEnveloped, listConstitutionQuestionnaire } from '../../visual/src/legacy/constitutionAssessEngine';
 import { resolveTrueSolarTime } from '../../visual/src/legacy/trueSolarTime';
 import { registerBaziPresentation } from './baziClaimVerifier.js';
+import { registerZiweiPresentation } from './ziweiClaimVerifier.js';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
 const solarEntry: unknown = (() => {
@@ -235,7 +236,21 @@ export const TOOLS: ToolDef[] = [
         month: z.number().int().min(1).max(12).describe('动态层目标月份'),
       }).optional(),
     }),
-    handler: (i) => calcZiweiEnveloped(i as { birth: never; transit?: { year: number; month: number } }),
+    handler: (i) => {
+      const input = i as { birth: never; transit?: { year: number; month: number } };
+      const envelope = calcZiweiEnveloped(input);
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerZiweiPresentation(envelope.data, input, presentationToken);
+      return {
+        ...envelope,
+        result_meta: {
+          ...envelope.result_meta,
+          presentationToken,
+        },
+      };
+    },
   },
   {
     name: 'cast_liuyao',

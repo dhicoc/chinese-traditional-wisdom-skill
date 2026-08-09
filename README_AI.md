@@ -54,7 +54,7 @@ Quick start:
 8. 开始执行任务
 ```
 
-> **MCP 自动激活**（2026-07-10 架构重构后新增）：当用户在支持 MCP 的客户端（Claude Code/Desktop/Cursor/Cline）中想直接调用排盘工具时，AI 跑 `node scripts/setup-mcp.mjs` 一键自动检测并配置客户端，用户无需手动编辑 JSON。配置后 `chinese-wisdom` server 提供 35 个工具（32 计算 + `agent_guidance` 参数引导 + `validate_bazi_presentation` 八字呈现依据校验 + `wisdom_dispatch` 意图路由）。常规计算统一返回 ToolEnvelope；`resolve_true_solar_time` 返回可审计的校准结果。详见 `apps/mcp-server/README.md`。
+> **MCP 自动激活**（2026-07-10 架构重构后新增）：当用户在支持 MCP 的客户端（Claude Code/Desktop/Cursor/Cline）中想直接调用排盘工具时，AI 跑 `node scripts/setup-mcp.mjs` 一键自动检测并配置客户端，用户无需手动编辑 JSON。配置后 `chinese-wisdom` server 提供 36 个工具（32 计算 + `agent_guidance` 参数引导 + `validate_bazi_presentation` 八字呈现依据校验 + `validate_ziwei_presentation` 紫微呈现依据校验 + `wisdom_dispatch` 意图路由）。常规计算统一返回 ToolEnvelope；`resolve_true_solar_time` 返回可审计的校准结果。详见 `apps/mcp-server/README.md`。
 
 ## 1. 三层路由矩阵
 
@@ -93,7 +93,7 @@ else → 提示用户提供更多信息（参照 §10 输入完整性）
 
 ### Agent 与 Dashboard 的计算边界
 
-1. **对话 Agent**：必须通过 MCP 调用确定性工具；`wisdom_dispatch` 路由、`agent_guidance` 核对参数、计算工具返回 `ToolEnvelope`，Agent 仅据此解读。八字的四柱、日主、五行计数、日主强弱、大运和神煞在呈现前还必须通过本次 `presentationToken` 调用 `validate_bazi_presentation`。不得直接调用 legacy 引擎，或用模型知识、记忆和 reference 文件自行推演。
+1. **对话 Agent**：必须通过 MCP 调用确定性工具；`wisdom_dispatch` 路由、`agent_guidance` 核对参数、计算工具返回 `ToolEnvelope`，Agent 仅据此解读。八字的四柱、日主、五行计数、日主强弱、大运和神煞在呈现前还必须通过本次 `presentationToken` 调用 `validate_bazi_presentation`；紫微的宫位、星曜、四化、命主、身主和本次动态层也必须通过本次 `presentationToken` 调用 `validate_ziwei_presentation`。不得直接调用 legacy 引擎，或用模型知识、记忆和 reference 文件自行推演。
 2. **React Dashboard**：保留浏览器端纯 TS 引擎与可视化能力，`pnpm dev` 启动；这条路径不是模型推演，不需要经 MCP 转发。
 3. **可选 Python oracle**：仅作命令行交叉验证（`ichingshifa` 六爻 / `iztro-py` 紫微），默认不需要；不得作为 Agent 对话计算的替代入口。
 
@@ -146,7 +146,7 @@ Dashboard 中能力状态由 `apps/visual/src/lib/modules.ts` 的 `MODULES` 注�
 1. 执行 node scripts/setup-mcp.mjs 自动配置客户端
 2. 重启 Claude Code/Desktop/Cursor/Cline
 3. 对话中直接说「排个八字」「解梦」「今日养生」「合婚」等，AI 经 `wisdom_dispatch`、`agent_guidance` 后调用 32 个计算工具之一
-4. 常规工具返回 ToolEnvelope（含 export_snapshot 段表），AI 据此生成解读；八字先完成 `resolve_true_solar_time` 校准，再用 `trueSolarBirth` 调用 `bazi_calculate`，并在呈现确定性八字结论前用 `validate_bazi_presentation` 校验 claims
+4. 常规工具返回 ToolEnvelope（含 export_snapshot 段表），AI 据此生成解读；八字先完成 `resolve_true_solar_time` 校准，再用 `trueSolarBirth` 调用 `bazi_calculate`，并在呈现确定性八字结论前用 `validate_bazi_presentation` 校验 claims；紫微呈现宫位、星曜、四化、元资料或本次动态层前，用 `validate_ziwei_presentation` 校验 claims
 ```
 
 ## 4. 关键入口文件
@@ -161,7 +161,7 @@ Dashboard 中能力状态由 `apps/visual/src/lib/modules.ts` 的 `MODULES` 注�
 | [bootstrap/](bootstrap/) | 引擎接入引导 |
 | [templates/visual-report.md](templates/visual-report.md) | 静态 HTML 报告模板 |
 | [apps/visual/](apps/visual/) | React + Vite + TS Dashboard（SVG 可视化，主开发入口） |
-| [apps/mcp-server/](apps/mcp-server/) | MCP Server（35 工具：32 计算 + 3 元工具）+ `README.md` 挂载指南 |
+| [apps/mcp-server/](apps/mcp-server/) | MCP Server（36 工具：32 计算 + 4 元工具）+ `README.md` 挂载指南 |
 | [scripts/setup-mcp.mjs](scripts/setup-mcp.mjs) | MCP 一键自动配置脚本（AI 自主激活） |
 
 ## 5. 全局搜索

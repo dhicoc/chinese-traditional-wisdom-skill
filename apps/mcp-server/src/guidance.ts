@@ -46,6 +46,7 @@ export const GLOBAL_AGENT_RULES = [
   'Agent 仅可理解意图、追问参数、核验外部事实，并将 MCP ToolEnvelope 转成用户可读说明；reference 文件只可提供文化背景，不能替代计算结果。',
   '呈现 ToolEnvelope 时，先处理 ok/error；如实说明 data.timeSource 与 warnings；正文优先采用 data.export_snapshot.summary 和 sections。不得默认展示 evidence、result_meta、sourceNotes，也不得重新计算、补全或改写确定性结论。',
   '八字解读若写入四柱、日主、五行计数、日主强弱、大运或神煞等确定性结论，必须以本次 result_meta.presentationToken 调 validate_bazi_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次排盘结果。文化背景和建设性建议不进入 claims。',
+  '紫微解读若写入宫位、星曜、四化、五行局、命主、身主或本次动态层等确定性结论，必须以本次 ziwei_chart 的 result_meta.presentationToken 调 validate_ziwei_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次命盘结果。传统解释、条件性推论和建议不进入 claims。',
   '不得替用户编造生辰、性别、出生地等关键参数；缺失时必须追问。',
   '真太阳时必须先核验地点经度、IANA 时区、出生时实际 UTC 偏移与夏令时依据；不得凭模型记忆填写或把民用时间伪称真太阳时。',
   '涉及八字的组合或增强分析也必须传入经核验的 baziTimeContext；民用时间路径须明确确认，并标注“未完成真太阳时复核”。',
@@ -97,7 +98,7 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     requiredParams: BIRTH_PARAMS,
     safeDefaults: { birth: { minute: 0 } },
     doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
-    workflow: '先确认完整生辰 → 调 ziwei_chart → 解读命宫主星与四化。',
+    workflow: '先确认完整生辰 → 调 ziwei_chart → 从本次 ToolEnvelope 提取宫位、星曜、四化等确定性事实组成 claims → 用 presentationToken 调 validate_ziwei_presentation；valid:true 后才呈现。传统解释与建议不进入 claims。',
   },
   cast_liuyao: {
     tool: 'cast_liuyao',

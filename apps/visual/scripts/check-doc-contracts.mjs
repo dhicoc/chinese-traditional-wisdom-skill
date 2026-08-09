@@ -129,9 +129,10 @@ check(rules.includes("禁止凭模型记忆"), "RULES.md 缺少禁止凭模型�
   ["README.md", readme],
   ["apps/mcp-server/README.md", mcpReadme],
 ].forEach(([name, content]) => {
-  check(content.includes("35 个工具"), `${name} 缺少 35 个工具当前统计`);
+  check(content.includes("36 个工具"), `${name} 缺少 36 个工具当前统计`);
   check(content.includes("32 个计算工具"), `${name} 缺少 32 个计算工具当前统计`);
   check(content.includes("validate_bazi_presentation"), `${name} 缺少八字呈现校验工具`);
+  check(content.includes("validate_ziwei_presentation"), `${name} 缺少紫微呈现校验工具`);
   check(content.includes("resolve_true_solar_time"), `${name} 缺少真太阳时 MCP 调用`);
   check(content.includes("trueSolarBirth"), `${name} 缺少 trueSolarBirth 调用链`);
 });

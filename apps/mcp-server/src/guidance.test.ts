@@ -49,6 +49,11 @@ describe('agent_guidance 参数引导', () => {
     expect(GLOBAL_AGENT_RULES.some((r) => r.includes('presentationToken') && r.includes('validate_bazi_presentation') && r.includes('claims'))).toBe(true);
   });
 
+  it('GLOBAL_AGENT_RULES 要求紫微确定性断言通过呈现校验', () => {
+    expect(GLOBAL_AGENT_RULES.some((r) => r.includes('ziwei_chart') && r.includes('validate_ziwei_presentation') && r.includes('claims'))).toBe(true);
+    expect(getToolGuidance('ziwei_chart')!.workflow).toContain('validate_ziwei_presentation');
+  });
+
   it('safeDefaults 不包含默认男', () => {
     const serializedDefaults = JSON.stringify(Object.values(listToolGuidance()).map((item) => getToolGuidance(item.tool)?.safeDefaults));
     expect(serializedDefaults).not.toContain('"gender":"男"');

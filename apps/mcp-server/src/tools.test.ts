@@ -190,6 +190,7 @@ describe('ziwei_chart', async () => {
     const data = e.data as { palaces: Record<string, unknown>; mainStars: string[] };
     expect(Object.keys(data.palaces).length).toBe(12);
     expect(data.mainStars.length).toBeGreaterThan(0);
+    expect(e.result_meta?.presentationToken).toMatch(/^[0-9a-f-]{36}$/);
     expectExportSnapshot(e);
   });
 

@@ -19,6 +19,7 @@ import { getToolContract, openObjectOutputSchema, toolEnvelopeOutputSchema, true
 import { getToolGuidance, listToolGuidance, validateToolInput, GLOBAL_AGENT_RULES, TOOL_GUIDANCE } from './guidance.js';
 import { dispatchIntent } from './dispatch.js';
 import { validateBaziPresentation, type BaziPresentationClaim } from './baziClaimVerifier.js';
+import { validateZiweiPresentation, type ZiweiPresentationClaim } from './ziweiClaimVerifier.js';
 
 const server = new McpServer({
   name: 'chinese-wisdom-mcp',
@@ -147,7 +148,43 @@ server.registerTool(
   },
 );
 
-// ─── 元工具 3: wisdom_dispatch（自然语言意图路由）───
+// ─── 元工具 3: validate_ziwei_presentation（紫微解读依据校验）───
+server.registerTool(
+  'validate_ziwei_presentation',
+  {
+    ...getToolContract('validate_ziwei_presentation'),
+    description: '紫微呈现依据校验。对本次 ziwei_chart 返回的 result_meta.presentationToken 与拟呈现的结构化确定性紫微断言逐项比对；仅核验宫位、星曜、四化、元资料与本次动态层。传统解释、条件性推论和建议不进入 claims。校验器不生成、补全或修正解读；任一断言不符时必须移除或改为引擎实际结果。',
+    inputSchema: {
+      presentationToken: z.string().uuid().describe('本次 ziwei_chart 返回的 result_meta.presentationToken，仅在当前 MCP 进程有效'),
+      claims: z.array(z.discriminatedUnion('kind', [
+        z.object({ kind: z.literal('palace'), palace: z.string().min(1), field: z.enum(['position', 'miaoxian']), value: z.string().min(1) }),
+        z.object({ kind: z.literal('palaceStar'), palace: z.string().min(1), value: z.string().min(1) }),
+        z.object({ kind: z.literal('sihua'), star: z.string().min(1), value: z.enum(['禄', '权', '科', '忌']) }),
+        z.object({ kind: z.literal('mainStar'), value: z.string().min(1) }),
+        z.object({ kind: z.literal('metadata'), field: z.enum(['fiveElementsClass', 'soul', 'body', 'bodyPalaceBranch', 'originalPalaceBranch']), value: z.string().min(1) }),
+        z.object({ kind: z.literal('transit'), field: z.enum(['decadal', 'yearly', 'monthly', 'age', 'yearlyMingPalace', 'yearlyJiStar']), value: z.union([z.string().min(1), z.number().int().min(0)]) }),
+      ])).describe('拟呈现文本中的确定性紫微断言；不包含传统解释或建议'),
+    },
+    outputSchema: openObjectOutputSchema,
+  },
+  async (input: unknown) => {
+    const { presentationToken, claims } = input as { presentationToken: string; claims: ZiweiPresentationClaim[] };
+    const validation = validateZiweiPresentation(presentationToken, claims);
+    const structuredContent = validation ? { ...validation } : {
+      valid: false,
+      violations: [{
+        kind: 'presentationToken',
+        message: 'presentationToken 无效、已失效或不属于当前 MCP 进程；请重新调用 ziwei_chart。',
+      }],
+    };
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(structuredContent, null, 2) }],
+      structuredContent,
+    };
+  },
+);
+
+// ─── 元工具 4: wisdom_dispatch（自然语言意图路由）───
 server.registerTool(
   'wisdom_dispatch',
   {
