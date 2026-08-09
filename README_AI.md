@@ -54,7 +54,7 @@ Quick start:
 8. 开始执行任务
 ```
 
-> **MCP 自动激活**（2026-07-10 架构重构后新增）：当用户在支持 MCP 的客户端（Claude Code/Desktop/Cursor/Cline）中想直接调用排盘工具时，AI 跑 `node scripts/setup-mcp.mjs` 一键自动检测并配置客户端，用户无需手动编辑 JSON。配置后 `chinese-wisdom` server 提供 42 个工具（32 计算 + `agent_guidance` 参数引导 + `validate_bazi_presentation`、`validate_ziwei_presentation`、`validate_bazhai_presentation`、`validate_feixing_presentation`、`validate_calendar_presentation`、`validate_divination_presentation`、`validate_daily_presentation` 七个呈现依据校验器 + `validate_numeric_assertions` 结构化数值断言校验器 + `wisdom_dispatch` 意图路由）。日用校验只覆盖姓名分数/等级/维度、喜用神日主/同异类五行及分数/强弱/用神、五运六气体质倾向的岁运/司天/在泉与倾向类型、梦象命中状态及条目标题/分类/吉凶标签、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、节律日期/节气/经络、体质主体质/转化分；不校验置信说明、倾向理由、边界说明、现代释义、古文断语、心理学解释、调养方案或医疗建议。数值校验只覆盖显式 `data.*` claims，不能宣称自由文本已自动验证。常规计算统一返回 ToolEnvelope；`resolve_true_solar_time` 返回可审计的校准结果。详见 `apps/mcp-server/README.md`。
+> **MCP 自动激活**（2026-07-10 架构重构后新增）：当用户在支持 MCP 的客户端（Claude Code/Desktop/Cursor/Cline）中想直接调用排盘工具时，AI 跑 `node scripts/setup-mcp.mjs` 一键自动检测并配置客户端，用户无需手动编辑 JSON。配置后 `chinese-wisdom` server 提供 43 个工具（32 计算 + `agent_guidance` 参数引导 + `validate_bazi_presentation`、`validate_ziwei_presentation`、`validate_bazhai_presentation`、`validate_feixing_presentation`、`validate_calendar_presentation`、`validate_divination_presentation`、`validate_daily_presentation`、`validate_combo_presentation` 八个呈现依据校验器 + `validate_numeric_assertions` 结构化数值断言校验器 + `wisdom_dispatch` 意图路由）。日用校验只覆盖姓名分数/等级/维度、喜用神日主/同异类五行及分数/强弱/用神、五运六气体质倾向的岁运/司天/在泉与倾向类型、梦象命中状态及条目标题/分类/吉凶标签、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、节律日期/节气/经络、体质主体质/转化分；不校验置信说明、倾向理由、边界说明、现代释义、古文断语、心理学解释、调养方案或医疗建议。组合择日校验只覆盖用途、搜索范围、已排序候选条目与方位基础字段；评分理由、淘汰理由、黄历全文、首选结论、吉时、行动建议及任何吉凶保证不进入 claims。数值校验只覆盖显式 `data.*` claims，不能宣称自由文本已自动验证。常规计算统一返回 ToolEnvelope；`resolve_true_solar_time` 返回可审计的校准结果。详见 `apps/mcp-server/README.md`。
 
 ## 1. 三层路由矩阵
 
@@ -161,7 +161,7 @@ Dashboard 中能力状态由 `apps/visual/src/lib/modules.ts` 的 `MODULES` 注�
 | [bootstrap/](bootstrap/) | 引擎接入引导 |
 | [templates/visual-report.md](templates/visual-report.md) | 静态 HTML 报告模板 |
 | [apps/visual/](apps/visual/) | React + Vite + TS Dashboard（SVG 可视化，主开发入口） |
-| [apps/mcp-server/](apps/mcp-server/) | MCP Server（40 工具：32 计算 + 8 元工具）+ `README.md` 挂载指南 |
+| [apps/mcp-server/](apps/mcp-server/) | MCP Server（43 工具：32 计算 + 11 元工具）+ `README.md` 挂载指南 |
 | [scripts/setup-mcp.mjs](scripts/setup-mcp.mjs) | MCP 一键自动配置脚本（AI 自主激活） |
 
 ## 5. 全局搜索

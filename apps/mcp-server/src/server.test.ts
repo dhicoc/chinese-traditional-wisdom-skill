@@ -163,7 +163,7 @@ describe('MCP Server 端到端协议', () => {
     expect(result.protocolVersion).toBe('2024-11-05');
   }, 30000);
 
-  it('tools/list 返回 42 个工具（32 计算 + 10 元工具）且 inputSchema 完整', async () => {
+  it('tools/list 返回 43 个工具（32 计算 + 11 元工具）且 inputSchema 完整', async () => {
     const responses = await runMcpSession([INIT_MSG, INITIALIZED_MSG, TOOLS_LIST_MSG]);
     const list = responses.find((r) => r.id === 2);
     expect(list).toBeDefined();
@@ -182,7 +182,7 @@ describe('MCP Server 端到端协议', () => {
         };
       }>;
     }).tools;
-    expect(tools.length).toBe(42);
+    expect(tools.length).toBe(43);
     tools.forEach((t) => {
       expect(t.name).toMatch(/^[a-z][a-z0-9_]*$/);
       expect(t.description.length).toBeGreaterThan(10);
@@ -203,6 +203,7 @@ describe('MCP Server 端到端协议', () => {
     expect(names).toContain('validate_calendar_presentation');
     expect(names).toContain('validate_divination_presentation');
     expect(names).toContain('validate_daily_presentation');
+    expect(names).toContain('validate_combo_presentation');
     expect(names).toContain('validate_numeric_assertions');
     expect(names).toContain('wisdom_dispatch');
     tools.forEach((tool) => {
@@ -645,6 +646,73 @@ describe('MCP Server 端到端协议', () => {
     const payload = JSON.parse(result.content[0].text) as { valid: boolean; violations: Array<{ kind: string }> };
     expect(result.structuredContent).toEqual(payload);
     expect(payload).toEqual({ valid: false, violations: [expect.objectContaining({ kind: 'presentationToken' })] });
+  }, 30000);
+
+  it('tools/call validate_combo_presentation 拒绝无效凭证', async () => {
+    const responses = await runMcpSession([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(77, 'validate_combo_presentation', {
+        presentationToken: '00000000-0000-4000-8000-000000000000',
+        claims: [{ tool: 'combo_zeri', kind: 'zeriPurpose', value: '开业' }],
+      }),
+    ]);
+    const call = responses.find((response) => response.id === 77);
+    const result = call!.result as { content: Array<{ text: string }>; structuredContent: { valid: boolean; violations: Array<{ kind: string }> } };
+    const payload = JSON.parse(result.content[0].text) as { valid: boolean; violations: Array<{ kind: string }> };
+    expect(result.structuredContent).toEqual(payload);
+    expect(payload).toEqual({ valid: false, violations: [expect.objectContaining({ kind: 'presentationToken' })] });
+  }, 30000);
+
+  it('同一会话中仅允许通过校验的组合择日基础断言进入呈现', async () => {
+    const responses = await runMcpSessionWithFollowUp([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(78, 'combo_zeri', {
+        birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+        purpose: '开业',
+        startDate: '2026-08-01',
+        endDate: '2026-08-15',
+        targetYear: 2026,
+        topN: 3,
+      }),
+    ], (calculation) => {
+      if (calculation.id !== 78) return null;
+      const envelope = (calculation.result as {
+        structuredContent: {
+          data: {
+            zeriPurpose: string;
+            range: { start: string; scannedDays: number };
+            rankedDays: Array<{ date: string; score: number; chongOwner: boolean }>;
+            annualSha: { taisui: string };
+            personalAuspicious: Array<{ direction: string }>;
+          };
+          result_meta: { presentationToken: string };
+        };
+      }).structuredContent;
+      const rankedDay = envelope.data.rankedDays[0]!;
+      return [
+        toolCallMsg(79, 'validate_combo_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [
+            { tool: 'combo_zeri', kind: 'zeriPurpose', value: envelope.data.zeriPurpose },
+            { tool: 'combo_zeri', kind: 'zeriRange', field: 'start', value: envelope.data.range.start },
+            { tool: 'combo_zeri', kind: 'zeriRange', field: 'scannedDays', value: envelope.data.range.scannedDays },
+            { tool: 'combo_zeri', kind: 'zeriRankedDay', index: 0, field: 'date', value: rankedDay.date },
+            { tool: 'combo_zeri', kind: 'zeriRankedDay', index: 0, field: 'score', value: rankedDay.score },
+            { tool: 'combo_zeri', kind: 'zeriRankedDay', index: 0, field: 'chongOwner', value: rankedDay.chongOwner },
+            { tool: 'combo_zeri', kind: 'zeriAnnualSha', field: 'taisui', value: envelope.data.annualSha.taisui },
+            { tool: 'combo_zeri', kind: 'zeriPersonalDirection', index: 0, field: 'direction', value: envelope.data.personalAuspicious[0]!.direction },
+          ],
+        }),
+        toolCallMsg(80, 'validate_combo_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [{ tool: 'combo_zeri', kind: 'zeriRankedDay', index: 0, field: 'score', value: rankedDay.score + 1 }],
+        }),
+      ];
+    });
+    const valid = (responses.find((response) => response.id === 79)!.result as { structuredContent: { valid: boolean; violations: unknown[] } }).structuredContent;
+    const invalid = (responses.find((response) => response.id === 80)!.result as { structuredContent: { valid: boolean; violations: Array<{ tool: string; kind: string }> } }).structuredContent;
+    expect(valid).toEqual({ valid: true, violations: [] });
+    expect(invalid).toMatchObject({ valid: false, violations: [expect.objectContaining({ tool: 'combo_zeri', kind: 'zeriRankedDay' })] });
   }, 30000);
 
   it('同一会话中仅允许通过校验的日用与民俗基础断言进入呈现', async () => {

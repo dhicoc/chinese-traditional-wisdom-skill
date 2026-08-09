@@ -4676,6 +4676,313 @@ exports[`MCP Server 端到端协议 > tools/list 的公开输入输出契约保�
       "openWorldHint": false,
       "readOnlyHint": true,
     },
+    "description": "组合工具呈现依据校验。当前仅对本次综合择日 combo_zeri 返回的 result_meta.presentationToken 与拟呈现的结构化基础事实逐项比对。仅核验用途、搜索范围、已排序候选日期的日期/农历日期/干支/分数/标签/冲命主与犯年煞状态、本年凶方及命卦吉方条目；不核验评分理由、淘汰理由、黄历全文、首选结论、吉时、行动建议或任何吉凶保证。校验器不生成、补全或修正解读。",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "claims": {
+          "description": "拟呈现的组合择日基础事实；不包含理由、黄历全文、建议或吉凶保证",
+          "items": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "zeriPurpose",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "combo_zeri",
+                    "type": "string",
+                  },
+                  "value": {
+                    "enum": [
+                      "开业",
+                      "结婚",
+                      "搬家",
+                      "动土",
+                      "出行",
+                      "签约",
+                      "安葬",
+                      "祈福",
+                    ],
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "start",
+                      "end",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "zeriRange",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "combo_zeri",
+                    "type": "string",
+                  },
+                  "value": {
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "scannedDays",
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "zeriRange",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "combo_zeri",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minimum": 0,
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "date",
+                      "lunarDate",
+                      "dayGanZhi",
+                      "tone",
+                    ],
+                    "type": "string",
+                  },
+                  "index": {
+                    "minimum": 0,
+                    "type": "integer",
+                  },
+                  "kind": {
+                    "const": "zeriRankedDay",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "combo_zeri",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "index",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "score",
+                    "type": "string",
+                  },
+                  "index": {
+                    "minimum": 0,
+                    "type": "integer",
+                  },
+                  "kind": {
+                    "const": "zeriRankedDay",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "combo_zeri",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "number",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "index",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "chongOwner",
+                      "hitsAnnualSha",
+                    ],
+                    "type": "string",
+                  },
+                  "index": {
+                    "minimum": 0,
+                    "type": "integer",
+                  },
+                  "kind": {
+                    "const": "zeriRankedDay",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "combo_zeri",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "boolean",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "index",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "taisui",
+                      "suiPo",
+                      "sanSha",
+                      "fiveYellow",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "zeriAnnualSha",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "combo_zeri",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "star",
+                      "direction",
+                    ],
+                    "type": "string",
+                  },
+                  "index": {
+                    "minimum": 0,
+                    "type": "integer",
+                  },
+                  "kind": {
+                    "const": "zeriPersonalDirection",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "combo_zeri",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "index",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+            ],
+          },
+          "minItems": 1,
+          "type": "array",
+        },
+        "presentationToken": {
+          "description": "本次 combo_zeri 返回的 result_meta.presentationToken，仅在当前 MCP 进程有效",
+          "format": "uuid",
+          "type": "string",
+        },
+      },
+      "required": [
+        "presentationToken",
+        "claims",
+      ],
+      "type": "object",
+    },
+    "name": "validate_combo_presentation",
+    "outputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": true,
+      "properties": {},
+      "type": "object",
+    },
+    "title": "组合工具呈现依据校验",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+    },
     "description": "日用与民俗呈现依据校验。对本次姓名分析、喜用神推算、五运六气体质倾向、周公解梦查询、测字、称骨、每日节律或体质问卷返回的 result_meta.presentationToken 与拟呈现的结构化基础事实逐项比对。仅核验姓名分数/等级/维度、喜用神日主/同异类五行及分数/强弱/用神、体质倾向岁运/司天/在泉与倾向类型、梦象命中状态及条目标题/分类/吉凶标签、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、节律日期/节气/经络、问卷主体质/转化分；不核验置信说明、倾向理由、边界说明、现代释义、古文断语、心理学解释、调养方案与医疗建议。校验器不生成、补全或修正解读。",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",

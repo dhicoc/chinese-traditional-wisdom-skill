@@ -136,7 +136,7 @@ check(rules.includes("numericAssertionToken") && rules.includes("data.*") && rul
   ["tool-index.md", toolIndex],
   ["apps/mcp-server/README.md", mcpReadme],
 ].forEach(([name, content]) => {
-  check(content.includes("42 个工具"), `${name} 缺少 42 个工具当前统计`);
+  check(content.includes("43 个工具"), `${name} 缺少 43 个工具当前统计`);
   check(content.includes("32 个计算工具"), `${name} 缺少 32 个计算工具当前统计`);
   check(content.includes("validate_bazi_presentation"), `${name} 缺少八字呈现校验工具`);
   check(content.includes("validate_ziwei_presentation"), `${name} 缺少紫微呈现校验工具`);
@@ -145,6 +145,8 @@ check(rules.includes("numericAssertionToken") && rules.includes("data.*") && rul
   check(content.includes("validate_calendar_presentation"), `${name} 缺少历法与年度盘面呈现校验工具`);
   check(content.includes("validate_divination_presentation"), `${name} 缺少占测／卦象呈现校验工具`);
   check(content.includes("validate_daily_presentation"), `${name} 缺少日用与民俗呈现校验工具`);
+  check(content.includes("validate_combo_presentation"), `${name} 缺少组合工具呈现校验工具`);
+  check(content.includes("评分理由、淘汰理由、黄历全文、首选结论、吉时、行动建议"), `${name} 缺少组合择日呈现校验边界`);
   check(content.includes("喜用神日主/同异类五行及分数/强弱/用神"), `${name} 缺少喜用神呈现校验边界`);
   check(content.includes("五运六气体质倾向的岁运/司天/在泉与倾向类型"), `${name} 缺少五运六气体质倾向校验边界`);
   check(content.includes("梦象命中状态及条目标题/分类/吉凶标签"), `${name} 缺少梦象呈现校验边界`);

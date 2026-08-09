@@ -22,6 +22,7 @@ import { dispatchIntent } from './dispatch.js';
 import { validateBaziPresentation, type BaziPresentationClaim } from './baziClaimVerifier.js';
 import { validateBazhaiPresentation, type BazhaiPresentationClaim } from './bazhaiClaimVerifier.js';
 import { validateCalendarPresentation, type CalendarPresentationClaim } from './calendarClaimVerifier.js';
+import { validateComboPresentation, type ComboPresentationClaim } from './comboClaimVerifier.js';
 import { validateDailyPresentation, type DailyPresentationClaim } from './dailyClaimVerifier.js';
 import { validateDivinationPresentation, type DivinationPresentationClaim } from './divinationClaimVerifier.js';
 import { validateFeixingPresentation, type FeixingPresentationClaim } from './feixingClaimVerifier.js';
@@ -33,7 +34,7 @@ const server = new McpServer({
   version: '0.1.0',
 });
 
-const META_TOOLS_COUNT = 10;
+const META_TOOLS_COUNT = 11;
 
 function attachNumericAssertionToken(tool: string, result: Record<string, unknown>) {
   if (result.ok !== true) return result;
@@ -413,7 +414,42 @@ server.registerTool(
   },
 );
 
-// ─── 元工具 9: validate_numeric_assertions（数值断言依据校验）───
+// ─── 元工具 9: validate_combo_presentation（组合工具呈现依据校验）───
+server.registerTool(
+  'validate_combo_presentation',
+  {
+    ...getToolContract('validate_combo_presentation'),
+    description: '组合工具呈现依据校验。当前仅对本次综合择日 combo_zeri 返回的 result_meta.presentationToken 与拟呈现的结构化基础事实逐项比对。仅核验用途、搜索范围、已排序候选日期的日期/农历日期/干支/分数/标签/冲命主与犯年煞状态、本年凶方及命卦吉方条目；不核验评分理由、淘汰理由、黄历全文、首选结论、吉时、行动建议或任何吉凶保证。校验器不生成、补全或修正解读。',
+    inputSchema: {
+      presentationToken: z.string().uuid().describe('本次 combo_zeri 返回的 result_meta.presentationToken，仅在当前 MCP 进程有效'),
+      claims: z.array(z.union([
+        z.object({ tool: z.literal('combo_zeri'), kind: z.literal('zeriPurpose'), value: z.enum(['开业', '结婚', '搬家', '动土', '出行', '签约', '安葬', '祈福']) }),
+        z.object({ tool: z.literal('combo_zeri'), kind: z.literal('zeriRange'), field: z.enum(['start', 'end']), value: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }),
+        z.object({ tool: z.literal('combo_zeri'), kind: z.literal('zeriRange'), field: z.literal('scannedDays'), value: z.number().int().min(0) }),
+        z.object({ tool: z.literal('combo_zeri'), kind: z.literal('zeriRankedDay'), index: z.number().int().min(0), field: z.enum(['date', 'lunarDate', 'dayGanZhi', 'tone']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('combo_zeri'), kind: z.literal('zeriRankedDay'), index: z.number().int().min(0), field: z.literal('score'), value: z.number().finite() }),
+        z.object({ tool: z.literal('combo_zeri'), kind: z.literal('zeriRankedDay'), index: z.number().int().min(0), field: z.enum(['chongOwner', 'hitsAnnualSha']), value: z.boolean() }),
+        z.object({ tool: z.literal('combo_zeri'), kind: z.literal('zeriAnnualSha'), field: z.enum(['taisui', 'suiPo', 'sanSha', 'fiveYellow']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('combo_zeri'), kind: z.literal('zeriPersonalDirection'), index: z.number().int().min(0), field: z.enum(['star', 'direction']), value: z.string().min(1) }),
+      ])).min(1).describe('拟呈现的组合择日基础事实；不包含理由、黄历全文、建议或吉凶保证'),
+    },
+    outputSchema: openObjectOutputSchema,
+  },
+  async (input: unknown) => {
+    const { presentationToken, claims } = input as { presentationToken: string; claims: ComboPresentationClaim[] };
+    const validation = validateComboPresentation(presentationToken, claims);
+    const structuredContent = validation ?? {
+      valid: false,
+      violations: [{ kind: 'presentationToken', message: 'presentationToken 无效、已失效或不属于当前 MCP 进程；请重新调用 combo_zeri。' }],
+    };
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(structuredContent, null, 2) }],
+      structuredContent: { ...structuredContent },
+    };
+  },
+);
+
+// ─── 元工具 10: validate_numeric_assertions（数值断言依据校验）───
 server.registerTool(
   'validate_numeric_assertions',
   {
@@ -443,7 +479,7 @@ server.registerTool(
   },
 );
 
-// ─── 元工具 10: wisdom_dispatch（自然语言意图路由）───
+// ─── 元工具 11: wisdom_dispatch（自然语言意图路由）───
 server.registerTool(
   'wisdom_dispatch',
   {

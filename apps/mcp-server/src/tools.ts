@@ -14,6 +14,7 @@ import type { TrueSolarTimeResolution } from '../../visual/src/legacy/trueSolarT
 import { registerBaziPresentation } from './baziClaimVerifier.js';
 import { registerBazhaiPresentation } from './bazhaiClaimVerifier.js';
 import { registerCalendarPresentation } from './calendarClaimVerifier.js';
+import { registerComboPresentation } from './comboClaimVerifier.js';
 import { registerDailyPresentation } from './dailyClaimVerifier.js';
 import { registerDivinationPresentation } from './divinationClaimVerifier.js';
 import { registerFeixingPresentation } from './feixingClaimVerifier.js';
@@ -642,7 +643,7 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: async (i) => {
       const [{ calcZeriCombo }, solar] = await Promise.all([loadCombo(), loadSolar()]);
-      return calcZeriCombo({
+      const envelope = calcZeriCombo({
         birth: (i as { birth: unknown }).birth as never,
         purpose: (i as { purpose: string }).purpose as never,
         startDate: (i as { startDate: string }).startDate,
@@ -651,6 +652,14 @@ export const TOOLS: ToolDef[] = [
         topN: (i as { topN?: number }).topN,
         solar: solar as never,
       });
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerComboPresentation('combo_zeri', envelope.data, presentationToken);
+      return {
+        ...envelope,
+        result_meta: { ...envelope.result_meta, presentationToken },
+      };
     },
   },
   {

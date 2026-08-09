@@ -48,6 +48,7 @@ const deterministicTools = new Set([
   'validate_calendar_presentation',
   'validate_divination_presentation',
   'validate_daily_presentation',
+  'validate_combo_presentation',
   'validate_numeric_assertions',
 ]);
 
@@ -91,6 +92,7 @@ const toolTitles: Record<string, string> = {
   validate_calendar_presentation: '历法与年度盘面呈现依据校验',
   validate_divination_presentation: '占测／卦象呈现依据校验',
   validate_daily_presentation: '日用与民俗呈现依据校验',
+  validate_combo_presentation: '组合工具呈现依据校验',
   validate_numeric_assertions: '数值断言依据校验',
   agent_guidance: '工具参数引导',
   wisdom_dispatch: '自然语言意图路由',

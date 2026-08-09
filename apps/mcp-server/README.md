@@ -6,12 +6,12 @@
 
 ## 工具列表
 
-共 **42 个工具**：**32 个计算工具**与 10 个元工具（`agent_guidance` 参数引导、`validate_bazi_presentation` 八字呈现依据校验、`validate_ziwei_presentation` 紫微呈现依据校验、`validate_bazhai_presentation` 八宅呈现依据校验、`validate_feixing_presentation` 流年飞星呈现依据校验、`validate_calendar_presentation` 历法与年度盘面呈现依据校验、`validate_divination_presentation` 占测／卦象呈现依据校验、`validate_daily_presentation` 日用与民俗呈现依据校验、`validate_numeric_assertions` 数值断言依据校验、`wisdom_dispatch` 自然语言意图路由）。
+共 **43 个工具**：**32 个计算工具**与 11 个元工具（`agent_guidance` 参数引导、`validate_bazi_presentation` 八字呈现依据校验、`validate_ziwei_presentation` 紫微呈现依据校验、`validate_bazhai_presentation` 八宅呈现依据校验、`validate_feixing_presentation` 流年飞星呈现依据校验、`validate_calendar_presentation` 历法与年度盘面呈现依据校验、`validate_divination_presentation` 占测／卦象呈现依据校验、`validate_daily_presentation` 日用与民俗呈现依据校验、`validate_combo_presentation` 组合工具呈现依据校验、`validate_numeric_assertions` 数值断言依据校验、`wisdom_dispatch` 自然语言意图路由）。
 
 - 时间校准：`resolve_true_solar_time`
 - 排盘与日用计算：`bazi_calculate`、`ziwei_chart`、`cast_liuyao`、`arrange_qimen`、`liuren_calculate`、`xingxiu_daily`、`taiyi_calculate`、`huangji_calculate`、`cast_meihua`、`calc_yunqi`、`analyze_name`、`calc_xiyong`、`get_constitution_tendency`、`dream_interpret`、`cast_cezi`、`calc_chenguz`、`get_almanac`、`calc_feixing`、`calc_bazhai`、`get_daily_rhythm`、`assess_constitution`、`list_constitution_questionnaire`
 - 跨系统联合分析：`combo_annual_fortune`、`combo_monthly_fortune`、`combo_decision`、`combo_space_time`、`combo_sanshi`、`combo_sanshi_classic`、`combo_daily_wellness`、`combo_zeri`、`combo_marriage`
-- 元工具：`agent_guidance`、`validate_bazi_presentation`、`validate_ziwei_presentation`、`validate_bazhai_presentation`、`validate_feixing_presentation`、`validate_calendar_presentation`、`validate_divination_presentation`、`validate_daily_presentation`、`validate_numeric_assertions`、`wisdom_dispatch`
+- 元工具：`agent_guidance`、`validate_bazi_presentation`、`validate_ziwei_presentation`、`validate_bazhai_presentation`、`validate_feixing_presentation`、`validate_calendar_presentation`、`validate_divination_presentation`、`validate_daily_presentation`、`validate_combo_presentation`、`validate_numeric_assertions`、`wisdom_dispatch`
 
 `bazi_calculate`、`ziwei_chart`、`cast_liuyao`、`arrange_qimen`、`liuren_calculate`、`xingxiu_daily`、`taiyi_calculate`、`huangji_calculate`、`cast_meihua`、`calc_yunqi` 等工具由 `lunar-javascript`、`iztro`、`3meta` 或本地规则引擎提供确定性结果。具体参数和 schema 以 MCP 客户端展示的工具定义为准。
 
@@ -49,7 +49,8 @@
 9. 若要呈现五运六气的年度、干支、岁运、司天、在泉或客气步骤，先以本次 `calc_yunqi` 的 `result_meta.presentationToken` 调 `validate_calendar_presentation`。星宿与黄历只有显式传入 `queryDate` 或 `date` 后才签发该凭证；仅基础历法字段可进入 claims，宜忌、疾病/养生建议、歌诀与传统解释不进入 claims。
 10. 若要呈现六爻、梅花易数、奇门遁甲、大六壬、太乙神数或皇极经世的卦名、动爻、局式、宫位、干支、三传或周期等基础盘面事实，先以对应本次计算结果的 `result_meta.presentationToken` 调 `validate_divination_presentation`；吉凶、应期、策略、传统解释与行动建议不进入 claims。
 11. 若要呈现姓名分数/等级/维度、喜用神日主/同异类五行及分数/强弱/用神、五运六气体质倾向的岁运/司天/在泉与倾向类型、梦象命中状态及条目标题/分类/吉凶标签、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、每日节律日期/节气/经络或体质问卷主体质/转化分，先以对应本次计算结果的 `result_meta.presentationToken` 调 `validate_daily_presentation`；喜用神置信说明、倾向理由、边界说明、现代释义、古文断语、心理学解释、歌诀、调养方案与医疗建议不进入 claims。
-12. 未被专用呈现校验器覆盖的数值事实，使用本次成功计算结果的 `result_meta.numericAssertionToken` 调 `validate_numeric_assertions`。每条 claim 只能引用有限的 `data.*` 数值；`valid: true` 只表示结构化 claims 已核验，不能表示自由文本已自动校验。
+12. 若要呈现本次 `combo_zeri` 的用途、搜索范围、已排序候选条目的日期/农历日期/日干支/分数/标签/冲命主与犯年煞状态、本年凶方或命卦吉方条目，先以该结果的 `result_meta.presentationToken` 调 `validate_combo_presentation`；评分理由、淘汰理由、黄历全文、首选结论、吉时、行动建议及任何吉凶保证不进入 claims。
+13. 未被专用呈现校验器覆盖的数值事实，使用本次成功计算结果的 `result_meta.numericAssertionToken` 调 `validate_numeric_assertions`。每条 claim 只能引用有限的 `data.*` 数值；`valid: true` 只表示结构化 claims 已核验，不能表示自由文本已自动校验。
 
 如果地点或历史时区、夏令时无法可靠核验，必须先说明限制。仅在用户明确确认后，才可使用民用出生记录调用 `bazi_calculate`，并设置 `timeBasis=civil-unverified`、`civilFallbackConfirmed=true`；输出必须标注**“未完成真太阳时复核”**。不得把该结果称为真太阳时排盘。
 
@@ -90,7 +91,7 @@ node scripts/setup-mcp.mjs
 }
 ```
 
-配置后重启客户端，应能看到 `chinese-wisdom` server 已连接并显示 42 个工具。
+配置后重启客户端，应能看到 `chinese-wisdom` server 已连接并显示 43 个工具。
 
 ## 使用示例
 

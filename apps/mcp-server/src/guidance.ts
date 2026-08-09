@@ -53,6 +53,7 @@ export const GLOBAL_AGENT_RULES = [
   '流年飞星解读若写入本次年份、元运、中宫飞星或指定九宫的飞星与吉凶等确定性结论，必须以本次 calc_feixing 的 result_meta.presentationToken 调 validate_feixing_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次盘面结果。化解、布局、财位与个人命卦解释不进入 claims。',
   '五运六气如呈现年度、干支、岁运、司天、在泉或客气步骤，必须以本次 calc_yunqi 的 result_meta.presentationToken 调 validate_calendar_presentation；二十八星宿和黄历仅在显式传入 queryDate 或 date 后才可取得该凭证并校验基础历法字段。宜忌、疾病/养生建议、歌诀与传统解释不进入 claims。',
   '六爻、梅花、奇门、大六壬、太乙与皇极如呈现卦名、动爻、局式、宫位、干支、三传或周期等基础盘面事实，必须以本次 result_meta.presentationToken 调 validate_divination_presentation；吉凶、应期、策略、传统解释与行动建议不进入 claims。',
+  '综合择日如呈现用途、搜索范围、已排序候选日期的日期/农历日期/干支/分数/标签/冲命主与犯年煞状态、本年凶方或命卦吉方条目，必须以本次 combo_zeri 的 result_meta.presentationToken 调 validate_combo_presentation；评分理由、淘汰理由、黄历全文、首选结论、吉时、行动建议与任何吉凶保证不进入 claims。',
   '不得替用户编造生辰、性别、出生地等关键参数；缺失时必须追问。',
   '真太阳时必须先核验地点经度、IANA 时区、出生时实际 UTC 偏移与夏令时依据；不得凭模型记忆填写或把民用时间伪称真太阳时。',
   '涉及八字的组合或增强分析也必须传入经核验的 baziTimeContext；民用时间路径须明确确认，并标注“未完成真太阳时复核”。',
