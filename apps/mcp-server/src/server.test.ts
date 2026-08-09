@@ -715,6 +715,55 @@ describe('MCP Server 端到端协议', () => {
     expect(invalid).toMatchObject({ valid: false, violations: [expect.objectContaining({ tool: 'combo_zeri', kind: 'zeriRankedDay' })] });
   }, 30000);
 
+  it('同一会话中仅允许通过校验的组合养生传统规则输出进入呈现', async () => {
+    const responses = await runMcpSessionWithFollowUp([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(81, 'combo_daily_wellness', {
+        birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+        constitution: '气虚质',
+        now: { year: 2026, month: 8, day: 1, hour: 12 },
+        targetYear: 2026,
+      }),
+    ], (calculation) => {
+      if (calculation.id !== 81) return null;
+      const envelope = (calculation.result as {
+        structuredContent: {
+          data: {
+            context: { jieqi: string; meridian: string };
+            constitution: { type: string };
+            jieqiWellness: { diet: string; principle: string };
+            meridianHour: { advice: string };
+            directionTip: string;
+            recommendations: Array<{ value: string }>;
+          };
+          result_meta: { presentationToken: string };
+        };
+      }).structuredContent;
+      return [
+        toolCallMsg(82, 'validate_combo_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [
+            { tool: 'combo_daily_wellness', kind: 'wellnessContext', field: 'jieqi', value: envelope.data.context.jieqi },
+            { tool: 'combo_daily_wellness', kind: 'wellnessConstitution', field: 'type', value: envelope.data.constitution.type },
+            { tool: 'combo_daily_wellness', kind: 'wellnessJieqi', field: 'principle', value: envelope.data.jieqiWellness.principle },
+            { tool: 'combo_daily_wellness', kind: 'wellnessJieqi', field: 'diet', value: envelope.data.jieqiWellness.diet },
+            { tool: 'combo_daily_wellness', kind: 'wellnessMeridian', field: 'advice', value: envelope.data.meridianHour.advice },
+            { tool: 'combo_daily_wellness', kind: 'wellnessDirection', value: envelope.data.directionTip },
+            { tool: 'combo_daily_wellness', kind: 'wellnessRecommendation', index: 0, field: 'value', value: envelope.data.recommendations[0]!.value },
+          ],
+        }),
+        toolCallMsg(83, 'validate_combo_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [{ tool: 'combo_daily_wellness', kind: 'wellnessJieqi', field: 'diet', value: '任意饮食均可' }],
+        }),
+      ];
+    });
+    const valid = (responses.find((response) => response.id === 82)!.result as { structuredContent: { valid: boolean; violations: unknown[] } }).structuredContent;
+    const invalid = (responses.find((response) => response.id === 83)!.result as { structuredContent: { valid: boolean; violations: Array<{ tool: string; kind: string }> } }).structuredContent;
+    expect(valid).toEqual({ valid: true, violations: [] });
+    expect(invalid).toMatchObject({ valid: false, violations: [expect.objectContaining({ tool: 'combo_daily_wellness', kind: 'wellnessJieqi' })] });
+  }, 30000);
+
   it('同一会话中仅允许通过校验的日用与民俗基础断言进入呈现', async () => {
     const responses = await runMcpSessionWithFollowUp([
       INIT_MSG, INITIALIZED_MSG,

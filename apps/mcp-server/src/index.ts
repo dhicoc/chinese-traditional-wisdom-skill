@@ -419,9 +419,9 @@ server.registerTool(
   'validate_combo_presentation',
   {
     ...getToolContract('validate_combo_presentation'),
-    description: '组合工具呈现依据校验。当前仅对本次综合择日 combo_zeri 返回的 result_meta.presentationToken 与拟呈现的结构化基础事实逐项比对。仅核验用途、搜索范围、已排序候选日期的日期/农历日期/干支/分数/标签/冲命主与犯年煞状态、本年凶方及命卦吉方条目；不核验评分理由、淘汰理由、黄历全文、首选结论、吉时、行动建议或任何吉凶保证。校验器不生成、补全或修正解读。',
+    description: '组合工具呈现依据校验。对本次 combo_zeri 的结构化基础事实，或 combo_daily_wellness 的传统规则／知识输出逐项比对。择日仅核验用途、搜索范围、候选条目与方位基础字段；养生可核验本次节气、体质、时辰经络、方位提示及传统规则建议条目是否与工具输出一致。valid:true 仅表示与本次传统规则输出一致，不代表现实效果、医疗安全性或个体结果保证；结果仅供传统文化与日常参考，切勿盲目相信。校验器不生成、补全或修正解读。',
     inputSchema: {
-      presentationToken: z.string().uuid().describe('本次 combo_zeri 返回的 result_meta.presentationToken，仅在当前 MCP 进程有效'),
+      presentationToken: z.string().uuid().describe('本次 combo_zeri 或 combo_daily_wellness 返回的 result_meta.presentationToken，仅在当前 MCP 进程有效'),
       claims: z.array(z.union([
         z.object({ tool: z.literal('combo_zeri'), kind: z.literal('zeriPurpose'), value: z.enum(['开业', '结婚', '搬家', '动土', '出行', '签约', '安葬', '祈福']) }),
         z.object({ tool: z.literal('combo_zeri'), kind: z.literal('zeriRange'), field: z.enum(['start', 'end']), value: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }),
@@ -431,7 +431,13 @@ server.registerTool(
         z.object({ tool: z.literal('combo_zeri'), kind: z.literal('zeriRankedDay'), index: z.number().int().min(0), field: z.enum(['chongOwner', 'hitsAnnualSha']), value: z.boolean() }),
         z.object({ tool: z.literal('combo_zeri'), kind: z.literal('zeriAnnualSha'), field: z.enum(['taisui', 'suiPo', 'sanSha', 'fiveYellow']), value: z.string().min(1) }),
         z.object({ tool: z.literal('combo_zeri'), kind: z.literal('zeriPersonalDirection'), index: z.number().int().min(0), field: z.enum(['star', 'direction']), value: z.string().min(1) }),
-      ])).min(1).describe('拟呈现的组合择日基础事实；不包含理由、黄历全文、建议或吉凶保证'),
+        z.object({ tool: z.literal('combo_daily_wellness'), kind: z.literal('wellnessContext'), field: z.enum(['date', 'jieqi', 'season', 'shichen', 'meridian']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('combo_daily_wellness'), kind: z.literal('wellnessConstitution'), field: z.enum(['type', 'source', 'reason']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('combo_daily_wellness'), kind: z.literal('wellnessJieqi'), field: z.enum(['jieqi', 'season', 'feature', 'diet', 'lifestyle', 'exercise', 'acupoints', 'principle']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('combo_daily_wellness'), kind: z.literal('wellnessMeridian'), field: z.enum(['name', 'time', 'hours', 'meridian', 'organ', 'function', 'advice', 'wuxing']), value: z.string().min(1) }),
+        z.object({ tool: z.literal('combo_daily_wellness'), kind: z.literal('wellnessDirection'), value: z.string().min(1) }),
+        z.object({ tool: z.literal('combo_daily_wellness'), kind: z.literal('wellnessRecommendation'), index: z.number().int().min(0), field: z.enum(['label', 'value', 'tone']), value: z.string().min(1) }),
+      ])).min(1).describe('拟呈现的组合输出；养生 claims 仅用于核验与本次传统规则／知识输出一致，不构成医疗或效果保证'),
     },
     outputSchema: openObjectOutputSchema,
   },
@@ -440,7 +446,7 @@ server.registerTool(
     const validation = validateComboPresentation(presentationToken, claims);
     const structuredContent = validation ?? {
       valid: false,
-      violations: [{ kind: 'presentationToken', message: 'presentationToken 无效、已失效或不属于当前 MCP 进程；请重新调用 combo_zeri。' }],
+      violations: [{ kind: 'presentationToken', message: 'presentationToken 无效、已失效或不属于当前 MCP 进程；请重新调用对应组合工具。' }],
     };
     return {
       content: [{ type: 'text' as const, text: JSON.stringify(structuredContent, null, 2) }],

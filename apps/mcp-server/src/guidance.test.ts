@@ -79,6 +79,14 @@ describe('agent_guidance 参数引导', () => {
     expect(getToolGuidance('get_almanac')!.workflow).toContain('显式传 date');
   });
 
+  it('GLOBAL_AGENT_RULES 约束组合养生传统规则呈现校验', () => {
+    expect(GLOBAL_AGENT_RULES.some((r) => r.includes('combo_daily_wellness') && r.includes('validate_combo_presentation') && r.includes('传统规则／知识输出一致'))).toBe(true);
+    const workflow = getToolGuidance('combo_daily_wellness')!.workflow;
+    expect(workflow).toContain('validate_combo_presentation');
+    expect(workflow).toContain('传统规则／知识输出一致');
+    expect(workflow).toContain('切勿盲目相信');
+  });
+
   it('safeDefaults 不包含默认男', () => {
     const serializedDefaults = JSON.stringify(Object.values(listToolGuidance()).map((item) => getToolGuidance(item.tool)?.safeDefaults));
     expect(serializedDefaults).not.toContain('"gender":"男"');

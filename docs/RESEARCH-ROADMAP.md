@@ -185,6 +185,7 @@
 11. ✅ P2.4f 日用与民俗呈现校验扩展：`calc_xiyong` 与 `get_constitution_tendency` 对成功结果签发进程内 `presentationToken`；`validate_daily_presentation` 按工具隔离校验喜用神日主、同异类五行及分数、强弱与用神，以及五运六气体质倾向的岁运、司天、在泉与倾向类型；单元与同 stdio 会话覆盖有效、篡改、数组精确匹配与跨工具断言。置信说明、倾向理由、边界说明和任何养生／医疗建议不进入 claims。
 12. ✅ P2.4g 梦象呈现校验扩展：`dream_interpret` 对成功查询签发进程内 `presentationToken`；`validate_daily_presentation` 按工具隔离校验命中状态及梦象条目的标题、分类和吉凶标签；单元与同 stdio 会话覆盖有效、篡改与跨工具断言。现代释义、古文断语、心理学解释及任何建议不进入 claims。
 13. ✅ P2.4h 组合择日基础事实呈现校验：`combo_zeri` 对成功结果签发进程内 `presentationToken`；`validate_combo_presentation` 校验用途、搜索范围、已排序候选条目的日期/农历日期/日干支/分数/标签/冲命主与犯年煞状态、本年凶方及命卦吉方条目；单元与同 stdio 会话覆盖有效、篡改与无效凭证。评分理由、淘汰理由、黄历全文、首选结论、吉时、行动建议及任何吉凶保证不进入 claims。
+14. ✅ P2.4i 组合养生传统规则输出校验：`combo_daily_wellness` 对成功结果签发进程内 `presentationToken`；`validate_combo_presentation` 校验节气、体质、时辰经络、方位提示及节气饮食/起居/运动/穴位、体质加减、时辰养护等本次传统规则／知识输出；单元与同 stdio 会话覆盖有效、篡改、越界与跨工具断言。`valid: true` 仅表示与本次传统规则输出一致，不代表现实效果、医疗安全性或个体结果保证；结果仅供传统文化与日常参考，切勿盲目相信。
 
 ### 4.2 工程规范
 

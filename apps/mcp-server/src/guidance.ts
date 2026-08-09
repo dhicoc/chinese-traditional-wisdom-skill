@@ -54,6 +54,7 @@ export const GLOBAL_AGENT_RULES = [
   '五运六气如呈现年度、干支、岁运、司天、在泉或客气步骤，必须以本次 calc_yunqi 的 result_meta.presentationToken 调 validate_calendar_presentation；二十八星宿和黄历仅在显式传入 queryDate 或 date 后才可取得该凭证并校验基础历法字段。宜忌、疾病/养生建议、歌诀与传统解释不进入 claims。',
   '六爻、梅花、奇门、大六壬、太乙与皇极如呈现卦名、动爻、局式、宫位、干支、三传或周期等基础盘面事实，必须以本次 result_meta.presentationToken 调 validate_divination_presentation；吉凶、应期、策略、传统解释与行动建议不进入 claims。',
   '综合择日如呈现用途、搜索范围、已排序候选日期的日期/农历日期/干支/分数/标签/冲命主与犯年煞状态、本年凶方或命卦吉方条目，必须以本次 combo_zeri 的 result_meta.presentationToken 调 validate_combo_presentation；评分理由、淘汰理由、黄历全文、首选结论、吉时、行动建议与任何吉凶保证不进入 claims。',
+  '组合养生如呈现本次节气、体质、时辰经络、方位提示或节气饮食/起居/运动/穴位、体质加减、时辰养护等传统规则建议，必须以本次 combo_daily_wellness 的 result_meta.presentationToken 调 validate_combo_presentation；valid:true 仅表示与本次传统规则／知识输出一致，不代表现实效果、医疗安全性或个体结果保证。结果仅供传统文化与日常参考，切勿盲目相信。',
   '不得替用户编造生辰、性别、出生地等关键参数；缺失时必须追问。',
   '真太阳时必须先核验地点经度、IANA 时区、出生时实际 UTC 偏移与夏令时依据；不得凭模型记忆填写或把民用时间伪称真太阳时。',
   '涉及八字的组合或增强分析也必须传入经核验的 baziTimeContext；民用时间路径须明确确认，并标注“未完成真太阳时复核”。',
@@ -178,7 +179,7 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     ],
     safeDefaults: { birth: { minute: 0 } },
     doNotAssume: ['birth.year', 'birth.month', 'birth.day', 'birth.hour', 'birth.gender'],
-    workflow: '确认生辰 → （可选）问用户体质问卷结果（气虚质等），有则传 constitution；不传按五运六气倾向推断 → 调 combo_daily_wellness → 看节气饮食/起居/运动/穴位 + 体质针对性加减 + 当令时辰养生 + 方位借力。',
+    workflow: '确认生辰 → （可选）问用户体质问卷结果（气虚质等），有则传 constitution；不传按五运六气倾向推断 → 调 combo_daily_wellness → 若呈现节气饮食/起居/运动/穴位、体质加减、时辰养护或方位提示，以本次 presentationToken 调 validate_combo_presentation，确认与传统规则／知识输出一致后再呈现。valid:true 不代表现实效果或医疗保证；结果仅供传统文化与日常参考，切勿盲目相信。',
   },
   combo_zeri: {
     tool: 'combo_zeri',

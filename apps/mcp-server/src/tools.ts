@@ -621,13 +621,21 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: async (i) => {
       const [{ calcDailyWellnessCombo }, solar] = await Promise.all([loadCombo(), loadSolar()]);
-      return calcDailyWellnessCombo({
+      const envelope = calcDailyWellnessCombo({
         birth: (i as { birth: unknown }).birth as never,
         constitution: (i as { constitution?: string }).constitution,
         now: (i as { now?: { year: number; month: number; day: number; hour: number } }).now,
         targetYear: (i as { targetYear?: number }).targetYear,
         solar: solar as never,
       });
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerComboPresentation('combo_daily_wellness', envelope.data, presentationToken);
+      return {
+        ...envelope,
+        result_meta: { ...envelope.result_meta, presentationToken },
+      };
     },
   },
   {

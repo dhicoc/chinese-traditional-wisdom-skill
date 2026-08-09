@@ -4676,13 +4676,13 @@ exports[`MCP Server 端到端协议 > tools/list 的公开输入输出契约保�
       "openWorldHint": false,
       "readOnlyHint": true,
     },
-    "description": "组合工具呈现依据校验。当前仅对本次综合择日 combo_zeri 返回的 result_meta.presentationToken 与拟呈现的结构化基础事实逐项比对。仅核验用途、搜索范围、已排序候选日期的日期/农历日期/干支/分数/标签/冲命主与犯年煞状态、本年凶方及命卦吉方条目；不核验评分理由、淘汰理由、黄历全文、首选结论、吉时、行动建议或任何吉凶保证。校验器不生成、补全或修正解读。",
+    "description": "组合工具呈现依据校验。对本次 combo_zeri 的结构化基础事实，或 combo_daily_wellness 的传统规则／知识输出逐项比对。择日仅核验用途、搜索范围、候选条目与方位基础字段；养生可核验本次节气、体质、时辰经络、方位提示及传统规则建议条目是否与工具输出一致。valid:true 仅表示与本次传统规则输出一致，不代表现实效果、医疗安全性或个体结果保证；结果仅供传统文化与日常参考，切勿盲目相信。校验器不生成、补全或修正解读。",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "additionalProperties": false,
       "properties": {
         "claims": {
-          "description": "拟呈现的组合择日基础事实；不包含理由、黄历全文、建议或吉凶保证",
+          "description": "拟呈现的组合输出；养生 claims 仅用于核验与本次传统规则／知识输出一致，不构成医疗或效果保证",
           "items": {
             "anyOf": [
               {
@@ -4950,13 +4950,213 @@ exports[`MCP Server 端到端协议 > tools/list 的公开输入输出契约保�
                 ],
                 "type": "object",
               },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "date",
+                      "jieqi",
+                      "season",
+                      "shichen",
+                      "meridian",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "wellnessContext",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "combo_daily_wellness",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "type",
+                      "source",
+                      "reason",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "wellnessConstitution",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "combo_daily_wellness",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "jieqi",
+                      "season",
+                      "feature",
+                      "diet",
+                      "lifestyle",
+                      "exercise",
+                      "acupoints",
+                      "principle",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "wellnessJieqi",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "combo_daily_wellness",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "name",
+                      "time",
+                      "hours",
+                      "meridian",
+                      "organ",
+                      "function",
+                      "advice",
+                      "wuxing",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "wellnessMeridian",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "combo_daily_wellness",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "wellnessDirection",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "combo_daily_wellness",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "label",
+                      "value",
+                      "tone",
+                    ],
+                    "type": "string",
+                  },
+                  "index": {
+                    "minimum": 0,
+                    "type": "integer",
+                  },
+                  "kind": {
+                    "const": "wellnessRecommendation",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "combo_daily_wellness",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "index",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
             ],
           },
           "minItems": 1,
           "type": "array",
         },
         "presentationToken": {
-          "description": "本次 combo_zeri 返回的 result_meta.presentationToken，仅在当前 MCP 进程有效",
+          "description": "本次 combo_zeri 或 combo_daily_wellness 返回的 result_meta.presentationToken，仅在当前 MCP 进程有效",
           "format": "uuid",
           "type": "string",
         },
