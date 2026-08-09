@@ -18,12 +18,57 @@ export interface BaziToolInput {
   shenShaTrineSource?: 'year' | 'day';
 }
 
+export interface DivinationBirth {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute?: number;
+  gender?: '男' | '女';
+}
+
+export interface LiuyaoToolInput {
+  birth: DivinationBirth;
+  method?: 'coin' | 'time' | 'manual' | 'yarrow';
+  yaoValues?: string;
+  question?: string;
+  seed?: number;
+}
+
+export interface QimenToolInput {
+  birth: DivinationBirth;
+  question?: string;
+}
+
+export interface DaliurenToolInput {
+  birth: DivinationBirth;
+  school?: 'classic' | 'gufa' | 'daxquan';
+}
+
+export interface TaiyiToolInput {
+  birth: DivinationBirth;
+  jiStyle?: 0 | 1 | 2 | 3 | 4;
+  acumYear?: 0 | 1 | 2 | 3;
+}
+
+export interface MeihuaToolInput {
+  birth: DivinationBirth;
+  method?: 'time' | 'number' | 'yarrow';
+  numberA?: number;
+  numberB?: number;
+}
+
 export type LocalToolContractInput =
   | TrueSolarTimeToolInput
   | BaziToolInput
   | ZiweiInput
   | FeixingInput
-  | BazhaiInput;
+  | BazhaiInput
+  | LiuyaoToolInput
+  | QimenToolInput
+  | DaliurenToolInput
+  | TaiyiToolInput
+  | MeihuaToolInput;
 
 type Input = Record<string, unknown>;
 
@@ -57,6 +102,26 @@ function birth(value: unknown, label: string): BaziBirth {
   return { year, month, day, hour, minute, gender, isLunar: input.isLunar === true, useExactCalendar: input.useExactCalendar !== false };
 }
 
+function divinationBirth(value: unknown): DivinationBirth {
+  const input = object(value, 'birth');
+  const yearValue = integer(input.year, 'birth.year', 1, 9999);
+  const month = integer(input.month, 'birth.month', 1, 12);
+  const day = integer(input.day, 'birth.day', 1, 31);
+  const hour = integer(input.hour, 'birth.hour', 0, 23);
+  const minute = input.minute === undefined ? 0 : integer(input.minute, 'birth.minute', 0, 59);
+  const date = new Date(Date.UTC(yearValue, month - 1, day));
+  if (date.getUTCFullYear() !== yearValue || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+    throw new Error('birth不是有效公历日期。');
+  }
+  if (input.gender !== undefined && input.gender !== '男' && input.gender !== '女') throw new Error('birth.gender 必须是“男”或“女”。');
+  return { year: yearValue, month, day, hour, minute, gender: input.gender as DivinationBirth['gender'] };
+}
+
+function finiteNumber(value: unknown, label: string): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error(`${label}必须是有限数字。`);
+  return value;
+}
+
 function year(value: unknown, label: string): number {
   return integer(value, label, 1, 9999);
 }
@@ -66,7 +131,7 @@ function direction(value: unknown, label: string): string {
   return value;
 }
 
-export function parseFirstBatchToolInput(tool: string, rawInput: unknown): LocalToolContractInput | null {
+export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolContractInput | null {
   const input = object(rawInput, '工具输入');
 
   switch (tool) {
@@ -107,6 +172,41 @@ export function parseFirstBatchToolInput(tool: string, rawInput: unknown): Local
         if (input[key] !== undefined) direction(input[key], key);
       }
       return input as unknown as BazhaiInput;
+    }
+    case 'cast_liuyao': {
+      const method = input.method ?? 'coin';
+      if (!['coin', 'time', 'manual', 'yarrow'].includes(method as string)) throw new Error('method 必须是 coin、time、manual 或 yarrow。');
+      if (method === 'manual' && (typeof input.yaoValues !== 'string' || !/^[6-9]{6}$/.test(input.yaoValues))) {
+        throw new Error('method=manual 必须提供 6 位 6-9 的 yaoValues。');
+      }
+      if (input.seed !== undefined) finiteNumber(input.seed, 'seed');
+      if (input.question !== undefined && typeof input.question !== 'string') throw new Error('question 必须是字符串。');
+      return { ...input, birth: divinationBirth(input.birth), method } as LiuyaoToolInput;
+    }
+    case 'arrange_qimen': {
+      if (input.question !== undefined && typeof input.question !== 'string') throw new Error('question 必须是字符串。');
+      return { ...input, birth: divinationBirth(input.birth) } as QimenToolInput;
+    }
+    case 'liuren_calculate': {
+      const school = input.school ?? 'classic';
+      if (!['classic', 'gufa', 'daxquan'].includes(school as string)) throw new Error('school 必须是 classic、gufa 或 daxquan。');
+      return { ...input, birth: divinationBirth(input.birth), school } as DaliurenToolInput;
+    }
+    case 'taiyi_calculate': {
+      const jiStyle = input.jiStyle ?? 0;
+      const acumYear = input.acumYear ?? 0;
+      if (!Number.isInteger(jiStyle) || ![0, 1, 2, 3, 4].includes(jiStyle as number)) throw new Error('jiStyle 必须是 0-4 的整数。');
+      if (!Number.isInteger(acumYear) || ![0, 1, 2, 3].includes(acumYear as number)) throw new Error('acumYear 必须是 0-3 的整数。');
+      return { ...input, birth: divinationBirth(input.birth), jiStyle, acumYear } as TaiyiToolInput;
+    }
+    case 'cast_meihua': {
+      const method = input.method ?? 'time';
+      if (!['time', 'number', 'yarrow'].includes(method as string)) throw new Error('method 必须是 time、number 或 yarrow。');
+      if (method === 'number') {
+        finiteNumber(input.numberA, 'numberA');
+        finiteNumber(input.numberB, 'numberB');
+      }
+      return { ...input, birth: divinationBirth(input.birth), method } as MeihuaToolInput;
     }
     default:
       return null;

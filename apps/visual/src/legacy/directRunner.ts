@@ -22,7 +22,7 @@ import { getDailyRhythmEnveloped } from './rhythmEngine';
 import { assessConstitutionEnveloped, listConstitutionQuestionnaire } from './constitutionAssessEngine';
 import { calcNameRatingEnveloped, calcXiYongEnveloped, getConstitutionTendencyEnveloped } from './envelopeAdapters';
 import { searchDreamEnveloped } from './envelopeSample';
-import { parseFirstBatchToolInput } from './toolContracts';
+import { parseLocalToolInput } from './toolContracts';
 
 type Input = Record<string, any>;
 type DirectResult = ToolEnvelope<any> | TrueSolarTimeResolution;
@@ -70,18 +70,18 @@ function withTimeSource(envelope: ToolEnvelope<any>, source: ReturnType<typeof t
 /** 直接调用 legacy enveloped 引擎，使用一次性输入和结果对象。 */
 export async function runLocalTool(tool: string, rawInput: unknown): Promise<DirectResult> {
   const rawRecord = record(rawInput);
-  const input = (parseFirstBatchToolInput(tool, rawRecord) ?? rawRecord) as Input;
+  const input = (parseLocalToolInput(tool, rawRecord) ?? rawRecord) as Input;
   switch (tool) {
     case 'resolve_true_solar_time': return resolveTrueSolarTime({ ...input.birth, minute: input.birth.minute ?? 0, useExactCalendar: true }, input.location);
     case 'bazi_calculate': return withTimeSource(calcBaziEnveloped({ birth: input.birth, solar: Solar, shenShaTrineSource: input.shenShaTrineSource }), timeSource(input.birth, input));
     case 'ziwei_chart': return calcZiweiEnveloped(input as any);
     case 'cast_liuyao': return calcLiuyaoEnveloped({ ...input, solar: Solar });
     case 'arrange_qimen': return calcQimenEnveloped(input as any);
-    case 'liuren_calculate': return calcDaliurenEnveloped({ birth: input.birth, solar: Solar });
+    case 'liuren_calculate': return calcDaliurenEnveloped({ birth: input.birth, school: input.school, solar: Solar });
     case 'xingxiu_daily': return calcXingXiuEnveloped({ birth: input.birth, queryDate: input.queryDate, solar: Solar });
-    case 'taiyi_calculate': return calcTaiyiEnveloped({ birth: input.birth, jiStyle: input.jiStyle ?? '0', acumYear: input.acumYear ?? '0', solar: Solar });
+    case 'taiyi_calculate': return calcTaiyiEnveloped({ birth: input.birth, jiStyle: input.jiStyle ?? 0, acumYear: input.acumYear ?? 0, solar: Solar });
     case 'huangji_calculate': return calcHuangjiEnveloped({ birth: input.birth, solar: Solar });
-    case 'cast_meihua': return calcMeihuaEnveloped({ ...input, solar: Solar } as any);
+    case 'cast_meihua': return calcMeihuaEnveloped(input as any, Solar);
     case 'calc_yunqi': return calcYunqiEnveloped({ ...input, solar: Solar } as any);
     case 'analyze_name': { const source = input.birth ? timeSource(input.birth, input.baziTimeContext ?? {}) : null; const result = await calcNameRatingEnveloped(input.surname, input.givenName, input.birthYear, input.birth, Solar); return source ? withTimeSource(result, source) : result; }
     case 'calc_xiyong': return calcXiYongEnveloped(input.dayMasterWuxing, input.elements);
