@@ -120,6 +120,56 @@ const successCases: SuccessCase[] = [
     name: 'cast_meihua.boundary.json',
     assert: (result) => expect(result).toMatchObject({ ok: true, data: { mode: 'local-exact', sourceMethod: expect.stringContaining('农历') } }),
   },
+  {
+    tool: 'xingxiu_daily',
+    name: 'xingxiu_daily.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { queryDate: '2024-03-15', method: '连续轮转法', allXiu: expect.any(Array) } }),
+  },
+  {
+    tool: 'xingxiu_daily',
+    name: 'xingxiu_daily.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { queryDate: '2024-02-29', method: '日支星期查表法', mode: 'local-exact' } }),
+  },
+  {
+    tool: 'calc_yunqi',
+    name: 'calc_yunqi.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { tiangan: '甲', dizhi: '辰', liuqi: { current_step: { step: '三之气' } } } }),
+  },
+  {
+    tool: 'calc_yunqi',
+    name: 'calc_yunqi.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { year: 2023, yearBoundary: expect.stringContaining('2023年运气'), liuqi: { current_step: { step: '初之气' } } } }),
+  },
+  {
+    tool: 'calc_chenguz',
+    name: 'calc_chenguz.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { versionId: 'standard', totalText: expect.any(String) } }),
+  },
+  {
+    tool: 'calc_chenguz',
+    name: 'calc_chenguz.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { versionId: 'folk', versionName: expect.any(String) } }),
+  },
+  {
+    tool: 'get_almanac',
+    name: 'get_almanac.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { solarDate: expect.stringContaining('2024年2月10日'), hours: expect.any(Array) } }),
+  },
+  {
+    tool: 'get_almanac',
+    name: 'get_almanac.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { solarDate: expect.stringContaining('2024年2月29日') } }),
+  },
+  {
+    tool: 'get_daily_rhythm',
+    name: 'get_daily_rhythm.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { date: '2024-07-24', meridian: { meridian: expect.any(String) } } }),
+  },
+  {
+    tool: 'get_daily_rhythm',
+    name: 'get_daily_rhythm.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { date: '2024-02-29', meridian: { meridian: expect.any(String) } } }),
+  },
 ];
 
 describe('local tool input fixtures', () => {
@@ -140,6 +190,11 @@ describe('local tool input fixtures', () => {
     ['liuren_calculate', 'liuren_calculate.failure.json'],
     ['taiyi_calculate', 'taiyi_calculate.failure.json'],
     ['cast_meihua', 'cast_meihua.failure.json'],
+    ['xingxiu_daily', 'xingxiu_daily.failure.json'],
+    ['calc_yunqi', 'calc_yunqi.failure.json'],
+    ['calc_chenguz', 'calc_chenguz.failure.json'],
+    ['get_almanac', 'get_almanac.failure.json'],
+    ['get_daily_rhythm', 'get_daily_rhythm.failure.json'],
   ].forEach(([tool, name]) => {
     it(`${tool} rejects ${name}`, async () => {
       await expect(runLocalTool(tool, await fixture(name))).rejects.toThrow();

@@ -78,7 +78,7 @@ export async function runLocalTool(tool: string, rawInput: unknown): Promise<Dir
     case 'cast_liuyao': return calcLiuyaoEnveloped({ ...input, solar: Solar });
     case 'arrange_qimen': return calcQimenEnveloped(input as any);
     case 'liuren_calculate': return calcDaliurenEnveloped({ birth: input.birth, school: input.school, solar: Solar });
-    case 'xingxiu_daily': return calcXingXiuEnveloped({ birth: input.birth, queryDate: input.queryDate, solar: Solar });
+    case 'xingxiu_daily': return calcXingXiuEnveloped({ birth: input.birth, method: input.method, queryDate: input.queryDate, solar: Solar });
     case 'taiyi_calculate': return calcTaiyiEnveloped({ birth: input.birth, jiStyle: input.jiStyle ?? 0, acumYear: input.acumYear ?? 0, solar: Solar });
     case 'huangji_calculate': return calcHuangjiEnveloped({ birth: input.birth, solar: Solar });
     case 'cast_meihua': return calcMeihuaEnveloped(input as any, Solar);

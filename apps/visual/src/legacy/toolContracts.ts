@@ -58,6 +58,34 @@ export interface MeihuaToolInput {
   numberB?: number;
 }
 
+export interface XingxiuToolInput {
+  birth: { year: number; month: number; day: number };
+  method?: 'lookup' | 'rotational';
+  queryDate: string;
+}
+
+export interface YunqiToolInput {
+  year: number;
+  birthMonth?: number;
+  birthDay?: number;
+  currentMonth: number;
+}
+
+export interface ChenguzToolInput {
+  birth: BaziBirth;
+  version?: 'standard' | 'folk' | 'full';
+}
+
+export interface AlmanacToolInput {
+  date: string;
+}
+
+export interface DailyRhythmToolInput {
+  date: string;
+  hour: number;
+  constitution?: string;
+}
+
 export type LocalToolContractInput =
   | TrueSolarTimeToolInput
   | BaziToolInput
@@ -68,7 +96,12 @@ export type LocalToolContractInput =
   | QimenToolInput
   | DaliurenToolInput
   | TaiyiToolInput
-  | MeihuaToolInput;
+  | MeihuaToolInput
+  | XingxiuToolInput
+  | YunqiToolInput
+  | ChenguzToolInput
+  | AlmanacToolInput
+  | DailyRhythmToolInput;
 
 type Input = Record<string, unknown>;
 
@@ -86,6 +119,20 @@ function integer(value: unknown, label: string, min: number, max: number): numbe
   return value as number;
 }
 
+function dateParts(year: number, month: number, day: number, label: string): void {
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+    throw new Error(`${label}不是有效公历日期。`);
+  }
+}
+
+function dateString(value: unknown, label: string): string {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error(`${label}必须是 yyyy-mm-dd 格式的日期。`);
+  const [yearValue, month, day] = value.split('-').map(Number);
+  dateParts(yearValue, month, day, label);
+  return value;
+}
+
 function birth(value: unknown, label: string): BaziBirth {
   const input = object(value, label);
   const year = integer(input.year, `${label}.year`, 1, 9999);
@@ -95,10 +142,7 @@ function birth(value: unknown, label: string): BaziBirth {
   const minute = input.minute === undefined ? 0 : integer(input.minute, `${label}.minute`, 0, 59);
   const gender = input.gender;
   if (gender !== '男' && gender !== '女') throw new Error(`${label}.gender 必须是“男”或“女”。`);
-  const date = new Date(Date.UTC(year, month - 1, day));
-  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
-    throw new Error(`${label}不是有效公历日期。`);
-  }
+  dateParts(year, month, day, label);
   return { year, month, day, hour, minute, gender, isLunar: input.isLunar === true, useExactCalendar: input.useExactCalendar !== false };
 }
 
@@ -207,6 +251,47 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
         finiteNumber(input.numberB, 'numberB');
       }
       return { ...input, birth: divinationBirth(input.birth), method } as MeihuaToolInput;
+    }
+    case 'xingxiu_daily': {
+      const birthInput = object(input.birth, 'birth');
+      const birthYear = year(birthInput.year, 'birth.year');
+      const birthMonth = integer(birthInput.month, 'birth.month', 1, 12);
+      const birthDay = integer(birthInput.day, 'birth.day', 1, 31);
+      dateParts(birthYear, birthMonth, birthDay, 'birth');
+      if (birthInput.isLunar === true) throw new Error('xingxiu_daily 暂只支持公历 birth。');
+      const method = input.method ?? 'rotational';
+      if (method !== 'lookup' && method !== 'rotational') throw new Error('method 必须是 lookup 或 rotational。');
+      return {
+        birth: { year: birthYear, month: birthMonth, day: birthDay },
+        method,
+        queryDate: dateString(input.queryDate, 'queryDate'),
+      } as XingxiuToolInput;
+    }
+    case 'calc_yunqi': {
+      const inputYear = year(input.year, 'year');
+      const hasBirthMonth = input.birthMonth !== undefined;
+      const hasBirthDay = input.birthDay !== undefined;
+      if (hasBirthMonth !== hasBirthDay) throw new Error('birthMonth 与 birthDay 必须同时提供。');
+      const birthMonth = hasBirthMonth ? integer(input.birthMonth, 'birthMonth', 1, 12) : undefined;
+      const birthDay = hasBirthDay ? integer(input.birthDay, 'birthDay', 1, 31) : undefined;
+      if (birthMonth !== undefined && birthDay !== undefined) dateParts(inputYear, birthMonth, birthDay, 'birth');
+      return { year: inputYear, birthMonth, birthDay, currentMonth: integer(input.currentMonth, 'currentMonth', 1, 12) } as YunqiToolInput;
+    }
+    case 'calc_chenguz': {
+      if (input.version !== undefined && input.version !== 'standard' && input.version !== 'folk' && input.version !== 'full') {
+        throw new Error('version 必须是 standard、folk 或 full。');
+      }
+      return { birth: birth(input.birth, 'birth'), version: input.version } as ChenguzToolInput;
+    }
+    case 'get_almanac':
+      return { date: dateString(input.date, 'date') } as AlmanacToolInput;
+    case 'get_daily_rhythm': {
+      if (input.constitution !== undefined && typeof input.constitution !== 'string') throw new Error('constitution 必须是字符串。');
+      return {
+        date: dateString(input.date, 'date'),
+        hour: integer(input.hour, 'hour', 0, 23),
+        constitution: input.constitution as string | undefined,
+      } as DailyRhythmToolInput;
     }
     default:
       return null;
