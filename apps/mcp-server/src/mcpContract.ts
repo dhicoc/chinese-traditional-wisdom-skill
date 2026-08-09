@@ -44,6 +44,7 @@ const deterministicTools = new Set([
   'validate_bazi_presentation',
   'validate_ziwei_presentation',
   'validate_bazhai_presentation',
+  'validate_feixing_presentation',
 ]);
 
 const toolTitles: Record<string, string> = {
@@ -82,6 +83,7 @@ const toolTitles: Record<string, string> = {
   validate_bazi_presentation: '八字呈现依据校验',
   validate_ziwei_presentation: '紫微呈现依据校验',
   validate_bazhai_presentation: '八宅呈现依据校验',
+  validate_feixing_presentation: '流年飞星呈现依据校验',
   agent_guidance: '工具参数引导',
   wisdom_dispatch: '自然语言意图路由',
 };

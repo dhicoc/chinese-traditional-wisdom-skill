@@ -48,6 +48,7 @@ export const GLOBAL_AGENT_RULES = [
   '八字解读若写入四柱、日主、五行计数、日主强弱、大运或神煞等确定性结论，必须以本次 result_meta.presentationToken 调 validate_bazi_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次排盘结果。文化背景和建设性建议不进入 claims。',
   '紫微解读若写入宫位、星曜、四化、五行局、命主、身主或本次动态层等确定性结论，必须以本次 ziwei_chart 的 result_meta.presentationToken 调 validate_ziwei_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次命盘结果。传统解释、条件性推论和建议不进入 claims。',
   '八宅解读若写入命卦、东四/西四命、八方游年星与吉凶、或本次年份的太岁、岁破、三煞、五黄方位等确定性结论，必须以本次 calc_bazhai 的 result_meta.presentationToken 调 validate_bazhai_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次推算结果。传统释义、布局建议、门主灶与化解建议不进入 claims。',
+  '流年飞星解读若写入本次年份、元运、中宫飞星或指定九宫的飞星与吉凶等确定性结论，必须以本次 calc_feixing 的 result_meta.presentationToken 调 validate_feixing_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次盘面结果。化解、布局、财位与个人命卦解释不进入 claims。',
   '不得替用户编造生辰、性别、出生地等关键参数；缺失时必须追问。',
   '真太阳时必须先核验地点经度、IANA 时区、出生时实际 UTC 偏移与夏令时依据；不得凭模型记忆填写或把民用时间伪称真太阳时。',
   '涉及八字的组合或增强分析也必须传入经核验的 baziTimeContext；民用时间路径须明确确认，并标注“未完成真太阳时复核”。',
@@ -320,7 +321,7 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     ],
     safeDefaults: {},
     doNotAssume: ['year', 'gender', 'birthYear'],
-    workflow: '确认年份（+可选性别/出生年推命卦方位）→ 调 calc_feixing → 解读中宫飞星、凶位化解、命卦吉方。',
+    workflow: '确认年份（+可选性别/出生年推命卦方位）→ 调 calc_feixing → 从本次 ToolEnvelope 提取年度、元运、中宫与指定九宫飞星事实组成 claims → 用 presentationToken 调 validate_feixing_presentation；valid:true 后才呈现。化解、布局、财位与个人命卦解释不进入 claims。',
   },
   calc_bazhai: {
     tool: 'calc_bazhai',

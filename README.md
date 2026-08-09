@@ -93,7 +93,7 @@ cd apps/visual && pnpm build && pnpm preview
 
 ### 方式 C：MCP Server（AI 客户端直接调用）
 
-MCP server 提供 **37 个工具**：32 个确定性计算工具，以及 `agent_guidance` 参数引导、`validate_bazi_presentation` 八字呈现依据校验、`validate_ziwei_presentation` 紫微呈现依据校验、`validate_bazhai_presentation` 八宅呈现依据校验与 `wisdom_dispatch` 意图路由。它可挂载到 Claude Code、Claude Desktop、Cursor、Cline 等 MCP 客户端，供 AI 调用本地计算能力。
+MCP server 提供 **38 个工具**：32 个确定性计算工具，以及 `agent_guidance` 参数引导、`validate_bazi_presentation` 八字呈现依据校验、`validate_ziwei_presentation` 紫微呈现依据校验、`validate_bazhai_presentation` 八宅呈现依据校验、`validate_feixing_presentation` 流年飞星呈现依据校验与 `wisdom_dispatch` 意图路由。它可挂载到 Claude Code、Claude Desktop、Cursor、Cline 等 MCP 客户端，供 AI 调用本地计算能力。
 
 **一键自动配置**（无需手动编辑配置文件）：
 
@@ -118,7 +118,7 @@ node scripts/setup-mcp.mjs
 
 MCP server 是三层架构 Layer 2 的薄壳，复用 `apps/visual/src/legacy` 的纯 TS 引擎。常规计算返回 `ToolEnvelope`；对话 Agent 必须经 `wisdom_dispatch` 路由、`agent_guidance` 核对参数后再调用计算工具，不得凭模型知识自行推演。
 
-八字默认先尝试真太阳时：用户提供可定位出生地后，Agent 核验地点、历史时区、夏令时与 `utcOffsetEvidence`，调用 `resolve_true_solar_time`，再将返回的 `trueSolarBirth` 与 `calibrationToken` 用于 `bazi_calculate`。呈现四柱、日主、五行计数、日主强弱、大运或神煞前，Agent 必须以本次结果的 `presentationToken` 调用 `validate_bazi_presentation`，仅呈现校验通过的 claims。紫微呈现宫位、星曜、四化、命主、身主或本次动态层等确定性事实前，也必须以本次 `ziwei_chart` 的 `presentationToken` 调用 `validate_ziwei_presentation`。八宅呈现命卦、八方游年星与吉凶，以及本次年份的太岁、岁破、三煞、五黄方位前，必须以本次 `calc_bazhai` 的 `presentationToken` 调用 `validate_bazhai_presentation`；传统释义、布局建议、门主灶与化解建议不进入 claims。无法可靠核验时，仅在用户明确确认后使用民用出生时间，并标注“未完成真太阳时复核”。Dashboard 只展示等待核验、已核验和民用降级状态，不要求用户填写经度或历史 UTC 偏移。
+八字默认先尝试真太阳时：用户提供可定位出生地后，Agent 核验地点、历史时区、夏令时与 `utcOffsetEvidence`，调用 `resolve_true_solar_time`，再将返回的 `trueSolarBirth` 与 `calibrationToken` 用于 `bazi_calculate`。呈现四柱、日主、五行计数、日主强弱、大运或神煞前，Agent 必须以本次结果的 `presentationToken` 调用 `validate_bazi_presentation`，仅呈现校验通过的 claims。紫微呈现宫位、星曜、四化、命主、身主或本次动态层等确定性事实前，也必须以本次 `ziwei_chart` 的 `presentationToken` 调用 `validate_ziwei_presentation`。八宅呈现命卦、八方游年星与吉凶，以及本次年份的太岁、岁破、三煞、五黄方位前，必须以本次 `calc_bazhai` 的 `presentationToken` 调用 `validate_bazhai_presentation`；传统释义、布局建议、门主灶与化解建议不进入 claims。飞星呈现本次年度、元运、中宫或指定九宫的飞星与吉凶前，必须以本次 `calc_feixing` 的 `presentationToken` 调用 `validate_feixing_presentation`；化解、布局、财位、个人命卦解释与综合推论不进入 claims。无法可靠核验时，仅在用户明确确认后使用民用出生时间，并标注“未完成真太阳时复核”。Dashboard 只展示等待核验、已核验和民用降级状态，不要求用户填写经度或历史 UTC 偏移。
 
 <p align="right">(<a href="#快速开始">返回顶部</a>)</p>
 
@@ -185,7 +185,7 @@ Dashboard 会在每个标签页显示能力状态，避免把演示数据误认�
 ├── apps/                       # 主架构（React Shell + MCP Server）
 │   ├── visual/                 # React + Vite + TS Dashboard（SVG 可视化，主开发入口）
 │   │   └── src/legacy/         # 纯 TS 引擎与 ToolEnvelope 适配器
-│   └── mcp-server/             # MCP Server（三层架构 Layer 2，35 工具薄壳）
+│   └── mcp-server/             # MCP Server（三层架构 Layer 2，38 工具薄壳）
 │       ├── src/index.ts        # McpServer + StdioServerTransport 入口
 │       ├── src/tools.ts        # 32 个计算工具定义（zod schema）
 │       ├── examples/           # Claude Desktop / Cursor / Cline 配置示例
@@ -290,7 +290,7 @@ A holistic life consulting AI Agent workflow integrating BaZi, Ziwei, Liuyao, Me
 **Features:**
 - React + Vite + TypeScript dashboard with SVG visualization, capability badges and offline Mermaid fallback
 - Local TypeScript calculation engines with unified `ToolEnvelope` output, shared by MCP server and Dashboard
-- MCP server (34 tools: 32 calculation + 2 meta tools) for Claude Code / Desktop / Cursor / Cline direct invocation
+- MCP server (38 tools: 32 calculation + 6 meta tools) for Claude Code / Desktop / Cursor / Cline direct invocation
 - BaZi true-solar-time flow: Agent verifies location and historical offset evidence, then calls `resolve_true_solar_time` before `bazi_calculate`
 - 30-file classic text knowledge base (16+ Fengshui classics)
 - 6 deterministic JSON mapping tables

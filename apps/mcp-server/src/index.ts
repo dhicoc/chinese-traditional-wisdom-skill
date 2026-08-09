@@ -20,6 +20,7 @@ import { getToolGuidance, listToolGuidance, validateToolInput, GLOBAL_AGENT_RULE
 import { dispatchIntent } from './dispatch.js';
 import { validateBaziPresentation, type BaziPresentationClaim } from './baziClaimVerifier.js';
 import { validateBazhaiPresentation, type BazhaiPresentationClaim } from './bazhaiClaimVerifier.js';
+import { validateFeixingPresentation, type FeixingPresentationClaim } from './feixingClaimVerifier.js';
 import { validateZiweiPresentation, type ZiweiPresentationClaim } from './ziweiClaimVerifier.js';
 
 const server = new McpServer({
@@ -27,7 +28,7 @@ const server = new McpServer({
   version: '0.1.0',
 });
 
-const META_TOOLS_COUNT = 4;
+const META_TOOLS_COUNT = 6;
 
 // ─── 注册计算工具（Agent/MCP 硬闸门）───
 for (const tool of TOOLS) {
@@ -219,7 +220,44 @@ server.registerTool(
   },
 );
 
-// ─── 元工具 5: wisdom_dispatch（自然语言意图路由）───
+// ─── 元工具 5: validate_feixing_presentation（流年飞星解读依据校验）───
+server.registerTool(
+  'validate_feixing_presentation',
+  {
+    ...getToolContract('validate_feixing_presentation'),
+    description: '流年飞星呈现依据校验。对本次 calc_feixing 返回的 result_meta.presentationToken 与拟呈现的结构化年度盘面断言逐项比对；仅核验年度、元运、中宫与指定九宫的飞星及吉凶。化解、布局、财位与个人命卦解释不进入 claims。校验器不生成、补全或修正解读；任一断言不符时必须移除或改为引擎实际结果。',
+    inputSchema: {
+      presentationToken: z.string().uuid().describe('本次 calc_feixing 返回的 result_meta.presentationToken，仅在当前 MCP 进程有效'),
+      claims: z.array(z.union([
+        z.object({ kind: z.literal('year'), value: z.number().int().min(1900).max(2100) }),
+        z.object({ kind: z.literal('yuanYun'), field: z.enum(['num', 'wangStar', 'shengStar', 'tuiStar']), value: z.number().int() }),
+        z.object({ kind: z.literal('yuanYun'), field: z.literal('name'), value: z.string().min(1) }),
+        z.object({ kind: z.literal('center'), field: z.literal('centerStar'), value: z.number().int().min(1).max(9) }),
+        z.object({ kind: z.literal('center'), field: z.enum(['starName', 'wuxing', 'luck']), value: z.string().min(1) }),
+        z.object({ kind: z.literal('palace'), palace: z.string().min(1), field: z.literal('starNum'), value: z.number().int().min(1).max(9) }),
+        z.object({ kind: z.literal('palace'), palace: z.string().min(1), field: z.enum(['starName', 'luck']), value: z.string().min(1) }),
+      ])).describe('拟呈现文本中的确定性流年飞星盘面断言；不包含化解、布局、财位或个人命卦解释'),
+    },
+    outputSchema: openObjectOutputSchema,
+  },
+  async (input: unknown) => {
+    const { presentationToken, claims } = input as { presentationToken: string; claims: FeixingPresentationClaim[] };
+    const validation = validateFeixingPresentation(presentationToken, claims);
+    const structuredContent = validation ? { ...validation } : {
+      valid: false,
+      violations: [{
+        kind: 'presentationToken',
+        message: 'presentationToken 无效、已失效或不属于当前 MCP 进程；请重新调用 calc_feixing。',
+      }],
+    };
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(structuredContent, null, 2) }],
+      structuredContent,
+    };
+  },
+);
+
+// ─── 元工具 6: wisdom_dispatch（自然语言意图路由）───
 server.registerTool(
   'wisdom_dispatch',
   {

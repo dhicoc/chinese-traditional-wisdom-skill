@@ -13,6 +13,7 @@ import { z } from 'zod';
 import type { TrueSolarTimeResolution } from '../../visual/src/legacy/trueSolarTime';
 import { registerBaziPresentation } from './baziClaimVerifier.js';
 import { registerBazhaiPresentation } from './bazhaiClaimVerifier.js';
+import { registerFeixingPresentation } from './feixingClaimVerifier.js';
 import { registerZiweiPresentation } from './ziweiClaimVerifier.js';
 
 function lazyModule<T>(load: () => Promise<T>): () => Promise<T> {
@@ -717,11 +718,22 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: async (i) => {
       const { calcFeixingEnveloped } = await loadFeixing();
-      return calcFeixingEnveloped({
+      const envelope = calcFeixingEnveloped({
         year: (i as { year?: number }).year,
         gender: (i as { gender?: '男' | '女' }).gender,
         birthYear: (i as { birthYear?: number }).birthYear,
       });
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerFeixingPresentation(envelope.data, presentationToken);
+      return {
+        ...envelope,
+        result_meta: {
+          ...envelope.result_meta,
+          presentationToken,
+        },
+      };
     },
   },
   {

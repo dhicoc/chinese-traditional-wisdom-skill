@@ -6,12 +6,12 @@
 
 ## 工具列表
 
-共 **37 个工具**：**32 个计算工具**与 5 个元工具（`agent_guidance` 参数引导、`validate_bazi_presentation` 八字呈现依据校验、`validate_ziwei_presentation` 紫微呈现依据校验、`validate_bazhai_presentation` 八宅呈现依据校验、`wisdom_dispatch` 自然语言意图路由）。
+共 **38 个工具**：**32 个计算工具**与 6 个元工具（`agent_guidance` 参数引导、`validate_bazi_presentation` 八字呈现依据校验、`validate_ziwei_presentation` 紫微呈现依据校验、`validate_bazhai_presentation` 八宅呈现依据校验、`validate_feixing_presentation` 流年飞星呈现依据校验、`wisdom_dispatch` 自然语言意图路由）。
 
 - 时间校准：`resolve_true_solar_time`
 - 排盘与日用计算：`bazi_calculate`、`ziwei_chart`、`cast_liuyao`、`arrange_qimen`、`liuren_calculate`、`xingxiu_daily`、`taiyi_calculate`、`huangji_calculate`、`cast_meihua`、`calc_yunqi`、`analyze_name`、`calc_xiyong`、`get_constitution_tendency`、`dream_interpret`、`cast_cezi`、`calc_chenguz`、`get_almanac`、`calc_feixing`、`calc_bazhai`、`get_daily_rhythm`、`assess_constitution`、`list_constitution_questionnaire`
 - 跨系统联合分析：`combo_annual_fortune`、`combo_monthly_fortune`、`combo_decision`、`combo_space_time`、`combo_sanshi`、`combo_sanshi_classic`、`combo_daily_wellness`、`combo_zeri`、`combo_marriage`
-- 元工具：`agent_guidance`、`validate_bazi_presentation`、`validate_ziwei_presentation`、`validate_bazhai_presentation`、`wisdom_dispatch`
+- 元工具：`agent_guidance`、`validate_bazi_presentation`、`validate_ziwei_presentation`、`validate_bazhai_presentation`、`validate_feixing_presentation`、`wisdom_dispatch`
 
 `bazi_calculate`、`ziwei_chart`、`cast_liuyao`、`arrange_qimen`、`liuren_calculate`、`xingxiu_daily`、`taiyi_calculate`、`huangji_calculate`、`cast_meihua`、`calc_yunqi` 等工具由 `lunar-javascript`、`iztro`、`3meta` 或本地规则引擎提供确定性结果。具体参数和 schema 以 MCP 客户端展示的工具定义为准。
 
@@ -45,6 +45,7 @@
 5. 仅依据工具结果解释排盘；若要呈现四柱、日主、五行计数、日主强弱、大运或神煞，先以本次结果的 `result_meta.presentationToken` 调 `validate_bazi_presentation`，仅呈现返回 `valid: true` 的 claims。
 6. 若要呈现紫微宫位、星曜、四化、五行局、命主、身主或本次动态层，先以本次 `ziwei_chart` 的 `result_meta.presentationToken` 调 `validate_ziwei_presentation`；传统解释、条件性推论和建议不进入 claims。
 7. 若要呈现八宅命卦、八方游年星与吉凶，或本次年份的太岁、岁破、三煞、五黄方位，先以本次 `calc_bazhai` 的 `result_meta.presentationToken` 调 `validate_bazhai_presentation`；传统释义、布局建议、门主灶与化解建议不进入 claims。
+8. 若要呈现流年飞星的年度、元运、中宫或指定九宫飞星与吉凶，先以本次 `calc_feixing` 的 `result_meta.presentationToken` 调 `validate_feixing_presentation`；化解、布局、财位、个人命卦解释与综合推论不进入 claims。
 
 如果地点或历史时区、夏令时无法可靠核验，必须先说明限制。仅在用户明确确认后，才可使用民用出生记录调用 `bazi_calculate`，并设置 `timeBasis=civil-unverified`、`civilFallbackConfirmed=true`；输出必须标注**“未完成真太阳时复核”**。不得把该结果称为真太阳时排盘。
 
@@ -85,7 +86,7 @@ node scripts/setup-mcp.mjs
 }
 ```
 
-配置后重启客户端，应能看到 `chinese-wisdom` server 已连接并显示 37 个工具。
+配置后重启客户端，应能看到 `chinese-wisdom` server 已连接并显示 38 个工具。
 
 ## 使用示例
 

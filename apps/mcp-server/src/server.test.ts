@@ -163,7 +163,7 @@ describe('MCP Server 端到端协议', () => {
     expect(result.protocolVersion).toBe('2024-11-05');
   }, 30000);
 
-  it('tools/list 返回 37 个工具（32 计算 + 5 元工具）且 inputSchema 完整', async () => {
+  it('tools/list 返回 38 个工具（32 计算 + 6 元工具）且 inputSchema 完整', async () => {
     const responses = await runMcpSession([INIT_MSG, INITIALIZED_MSG, TOOLS_LIST_MSG]);
     const list = responses.find((r) => r.id === 2);
     expect(list).toBeDefined();
@@ -182,7 +182,7 @@ describe('MCP Server 端到端协议', () => {
         };
       }>;
     }).tools;
-    expect(tools.length).toBe(37);
+    expect(tools.length).toBe(38);
     tools.forEach((t) => {
       expect(t.name).toMatch(/^[a-z][a-z0-9_]*$/);
       expect(t.description.length).toBeGreaterThan(10);
@@ -199,6 +199,7 @@ describe('MCP Server 端到端协议', () => {
     expect(names).toContain('validate_bazi_presentation');
     expect(names).toContain('validate_ziwei_presentation');
     expect(names).toContain('validate_bazhai_presentation');
+    expect(names).toContain('validate_feixing_presentation');
     expect(names).toContain('wisdom_dispatch');
     tools.forEach((tool) => {
       expect(tool.title).toBeTruthy();
@@ -256,6 +257,21 @@ describe('MCP Server 端到端协议', () => {
       }),
     ]);
     const call = responses.find((r) => r.id === 28);
+    const result = call!.result as { content: Array<{ type: string; text: string }>; structuredContent: { valid: boolean; violations: Array<{ kind: string }> } };
+    const payload = JSON.parse(result.content[0].text) as { valid: boolean; violations: Array<{ kind: string }> };
+    expect(result.structuredContent).toEqual(payload);
+    expect(payload).toEqual({ valid: false, violations: [expect.objectContaining({ kind: 'presentationToken' })] });
+  }, 30000);
+
+  it('tools/call validate_feixing_presentation 拒绝无效凭证', async () => {
+    const responses = await runMcpSession([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(35, 'validate_feixing_presentation', {
+        presentationToken: '00000000-0000-4000-8000-000000000000',
+        claims: [{ kind: 'year', value: 2026 }],
+      }),
+    ]);
+    const call = responses.find((r) => r.id === 35);
     const result = call!.result as { content: Array<{ type: string; text: string }>; structuredContent: { valid: boolean; violations: Array<{ kind: string }> } };
     const payload = JSON.parse(result.content[0].text) as { valid: boolean; violations: Array<{ kind: string }> };
     expect(result.structuredContent).toEqual(payload);
@@ -424,6 +440,66 @@ describe('MCP Server 端到端协议', () => {
     expect(invalidPayload).toEqual({
       valid: false,
       violations: [expect.objectContaining({ kind: 'annual', actual: '不存在方位' })],
+    });
+  }, 30000);
+
+  it('同一会话中仅允许通过校验的流年飞星断言进入呈现', async () => {
+    const responses = await runMcpSessionWithFollowUp([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(36, 'calc_feixing', { year: 2026 }),
+    ], (calculation) => {
+      if (calculation.id !== 36) return null;
+      const envelope = (calculation.result as {
+        structuredContent: {
+          data: {
+            year: number;
+            yuanYun: { name: string; wangStar: number };
+            center: { centerStar: number; luck: string };
+            grid: Array<Array<{ palace: string; starNum: number; starName: string }>>;
+          };
+          result_meta: { presentationToken: string };
+        };
+      }).structuredContent;
+      const palace = envelope.data.grid.flat()[0]!;
+      const claims = [
+        { kind: 'year', value: envelope.data.year },
+        { kind: 'yuanYun', field: 'name', value: envelope.data.yuanYun.name },
+        { kind: 'yuanYun', field: 'wangStar', value: envelope.data.yuanYun.wangStar },
+        { kind: 'center', field: 'centerStar', value: envelope.data.center.centerStar },
+        { kind: 'center', field: 'luck', value: envelope.data.center.luck },
+        { kind: 'palace', palace: palace.palace, field: 'starNum', value: palace.starNum },
+        { kind: 'palace', palace: palace.palace, field: 'starName', value: palace.starName },
+      ];
+
+      return [
+        toolCallMsg(37, 'validate_feixing_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims,
+        }),
+        toolCallMsg(38, 'validate_feixing_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [{ kind: 'center', field: 'centerStar', value: envelope.data.center.centerStar + 1 }],
+        }),
+      ];
+    });
+
+    const validResult = responses.find((response) => response.id === 37)!.result as {
+      content: Array<{ text: string }>;
+      structuredContent: { valid: boolean; violations: unknown[] };
+    };
+    const invalidResult = responses.find((response) => response.id === 38)!.result as {
+      content: Array<{ text: string }>;
+      structuredContent: { valid: boolean; violations: Array<{ kind: string; actual: number }> };
+    };
+    const validPayload = JSON.parse(validResult.content[0].text) as { valid: boolean; violations: unknown[] };
+    const invalidPayload = JSON.parse(invalidResult.content[0].text) as { valid: boolean; violations: Array<{ kind: string; actual: number }> };
+
+    expect(validResult.structuredContent).toEqual(validPayload);
+    expect(validPayload).toEqual({ valid: true, violations: [] });
+    expect(invalidResult.structuredContent).toEqual(invalidPayload);
+    expect(invalidPayload).toEqual({
+      valid: false,
+      violations: [expect.objectContaining({ kind: 'center', actual: expect.any(Number) })],
     });
   }, 30000);
 

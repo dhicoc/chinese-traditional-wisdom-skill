@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { TOOLS } from './tools';
 import { validateBaziPresentation } from './baziClaimVerifier';
 import { validateBazhaiPresentation } from './bazhaiClaimVerifier';
+import { validateFeixingPresentation } from './feixingClaimVerifier';
 import type { ToolEnvelope } from '../../visual/src/legacy/baseTypes';
 
 /**
@@ -634,6 +635,35 @@ describe('combo_zeri', async () => {
     const e = expectValidEnvelope(env);
     const data = e.data as { rankedDays: unknown[] };
     expect(data.rankedDays.length).toBeLessThanOrEqual(3);
+  });
+});
+
+describe('calc_feixing', () => {
+  it('为本次年度盘面签发凭证，并拒绝不符合引擎事实的呈现断言', async () => {
+    const tool = findTool('calc_feixing');
+    const env = await tool.handler({ year: 2026 }) as ToolEnvelope;
+    const data = env.data as {
+      year: number;
+      yuanYun: { name: string; wangStar: number };
+      center: { centerStar: number; luck: string };
+      grid: Array<Array<{ palace: string; starNum: number; starName: string }>>;
+    };
+    const token = env.result_meta?.presentationToken;
+    const palace = data.grid.flat()[0]!;
+
+    expect(token).toMatch(/^[0-9a-f-]{36}$/);
+    expect(validateFeixingPresentation(token!, [
+      { kind: 'year', value: data.year },
+      { kind: 'yuanYun', field: 'name', value: data.yuanYun.name },
+      { kind: 'yuanYun', field: 'wangStar', value: data.yuanYun.wangStar },
+      { kind: 'center', field: 'centerStar', value: data.center.centerStar },
+      { kind: 'center', field: 'luck', value: data.center.luck },
+      { kind: 'palace', palace: palace.palace, field: 'starNum', value: palace.starNum },
+      { kind: 'palace', palace: palace.palace, field: 'starName', value: palace.starName },
+    ])).toEqual({ valid: true, violations: [] });
+    expect(validateFeixingPresentation(token!, [
+      { kind: 'center', field: 'centerStar', value: data.center.centerStar + 1 },
+    ])).toMatchObject({ valid: false, violations: [expect.objectContaining({ kind: 'center' })] });
   });
 });
 

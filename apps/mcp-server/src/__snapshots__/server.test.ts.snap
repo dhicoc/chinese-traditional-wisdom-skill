@@ -4401,6 +4401,227 @@ exports[`MCP Server 端到端协议 > tools/list 的公开输入输出契约保�
       "openWorldHint": false,
       "readOnlyHint": true,
     },
+    "description": "流年飞星呈现依据校验。对本次 calc_feixing 返回的 result_meta.presentationToken 与拟呈现的结构化年度盘面断言逐项比对；仅核验年度、元运、中宫与指定九宫的飞星及吉凶。化解、布局、财位与个人命卦解释不进入 claims。校验器不生成、补全或修正解读；任一断言不符时必须移除或改为引擎实际结果。",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "claims": {
+          "description": "拟呈现文本中的确定性流年飞星盘面断言；不包含化解、布局、财位或个人命卦解释",
+          "items": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "year",
+                    "type": "string",
+                  },
+                  "value": {
+                    "maximum": 2100,
+                    "minimum": 1900,
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "num",
+                      "wangStar",
+                      "shengStar",
+                      "tuiStar",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "yuanYun",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "name",
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "yuanYun",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "centerStar",
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "center",
+                    "type": "string",
+                  },
+                  "value": {
+                    "maximum": 9,
+                    "minimum": 1,
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "starName",
+                      "wuxing",
+                      "luck",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "center",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "starNum",
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "palace",
+                    "type": "string",
+                  },
+                  "palace": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                  "value": {
+                    "maximum": 9,
+                    "minimum": 1,
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "palace",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "starName",
+                      "luck",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "palace",
+                    "type": "string",
+                  },
+                  "palace": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "palace",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+            ],
+          },
+          "type": "array",
+        },
+        "presentationToken": {
+          "description": "本次 calc_feixing 返回的 result_meta.presentationToken，仅在当前 MCP 进程有效",
+          "format": "uuid",
+          "type": "string",
+        },
+      },
+      "required": [
+        "presentationToken",
+        "claims",
+      ],
+      "type": "object",
+    },
+    "name": "validate_feixing_presentation",
+    "outputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": true,
+      "properties": {},
+      "type": "object",
+    },
+    "title": "流年飞星呈现依据校验",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+    },
     "description": "紫微呈现依据校验。对本次 ziwei_chart 返回的 result_meta.presentationToken 与拟呈现的结构化确定性紫微断言逐项比对；仅核验宫位、星曜、四化、元资料与本次动态层。传统解释、条件性推论和建议不进入 claims。校验器不生成、补全或修正解读；任一断言不符时必须移除或改为引擎实际结果。",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",

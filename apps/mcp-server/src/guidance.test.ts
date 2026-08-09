@@ -59,6 +59,11 @@ describe('agent_guidance 参数引导', () => {
     expect(getToolGuidance('calc_bazhai')!.workflow).toContain('validate_bazhai_presentation');
   });
 
+  it('GLOBAL_AGENT_RULES 要求流年飞星确定性断言通过呈现校验', () => {
+    expect(GLOBAL_AGENT_RULES.some((r) => r.includes('calc_feixing') && r.includes('validate_feixing_presentation') && r.includes('claims'))).toBe(true);
+    expect(getToolGuidance('calc_feixing')!.workflow).toContain('validate_feixing_presentation');
+  });
+
   it('safeDefaults 不包含默认男', () => {
     const serializedDefaults = JSON.stringify(Object.values(listToolGuidance()).map((item) => getToolGuidance(item.tool)?.safeDefaults));
     expect(serializedDefaults).not.toContain('"gender":"男"');

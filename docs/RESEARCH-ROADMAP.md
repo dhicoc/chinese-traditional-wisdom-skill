@@ -178,6 +178,7 @@
 4. ✅ P2.2 知识库条目稳定 citation ID：古籍搜索与知识引用面板复用同一书目索引，返回 `kb://fengshui/<相对路径>#<标题>`；映射表保持自身确定性来源，不伪装为古籍引用。
 5. ✅ P2.3 紫微呈现校验试点：`ziwei_chart` 对成功命盘签发进程内 `presentationToken`，`validate_ziwei_presentation` 校验宫位、星曜、四化、元资料与本次动态层 claims；同 stdio 会话覆盖有效与篡改断言。
 6. ✅ P2.4a 八宅呈现校验试点：`calc_bazhai` 对成功推算签发进程内 `presentationToken`，`validate_bazhai_presentation` 校验命卦、八方游年星与吉凶、以及本次年份的太岁、岁破、三煞、五黄方位 claims；同 stdio 会话覆盖有效与篡改断言。传统释义、布局建议、门主灶与化解建议不进入 claims。
+7. ✅ P2.4b 流年飞星呈现校验试点：`calc_feixing` 对成功推算签发进程内 `presentationToken`，`validate_feixing_presentation` 校验年度、元运、中宫与指定九宫飞星/吉凶 claims；同 stdio 会话覆盖有效与篡改断言。化解、布局、财位、个人命卦解释与综合推论不进入 claims。
 
 ### 4.2 工程规范
 
