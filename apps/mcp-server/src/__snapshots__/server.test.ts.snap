@@ -4062,6 +4062,163 @@ exports[`MCP Server 端到端协议 > tools/list 的公开输入输出契约保�
       "openWorldHint": false,
       "readOnlyHint": true,
     },
+    "description": "八宅呈现依据校验。对本次 calc_bazhai 返回的 result_meta.presentationToken 与拟呈现的结构化确定性八宅断言逐项比对；仅核验命卦、八方游年星与吉凶、指定年份的太岁、岁破、三煞和五黄方位。传统释义、布局建议、门主灶与化解建议不进入 claims。校验器不生成、补全或修正解读；任一断言不符时必须移除或改为引擎实际结果。",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "claims": {
+          "description": "拟呈现文本中的确定性八宅断言；不包含传统释义、布局建议、门主灶或化解建议",
+          "items": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "trigram",
+                      "group",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "mingGua",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "const": "num",
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "mingGua",
+                    "type": "string",
+                  },
+                  "value": {
+                    "maximum": 9,
+                    "minimum": 1,
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "direction": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                  "field": {
+                    "enum": [
+                      "star",
+                      "quality",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "direction",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "direction",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "yearZhi",
+                      "taisuiZhi",
+                      "taisuiDirection",
+                      "taisuiBagua",
+                      "suiPoZhi",
+                      "suiPoDirection",
+                      "suiPoBagua",
+                      "sanShaZhiList",
+                      "sanShaDirection",
+                      "fiveYellowBagua",
+                      "fiveYellowDirection",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "annual",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+            ],
+          },
+          "type": "array",
+        },
+        "presentationToken": {
+          "description": "本次 calc_bazhai 返回的 result_meta.presentationToken，仅在当前 MCP 进程有效",
+          "format": "uuid",
+          "type": "string",
+        },
+      },
+      "required": [
+        "presentationToken",
+        "claims",
+      ],
+      "type": "object",
+    },
+    "name": "validate_bazhai_presentation",
+    "outputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": true,
+      "properties": {},
+      "type": "object",
+    },
+    "title": "八宅呈现依据校验",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+    },
     "description": "八字呈现依据校验。对本次 bazi_calculate 返回的 result_meta.presentationToken 与 Agent 拟呈现的结构化确定性断言逐项比对；仅核验四柱、日主、五行计数、强弱、大运、神煞。文化背景和建议不进入 claims。校验器不生成、补全或修正解读；任一断言不符时必须移除或改为引擎实际结果。",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",

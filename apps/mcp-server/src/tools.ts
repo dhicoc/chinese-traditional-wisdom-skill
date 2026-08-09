@@ -35,6 +35,7 @@ import { getDailyRhythmEnveloped } from '../../visual/src/legacy/rhythmEngine';
 import { assessConstitutionEnveloped, listConstitutionQuestionnaire } from '../../visual/src/legacy/constitutionAssessEngine';
 import { resolveTrueSolarTime } from '../../visual/src/legacy/trueSolarTime';
 import { registerBaziPresentation } from './baziClaimVerifier.js';
+import { registerBazhaiPresentation } from './bazhaiClaimVerifier.js';
 import { registerZiweiPresentation } from './ziweiClaimVerifier.js';
 
 /** lunar-javascript Solar 入口（供精确历法引擎使用）。加载失败返回 null，引擎自动降级近似。 */
@@ -667,14 +668,27 @@ export const TOOLS: ToolDef[] = [
       kitchen: z.string().optional().describe('厨房灶位方位'),
       year: z.number().int().min(1900).max(2100).optional().describe('查太岁三煞的年份，默认今年'),
     }),
-    handler: (i) => calcBazhaiEnveloped({
-      birthYear: (i as { birthYear: number }).birthYear,
-      gender: (i as { gender: '男' | '女' }).gender,
-      door: (i as { door?: string }).door,
-      bedroom: (i as { bedroom?: string }).bedroom,
-      kitchen: (i as { kitchen?: string }).kitchen,
-      year: (i as { year?: number }).year,
-    }),
+    handler: (i) => {
+      const envelope = calcBazhaiEnveloped({
+        birthYear: (i as { birthYear: number }).birthYear,
+        gender: (i as { gender: '男' | '女' }).gender,
+        door: (i as { door?: string }).door,
+        bedroom: (i as { bedroom?: string }).bedroom,
+        kitchen: (i as { kitchen?: string }).kitchen,
+        year: (i as { year?: number }).year,
+      });
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerBazhaiPresentation(envelope.data, presentationToken);
+      return {
+        ...envelope,
+        result_meta: {
+          ...envelope.result_meta,
+          presentationToken,
+        },
+      };
+    },
   },
   {
     name: 'get_daily_rhythm',

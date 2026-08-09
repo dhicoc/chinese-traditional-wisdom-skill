@@ -47,6 +47,7 @@ export const GLOBAL_AGENT_RULES = [
   '呈现 ToolEnvelope 时，先处理 ok/error；如实说明 data.timeSource 与 warnings；正文优先采用 data.export_snapshot.summary 和 sections。不得默认展示 evidence、result_meta、sourceNotes，也不得重新计算、补全或改写确定性结论。',
   '八字解读若写入四柱、日主、五行计数、日主强弱、大运或神煞等确定性结论，必须以本次 result_meta.presentationToken 调 validate_bazi_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次排盘结果。文化背景和建设性建议不进入 claims。',
   '紫微解读若写入宫位、星曜、四化、五行局、命主、身主或本次动态层等确定性结论，必须以本次 ziwei_chart 的 result_meta.presentationToken 调 validate_ziwei_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次命盘结果。传统解释、条件性推论和建议不进入 claims。',
+  '八宅解读若写入命卦、东四/西四命、八方游年星与吉凶、或本次年份的太岁、岁破、三煞、五黄方位等确定性结论，必须以本次 calc_bazhai 的 result_meta.presentationToken 调 validate_bazhai_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次推算结果。传统释义、布局建议、门主灶与化解建议不进入 claims。',
   '不得替用户编造生辰、性别、出生地等关键参数；缺失时必须追问。',
   '真太阳时必须先核验地点经度、IANA 时区、出生时实际 UTC 偏移与夏令时依据；不得凭模型记忆填写或把民用时间伪称真太阳时。',
   '涉及八字的组合或增强分析也必须传入经核验的 baziTimeContext；民用时间路径须明确确认，并标注“未完成真太阳时复核”。',
@@ -330,7 +331,7 @@ export const TOOL_GUIDANCE: Record<string, ToolGuidance> = {
     ],
     safeDefaults: {},
     doNotAssume: ['birthYear', 'gender', 'door', 'bedroom', 'kitchen'],
-    workflow: '确认出生年+性别 → 调 calc_bazhai 得命卦与八方吉凶；若用户问门主灶则补问 door/bedroom/kitchen 方位再调。',
+    workflow: '确认出生年+性别 → 调 calc_bazhai → 从本次 ToolEnvelope 提取命卦、八方游年星与吉凶、年度太岁/岁破/三煞/五黄等确定性事实组成 claims → 用 presentationToken 调 validate_bazhai_presentation；valid:true 后才呈现。传统释义、布局建议、门主灶与化解建议不进入 claims。若用户问门主灶则补问 door/bedroom/kitchen 方位再调。',
   },
   get_daily_rhythm: {
     tool: 'get_daily_rhythm',

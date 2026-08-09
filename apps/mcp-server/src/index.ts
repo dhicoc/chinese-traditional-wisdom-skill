@@ -19,6 +19,7 @@ import { getToolContract, openObjectOutputSchema, toolEnvelopeOutputSchema, true
 import { getToolGuidance, listToolGuidance, validateToolInput, GLOBAL_AGENT_RULES, TOOL_GUIDANCE } from './guidance.js';
 import { dispatchIntent } from './dispatch.js';
 import { validateBaziPresentation, type BaziPresentationClaim } from './baziClaimVerifier.js';
+import { validateBazhaiPresentation, type BazhaiPresentationClaim } from './bazhaiClaimVerifier.js';
 import { validateZiweiPresentation, type ZiweiPresentationClaim } from './ziweiClaimVerifier.js';
 
 const server = new McpServer({
@@ -26,7 +27,7 @@ const server = new McpServer({
   version: '0.1.0',
 });
 
-const META_TOOLS_COUNT = 3;
+const META_TOOLS_COUNT = 4;
 
 // ─── 注册计算工具（Agent/MCP 硬闸门）───
 for (const tool of TOOLS) {
@@ -184,7 +185,41 @@ server.registerTool(
   },
 );
 
-// ─── 元工具 4: wisdom_dispatch（自然语言意图路由）───
+// ─── 元工具 4: validate_bazhai_presentation（八宅解读依据校验）───
+server.registerTool(
+  'validate_bazhai_presentation',
+  {
+    ...getToolContract('validate_bazhai_presentation'),
+    description: '八宅呈现依据校验。对本次 calc_bazhai 返回的 result_meta.presentationToken 与拟呈现的结构化确定性八宅断言逐项比对；仅核验命卦、八方游年星与吉凶、指定年份的太岁、岁破、三煞和五黄方位。传统释义、布局建议、门主灶与化解建议不进入 claims。校验器不生成、补全或修正解读；任一断言不符时必须移除或改为引擎实际结果。',
+    inputSchema: {
+      presentationToken: z.string().uuid().describe('本次 calc_bazhai 返回的 result_meta.presentationToken，仅在当前 MCP 进程有效'),
+      claims: z.array(z.union([
+        z.object({ kind: z.literal('mingGua'), field: z.enum(['trigram', 'group']), value: z.string().min(1) }),
+        z.object({ kind: z.literal('mingGua'), field: z.literal('num'), value: z.number().int().min(1).max(9) }),
+        z.object({ kind: z.literal('direction'), direction: z.string().min(1), field: z.enum(['star', 'quality']), value: z.string().min(1) }),
+        z.object({ kind: z.literal('annual'), field: z.enum(['yearZhi', 'taisuiZhi', 'taisuiDirection', 'taisuiBagua', 'suiPoZhi', 'suiPoDirection', 'suiPoBagua', 'sanShaZhiList', 'sanShaDirection', 'fiveYellowBagua', 'fiveYellowDirection']), value: z.string().min(1) }),
+      ])).describe('拟呈现文本中的确定性八宅断言；不包含传统释义、布局建议、门主灶或化解建议'),
+    },
+    outputSchema: openObjectOutputSchema,
+  },
+  async (input: unknown) => {
+    const { presentationToken, claims } = input as { presentationToken: string; claims: BazhaiPresentationClaim[] };
+    const validation = validateBazhaiPresentation(presentationToken, claims);
+    const structuredContent = validation ? { ...validation } : {
+      valid: false,
+      violations: [{
+        kind: 'presentationToken',
+        message: 'presentationToken 无效、已失效或不属于当前 MCP 进程；请重新调用 calc_bazhai。',
+      }],
+    };
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(structuredContent, null, 2) }],
+      structuredContent,
+    };
+  },
+);
+
+// ─── 元工具 5: wisdom_dispatch（自然语言意图路由）───
 server.registerTool(
   'wisdom_dispatch',
   {

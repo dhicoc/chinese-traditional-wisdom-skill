@@ -54,6 +54,11 @@ describe('agent_guidance 参数引导', () => {
     expect(getToolGuidance('ziwei_chart')!.workflow).toContain('validate_ziwei_presentation');
   });
 
+  it('GLOBAL_AGENT_RULES 要求八宅确定性断言通过呈现校验', () => {
+    expect(GLOBAL_AGENT_RULES.some((r) => r.includes('calc_bazhai') && r.includes('validate_bazhai_presentation') && r.includes('claims'))).toBe(true);
+    expect(getToolGuidance('calc_bazhai')!.workflow).toContain('validate_bazhai_presentation');
+  });
+
   it('safeDefaults 不包含默认男', () => {
     const serializedDefaults = JSON.stringify(Object.values(listToolGuidance()).map((item) => getToolGuidance(item.tool)?.safeDefaults));
     expect(serializedDefaults).not.toContain('"gender":"男"');

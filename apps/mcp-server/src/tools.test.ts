@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { TOOLS } from './tools';
 import { validateBaziPresentation } from './baziClaimVerifier';
+import { validateBazhaiPresentation } from './bazhaiClaimVerifier';
 import type { ToolEnvelope } from '../../visual/src/legacy/baseTypes';
 
 /**
@@ -211,6 +212,30 @@ describe('ziwei_chart', async () => {
       hourRule: '23:00-23:59=>early-zi',
       enabledDynamicLayers: ['decadal', 'yearly', 'monthly', 'age'],
     });
+  });
+});
+
+describe('calc_bazhai', () => {
+  it('为本次推算签发凭证，并拒绝不符合引擎事实的呈现断言', () => {
+    const tool = findTool('calc_bazhai');
+    const env = tool.handler({ birthYear: 1990, gender: '男', year: 2026 }) as ToolEnvelope;
+    const data = env.data as {
+      mingGua: { trigram: string };
+      directions: Array<{ direction: string; star: string }>;
+      taisui: { fiveYellow: { direction: string } };
+    };
+    const token = env.result_meta?.presentationToken;
+    const direction = data.directions[0]!;
+
+    expect(token).toMatch(/^[0-9a-f-]{36}$/);
+    expect(validateBazhaiPresentation(token!, [
+      { kind: 'mingGua', field: 'trigram', value: data.mingGua.trigram },
+      { kind: 'direction', direction: direction.direction, field: 'star', value: direction.star },
+      { kind: 'annual', field: 'fiveYellowDirection', value: data.taisui.fiveYellow.direction },
+    ])).toEqual({ valid: true, violations: [] });
+    expect(validateBazhaiPresentation(token!, [
+      { kind: 'mingGua', field: 'trigram', value: '不存在命卦' },
+    ])).toMatchObject({ valid: false, violations: [expect.objectContaining({ kind: 'mingGua' })] });
   });
 });
 

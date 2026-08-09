@@ -71,13 +71,13 @@ ToolEnvelope<TData> = { ok, tool, version, input_normalized, data: TData & { exp
 
 > `apps/mcp-server/`：薄壳包装上述 enveloped 引擎为 MCP 工具，供 Claude Code/Desktop/Cursor/Cline 调用。无计算逻辑，import 纯 TS 引擎。
 
-**36 个 MCP 工具**（32 计算 + 4 元工具）：
+**37 个 MCP 工具**（32 计算 + 5 元工具）：
 - 时间校准（1）：`resolve_true_solar_time`。Agent 必须先核验地点经度、IANA 时区、出生当日 UTC 偏移、夏令时状态和 `utcOffsetEvidence`；工具仅确定性计算，不解析地点或猜测历史规则。
 - 排盘计算（22）：`bazi_calculate` / `ziwei_chart` / `cast_liuyao` / `arrange_qimen` / `liuren_calculate` / `xingxiu_daily` / `taiyi_calculate` / `huangji_calculate` / `cast_meihua` / `calc_yunqi` / `analyze_name` / `calc_xiyong` / `get_constitution_tendency` / `dream_interpret` / `cast_cezi` / `calc_chenguz` / `get_almanac` / `calc_feixing` / `calc_bazhai` / `get_daily_rhythm` / `assess_constitution` / `list_constitution_questionnaire`
 - 跨系统联合分析（9）：`combo_annual_fortune` / `combo_monthly_fortune` / `combo_decision` / `combo_space_time` / `combo_sanshi` / `combo_sanshi_classic` / `combo_daily_wellness` / `combo_zeri` / `combo_marriage`
-- 元工具（4）：`agent_guidance`（参数引导防瞎猜）/ `validate_bazi_presentation`（八字呈现依据校验）/ `validate_ziwei_presentation`（紫微呈现依据校验）/ `wisdom_dispatch`（自然语言意图路由）
+- 元工具（5）：`agent_guidance`（参数引导防瞎猜）/ `validate_bazi_presentation`（八字呈现依据校验）/ `validate_ziwei_presentation`（紫微呈现依据校验）/ `validate_bazhai_presentation`（八宅呈现依据校验）/ `wisdom_dispatch`（自然语言意图路由）
 
-八字调用顺序固定为：Agent 核验事实 → `resolve_true_solar_time` → 将 `trueSolarBirth` 传给 `bazi_calculate` → 使用本次 `presentationToken` 调 `validate_bazi_presentation` 校验待呈现的确定性 claims。紫微呈现宫位、星曜、四化、命主、身主或本次动态层等确定性 claims 前，必须使用本次 `ziwei_chart` 的 `presentationToken` 调 `validate_ziwei_presentation`；传统解释与建议不进入 claims。无法可靠核验时，仅能在用户知情下按民用时间排盘并标注“未完成真太阳时复核”；Dashboard 只展示此状态，不独立作出真太阳时判断。
+八字调用顺序固定为：Agent 核验事实 → `resolve_true_solar_time` → 将 `trueSolarBirth` 传给 `bazi_calculate` → 使用本次 `presentationToken` 调 `validate_bazi_presentation` 校验待呈现的确定性 claims。紫微呈现宫位、星曜、四化、命主、身主或本次动态层等确定性 claims 前，必须使用本次 `ziwei_chart` 的 `presentationToken` 调 `validate_ziwei_presentation`；传统解释与建议不进入 claims。八宅呈现命卦、八方游年星与吉凶、年度太岁/岁破/三煞/五黄方位前，必须使用本次 `calc_bazhai` 的 `presentationToken` 调 `validate_bazhai_presentation`；传统释义、布局建议、门主灶与化解建议不进入 claims。无法可靠核验时，仅能在用户知情下按民用时间排盘并标注“未完成真太阳时复核”；Dashboard 只展示此状态，不独立作出真太阳时判断。
 
 **一键自动配置**（无需手动编辑 JSON）：
 ```bash

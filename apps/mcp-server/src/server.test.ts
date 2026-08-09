@@ -163,7 +163,7 @@ describe('MCP Server 端到端协议', () => {
     expect(result.protocolVersion).toBe('2024-11-05');
   }, 30000);
 
-  it('tools/list 返回 36 个工具（32 计算 + 4 元工具）且 inputSchema 完整', async () => {
+  it('tools/list 返回 37 个工具（32 计算 + 5 元工具）且 inputSchema 完整', async () => {
     const responses = await runMcpSession([INIT_MSG, INITIALIZED_MSG, TOOLS_LIST_MSG]);
     const list = responses.find((r) => r.id === 2);
     expect(list).toBeDefined();
@@ -182,7 +182,7 @@ describe('MCP Server 端到端协议', () => {
         };
       }>;
     }).tools;
-    expect(tools.length).toBe(36);
+    expect(tools.length).toBe(37);
     tools.forEach((t) => {
       expect(t.name).toMatch(/^[a-z][a-z0-9_]*$/);
       expect(t.description.length).toBeGreaterThan(10);
@@ -198,6 +198,7 @@ describe('MCP Server 端到端协议', () => {
     expect(names).toContain('agent_guidance');
     expect(names).toContain('validate_bazi_presentation');
     expect(names).toContain('validate_ziwei_presentation');
+    expect(names).toContain('validate_bazhai_presentation');
     expect(names).toContain('wisdom_dispatch');
     tools.forEach((tool) => {
       expect(tool.title).toBeTruthy();
@@ -368,6 +369,61 @@ describe('MCP Server 端到端协议', () => {
     expect(invalidPayload).toEqual({
       valid: false,
       violations: [expect.objectContaining({ kind: 'palaceStar', actual: '不存在星曜' })],
+    });
+  }, 30000);
+
+  it('同一会话中仅允许通过校验的八宅断言进入呈现', async () => {
+    const responses = await runMcpSessionWithFollowUp([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(32, 'calc_bazhai', { birthYear: 1990, gender: '男', year: 2026 }),
+    ], (calculation) => {
+      if (calculation.id !== 32) return null;
+      const envelope = (calculation.result as {
+        structuredContent: {
+          data: {
+            mingGua: { trigram: string };
+            directions: Array<{ direction: string; star: string }>;
+            taisui: { fiveYellow: { direction: string } };
+          };
+          result_meta: { presentationToken: string };
+        };
+      }).structuredContent;
+      const direction = envelope.data.directions[0]!;
+      const claims = [
+        { kind: 'mingGua', field: 'trigram', value: envelope.data.mingGua.trigram },
+        { kind: 'direction', direction: direction.direction, field: 'star', value: direction.star },
+        { kind: 'annual', field: 'fiveYellowDirection', value: envelope.data.taisui.fiveYellow.direction },
+      ];
+
+      return [
+        toolCallMsg(33, 'validate_bazhai_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims,
+        }),
+        toolCallMsg(34, 'validate_bazhai_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [{ kind: 'annual', field: 'fiveYellowDirection', value: '不存在方位' }],
+        }),
+      ];
+    });
+
+    const validResult = responses.find((response) => response.id === 33)!.result as {
+      content: Array<{ text: string }>;
+      structuredContent: { valid: boolean; violations: unknown[] };
+    };
+    const invalidResult = responses.find((response) => response.id === 34)!.result as {
+      content: Array<{ text: string }>;
+      structuredContent: { valid: boolean; violations: Array<{ kind: string; actual: string }> };
+    };
+    const validPayload = JSON.parse(validResult.content[0].text) as { valid: boolean; violations: unknown[] };
+    const invalidPayload = JSON.parse(invalidResult.content[0].text) as { valid: boolean; violations: Array<{ kind: string; actual: string }> };
+
+    expect(validResult.structuredContent).toEqual(validPayload);
+    expect(validPayload).toEqual({ valid: true, violations: [] });
+    expect(invalidResult.structuredContent).toEqual(invalidPayload);
+    expect(invalidPayload).toEqual({
+      valid: false,
+      violations: [expect.objectContaining({ kind: 'annual', actual: '不存在方位' })],
     });
   }, 30000);
 
