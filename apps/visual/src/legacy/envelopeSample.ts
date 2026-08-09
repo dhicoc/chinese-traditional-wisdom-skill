@@ -3,18 +3,13 @@
  *
  * 这是「架构层优化第一步」的样板（ROADMAP「功能层增强计划」同批，但属工程化层）：
  * 证明一个干净的纯 TS 引擎（A 类，零 DOM 依赖）如何返回统一 ToolEnvelope，
- * 为未来 MCP server 直接 import 提供第一个可复用的工具。
+ * 供本地运行器复用。
  *
  * 设计要点：
  * - 不替换 dreamDictionary.searchDream 原函数（DreamWorkspace 继续用原函数，零回归）。
  * - 新增 searchDreamEnveloped()，包成 ToolEnvelope 返回。
  * - 用 wrapEnvelope() 辅助函数包装，未来新引擎可直接构造 envelope，无需 wrap。
  * - 全部纯计算，无 window/document/canvas 依赖 —— Node 环境可直接 import。
- *
- * 未来 MCP server 接入方式（示意，本文件不实现）：
- *   import { searchDreamEnveloped } from '@/legacy/envelopeSample';
- *   server.tool('dream_search', { keyword: z.string() }, async ({keyword}) =>
- *     searchDreamEnveloped(keyword, true));
  */
 
 import { searchDream, type DreamSearchResult } from './dreamDictionary';

@@ -1,9 +1,9 @@
-import type { ConstitutionTendencyData, NameRatingData, XiYongData } from '../../visual/src/legacy/envelopeAdapters';
-import type { DreamSearchData } from '../../visual/src/legacy/envelopeSample';
-import type { CeziResult } from '../../visual/src/legacy/ceziEngine';
-import type { ChenguzResult } from '../../visual/src/legacy/chenguzEngine';
-import type { RhythmResult } from '../../visual/src/legacy/rhythmEngine';
-import type { AssessResult } from '../../visual/src/legacy/constitutionAssessEngine';
+import type { ConstitutionTendencyData, NameRatingData, XiYongData } from '../envelopeAdapters';
+import type { DreamSearchData } from '../envelopeSample';
+import type { CeziResult } from '../ceziEngine';
+import type { ChenguzResult } from '../chenguzEngine';
+import type { RhythmResult } from '../rhythmEngine';
+import type { AssessResult } from '../constitutionAssessEngine';
 
 export type DailyPresentationTool = 'analyze_name' | 'calc_xiyong' | 'get_constitution_tendency' | 'dream_interpret' | 'cast_cezi' | 'calc_chenguz' | 'get_daily_rhythm' | 'assess_constitution';
 
@@ -45,17 +45,6 @@ export interface DailyClaimViolation {
 export interface DailyClaimValidation {
   valid: boolean;
   violations: DailyClaimViolation[];
-}
-
-const presentationResults = new Map<string, { tool: DailyPresentationTool; data: DailyPresentationData }>();
-
-export function registerDailyPresentation(tool: DailyPresentationTool, data: DailyPresentationData, token: string) {
-  presentationResults.set(token, { tool, data });
-}
-
-export function validateDailyPresentation(token: string, claims: DailyPresentationClaim[]): DailyClaimValidation | null {
-  const entry = presentationResults.get(token);
-  return entry ? validateDailyClaims(entry.tool, entry.data, claims) : null;
 }
 
 export function validateDailyClaims(

@@ -1,4 +1,4 @@
-import type { BaziData } from '../../visual/src/legacy/baziEngine';
+import type { BaziData } from '../baziEngine';
 
 export type BaziPresentationClaim =
   | { kind: 'pillar'; pillar: 'year' | 'month' | 'day' | 'hour'; value: string }
@@ -19,17 +19,6 @@ export interface BaziClaimViolation {
 export interface BaziClaimValidation {
   valid: boolean;
   violations: BaziClaimViolation[];
-}
-
-const presentationResults = new Map<string, BaziData>();
-
-export function registerBaziPresentation(data: BaziData, token: string) {
-  presentationResults.set(token, data);
-}
-
-export function validateBaziPresentation(token: string, claims: BaziPresentationClaim[]): BaziClaimValidation | null {
-  const data = presentationResults.get(token);
-  return data ? validateBaziClaims(data, claims) : null;
 }
 
 export function validateBaziClaims(data: BaziData, claims: BaziPresentationClaim[]): BaziClaimValidation {

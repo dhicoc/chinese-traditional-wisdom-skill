@@ -2,8 +2,7 @@
  * envelopeAdapters.ts —— A 类纯 TS 引擎的 ToolEnvelope 适配层
  *
  * 架构层优化第 2 步：把已确认为 A 类（零 DOM 依赖）的引擎各包一个
- * `xxxEnveloped` 函数，统一返回 ToolEnvelope。未来 MCP server 从本文件
- * 直接 import 即可获得一批可用工具，无需回头剥离 window 耦合。
+ * `xxxEnveloped` 函数，统一返回 ToolEnvelope，供本地运行器直接调用。
  *
  * 收录引擎：
  * - calcXiYongEnveloped   喜用神推算（输入：日主五行 + 五行计数）
@@ -14,11 +13,6 @@
  * - 不替换原函数，原调用方继续用 calcXiYong/calcNameRating/...，零回归。
  * - envelope 的 data 主体 = 原结果 + export_snapshot（稳定段表，供 LLM/报告渲染）。
  * - 全部纯计算，无 window/document/canvas 依赖，Node 可直接 import。
- *
- * 未来 MCP 接入示意（本文件不实现）：
- *   import { calcNameRatingEnveloped } from '@/legacy/envelopeAdapters';
- *   server.tool('name_rating', {surname:z.string(), givenName:z.string(), birthYear:z.number().optional()},
- *     async (i) => calcNameRatingEnveloped(i.surname, i.givenName, i.birthYear));
  */
 
 import { calcXiYong, type XiYongResult } from './xiyong';

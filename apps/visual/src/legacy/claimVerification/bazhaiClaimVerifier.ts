@@ -1,4 +1,4 @@
-import type { BazhaiResult } from '../../visual/src/legacy/bazhaiEngine';
+import type { BazhaiResult } from '../bazhaiEngine';
 
 export type BazhaiPresentationClaim =
   | { kind: 'mingGua'; field: 'trigram' | 'group'; value: string }
@@ -21,17 +21,6 @@ export interface BazhaiClaimViolation {
 export interface BazhaiClaimValidation {
   valid: boolean;
   violations: BazhaiClaimViolation[];
-}
-
-const presentationResults = new Map<string, BazhaiResult>();
-
-export function registerBazhaiPresentation(data: BazhaiResult, token: string) {
-  presentationResults.set(token, data);
-}
-
-export function validateBazhaiPresentation(token: string, claims: BazhaiPresentationClaim[]): BazhaiClaimValidation | null {
-  const data = presentationResults.get(token);
-  return data ? validateBazhaiClaims(data, claims) : null;
 }
 
 export function validateBazhaiClaims(data: BazhaiResult, claims: BazhaiPresentationClaim[]): BazhaiClaimValidation {

@@ -4,7 +4,7 @@
  * 从 visual/js/engines/liuyao-engine.js 移植为纯 TS。原引擎为自研京房八宫纳甲体系，
  * 无外部依赖，仅日干/日干支取数用 window.Solar（lunar-javascript）。剥离后：
  * - Solar 入口参数化（传入走精确日干支 local-exact，未传走基准日近似 local-approx）
- * - 其余全部纯查表 + 确定性计算，Node/MCP 可直接 import
+ * - 其余全部纯查表 + 确定性计算，可在 Node 环境直接 import
  *
  * 输出结构与旧 LiuyaoEngine.calculate 完全一致，divinationTypes/渲染器可直接消费。
  * 旧 JS 保留作 EngineAdapterRegistry fallback，零回归。

@@ -1,4 +1,4 @@
-import type { FeixingResult } from '../../visual/src/legacy/feixingEngine';
+import type { FeixingResult } from '../feixingEngine';
 
 export type FeixingPresentationClaim =
   | { kind: 'year'; value: number }
@@ -17,17 +17,6 @@ export interface FeixingClaimViolation {
 export interface FeixingClaimValidation {
   valid: boolean;
   violations: FeixingClaimViolation[];
-}
-
-const presentationResults = new Map<string, FeixingResult>();
-
-export function registerFeixingPresentation(data: FeixingResult, token: string) {
-  presentationResults.set(token, data);
-}
-
-export function validateFeixingPresentation(token: string, claims: FeixingPresentationClaim[]): FeixingClaimValidation | null {
-  const data = presentationResults.get(token);
-  return data ? validateFeixingClaims(data, claims) : null;
 }
 
 export function validateFeixingClaims(data: FeixingResult, claims: FeixingPresentationClaim[]): FeixingClaimValidation {

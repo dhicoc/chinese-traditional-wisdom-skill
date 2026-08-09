@@ -1,7 +1,7 @@
 /**
- * solarEntry — lunar-typescript ESM 入口（纯 npm，不依赖 visual/ vendor 或 window 全局）
+ * solarEntry — lunar-typescript ESM 入口（纯 npm，不依赖 visual/vendor 或 window 全局）
  *
- * React / MCP 共用：需要精确历法时传入 getSolarEntry() / getLunarEntry()。
+ * React 与本地运行器共用：需要精确历法时传入 getSolarEntry() / getLunarEntry()。
  */
 
 import { Solar, Lunar } from 'lunar-typescript';

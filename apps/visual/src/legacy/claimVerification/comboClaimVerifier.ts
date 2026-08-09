@@ -1,13 +1,15 @@
-import type { DailyWellnessResult, MonthlyFortuneResult, ZeriResult } from '../../visual/src/legacy/comboEngine';
-import type { MarriageResult } from '../../visual/src/legacy/marriageCombo';
+import type { AnnualFortuneResult, DailyWellnessResult, MonthlyFortuneResult, ZeriResult } from '../comboEngine';
+import type { MarriageResult } from '../marriageCombo';
 
-export type ComboPresentationTool = 'combo_zeri' | 'combo_daily_wellness' | 'combo_monthly_fortune' | 'combo_marriage';
+export type ComboPresentationTool = 'combo_annual_fortune' | 'combo_zeri' | 'combo_daily_wellness' | 'combo_monthly_fortune' | 'combo_marriage';
 
 type MarriagePerson = 'personA' | 'personB';
 type Wuxing = '木' | '火' | '土' | '金' | '水';
 type ChongHeRelationField = 'chong' | 'liuHe' | 'sanHe' | 'hai' | 'xing' | 'ganHe' | 'ganChong';
 
 export type ComboPresentationClaim =
+  | { tool: string; kind: 'annualContext'; field: 'targetYear'; value: number }
+  | { tool: string; kind: 'annualContext'; field: 'mingGuaTrigram' | 'mingGuaGroup'; value: string }
   | { tool: string; kind: 'zeriPurpose'; value: ZeriResult['zeriPurpose'] }
   | { tool: string; kind: 'zeriRange'; field: 'start' | 'end' | 'scannedDays'; value: string | number }
   | { tool: string; kind: 'zeriRankedDay'; index: number; field: 'date' | 'lunarDate' | 'dayGanZhi' | 'score' | 'tone' | 'chongOwner' | 'hitsAnnualSha'; value: string | number | boolean }
@@ -42,18 +44,7 @@ export interface ComboClaimValidation {
   violations: ComboClaimViolation[];
 }
 
-type ComboPresentationData = ZeriResult | DailyWellnessResult | MonthlyFortuneResult | MarriageResult;
-
-const presentationResults = new Map<string, { tool: ComboPresentationTool; data: ComboPresentationData }>();
-
-export function registerComboPresentation(tool: ComboPresentationTool, data: ComboPresentationData, token: string) {
-  presentationResults.set(token, { tool, data });
-}
-
-export function validateComboPresentation(token: string, claims: ComboPresentationClaim[]): ComboClaimValidation | null {
-  const entry = presentationResults.get(token);
-  return entry ? validateComboClaims(entry.tool, entry.data, claims) : null;
-}
+type ComboPresentationData = AnnualFortuneResult | ZeriResult | DailyWellnessResult | MonthlyFortuneResult | MarriageResult;
 
 export function validateComboClaims(
   tool: ComboPresentationTool,
@@ -86,6 +77,19 @@ function getExpectedValue(
   data: ComboPresentationData,
   claim: ComboPresentationClaim,
 ): string | number | boolean | undefined {
+  if (tool === 'combo_annual_fortune') {
+    const annual = data as AnnualFortuneResult;
+    switch (claim.kind) {
+      case 'annualContext':
+        if (claim.field === 'targetYear') return annual.context.targetYear;
+        return claim.field === 'mingGuaTrigram'
+          ? annual.context.mingGua.trigram
+          : annual.context.mingGua.group;
+      default:
+        return undefined;
+    }
+  }
+
   if (tool === 'combo_zeri') {
     const zeri = data as ZeriResult;
     switch (claim.kind) {

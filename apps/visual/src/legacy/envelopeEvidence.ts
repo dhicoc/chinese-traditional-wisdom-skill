@@ -6,7 +6,7 @@
  * AI 解读时必须基于 evidence 转述，不能凭模型自身知识补数值。
  *
  * 设计原则：
- * - evidence 只进 ToolEnvelope.data / MCP 输出，**不进 UI 文案**（UI 只消费 summary）
+ * - evidence 只进 ToolEnvelope.data，**不进 UI 文案**（UI 只消费 summary）
  * - 每条事实可溯源（source 指向古籍/历表/算法）
  * - limitation 封死解释边界：只记录盘面资料，不得由单柱推出性格/六亲/健康等
  */
@@ -69,8 +69,6 @@ export interface ResultMeta {
   algorithm?: string;
   /** 实际采用口径（如真太阳时/平太阳时、立春/正月初一分界） */
   calculationConfig?: Record<string, unknown>;
-  /** 当前 MCP 进程内的八字呈现校验凭证；仅供 validate_bazi_presentation 使用 */
-  presentationToken?: string;
 }
 
 /** 稳定序列化：拒绝 NaN/Infinity/循环引用，用于输入哈希 */

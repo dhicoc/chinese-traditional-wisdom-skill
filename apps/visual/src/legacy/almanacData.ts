@@ -149,7 +149,7 @@ function hourLabel(zhi: string): string {
 /**
  * 取指定公历日期的黄历数据。
  * @param dateStr 公历日期字符串 yyyy-mm-dd
- * @param solar 可选 lunar-javascript Solar 入口；传入时走纯 TS 路径（A 类，MCP 可直接 import lunar-javascript 的 ESM 版传入）。
+ * @param solar 可选 lunar-javascript Solar 入口；传入时走纯 TS 路径（A 类，可传入 lunar-javascript 的 ESM 版）。
  *              未传时回退读 window.Solar（旧 JS 暴露），两者皆不可用返回 null。
  */
 export function getAlmanacData(dateStr: string, solar?: SolarLike | null): AlmanacData | null {
@@ -234,18 +234,18 @@ export function getAlmanacData(dateStr: string, solar?: SolarLike | null): Alman
   }
 }
 
-// ─── ToolEnvelope 包装（供 MCP server 注册为工具）──
+// ─── ToolEnvelope 包装（供本地运行器调用）──
 
 export interface AlmanacInput {
   /** 公历日期 yyyy-mm-dd，缺省取今天 */
   date?: string;
-  /** 可选 lunar-javascript Solar 入口（MCP 端传入 ESM 版） */
+  /** 可选 lunar-javascript Solar 入口（传入 ESM 版） */
   solar?: SolarLike | null;
 }
 
 /**
  * 每日黄历（enveloped 版）：按公历日期返回完整黄历数据 + 四层报告快照。
- * 供 MCP server 注册为 get_almanac 工具，AI 对话直接调用。
+ * 供本地运行器调用 get_almanac 工具。
  */
 export function getAlmanacEnveloped(input: AlmanacInput = {}): ToolEnvelope<AlmanacData> {
   const today = (() => {

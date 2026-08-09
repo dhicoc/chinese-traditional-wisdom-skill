@@ -1,8 +1,8 @@
 /**
- * feixingEngine — 流年飞星 MCP 工具引擎。
+ * feixingEngine — 流年飞星本地计算引擎。
  *
  * 把 canvasRenderers 的飞星排盘 + flyingStarRemedies 的九星化解/元运/星曜状态
- * 组合成完整 ToolEnvelope，供 MCP server 注册为 calc_feixing 工具。
+ * 组合成完整 ToolEnvelope，供本地运行器调用 calc_feixing 工具。
  * 纯计算（按年份九宫飞布），零外部依赖。
  */
 

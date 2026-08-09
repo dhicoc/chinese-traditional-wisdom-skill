@@ -38,7 +38,7 @@ export interface BirthIntentDetail {
 
 export interface TrueSolarTimeIntentDetail {
   resolution: TrueSolarTimeResolution;
-  source: 'agent-mcp';
+  source: 'agent-local';
 }
 
 export interface CivilTimeFallbackIntentDetail {

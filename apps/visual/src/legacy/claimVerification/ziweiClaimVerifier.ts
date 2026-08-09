@@ -1,4 +1,4 @@
-import { getZiweiHoroscopeSummary, type ZiweiData, type ZiweiInput } from '../../visual/src/legacy/ziweiEngine';
+import { getZiweiHoroscopeSummary, type ZiweiData } from '../ziweiEngine';
 
 export type ZiweiPresentationClaim =
   | { kind: 'palace'; palace: string; field: 'position' | 'miaoxian'; value: string }
@@ -19,28 +19,6 @@ export interface ZiweiClaimViolation {
 export interface ZiweiClaimValidation {
   valid: boolean;
   violations: ZiweiClaimViolation[];
-}
-
-interface ZiweiPresentationRecord {
-  data: ZiweiData;
-  transit: ReturnType<typeof getZiweiHoroscopeSummary>;
-}
-
-const presentationResults = new Map<string, ZiweiPresentationRecord>();
-
-export function registerZiweiPresentation(data: ZiweiData, input: ZiweiInput, token: string) {
-  const now = new Date();
-  const transit = getZiweiHoroscopeSummary(
-    input.birth,
-    input.transit?.year ?? now.getFullYear(),
-    input.transit?.month ?? now.getMonth() + 1,
-  );
-  presentationResults.set(token, { data, transit });
-}
-
-export function validateZiweiPresentation(token: string, claims: ZiweiPresentationClaim[]): ZiweiClaimValidation | null {
-  const record = presentationResults.get(token);
-  return record ? validateZiweiClaims(record.data, claims, record.transit) : null;
 }
 
 export function validateZiweiClaims(

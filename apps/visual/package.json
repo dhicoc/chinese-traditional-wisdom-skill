@@ -14,7 +14,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
-    "verify:gen": "node scripts/generate-verify-page.mjs"
+    "verify:gen": "node scripts/generate-verify-page.mjs",
+    "engine": "tsx scripts/run-engine.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "latest",
@@ -41,6 +42,7 @@
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "jsdom": "^29.1.1",
+    "tsx": "^4.21.0",
     "vitest": "^4.1.10"
   }
 }

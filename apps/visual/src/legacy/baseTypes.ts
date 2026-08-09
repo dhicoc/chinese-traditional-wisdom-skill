@@ -9,9 +9,9 @@ import type { EvidenceBundle, ResultMeta } from './envelopeEvidence';
 //  ToolEnvelope —— 统一工具输出信封（借鉴 horosa-skill ToolEnvelope）
 //
 //  目的：让每个引擎 Adapter 的 calculate() 返回统一结构，而非裸对象。
-//  这样：(1) React 工作区、报告导出、未来 MCP server 消费同一份结构；
-//        (2) LLM 拿到稳定段表（export_snapshot）而非自由文本；
-//        (3) 系统做完后包装 MCP server 是薄壳，无需逐引擎剥离。
+//  这样：(1) React 工作区、报告导出、本地运行器消费同一份结构；
+//        (2) Agent 拿到稳定段表（export_snapshot）而非自由文本；
+//        (3) 各引擎均可独立调用，无需额外协议包装。
 //
 //  渐进式策略：旧 Adapter 仍返回裸对象，通过 wrapEnvelope() 包成信封；
 //  新引擎直接返回 ToolEnvelope。export_snapshot 放在 data 内部（对齐

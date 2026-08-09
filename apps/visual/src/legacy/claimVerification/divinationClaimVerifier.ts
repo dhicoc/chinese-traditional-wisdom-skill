@@ -1,9 +1,9 @@
-import type { DaliurenData } from '../../visual/src/legacy/daliurenEngine';
-import type { HuangjiData } from '../../visual/src/legacy/huangjiEngine';
-import type { LiuyaoData } from '../../visual/src/legacy/liuyaoEngine';
-import type { MeihuaData } from '../../visual/src/legacy/meihuaEngine';
-import type { QimenData } from '../../visual/src/legacy/qimenEngine';
-import type { TaiyiData } from '../../visual/src/legacy/taiyiEngine';
+import type { DaliurenData } from '../daliurenEngine';
+import type { HuangjiData } from '../huangjiEngine';
+import type { LiuyaoData } from '../liuyaoEngine';
+import type { MeihuaData } from '../meihuaEngine';
+import type { QimenData } from '../qimenEngine';
+import type { TaiyiData } from '../taiyiEngine';
 
 export type DivinationPresentationTool = 'cast_liuyao' | 'cast_meihua' | 'arrange_qimen' | 'liuren_calculate' | 'taiyi_calculate' | 'huangji_calculate';
 
@@ -50,17 +50,6 @@ export interface DivinationClaimViolation {
 export interface DivinationClaimValidation {
   valid: boolean;
   violations: DivinationClaimViolation[];
-}
-
-const presentationResults = new Map<string, { tool: DivinationPresentationTool; data: DivinationData }>();
-
-export function registerDivinationPresentation(tool: DivinationPresentationTool, data: DivinationData, token: string) {
-  presentationResults.set(token, { tool, data });
-}
-
-export function validateDivinationPresentation(token: string, claims: DivinationPresentationClaim[]): DivinationClaimValidation | null {
-  const entry = presentationResults.get(token);
-  return entry ? validateDivinationClaims(entry.tool, entry.data, claims) : null;
 }
 
 export function validateDivinationClaims(

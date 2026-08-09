@@ -9,7 +9,7 @@ import {
 
 /**
  * 验证 B 类引擎参数化后升为 A 类：不依赖 window.CORE，
- * 仅用内嵌常量或入参即可独立计算（Node/MCP 可直接 import）。
+ * 仅用内嵌常量或入参即可在 Node 环境独立计算。
  */
 
 describe('bazhaiHouse 纯 TS 路径（无 window 依赖）', () => {

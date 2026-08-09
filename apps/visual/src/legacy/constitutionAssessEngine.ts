@@ -1,9 +1,9 @@
 /**
- * constitutionAssessEngine — 体质问卷自评 MCP 工具引擎。
+ * constitutionAssessEngine — 体质问卷自评本地计算引擎。
  *
  * 与 get_constitution_tendency（按出生年五运六气倾向推断）互补：
  * 本工具按用户实际答题算九种体质转化分 + 主体质 + 调养建议，更贴近真实体质。
- * 供 MCP server 注册为 assess_constitution 工具。
+ * 供本地运行器调用 assess_constitution 工具。
  */
 
 import type { ToolEnvelope, ExportSnapshot, Tone } from './baseTypes';

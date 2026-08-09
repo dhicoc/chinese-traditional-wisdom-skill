@@ -1,8 +1,8 @@
 /**
- * bazhaiEngine — 八宅大游年 MCP 工具引擎。
+ * bazhaiEngine — 八宅大游年本地计算引擎。
  *
  * 组合 bazhaiHouse（命卦/宅卦/个人八方吉凶/方位分析）+ menZhuZaoEngine（门主灶）
- * + taisuiEngine（太岁三煞）成完整 ToolEnvelope，供 MCP server 注册为 calc_bazhai。
+ * + taisuiEngine（太岁三煞）成完整 ToolEnvelope，供本地运行器调用 calc_bazhai。
  * 纯计算，零外部依赖（不依赖 solar，只需出生年+性别推命卦）。
  */
 

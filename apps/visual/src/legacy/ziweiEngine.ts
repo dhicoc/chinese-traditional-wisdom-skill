@@ -10,7 +10,7 @@
  *   ZiweiPalaceGrid/渲染器可直接消费。
  * - 旧 JS ZiweiIztroAdapter 保留作 EngineAdapterRegistry fallback，零回归。
  *
- * MCP 端：import { calcZiweiEnveloped } from './ziweiEngine' 即可直接调用，
+ * 本地运行器可直接 import { calcZiweiEnveloped } from './ziweiEngine'，
  * 无需 window、无需 vendor script loader。
  */
 

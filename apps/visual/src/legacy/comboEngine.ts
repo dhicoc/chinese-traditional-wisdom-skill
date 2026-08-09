@@ -92,6 +92,13 @@ export interface ComboResult {
   confidenceNote: string;
 }
 
+export interface AnnualFortuneResult extends ComboResult {
+  context: {
+    targetYear: number;
+    mingGua: { trigram: string; group: string };
+  };
+}
+
 // ─── tone 推断（从 envelope 的 snapshot summary + tags）───
 
 function toneFromEnvelope(env: ToolEnvelope): Tone {
@@ -143,7 +150,7 @@ export interface AnnualFortuneComboInput {
 /**
  * 年度综合运势 = 八字（大运/日主/喜用）+ 五运六气（年运）+ 奇门（年盘）+ 紫微流年/大限 + 命卦方位
  */
-export function calcAnnualFortuneCombo(input: AnnualFortuneComboInput): ToolEnvelope<ComboResult> {
+export function calcAnnualFortuneCombo(input: AnnualFortuneComboInput): ToolEnvelope<AnnualFortuneResult> {
   const { birth, solar } = input;
   const targetYear = input.targetYear ?? birth.year;
 
@@ -226,10 +233,14 @@ export function calcAnnualFortuneCombo(input: AnnualFortuneComboInput): ToolEnve
     sourceNotes: '联合分析为多系统聚合参考，非预言绝对，请结合自身境遇理性看待。',
   };
 
-  const result: ComboResult = {
+  const result: AnnualFortuneResult = {
     comboName: '年度综合运势',
     purpose: '八字+五运六气+奇门年盘+紫微流年+命卦方位 联合推算某年整体运势',
     inputs: { birth: { year: birth.year, gender: birth.gender }, targetYear },
+    context: {
+      targetYear,
+      mingGua: { trigram: mingGua.trigram, group: mingGua.group },
+    },
     subsystems,
     synthesis,
     consistency,
@@ -526,7 +537,7 @@ export function calcSanshiCombo(input: SanshiComboInput): ToolEnvelope<ComboResu
 
 export interface DailyWellnessComboInput {
   birth: BirthInput;
-  /** 当前日期（默认取系统当前）。MCP/测试可显式传入以保证确定性 */
+  /** 当前日期（默认取系统当前）。调用方或测试可显式传入以保证确定性 */
   now?: { year: number; month: number; day: number; hour: number };
   /** 当前小时（0-23），now 未传时用系统小时 */
   currentHour?: number;
@@ -1131,7 +1142,7 @@ export function calcZeriCombo(input: ZeriComboInput): ToolEnvelope<ZeriResult> {
   };
 
   const warnings: string[] = [result.confidenceNote];
-  if (!solarEntry) warnings.push('未传入精确历法入口，宜忌取自浏览器 window.Solar；MCP 纯命令行环境若 Solar 不可用将无法择日');
+  if (!solarEntry) warnings.push('未传入精确历法入口，宜忌取自浏览器 window.Solar；非浏览器环境若 Solar 不可用将无法择日');
   if (candidates.length === 0) warnings.push('日期区间为空或起止颠倒');
   if (top.length === 0) warnings.push(`区间内无符合「${purpose}」的吉日，已列出淘汰原因供参考`);
 

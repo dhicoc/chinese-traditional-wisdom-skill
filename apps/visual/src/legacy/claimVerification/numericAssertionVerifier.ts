@@ -17,17 +17,6 @@ export interface NumericAssertionValidation {
   violations: NumericAssertionViolation[];
 }
 
-const assertionResults = new Map<string, { tool: string; result: Record<string, unknown> }>();
-
-export function registerNumericAssertions(token: string, tool: string, result: Record<string, unknown>) {
-  assertionResults.set(token, { tool, result });
-}
-
-export function validateNumericAssertions(token: string, claims: NumericAssertionClaim[]): NumericAssertionValidation | null {
-  const entry = assertionResults.get(token);
-  return entry ? validateNumericAssertionClaims(entry.tool, entry.result, claims) : null;
-}
-
 export function validateNumericAssertionClaims(
   tool: string,
   result: Record<string, unknown>,

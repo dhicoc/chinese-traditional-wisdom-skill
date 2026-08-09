@@ -1,8 +1,8 @@
 /**
- * rhythmEngine — 每日节律（节气调养 + 时辰经络）MCP 工具引擎。
+ * rhythmEngine — 每日节律（节气调养 + 时辰经络）本地计算引擎。
  *
  * 组合 jieqiWellness（24节气调养+体质针对性建议）+ meridianClock（十二时辰经络当令）
- * 成 ToolEnvelope，供 MCP server 注册为 get_daily_rhythm 工具。
+ * 成 ToolEnvelope，供本地运行器调用 get_daily_rhythm 工具。
  * 节气可走 lunar-javascript 精确推算（传 solar）或近似（不传）。
  */
 

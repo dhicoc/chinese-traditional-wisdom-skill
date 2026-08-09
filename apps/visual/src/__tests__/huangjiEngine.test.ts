@@ -10,7 +10,7 @@ import { toFourLayer, type ReadingLike } from '@/legacy/reportLayers';
 
 const BIRTH = { year: 1990, month: 6, day: 15, hour: 12, minute: 0 };
 
-// mock lunar-javascript Solar：返回 1990-06-15 12:00 的真实干支（经 mcp-server lunar-javascript 核验）
+// mock lunar-javascript Solar：返回 1990-06-15 12:00 的真实干支（经 lunar-javascript 历法核验）
 const fakeSolar = {
   fromYmdHms: (_y: number, _mo: number, _d: number, _h: number, _mi: number, _s: number) => ({
     getLunar: () => ({

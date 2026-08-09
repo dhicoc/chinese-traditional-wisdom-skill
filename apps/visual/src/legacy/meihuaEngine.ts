@@ -3,7 +3,7 @@
  *
  * 从 visual/js/engine-adapters.js 的 calculateLocalMeihua / buildMeihuaResult
  * 移植为纯 TS，剥离 window.Solar 依赖：Solar 入口改为可选入参，传入时走
- * 精确农历取数（A 类路径，MCP 端可 import lunar-javascript ESM 传入），
+ * 精确农历取数（A 类路径，可传入 lunar-javascript ESM 入口），
  * 未传时回退公历年月日 + 本地时辰序数（与原 engine-adapters.js fallback 一致）。
  *
  * 输出结构与旧 buildMeihuaResult 完全一致，MeihuaData/canvasRenderers 可直接消费。
@@ -354,10 +354,7 @@ export interface MeihuaData extends MeihuaResult {
   export_snapshot: ExportSnapshot;
 }
 
-/**
- * 梅花易数 —— ToolEnvelope 版本。
- * 未来 MCP：import { calcMeihuaEnveloped } ; server.tool('meihua', {...}, async (i) => calcMeihuaEnveloped(i))
- */
+/** 梅花易数的 ToolEnvelope 本地运行器版本。 */
 export function calcMeihuaEnveloped(input: MeihuaInput, solar?: SolarLike | null): ToolEnvelope<MeihuaData> {
   const result = calculateMeihua(input, solar);
   const upper = result.upperTrigram;

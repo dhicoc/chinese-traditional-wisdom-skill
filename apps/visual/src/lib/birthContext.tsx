@@ -24,7 +24,7 @@ interface BirthContextValue {
   birth: BirthData;
   /** 转换后的公历生辰（未校正；供各工作区默认使用） */
   solarBirth: SolarBirth;
-  /** 八字专用时间状态；仅 Agent/MCP 已核验结果可改变排盘时间 */
+  /** 八字专用时间状态；仅 Agent 已核验的本地计算结果可改变排盘时间 */
   baziTimeStatus: BaziTimeStatus;
   /**
    * 引擎是否可用。
@@ -73,7 +73,7 @@ export function BirthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     function handleTrueSolarTime(event: Event) {
       const detail = (event as CustomEvent<TrueSolarTimeIntentDetail>).detail;
-      if (!detail?.resolution || detail.source !== 'agent-mcp') return;
+      if (!detail?.resolution || detail.source !== 'agent-local') return;
       const currentCivilBirth = toSolarBirth(birthRef.current);
       const resolvedCivilBirth = detail.resolution.civilBirth;
       if (

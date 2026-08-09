@@ -1,514 +1,82 @@
 ---
 name: chinese-traditional-wisdom-ai-agent-workflow
-description: 中国传统文化整体智慧咨询系统。融合玄学五术（山医命相卜）、中医体质/五运六气、道家哲学、佛教心性的 holistic 人生咨询工作流。当用户提出人生困惑、健康调养、事业决策、婚姻合婚、择吉选址等问题时自动激活。
+description: 中国传统文化整体智慧咨询系统。遇到人生困惑、健康调养、事业决策、婚恋、择居、占卜或传统文化问题时，使用本地确定性引擎并遵守伦理边界。
 ---
 
 # 中国传统文化整体智慧咨询系统
 
-## 0. 首次安装与依赖检查（AI 首次读取后立即执行）
+## 0. 本地直调前置检查
 
-> **本 Skill 首次使用时，AI 必须自动完成以下检查，用户无需手动操作。**
-> 如果已经执行过 README_AI.md 的自动配置，确认依赖就绪后直接跳到「定位」开始工作。
+> **硬规则：模型不得自行推演、排盘、校时、算数、补全干支或把参考文本伪装为本次计算。**
 
-```text
-0. 检测本包路径（由 SKILL.md 所在目录推导），记为 <SKILL_ROOT>
-
-1. 确认计算引擎就绪（默认路径：纯 TS 引擎 + MCP 薄壳，零 Python 依赖）：
-   - 32 个计算工具均由纯 TypeScript 实现；其中真太阳时校准位于 apps/visual/src/legacy/trueSolarTime.ts
-   - MCP server（apps/mcp-server/）薄壳包装这些引擎，统一返回 ToolEnvelope 或可审计的校准结果
-   - 精确历法依赖 lunar-javascript（npm/TS import，非 Python）
-   - 紫微依赖 iztro v2.5.8、奇门依赖 3meta v2.6.0（均 npm ESM）
-   仅当用户明确要「命令行 Python 起卦」时才检查可选 Python 包：
-   python -c "import ichingshifa" 2>/dev/null && echo OK || echo MISSING
-
-2. 如需让 AI 客户端直接调用排盘工具（推荐）→ 配置 MCP：
-   node <SKILL_ROOT>/scripts/setup-mcp.mjs
-   （详见下方「MCP 自动激活」节）
-
-3. 向用户报告就绪状态（源码随仓库就绪，依赖按需安装，不预装）：
-   - 纯 TS 引擎源码: apps/visual/src/legacy/*Engine.ts 与 trueSolarTime.ts（随仓库存在，零预装）
-   - MCP Server 源码: apps/mcp-server/（43 工具：32 计算 + 11 个元工具）
-   - Web Dashboard 源码: apps/visual（React+SVG；负责输入和结果可视化，不独立核验真太阳时）
-   - 依赖按路径触发安装：用 Dashboard 时 `pnpm dev` 装 visual 依赖；
-     用 AI 直调时 `setup-mcp.mjs` 装 mcp-server 依赖；不用则不装
-
-4. 确认就绪后，继续执行以下工作流。
-   MCP 不可用时 → 仍可启动 React Dashboard（cd apps/visual && pnpm dev）用纯前端引擎，
-   告知用户可视化可用、AI 直调工具需配 MCP（运行 setup-mcp.mjs 激活）。
-   ⚠️ 引擎不可用时禁止凭模型自身知识排盘或校时（RULES.md §11），引导用户激活 MCP 或用 Dashboard。
-```
-
-> 历史说明：2026-07-10 架构重构后，计算主路径已从「Python 引擎 + npm bazi-ziwei-skill」迁移为「纯 TS 引擎 + MCP 薄壳」。Python 包（lunar-python/iztro-py/ichingshifa）退为命令行可选 oracle，不再是首次安装的必经路径。`scripts/setup.bat`/`setup.sh` 仍保留但仅装可选 Python 包，默认工作流不依赖它。
-
----
-
-## MCP 自动激活（AI 自主配置，无需用户手动挂载）
-
-> 本项目提供 MCP server（`apps/mcp-server/`），把 32 个确定性计算工具暴露为 MCP 工具，供 Claude Code / Claude Desktop / Cursor / Cline 等客户端直接调用。**用户无需手动编辑配置文件**，AI 可自主配置激活。
-
-**当用户表达"启用 MCP / 挂载玄学工具 / 让 AI 直接排盘"等意图时，AI 执行：**
+1. 将本文件所在目录记为 `<SKILL_ROOT>`，读取 `RULES.md` 与 `tool-index.md`。
+2. 确认 `apps/visual/scripts/run-engine.ts` 存在；需要执行时在 `apps/visual` 运行 `pnpm install`。
+3. 选择本地工具后，准备 JSON 输入文件并执行：
 
 ```bash
-node <SKILL_ROOT>/scripts/setup-mcp.mjs
+cd apps/visual && pnpm engine <tool> <input-json-file>
 ```
 
-该脚本自动：
-1. 检测已安装的 MCP 客户端（Claude Code / Claude Desktop / Cursor / Cline）
-2. 对每个检测到的客户端自动写入/合并对应配置（幂等，不覆盖已有 server）
-3. Windows 下自动用 `cmd /c npx tsx` 包裹；macOS/Linux 直接 `npx tsx`
-4. 若 `apps/mcp-server/node_modules` 不存在，自动 `npm install`
+4. CLI 返回 `ToolEnvelope`。只从该次 `ToolEnvelope.data` 提取确定性事实；用对应本地 `validate*Claims(data, claims)` 核对结构化 claims 后，才能写成“本次引擎结果”。
+5. 引擎失败时遵守 Fail-Two：停止盲目重试，检查输入和备用方案；不要用模型记忆补答。
 
-执行后告知用户：重启对应客户端即可看到 `chinese-wisdom` server 已连接，在对话中直接说「排个八字」「解梦」等，AI 会自动调用对应工具。
+本地 CLI 和 Dashboard 都使用纯 TypeScript 引擎；Python 工具仅可作命令行交叉验证，不是对话计算数据源。
 
-- 仅检查不写入：`node scripts/setup-mcp.mjs --check`
-- 只配指定客户端：`node scripts/setup-mcp.mjs --client=claude-code`（支持 claude-code / claude-desktop / cursor / cline）
+## 1. 三层路由
 
-**MCP 工具列表**（43 个工具 = 32 个计算工具 + 11 个元工具）：
+| 层 | 分类 | 作用 |
+|---|---|---|
+| 问题类型 | 健康、事业、婚恋、学业、择居、占卜、心灵、综合 | 选择场景 |
+| 学科 | 八字、紫微、六爻、梅花、奇门、大六壬、太乙、五运六气、体质、风水、姓名、儒释道 | 选择本地工具与参考 |
+| 融合深度 | 轻度、标准、深度 | 决定是否调用联合分析与报告模板 |
 
-- 时间校准（1）：`resolve_true_solar_time`（真太阳时：只对 Agent 已核验的地点、历史 UTC 偏移与夏令时依据做确定性计算）
-- 排盘计算（22）：`bazi_calculate` / `ziwei_chart` / `cast_liuyao` / `arrange_qimen` / `liuren_calculate` / `xingxiu_daily` / `taiyi_calculate` / `huangji_calculate` / `cast_meihua` / `calc_yunqi` / `analyze_name` / `calc_xiyong` / `get_constitution_tendency` / `dream_interpret` / `cast_cezi` / `calc_chenguz` / `get_almanac`（每日黄历）/ `calc_feixing`（流年飞星）/ `calc_bazhai`（八宅大游年）/ `get_daily_rhythm`（节气调养+时辰经络）/ `assess_constitution`（体质问卷自评）/ `list_constitution_questionnaire`（取体质问卷题目，配合 assess_constitution）
-- 跨系统联合分析（9）：`combo_annual_fortune` / `combo_monthly_fortune` / `combo_decision` / `combo_space_time` / `combo_sanshi` / `combo_sanshi_classic` / `combo_daily_wellness` / `combo_zeri` / `combo_marriage`
-- 元工具（11）：`agent_guidance`（参数引导，防瞎猜）/ `validate_bazi_presentation`（核验八字确定性呈现依据）/ `validate_ziwei_presentation`（核验紫微确定性呈现依据）/ `validate_bazhai_presentation`（核验八宅确定性呈现依据）/ `validate_feixing_presentation`（核验流年飞星确定性呈现依据）/ `validate_calendar_presentation`（核验历法与年度盘面基础事实）/ `validate_divination_presentation`（核验占测／卦象基础盘面事实）/ `validate_daily_presentation`（核验日用与民俗基础事实）/ `validate_combo_presentation`（核验组合择日基础事实）/ `validate_numeric_assertions`（仅核验显式 `data.*` 数值 claims，不校验自由文本）/ `wisdom_dispatch`（自然语言意图路由）
+缺少出生时间、性别、起卦方式、住宅坐向等必要输入时必须追问。不得默认子时，不得猜测用户未提供的字段。
 
-> 运行边界：对话 / Agent 必须走 `SKILL/RULES → wisdom_dispatch → agent_guidance → MCP 计算工具 → ToolEnvelope → 语言化解读`；八字、紫微、八宅与流年飞星的确定性结论分别须先通过对应的 presentation validator。五运六气的年度、干支、岁运、司天、在泉和客气步骤必须通过 `validate_calendar_presentation`；星宿与黄历只有显式传入 `queryDate` 或 `date` 后才可校验基础历法字段。六爻、梅花、奇门、大六壬、太乙与皇极呈现卦名、动爻、局式、宫位、干支、三传或周期等基础盘面事实前，必须通过 `validate_divination_presentation`；吉凶、应期、策略、传统解释与行动建议不进入 claims。姓名分数/等级/维度、喜用神日主/同异类五行及分数/强弱/用神、五运六气体质倾向的岁运/司天/在泉与倾向类型、梦象命中状态及条目标题/分类/吉凶标签、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、节律日期/节气/经络、体质主体质/转化分必须通过 `validate_daily_presentation`；喜用神置信说明、倾向理由、边界说明、现代释义、古文断语、心理学解释、歌诀、调养方案与医疗建议不进入 claims。组合择日呈现用途、搜索范围、已排序候选条目及方位基础字段前，必须通过 `validate_combo_presentation`；评分理由、淘汰理由、黄历全文、首选结论、吉时、行动建议及任何吉凶保证不进入 claims。组合养生校验：呈现节气、体质、时辰经络、方位提示或节气饮食/起居/运动/穴位、体质加减、时辰养护等传统规则／知识输出前，也必须通过 `validate_combo_presentation`；`valid: true` 仅表示与本次传统规则输出一致，不代表现实效果、医疗安全性或个体结果保证，结果仅供传统文化与日常参考，切勿盲目相信。组合月度基础事实校验：呈现本次目标年月、流月干支、节气或 `local-exact`/`local-approx` 模式前，也必须通过 `validate_combo_presentation`；运势结论、子系统摘要、综合文本和建议不进入 claims。组合合婚基础事实校验：呈现本次场景、双方日柱/日主/五行计数/命卦或逐柱干支与冲合关系布尔值前，也必须通过 `validate_combo_presentation`；姓名、紫微、评分、合婚结论、风水建议和建议文本不进入 claims。Agent 不得凭模型知识、记忆或 reference 文件自行给出确定性结论。Dashboard 保持原有浏览器端纯 TypeScript 确定性计算和可视化入口，不需要经 MCP 转发；这不是模型推演，也不授权对话 Agent 绕过 MCP。
-> MCP server 与 Dashboard 可共享纯 TS 引擎。用户纯对话即可用全部功能：`wisdom_dispatch` 按关键词路由，`agent_guidance` 确认参数，计算工具返回结构化结果后再语言化解读（RULES.md §11）。
+## 2. 本地工具与数据流
 
----
-
-## 定位
-
-**产品定位**：市面上多数命理平台需付费解锁完整解读，且生辰等敏感信息要上传服务器、安全性未知。本项目为解决此问题而设计——**所有排盘在浏览器本地完成，不上传完整生辰，核心能力全部免费开放**。
-
-- **本地优先 · 不上传生辰**：31 个引擎纯 TS 本地计算，生辰仅收集年/月/日/时拆分字段，不存完整日期、不传服务器
-- **零付费 · 全功能开放**：无解锁/会员/付费墙；MCP server 本地 stdio，不依赖付费远端
-- **隐私可验证**：纯前端无后端，不存姓名/出生地；报告导出脱敏 JSON 只含 birth.year
-
-**文化定位**：本 Skill 融合**玄学五术（山医命相卜）**与**儒释道三教智慧**，提供 holistic（整体）的人生咨询。核心理念：
-
-- **天人合一**：命理 + 中医（人与自然的统一）
-- **道法自然**：道家哲学指导人生观
-- **因果心性**：佛教视角的心灵调适
-
-> ⚠️ 在开始任何咨询前，先读取 RULES.md 并严格遵守。本系统提供文化参考和生活建议，不做绝对预测。
-
----
-
-## 三层路由系统
-
-### 第一层：问题类型分类
-
-| 问题类型 | 关键词 | 主学科 | 辅学科 |
-|---------|--------|--------|--------|
-| 健康养生 | 失眠、体质、疾病、调理 | 中医 | 命理 |
-| 事业决策 | 工作、投资、方向、转型 | 玄学(命/卜) | 道家 |
-| 婚姻情感 | 合婚、感情、家庭 | 玄学(命/相) | 佛教 |
-| 学业成长 | 学习、天赋、考试 | 玄学(命) | 道家 |
-| 择居选址 | 买房、装修、办公室、布局、朝向、煞气 | 风水（形势/理气/阳宅） | 命理 |
-| 占卜决策 | 占卦、吉凶、取舍、得失 | 玄学(卜) | 道家 |
-| 心灵困惑 | 焦虑、意义、迷茫 | 佛教 | 道家 |
-| 综合/不明 | 无明确方向 | 全维度扫描 | — |
-
-### 第二层：学科路由
-
-每学科在分析时调用对应的 reference 文件获取领域知识：
-
-1. **玄学维度**：分析先天命局 + 大运流年 + 风水影响
-2. **中医维度**：体质辨识 + 五运六气 + 食疗/经络建议
-3. **道家维度**：顺天应人 + 无为而治 + 养生功法
-4. **佛教维度**：因果视角 + 心性调适 + 禅修方法
-
-### 第三层：融合深度
-
-- **轻度（快速回答）**：单学科直接回应，适合简单问题
-- **标准（默认）**：主学科+辅学科综合分析，输出结构化建议
-- **深度（全融合报告）**：四大学科全维度分析，生成完整报告
-
----
-
-## 核心工作流
-
-### 标准咨询链路
-
-```
-用户输入（生辰+问题+状态）
-    │
-    ▼
-第一步：问题分类（三层路由第一层）
-    │
-    ▼
-第二步：多维度分析（按路由调用 MCP 工具由引擎推算 + reference 解读）
-    │
-    ▼
-第三步：跨学科融合（找到学科间的交叉点）
-    │
-    ▼
-第四步：综合建议（生活调整+养生方案+心性修行+择吉决策）
-    │
-    ▼
-第五步：生成报告（按指定格式输出）
-    │
-    ▼
-第六步：对话可视化（在报告后附加 Mermaid 图表）← ★
-    │
-    ▼
-第七步：经验沉淀（写入 field-journal/）
+```text
+用户输入 → 路由与参数检查 → pnpm engine <tool> <input-json-file>
+         → ToolEnvelope → validate*Claims(data, claims)
+         → 事实、文化解释、建议和免责声明分层输出
 ```
 
-### 详细步骤
+32 个工具分为：时间校准 1 个、排盘/日用 22 个、联合分析 9 个；完整名称和引擎文件见 `tool-index.md`。
 
-**第一步：输入收集**（执行前先检查 RULES.md §10 输入完备性清单）
-- 生辰：出生年月日时（注明农历/阳历）+ 出生地
-- 当前困扰：具体问题描述
-- 体质描述：主要健康症状（可选）
-- 当前状态：情绪、环境、阶段
+- `ToolEnvelope` 是确定性事实的唯一来源。
+- 本地校验函数只比较结构化字段：柱、宫位、星曜、数值、日期、枚举、映射和排序项等。
+- 校验不能验证自由文本、传统解释、应期、策略、医疗建议、现实效果或综合结论。
+- 失败的 claim 必须删除或重新从本次结果提取；不得换词继续当作事实。
 
-### 八字真太阳时默认预处理
+## 3. 真太阳时
 
-八字排盘默认尝试真太阳时，但不能把“默认”变成假精确。以下链路只适用于八字；紫微及其他模块按各自工具契约处理，不得借用未核验的地点资料。
+此链路只用于八字预处理：
 
-1. 收集民用出生记录：公历年月日、时分、性别，以及足以定位的出生地（城市/区县 + 国家或地区）。
-2. Agent 核验出生地经度、IANA 时区、出生当日实际 UTC 偏移和夏令时状态，并保留可追溯的 `utcOffsetEvidence`。不得凭训练记忆补写这些事实。
-3. 将已核验资料传给 `resolve_true_solar_time`。该工具只做可复现的经度校正与均时差计算，返回 `trueSolarBirth`、总校正、跨日期/时辰/子初边界和核验依据。
-4. 仅将 `trueSolarBirth` 传给 `bazi_calculate`，再依据引擎返回结果解读。
-5. 若地点或历史时区/夏令时无法可靠核验，先说明限制；仅在用户知情下以民用出生记录调用 `bazi_calculate`，并在排盘与报告中标注“未完成真太阳时复核”。不得将该结果称为真太阳时排盘。
+1. 收集民用出生记录（公历年月日、时分、性别、可定位出生地）。
+2. 在外部可靠来源核验经度、IANA 时区、出生当日 UTC 偏移、夏令时和 `utcOffsetEvidence`；模型不得凭记忆填写。
+3. 调用 `resolve_true_solar_time`，直接取得 `trueSolarBirth` 与 `trueSolarResolution`。
+4. 将二者直接传给八字引擎，再解读其返回的 `ToolEnvelope`。
+5. 无法可靠核验时，先告知限制；仅在用户知情下使用民用出生记录，并标注“未完成真太阳时复核”。
 
-> Dashboard 是这条链路的输入与结果展示层：它可以呈现 Agent 校验状态、校正明细或降级标记，但不能独立猜测地点、历史 UTC 偏移、夏令时或真太阳时。
+Dashboard 只能展示核验、待核验和民用降级状态，不能自行猜测地点或历史时区。
 
-**第二步：多维度分析**（须遵守 RULES.md §11——排盘推算必须调引擎，禁止凭模型自身知识瞎算）
+## 4. 解读与报告
 
-针对每个激活的学科维度：
-1. **调用对应 MCP 工具由本地引擎推算**（数据源，必经）：用 `wisdom_dispatch` 路由到工具 → `agent_guidance` 确认参数 → 调用计算工具取得 `ToolEnvelope` 结构化结果
-2. 调用对应 reference 获取领域知识（仅作解读框架辅助，不作为排盘数据源）
-3. 基于引擎返回的结构化结果，运用该学科的分析框架进行语言化解读
-4. 记录关键发现和交叉点
+- 先呈现经过本地结果核对的结构化事实，再以明确的“传统解释”“文化背景”“建议”区分自由文本。
+- 健康问题先建议就医；中医养生只作文化参考。
+- 所有预测性内容须声明非绝对预测，并给出建设性、非宿命化建议。
+- 静态报告使用 `templates/visual-report.md`；交互式 Dashboard 使用 `cd apps/visual && pnpm dev`。
+- 保持 `local-exact`、`local-approx`、民俗体验、演示和降级状态可见。
 
-### 八字、紫微与八宅最终呈现校验
+## 5. 领域引导
 
-当八字最终文本要写入四柱、日主、五行计数、日主强弱、大运或神煞等确定性结论时，必须在输出文本前执行以下闭环：
+| 场景 | 主入口 |
+|---|---|
+| 八字 | `bootstrap/bazi-engine.md` |
+| 紫微 | `bootstrap/ziwei-engine.md` |
+| 六爻 | `bootstrap/liuyao-engine.md` |
+| 梅花 | `bootstrap/meihua-yishu-engine.md` |
+| 五运六气 | `bootstrap/yunqi-integration.md` |
+| 体质 | `bootstrap/constitution-questionnaire.md` |
+| 风水 | `bootstrap/fengshui-guide.md` |
 
-1. 只从本次 `bazi_calculate` 的 `ToolEnvelope` 提取待呈现事实及 `result_meta.presentationToken`；不得沿用旧会话的 token，也不得自行构造结果。
-2. 将每条待呈现事实转换成 `validate_bazi_presentation` 的 `claims`：`pillar`、`dayMaster`、`elementCount`、`strength`、`luck` 或 `shenSha`。
-3. 以该 `presentationToken` 调用 `validate_bazi_presentation`。仅在返回 `{ valid: true }` 时，才可将同一批 claims 表述为本次排盘结果。
-4. 若返回 `{ valid: false }`，删除不一致断言；可回到当前 `ToolEnvelope` 重新提取事实后再校验，但不得猜测、补全或把失败断言改写为本次排盘结论。
-
-当紫微最终文本要写入宫位、星曜、四化、五行局、命主、身主或本次动态层等确定性结论时，也必须在输出文本前执行以下闭环：
-
-1. 只从本次 `ziwei_chart` 的 `ToolEnvelope` 提取待呈现事实及 `result_meta.presentationToken`；不得沿用旧会话的 token，也不得自行构造结果。
-2. 将每条待呈现事实转换成 `validate_ziwei_presentation` 的 `claims`：`palace`、`palaceStar`、`sihua`、`mainStar`、`metadata` 或 `transit`。
-3. 以该 `presentationToken` 调用 `validate_ziwei_presentation`。仅在返回 `{ valid: true }` 时，才可将同一批 claims 表述为本次命盘结果。
-4. 若返回 `{ valid: false }`，删除不一致断言；可回到当前 `ToolEnvelope` 重新提取事实后再校验，但不得猜测、补全或把失败断言改写为本次命盘结论。
-5. 文化背景、传统解释、条件性说明和建设性建议不进入 claims；它们必须与确定性结果明确区分，不能伪装为当前命盘已经验证的事实。
-
-当八宅最终文本要写入命卦、东四/西四命、八方游年星与吉凶，或本次年份的太岁、岁破、三煞、五黄方位等确定性结论时，也必须在输出文本前执行以下闭环：
-
-1. 只从本次 `calc_bazhai` 的 `ToolEnvelope` 提取待呈现事实及 `result_meta.presentationToken`；不得沿用旧会话的 token，也不得自行构造结果。
-2. 将每条待呈现事实转换成 `validate_bazhai_presentation` 的 `claims`：`mingGua`、`direction` 或 `annual`。
-3. 以该 `presentationToken` 调用 `validate_bazhai_presentation`。仅在返回 `{ valid: true }` 时，才可将同一批 claims 表述为本次推算结果。
-4. 若返回 `{ valid: false }`，删除不一致断言；可回到当前 `ToolEnvelope` 重新提取事实后再校验，但不得猜测、补全或把失败断言改写为本次推算结论。
-5. 传统释义、布局建议、门主灶与化解建议不进入 claims；它们不得伪装为本次八宅计算已验证的事实。
-
-> ⚠️ 引擎是数据源，reference 是解读辅助。排盘、干支、数值、吉凶判定必须来自引擎；模型只负责把引擎结果转成用户易懂的话 + 补充文化背景与建议。引擎不可用时告知用户激活 MCP，不凭知识凑答。
-
-**第三步：跨学科融合关键点**
-
-分析时注意以下交叉领域：
-- **命理 + 中医**：五行缺补与体质的关系，如八字金旺的人易肺燥
-- **命理 + 风水**：大运与住宅朝向的配合，八字喜用神与房屋坐向颜色
-- **命理 + 风水 + 中医**：五行缺补可通过居住环境调整辅助，如八字缺木者宜东方位居住
-- **风水 + 流年(五运六气)**：流年飞星与岁运太过不及对住宅吉凶的影响
-- **风水 + 道家**：藏风聚气与道法自然的居住哲学
-- **中医 + 道家**：四时养生与内丹功法的配合
-- **佛教 + 中医**：情志致病的因果视角，心性对五脏的影响
-- **道家 + 佛教**：顺其自然与因果修心的互补
-
-**第四步：综合建议**
-
-输出四维度建议（按需）：
-1. **生活调整**：风水布局 + 作息优化 + 择吉建议
-2. **养生方案**：体质食疗 + 经络调理 + 五运六气相应
-3. **心性修行**：禅修方法 + 因果思惟 + 情绪管理
-4. **哲学指导**：道家智慧 + 经典引用
-
-**第五步：报告生成**
-
-按下方"报告输出格式"生成最终报告。
-
-**第六步：询问可视化偏好**
-
-完成文字报告后，先询问用户希望以哪种方式查看可视化结果。话术：
-
-> 您的分析结果已出。可视化方面有两种方式：
-> - **模式 A**：生成一份静态 HTML 可视化报告（Canvas 命盘图），您双击文件即可查看，一次性的
-> - **模式 B**：打开交互式 Web Dashboard（cd apps/visual && pnpm dev），可多次切换不同生辰查看
->
-> 您倾向哪种？默认使用模式 A。
-
-根据用户选择执行对应操作：
-
-- **模式 A（默认）** → 执行"生成可视化 HTML 报告"子步骤
-- **模式 B** → 在对话末尾提示："如需交互式操作，请运行 cd apps/visual && pnpm dev 启动可视化面板，可输入不同生辰反复查看"
-
-如果用户明确说"都要"或"随便"，默认执行模式 A。
-
-### 模式 A 子步骤：生成全量可视化 HTML 报告
-
-用途：将当前所有分析结果渲染为 **多个板块的图表**（八字四柱 + 五行五芒星 + 紫微斗数 12 宫 + 六爻卦象 + 梅花易数 + 风水罗盘 + 流年飞星 + 八宅大游年 + 五运六气 + 体质雷达图等），用户双击 HTML 文件即可在浏览器中查看。不含交互式控件、不含输入面板。（模板沿用 Canvas 渲染；React Dashboard 侧已全部 SVG 化，二者并行。）
-
-实现方式：
-1. 打开 templates/visual-report.md 阅读全量 HTML 模板
-2. 将本次分析数据填入模板中的 ``REPORT_DATA`` 对象
-   - **bazi 和 wuxing 必须填**（根据对话中用户的生辰信息计算得出）
-   - 其余字段可选，填 `null` 时对应板块自动隐藏
-3. 将完整 HTML 保存为 `visual-report-{脱敏标识}.html` 文件
-4. 在对话中呈现文字报告 + 附带 HTML 文件
-
-注意事项：
-- 所有数据由 AI 计算填入，用户在 HTML 中无需任何操作，打开文件即可看图
-- bazi 字段的数据格式须匹配 bazi.js 的 render 函数：{ stem, branch, hidden[] }
-- wuxing 为 { "木": n, "火": n, "土": n, "金": n, "水": n }
-- 如果用户没有提供足够信息生成八字，跳过此步
-
----
-
-### Dashboard 能力边界
-
-交互式 Dashboard 必须显式展示能力状态：
-
-- 八字、五运六气：本地精确历法（内置 `lunar-javascript`，节气干支/大寒定年）；关闭精确历法时回退本地近似。
-- 紫微：已接入本地 `iztro` v2.5.8 真实排盘（`local-exact`），未加载时回退演示。
-- 六爻：已接入本地京房八宫纳甲引擎（`liuyao-engine`，`local-exact`），输出真实纳甲/六亲/六神/世应/用神/变卦；支持铜钱法/时间/手动/揲蓍法起卦。
-- 奇门：已接入本地 `3meta` v2.6.0 真实时家奇门排盘（`local-exact`），含值符值使/格局自动检测/六仪击刑/十干生克。
-- 大六壬、二十八星宿、太乙神数：纯 TS 引擎 + `lunar-javascript` 精确历法（`local-exact`）。
-- 梅花：内置本地时间/数字/揲蓍法起卦规则（`local-approx`，不同流派口径可能有差异）。
-- 风水罗盘、流年飞星、八宅：本地规则计算，依赖 JSON 映射表；八宅已增强太岁/门主灶/飞星合参。
-- 命令行场景可选 `ichingshifa` 等 Python oracle 作交叉验证，Dashboard 已内置本地引擎优先。
-
-能力状态由 `apps/visual/src/lib/modules.ts` 的 `MODULES` 注册表统一管理；报告导出由 `ExportReportButton` 生成脱敏 JSON 快照（含 version/generatedAt/sourceNotes + birth.year，不导出完整出生日期）。不要把演示数据表述为精确排盘。
-
----
-## 两种可视化模式
-
-本 skill 提供两种可视化体验，场景不同，互不替代。
-
-### 模式 A：对话一次性 HTML 可视化报告（默认）
-
-每次咨询时，在文字报告之后额外生成一份静态 HTML 文件（基于 templates/visual-report.md 模板）。
-
-特点：
-- 一次性生成，不包含交互控件、输入面板、按钮
-- 复用对话中用户已给的生辰参数，不需要用户再次输入
-- 使用 Canvas 2D 绘制八字四柱图和五行五芒星图（基于 templates/visual-report.md 模板内嵌绘制代码）
-- 用户双击 HTML 文件即可在浏览器查看
-
-触发条件：所有涉及八字/紫微/风水的咨询。如用户仅做简单问答（如"什么是五行"），不生成。
-
-### 模式 B：Web Dashboard（交互式可视化面板）
-
-用途：当用户需要多次排盘、切换不同生辰反复查看、交互式探索时使用。
-
-位置：apps/visual（React + SVG Dashboard，`cd apps/visual && pnpm dev` 启动，浏览器打开 vite 提示的本地地址）
-
-特点：
-- 多工作区（术数排盘/堪舆风水/医道运气/日用工具/知识检索），支持输入生辰后一键刷新
-- 顶部 CommandBar 命令面板可随时修改参数、跳转工具、全局搜索
-- 纯前端，无服务器依赖
-
-触发时机：用户说"可视化面板""交互式""我要自己看""换个生辰""Dashboard"等时，提示"请运行 cd apps/visual && pnpm dev 启动可视化面板，可输入不同生辰反复查看"。
-
----
-
-## 具体咨询场景工作流
-
-### 场景 A：健康养生咨询
-
-```
-输入：症状 + 生辰（可选）
-  │
-  ▼
-中医分析 → 体质辨识 + 五运六气
-  │
-  ▼
-命理辅助（如有生辰）→ 先天五行偏颇
-  │
-  ▼
-道家补充 → 四时养生功法
-  │
-  ▼
-佛教补充 → 心性对健康的影响
-  │
-  ▼
-输出：综合调养方案
-```
-
-### 场景 B：事业决策咨询
-
-```
-输入：问题 + 生辰
-  │
-  ▼
-玄学分析 → 八字格局+大运+行业匹配度
-  │
-  ▼
-道家指导 → 无为与进取的判断
-  │
-  ▼
-择吉辅助（如需）→ 六爻/奇门决策
-  │
-  ▼
-输出：决策建议+时机+心态指导
-```
-
-### 场景 C：婚恋合婚咨询
-
-```
-输入：双方生辰
-  │
-  ▼
-玄学合婚 → 八字匹配度+五行互补
-  │
-  ▼
-中医视角 → 双方体质互补
-  │
-  ▼
-道家态度 → 顺其自然的边界
-  │
-  ▼
-佛教视角 → 业力缘分+彼此成长
-  │
-  ▼
-输出：合婚分析+相处建议
-```
-
-### 场景 D：占卜决策咨询
-
-```
-输入：具体问题（是非/取舍/得失/吉凶）+ 起卦方式偏好（可选）
-  │
-  ▼
-引擎选择 → 六爻（本地纳甲引擎 `liuyao-engine.js`，精度优先；命令行可选 `ichingshifa`）/ 梅花易数（meihua-yishu，需速度）
-  │
-  ▼
-起卦排盘 → 读取对应 bootstrap 指南，获取卦象、纳甲/体用、六神等数据
-  │
-  ▼
-卦象分析 → 用神选取 + 旺衰判断 + 动爻变化（六爻）/ 体用生克 + 卦德 + 互变（梅花）
-  │
-  ▼
-道家补充 → 顺天应人、无为而治的决策哲学
-  │
-  ▼
-命理参照（如有生辰）→ 大运流年背景下的时机判断
-  │
-  ▼
-输出：占卜结果 + 行动建议 + 心态指导
-```
-
-**六爻与梅花易数选择**：
-- **六爻**（本地纳甲引擎 / `ichingshifa`）：适合需要精细分析的问题（如失物寻人、官非、复杂决策），有纳甲六亲体系，信息量大
-- **梅花易数**（meihua-yishu）：适合需要快速判断的问题（如即时吉凶、简单取舍），体用生克直接，起卦灵活
-- **交叉验证**：重要决策可同时用两种方法，若结论一致则结论较稳，若不一致则以六爻为主、梅花为辅
-
-### 场景 E：择居选址咨询
-
-```
-输入：住宅/办公室概况 + 宅主信息（可选）
-  │
-  ▼
-形势分析 → 外部环境（龙穴砂水四象）  ← 读取 knowledge-base/fengshui/01-situation-form/
-  │
-  ▼
-理气分析 → 玄空飞星/八宅大游年      ← 读取 knowledge-base/fengshui/02-principle-form/
-  │
-  ▼
-阳宅布局 → 门主灶三要/宅舍吉凶       ← 读取 knowledge-base/fengshui/03-yang-house/
-  │
-  ▼
-三派交叉验证 → 形势+理气+阳宅看法对照（一致则结论较稳，有出入则权衡）
-  │
-  ▼
-命理配合（如有宅主生辰）→ 八字喜用神与坐向颜色
-  │
-  ▼
-输出：风水堪舆报告（含吉位催旺/煞位化解/布局优化）
-```
-
-**风水分析三派交叉验证**：
-- **形势优先**（《葬书》《撼龙经》）：先看山水格局、外部环境是否合理
-- **理气跟进**（《天玉经》《青囊经》《催官篇》）：再看坐向卦线与流年飞星
-- **阳宅为主**（《阳宅三要》《阳宅十书》《八宅明镜》）：住宅问题以阳宅规则为落地依据
-- **交叉验证**：三派看法一致则结论较稳；有出入时权衡给出建议
-
----
-
-## 报告输出格式
-
-根据咨询场景选择对应模板（位于 templates/ 目录），按模板结构生成 Markdown 报告：
-
-| 场景 | 模板文件 | 适用范围 |
-|------|---------|---------|
-| 健康养生 | templates/health-consultation.md | 体质调养、疾病倾向、食疗经络 |
-| 事业决策 | templates/career-consultation.md | 择业、转型、投资、择吉 |
-| 婚恋合婚 | templates/marriage-consultation.md | 感情分析、合婚匹配、相处建议 |
-| 占卜决策 | templates/divination-consultation.md | 六爻/梅花占卜、吉凶判断、行动建议 |
-| 择居选址 | templates/fengshui-consultation.md | 住宅/办公室风水、形势理气分析、布局调整建议 |
-| 综合咨询 | templates/comprehensive-report.md | 全维度深度分析、人生困惑 |
-
-每个模板已内置 RULES.md 合规话术（医疗建议优先、预测 disclaimer、积极导向等），生成报告时直接套用。
-
----
-
-## 工具集成（bootstrap）
-
-bootstrap/ 目录提供七个外部工具集成指南，在需要排盘/推算/占卜/风水分析/体质辨识时按需读取：
-
-| 工具 | 文件 | 能力 | 调用时机 |
-|------|------|------|---------|
-| 八字排盘 | bootstrap/bazi-engine.md | 四柱八字、十神、大运、刑冲合会、格局分析 | 事业/婚恋/综合咨询需要命局分析时 |
-| 紫微斗数排盘 | bootstrap/ziwei-engine.md | 命宫定位、十四主星、四化、格局检测（41种） | 事业/婚恋/综合咨询需要命盘时 |
-| 六爻卜卦 | bootstrap/liuyao-engine.md | 本地纳甲引擎(铜钱/时间/手动起卦)、纳甲六亲、世应六神、用神选取、变卦；ichingshifa 为可选 CLI oracle | 占卜决策、失物寻人、官非分析 |
-| 梅花易数 | bootstrap/meihua-yishu-engine.md | 六种起卦法、体用生克、卦德、互变错综 | 快速占断、即时吉凶、简单取舍 |
-| 五运六气推算 | bootstrap/yunqi-integration.md | 岁运、六气、司天在泉、客主加临、疾病倾向 | 健康咨询、体质与气候关联分析 |
-| 体质辨识问卷 | bootstrap/constitution-questionnaire.md | 九种体质标准化问卷（60+题）、评分判定 | 健康咨询、个性化调养方案 |
-| 风水堪舆分析 | bootstrap/fengshui-guide.md | 形势/理气/阳宅三派知识、古籍引用、布局与化解建议 | 择居选址需要风水分析时 |
-
-集成原则：先读取对应 bootstrap 指南了解输入输出格式，再调用具体工具，最后将结果整合到报告模板中。
-
-### 可视化交互工具（apps/visual）
-
-apps/visual 提供**完整的 React + SVG 可视化前端系统**，用于在浏览器中直观展示所有命理/中医分析结果：
-
-| 工具 | 组件 | 展示内容 |
-|------|------|---------|
-| 八字命盘 | BaziPillarsChart / FiveElementsChart | 四柱八字盘（年/月/日/时各柱天干地支，五行配色，藏干，日主高亮）+ 五行生克五角星图 |
-| 紫微斗数 | ZiweiPalaceGrid | 12宫4×3盘面（命宫/兄弟/夫妻/子女/财帛/疾厄/迁移/交友/官禄/田宅/福德/父母），主星/四化/庙旺利得 |
-| 六爻占卜 | HexagramChart | 六爻卦象（6爻线条，六神配色，地支+六亲，世应定位，变爻标记） |
-| 梅花易数 | MeihuaChart | 上下卦三爻+互卦+变爻，体用生克箭头分析 |
-| 风水罗盘 | FengshuiCompass | 三层罗盘（24山15°×8卦45°×8方向），双山五行配色 |
-| 流年飞星 | NinePalaceGrid | 九宫9×3×3宫盘，紫白九星吉凶配色，五黄二黑预警 |
-| 八宅大游年 | EightMansionsChart | 八卦扇形吉凶图，四面八星组合，东四/西四命分组 |
-| 五运六气 | YunqiChart | 岁运大字符+司天在泉连线+客气六步时间轴 |
-| 体质辨识 | RadarChart | 九种体质雷达图（同心圆网格），偏颇体质高亮 |
-| 皇极经世 | HuangjiGuaCircle | 先天六十四卦圆图，高亮正/世/年卦 |
-
-入口：`apps/visual`（React + SVG Dashboard，`cd apps/visual && pnpm dev` 启动）。多工作区一站式展示，纯前端无服务器依赖。组件位于 `apps/visual/src/components/shared/`。
-
-可视化数据生成逻辑见对应 bootstrap/ 指南的"结果可视化"段落。
-
-**两种可视化模式**（详见上节）：
-- **对话一次性 HTML 报告**：文字报告后附带静态 HTML 文件（Canvas 四柱+五行图）
-- **Web Dashboard**：`apps/visual`（React + SVG）交互式多工作区面板（用户要求多次排盘时推荐）
-
----
-
-## 知识参考
-
-- **玄学五术**（山医命相卜）详见 reference-metaphysics.md
-- **中医融合**（体质/五运六气/经络）详见 reference-tcm.md
-- **道家哲学**（道德经/内丹/风水哲学）详见 reference-daoism.md
-- **风水知识库**（形势/理气/阳宅古籍全文，30个文件，21.5万字）详见 knowledge-base/fengshui/_index.md
-- **风水键值映射**（命卦/八宅/二十四山/流年飞星/阳宅三要/形煞，6个JSON表）详见 knowledge-base/fengshui/mappings/
-- **佛教心性**（因果/禅修/心性）详见 reference-buddhism.md
-- **伦理规则**（必读）详见 RULES.md
-- **工具索引**（引擎状态/备用方案/安装检查）详见 tool-index.md
-- **演进记录**（架构决策/取舍理由）详见 EVOLUTION.md
-- **案例沉淀** 详见 field-journal/_template.md（案例记录模板）和 field-journal/_index.md（案例索引）
+reference 文件和古籍知识库只用于解释框架与引用，不能代替本次本地计算。

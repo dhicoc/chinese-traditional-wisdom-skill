@@ -51,7 +51,7 @@ const GUA_WUXING: Record<string, string> = {
 /**
  * 八宅大游年方位表：命卦 → { 方位: 游年星 }。
  * 与 visual/js/fengshui.js 的 EIGHT_MANSIONS_DATA 同源（已修复乾卦错位）。
- * 内嵌一份使本模块在无 window 环境下也能独立计算（A 类纯 TS，MCP 可直接 import）；
+ * 内嵌一份使本模块在无 window 环境下也能独立计算（A 类纯 TS）；
  * 运行时若 window.CORE.eightMansionsData 存在则优先用其覆盖（保持旧调用方零改动）。
  */
 const EIGHT_MANSIONS_DATA: Record<string, Record<string, string>> = {
@@ -70,7 +70,7 @@ export const EIGHT_MANSIONS_DATA_EXPORTED_FOR_TEST = EIGHT_MANSIONS_DATA;
 
 /**
  * 解析八宅方位数据源。
- * - 调用方传入 mansionsData 时直接用（A 类路径，Node/MCP 可用）。
+ * - 调用方传入 mansionsData 时直接用（A 类路径，可在 Node 环境运行）。
  * - 未传时回退读 window.CORE.eightMansionsData（旧 JS 暴露），再回退内嵌常量。
  * 这样既支持纯 TS 独立计算，又保持旧调用方零改动。
  */

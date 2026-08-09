@@ -3,7 +3,7 @@
  *
  * 从 visual/js/engines/yunqi-engine.js 移植为纯 TS。原引擎本是纯查表 + 干支计算，
  * 无外部依赖，仅因挂在 window.YunqiEngine 被 `if (typeof window === "undefined") return`
- * 挡住。剥离后可在 Node/MCP 直接 import。
+ * 挡住。剥离后可在 Node 环境直接 import。
  *
  * engine-adapters.js 的 yunqi adapter 额外做了「大寒定年」（依赖 window.Solar），
  * 这里用参数化 Solar 入口处理（与 almanacData/meihuaEngine 同模式）：
@@ -264,10 +264,7 @@ export interface YunqiData extends YunqiResult {
   export_snapshot: ExportSnapshot;
 }
 
-/**
- * 五运六气 —— ToolEnvelope 版本。
- * 未来 MCP：import { calcYunqiEnveloped }; server.tool('yunqi', {year:z.number()}, async (i) => calcYunqiEnveloped(i))
- */
+/** 五运六气的 ToolEnvelope 本地运行器版本。 */
 export function calcYunqiEnveloped(input: YunqiInput): ToolEnvelope<YunqiData> {
   const result = calculateYunqi(input);
   const y = result.year;

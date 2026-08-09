@@ -6,9 +6,12 @@ on:
   pull_request:
 
 jobs:
-  typecheck:
-    name: Typecheck
+  visual:
+    name: Visual quality gates
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/visual
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -17,44 +20,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: pnpm
+          cache-dependency-path: apps/visual/pnpm-lock.yaml
       - name: install visual deps
-        working-directory: apps/visual
         run: pnpm install --no-frozen-lockfile
-      - name: install mcp deps
-        working-directory: apps/mcp-server
-        run: pnpm install --no-frozen-lockfile
-      - name: typecheck visual
-        working-directory: apps/visual
+      - name: typecheck
         run: pnpm typecheck
-      - name: typecheck mcp-server
-        working-directory: apps/mcp-server
-        run: pnpm typecheck
-
-  unit:
-    name: Unit tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: install visual deps
-        working-directory: apps/visual
-        run: pnpm install --no-frozen-lockfile
-      - name: install mcp deps
-        working-directory: apps/mcp-server
-        run: pnpm install --no-frozen-lockfile
-      - name: vitest visual
-        working-directory: apps/visual
+      - name: unit tests
         run: pnpm test:unit
-      - name: vitest mcp-server
-        working-directory: apps/mcp-server
-        run: pnpm test
-      - name: smoke + contracts visual
-        working-directory: apps/visual
+      - name: contracts and smoke checks
         run: |
           node scripts/smoke-react-shell.mjs
           node scripts/check-doc-contracts.mjs
@@ -62,21 +36,5 @@ jobs:
           node scripts/check-mapping-schema.mjs
           node scripts/check-react-migration.mjs
           node scripts/check-search-index.mjs
-
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: install visual deps
-        working-directory: apps/visual
-        run: pnpm install --no-frozen-lockfile
-      - name: build visual
-        working-directory: apps/visual
+      - name: build
         run: pnpm build

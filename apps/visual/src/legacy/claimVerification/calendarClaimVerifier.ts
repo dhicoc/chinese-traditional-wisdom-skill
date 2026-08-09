@@ -1,6 +1,6 @@
-import type { AlmanacData } from '../../visual/src/legacy/almanacData';
-import type { XingXiuData } from '../../visual/src/legacy/xingxiuEngine';
-import type { YunqiData } from '../../visual/src/legacy/yunqiEngine';
+import type { AlmanacData } from '../almanacData';
+import type { XingXiuData } from '../xingxiuEngine';
+import type { YunqiData } from '../yunqiEngine';
 
 export type CalendarPresentationKind = 'yunqi' | 'xingxiu' | 'almanac';
 
@@ -25,17 +25,6 @@ export interface CalendarClaimViolation {
 export interface CalendarClaimValidation {
   valid: boolean;
   violations: CalendarClaimViolation[];
-}
-
-const presentationResults = new Map<string, { kind: CalendarPresentationKind; data: YunqiData | XingXiuData | AlmanacData }>();
-
-export function registerCalendarPresentation(kind: CalendarPresentationKind, data: YunqiData | XingXiuData | AlmanacData, token: string) {
-  presentationResults.set(token, { kind, data });
-}
-
-export function validateCalendarPresentation(token: string, claims: CalendarPresentationClaim[]): CalendarClaimValidation | null {
-  const entry = presentationResults.get(token);
-  return entry ? validateCalendarClaims(entry.kind, entry.data, claims) : null;
 }
 
 export function validateCalendarClaims(

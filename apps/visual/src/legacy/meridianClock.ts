@@ -7,7 +7,7 @@
  * 从 RhythmWorkspace 提取为共享模块，供：
  *  - RhythmWorkspace / MeridianClock SVG 渲染
  *  - jieqiWellness / comboEngine 取当前时辰经络
- *  - MCP combo_daily_wellness 工具
+ *  - combo_daily_wellness 本地工具
  */
 
 export interface MeridianHour {
