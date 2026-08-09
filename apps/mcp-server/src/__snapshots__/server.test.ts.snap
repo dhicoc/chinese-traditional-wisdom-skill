@@ -4676,7 +4676,7 @@ exports[`MCP Server 端到端协议 > tools/list 的公开输入输出契约保�
       "openWorldHint": false,
       "readOnlyHint": true,
     },
-    "description": "组合工具呈现依据校验。对本次 combo_zeri 的结构化基础事实，或 combo_daily_wellness 的传统规则／知识输出逐项比对。择日仅核验用途、搜索范围、候选条目与方位基础字段；养生可核验本次节气、体质、时辰经络、方位提示及传统规则建议条目是否与工具输出一致。valid:true 仅表示与本次传统规则输出一致，不代表现实效果、医疗安全性或个体结果保证；结果仅供传统文化与日常参考，切勿盲目相信。校验器不生成、补全或修正解读。",
+    "description": "组合工具呈现依据校验。对本次 combo_zeri 的结构化基础事实、combo_monthly_fortune 的年月/流月干支/节气/模式，或 combo_daily_wellness 的传统规则／知识输出逐项比对。择日仅核验用途、搜索范围、候选条目与方位基础字段；月度仅核验结构化上下文，不核验运势结论或建议；养生可核验本次节气、体质、时辰经络、方位提示及传统规则建议条目是否与工具输出一致。养生 valid:true 仅表示与本次传统规则输出一致，不代表现实效果、医疗安全性或个体结果保证；结果仅供传统文化与日常参考，切勿盲目相信。校验器不生成、补全或修正解读。",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "additionalProperties": false,
@@ -4955,6 +4955,93 @@ exports[`MCP Server 端到端协议 > tools/list 的公开输入输出契约保�
                 "properties": {
                   "field": {
                     "enum": [
+                      "year",
+                      "month",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "monthlyContext",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "combo_monthly_fortune",
+                    "type": "string",
+                  },
+                  "value": {
+                    "type": "integer",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "monthGanZhi",
+                      "jieqi",
+                    ],
+                    "type": "string",
+                  },
+                  "kind": {
+                    "const": "monthlyContext",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "combo_monthly_fortune",
+                    "type": "string",
+                  },
+                  "value": {
+                    "minLength": 1,
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "field",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "monthlyMode",
+                    "type": "string",
+                  },
+                  "tool": {
+                    "const": "combo_monthly_fortune",
+                    "type": "string",
+                  },
+                  "value": {
+                    "enum": [
+                      "local-exact",
+                      "local-approx",
+                    ],
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "tool",
+                  "kind",
+                  "value",
+                ],
+                "type": "object",
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
                       "date",
                       "jieqi",
                       "season",
@@ -5156,7 +5243,7 @@ exports[`MCP Server 端到端协议 > tools/list 的公开输入输出契约保�
           "type": "array",
         },
         "presentationToken": {
-          "description": "本次 combo_zeri 或 combo_daily_wellness 返回的 result_meta.presentationToken，仅在当前 MCP 进程有效",
+          "description": "本次 combo_zeri、combo_monthly_fortune 或 combo_daily_wellness 返回的 result_meta.presentationToken，仅在当前 MCP 进程有效",
           "format": "uuid",
           "type": "string",
         },

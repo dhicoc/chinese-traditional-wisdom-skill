@@ -159,6 +159,7 @@
 - **日用与民俗呈现校验（试点）**：当最终说明写入姓名分数/等级/维度、喜用神日主/同异类五行及分数/强弱/用神、五运六气体质倾向的岁运/司天/在泉与倾向类型、梦象命中状态及条目标题/分类/吉凶标签、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、每日节律日期/节气/经络或体质问卷主体质/转化分等可验证基础事实时，Agent 必须用本次对应工具返回的 `result_meta.presentationToken` 调用 `validate_daily_presentation`。喜用神置信说明、倾向理由与边界说明，以及现代释义、古文断语、心理学解释、称骨歌、调养方案与医疗建议不属于 claims，不能伪装成已验证结论。
 - **组合择日呈现校验（试点）**：当最终说明写入本次 `combo_zeri` 的用途、搜索范围、已排序候选条目的日期/农历日期/日干支/分数/标签/冲命主与犯年煞状态、本年凶方或命卦吉方条目时，Agent 必须用本次结果的 `result_meta.presentationToken` 调用 `validate_combo_presentation`。评分理由、淘汰理由、黄历全文、首选结论、吉时、行动建议及任何吉凶保证不属于 claims，不能伪装成已验证结论。
 - **组合养生传统规则输出校验（试点）**：当最终说明转述本次 `combo_daily_wellness` 的节气、体质、时辰经络、方位提示，或节气饮食/起居/运动/穴位、体质加减、时辰养护等传统规则／知识输出时，Agent 必须用本次结果的 `result_meta.presentationToken` 调用 `validate_combo_presentation`。`valid: true` 仅表示结构化 claims 与本次传统规则输出一致，不代表现实效果、医疗安全性或个体结果保证；结果仅供传统文化与日常参考，切勿盲目相信。
+- **组合月度基础事实校验（试点）**：当最终说明写入本次 `combo_monthly_fortune` 的目标年月、流月干支、节气或 `local-exact`/`local-approx` 模式时，Agent 必须用本次结果的 `result_meta.presentationToken` 调用 `validate_combo_presentation`。运势结论、子系统摘要、综合文本和建议不属于 claims，不能伪装成已验证结论。
 - **数值断言校验**：未由专用呈现校验器覆盖的数值事实，必须使用本次成功计算结果的 `result_meta.numericAssertionToken` 调用 `validate_numeric_assertions`，每条 claim 仅可引用有限的 `data.*` 数值。`valid: true` 只表示结构化 claims 与本次 ToolEnvelope 一致，**不得声称自由文本已自动校验**；自由文本只能是已验证 claims 的转述。
 - **反模式表**：
 

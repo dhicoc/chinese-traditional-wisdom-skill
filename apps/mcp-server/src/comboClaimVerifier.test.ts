@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Solar } from 'lunar-typescript';
-import { calcDailyWellnessCombo, calcZeriCombo } from '../../visual/src/legacy/comboEngine';
+import { calcDailyWellnessCombo, calcMonthlyFortuneCombo, calcZeriCombo } from '../../visual/src/legacy/comboEngine';
 import { validateComboClaims, type ComboPresentationClaim } from './comboClaimVerifier';
 
 const envelope = calcZeriCombo({
@@ -18,6 +18,13 @@ const wellnessEnvelope = calcDailyWellnessCombo({
   constitution: '气虚质',
   now: { year: 2026, month: 8, day: 1, hour: 12 },
   targetYear: 2026,
+  solar: Solar,
+});
+
+const monthlyEnvelope = calcMonthlyFortuneCombo({
+  birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+  targetYear: 2026,
+  targetMonth: 8,
   solar: Solar,
 });
 
@@ -52,6 +59,37 @@ describe('组合择日呈现断言校验', () => {
     expect(result.violations).toEqual(expect.arrayContaining([
       expect.objectContaining({ tool: 'combo_zeri', kind: 'zeriRankedDay' }),
       expect.objectContaining({ tool: 'combo_monthly_fortune', kind: 'zeriPurpose' }),
+    ]));
+  });
+});
+
+describe('组合月度基础事实校验', () => {
+  it('接受本次精确年月、流月干支、节气与模式', () => {
+    const data = monthlyEnvelope.data;
+    const claims: ComboPresentationClaim[] = [
+      { tool: 'combo_monthly_fortune', kind: 'monthlyContext', field: 'year', value: data.context.year },
+      { tool: 'combo_monthly_fortune', kind: 'monthlyContext', field: 'month', value: data.context.month },
+      { tool: 'combo_monthly_fortune', kind: 'monthlyContext', field: 'monthGanZhi', value: data.context.monthGanZhi },
+      { tool: 'combo_monthly_fortune', kind: 'monthlyContext', field: 'jieqi', value: data.context.jieqi },
+      { tool: 'combo_monthly_fortune', kind: 'monthlyMode', value: data.mode },
+    ];
+
+    expect(validateComboClaims('combo_monthly_fortune', data, claims)).toEqual({ valid: true, violations: [] });
+  });
+
+  it('拒绝伪造流月、模式不符和跨工具断言', () => {
+    const data = monthlyEnvelope.data;
+    const result = validateComboClaims('combo_monthly_fortune', data, [
+      { tool: 'combo_monthly_fortune', kind: 'monthlyContext', field: 'monthGanZhi', value: '甲子' },
+      { tool: 'combo_monthly_fortune', kind: 'monthlyMode', value: 'local-approx' },
+      { tool: 'combo_zeri', kind: 'zeriPurpose', value: '开业' },
+    ]);
+
+    expect(result.valid).toBe(false);
+    expect(result.violations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ tool: 'combo_monthly_fortune', kind: 'monthlyContext' }),
+      expect.objectContaining({ tool: 'combo_monthly_fortune', kind: 'monthlyMode' }),
+      expect.objectContaining({ tool: 'combo_zeri', kind: 'zeriPurpose' }),
     ]));
   });
 });

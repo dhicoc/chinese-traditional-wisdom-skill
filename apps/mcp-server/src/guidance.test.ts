@@ -87,6 +87,14 @@ describe('agent_guidance 参数引导', () => {
     expect(workflow).toContain('切勿盲目相信');
   });
 
+  it('GLOBAL_AGENT_RULES 约束组合月度基础事实呈现校验', () => {
+    expect(GLOBAL_AGENT_RULES.some((r) => r.includes('combo_monthly_fortune') && r.includes('validate_combo_presentation') && r.includes('流月干支'))).toBe(true);
+    const workflow = getToolGuidance('combo_monthly_fortune')!.workflow;
+    expect(workflow).toContain('validate_combo_presentation');
+    expect(workflow).toContain('local-exact/local-approx');
+    expect(workflow).toContain('运势结论、子系统摘要、综合文本和建议不进入 claims');
+  });
+
   it('safeDefaults 不包含默认男', () => {
     const serializedDefaults = JSON.stringify(Object.values(listToolGuidance()).map((item) => getToolGuidance(item.tool)?.safeDefaults));
     expect(serializedDefaults).not.toContain('"gender":"男"');

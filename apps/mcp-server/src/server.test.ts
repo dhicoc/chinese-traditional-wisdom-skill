@@ -715,6 +715,45 @@ describe('MCP Server 端到端协议', () => {
     expect(invalid).toMatchObject({ valid: false, violations: [expect.objectContaining({ tool: 'combo_zeri', kind: 'zeriRankedDay' })] });
   }, 30000);
 
+  it('同一会话中仅允许通过校验的组合月度基础事实进入呈现', async () => {
+    const responses = await runMcpSessionWithFollowUp([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(84, 'combo_monthly_fortune', {
+        birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+        targetYear: 2026,
+        targetMonth: 8,
+      }),
+    ], (calculation) => {
+      if (calculation.id !== 84) return null;
+      const envelope = (calculation.result as {
+        structuredContent: {
+          data: { context: { year: number; month: number; monthGanZhi: string; jieqi: string }; mode: 'local-exact' | 'local-approx' };
+          result_meta: { presentationToken: string };
+        };
+      }).structuredContent;
+      return [
+        toolCallMsg(85, 'validate_combo_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [
+            { tool: 'combo_monthly_fortune', kind: 'monthlyContext', field: 'year', value: envelope.data.context.year },
+            { tool: 'combo_monthly_fortune', kind: 'monthlyContext', field: 'month', value: envelope.data.context.month },
+            { tool: 'combo_monthly_fortune', kind: 'monthlyContext', field: 'monthGanZhi', value: envelope.data.context.monthGanZhi },
+            { tool: 'combo_monthly_fortune', kind: 'monthlyContext', field: 'jieqi', value: envelope.data.context.jieqi },
+            { tool: 'combo_monthly_fortune', kind: 'monthlyMode', value: envelope.data.mode },
+          ],
+        }),
+        toolCallMsg(86, 'validate_combo_presentation', {
+          presentationToken: envelope.result_meta.presentationToken,
+          claims: [{ tool: 'combo_monthly_fortune', kind: 'monthlyContext', field: 'monthGanZhi', value: '甲子' }],
+        }),
+      ];
+    });
+    const valid = (responses.find((response) => response.id === 85)!.result as { structuredContent: { valid: boolean; violations: unknown[] } }).structuredContent;
+    const invalid = (responses.find((response) => response.id === 86)!.result as { structuredContent: { valid: boolean; violations: Array<{ tool: string; kind: string }> } }).structuredContent;
+    expect(valid).toEqual({ valid: true, violations: [] });
+    expect(invalid).toMatchObject({ valid: false, violations: [expect.objectContaining({ tool: 'combo_monthly_fortune', kind: 'monthlyContext' })] });
+  }, 30000);
+
   it('同一会话中仅允许通过校验的组合养生传统规则输出进入呈现', async () => {
     const responses = await runMcpSessionWithFollowUp([
       INIT_MSG, INITIALIZED_MSG,

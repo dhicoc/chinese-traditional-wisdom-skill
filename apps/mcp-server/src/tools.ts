@@ -681,13 +681,21 @@ export const TOOLS: ToolDef[] = [
     }),
     handler: async (i) => {
       const [{ calcMonthlyFortuneCombo }, solar] = await Promise.all([loadCombo(), loadSolar()]);
-      return calcMonthlyFortuneCombo({
+      const envelope = calcMonthlyFortuneCombo({
         birth: (i as { birth: unknown }).birth as never,
         targetYear: (i as { targetYear: number }).targetYear,
         targetMonth: (i as { targetMonth: number }).targetMonth,
         constitution: (i as { constitution?: string }).constitution,
         solar: solar as never,
       });
+      if (!envelope.ok) return envelope;
+
+      const presentationToken = randomUUID();
+      registerComboPresentation('combo_monthly_fortune', envelope.data, presentationToken);
+      return {
+        ...envelope,
+        result_meta: { ...envelope.result_meta, presentationToken },
+      };
     },
   },
   {

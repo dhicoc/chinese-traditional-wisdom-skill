@@ -1,6 +1,6 @@
-import type { DailyWellnessResult, ZeriResult } from '../../visual/src/legacy/comboEngine';
+import type { DailyWellnessResult, MonthlyFortuneResult, ZeriResult } from '../../visual/src/legacy/comboEngine';
 
-export type ComboPresentationTool = 'combo_zeri' | 'combo_daily_wellness';
+export type ComboPresentationTool = 'combo_zeri' | 'combo_daily_wellness' | 'combo_monthly_fortune';
 
 export type ComboPresentationClaim =
   | { tool: string; kind: 'zeriPurpose'; value: ZeriResult['zeriPurpose'] }
@@ -8,6 +8,8 @@ export type ComboPresentationClaim =
   | { tool: string; kind: 'zeriRankedDay'; index: number; field: 'date' | 'lunarDate' | 'dayGanZhi' | 'score' | 'tone' | 'chongOwner' | 'hitsAnnualSha'; value: string | number | boolean }
   | { tool: string; kind: 'zeriAnnualSha'; field: 'taisui' | 'suiPo' | 'sanSha' | 'fiveYellow'; value: string }
   | { tool: string; kind: 'zeriPersonalDirection'; index: number; field: 'star' | 'direction'; value: string }
+  | { tool: string; kind: 'monthlyContext'; field: 'year' | 'month' | 'monthGanZhi' | 'jieqi'; value: string | number }
+  | { tool: string; kind: 'monthlyMode'; value: MonthlyFortuneResult['mode'] }
   | { tool: string; kind: 'wellnessContext'; field: 'date' | 'jieqi' | 'season' | 'shichen' | 'meridian'; value: string }
   | { tool: string; kind: 'wellnessConstitution'; field: 'type' | 'source' | 'reason'; value: string }
   | { tool: string; kind: 'wellnessJieqi'; field: 'jieqi' | 'season' | 'feature' | 'diet' | 'lifestyle' | 'exercise' | 'acupoints' | 'principle'; value: string }
@@ -29,7 +31,7 @@ export interface ComboClaimValidation {
   violations: ComboClaimViolation[];
 }
 
-type ComboPresentationData = ZeriResult | DailyWellnessResult;
+type ComboPresentationData = ZeriResult | DailyWellnessResult | MonthlyFortuneResult;
 
 const presentationResults = new Map<string, { tool: ComboPresentationTool; data: ComboPresentationData }>();
 
@@ -86,6 +88,18 @@ function getExpectedValue(
         return zeri.annualSha[claim.field];
       case 'zeriPersonalDirection':
         return zeri.personalAuspicious[claim.index]?.[claim.field];
+      default:
+        return undefined;
+    }
+  }
+
+  if (tool === 'combo_monthly_fortune') {
+    const monthly = data as MonthlyFortuneResult;
+    switch (claim.kind) {
+      case 'monthlyContext':
+        return monthly.context[claim.field];
+      case 'monthlyMode':
+        return monthly.mode;
       default:
         return undefined;
     }

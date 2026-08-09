@@ -148,6 +148,7 @@ check(rules.includes("numericAssertionToken") && rules.includes("data.*") && rul
   check(content.includes("validate_combo_presentation"), `${name} 缺少组合工具呈现校验工具`);
   check(content.includes("评分理由、淘汰理由、黄历全文、首选结论、吉时、行动建议"), `${name} 缺少组合择日呈现校验边界`);
   check(content.includes("组合养生校验") && content.includes("传统规则输出一致") && content.includes("切勿盲目相信"), `${name} 缺少组合养生传统参考校验边界`);
+  check(content.includes("组合月度基础事实校验") && content.includes("流月干支") && content.includes("不进入 claims"), `${name} 缺少组合月度基础事实校验边界`);
   check(content.includes("喜用神日主/同异类五行及分数/强弱/用神"), `${name} 缺少喜用神呈现校验边界`);
   check(content.includes("五运六气体质倾向的岁运/司天/在泉与倾向类型"), `${name} 缺少五运六气体质倾向校验边界`);
   check(content.includes("梦象命中状态及条目标题/分类/吉凶标签"), `${name} 缺少梦象呈现校验边界`);

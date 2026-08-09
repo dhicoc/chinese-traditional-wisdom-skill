@@ -51,7 +51,8 @@
 11. 若要呈现姓名分数/等级/维度、喜用神日主/同异类五行及分数/强弱/用神、五运六气体质倾向的岁运/司天/在泉与倾向类型、梦象命中状态及条目标题/分类/吉凶标签、测字笔画/数理/五行/结构/八字补益、称骨骨重/版本、每日节律日期/节气/经络或体质问卷主体质/转化分，先以对应本次计算结果的 `result_meta.presentationToken` 调 `validate_daily_presentation`；喜用神置信说明、倾向理由、边界说明、现代释义、古文断语、心理学解释、歌诀、调养方案与医疗建议不进入 claims。
 12. 若要呈现本次 `combo_zeri` 的用途、搜索范围、已排序候选条目的日期/农历日期/日干支/分数/标签/冲命主与犯年煞状态、本年凶方或命卦吉方条目，先以该结果的 `result_meta.presentationToken` 调 `validate_combo_presentation`；评分理由、淘汰理由、黄历全文、首选结论、吉时、行动建议及任何吉凶保证不进入 claims。
 13. 组合养生校验：若要呈现本次 `combo_daily_wellness` 的节气、体质、时辰经络、方位提示或节气饮食/起居/运动/穴位、体质加减、时辰养护等传统规则／知识输出，先以该结果的 `result_meta.presentationToken` 调 `validate_combo_presentation`。`valid: true` 仅表示与本次传统规则输出一致，不代表现实效果、医疗安全性或个体结果保证；结果仅供传统文化与日常参考，切勿盲目相信。
-14. 未被专用呈现校验器覆盖的数值事实，使用本次成功计算结果的 `result_meta.numericAssertionToken` 调 `validate_numeric_assertions`。每条 claim 只能引用有限的 `data.*` 数值；`valid: true` 只表示结构化 claims 已核验，不能表示自由文本已自动校验。
+14. 组合月度基础事实校验：若要呈现本次 `combo_monthly_fortune` 的目标年月、流月干支、节气或 `local-exact`/`local-approx` 模式，先以该结果的 `result_meta.presentationToken` 调 `validate_combo_presentation`；运势结论、子系统摘要、综合文本和建议不进入 claims。
+15. 未被专用呈现校验器覆盖的数值事实，使用本次成功计算结果的 `result_meta.numericAssertionToken` 调 `validate_numeric_assertions`。每条 claim 只能引用有限的 `data.*` 数值；`valid: true` 只表示结构化 claims 已核验，不能表示自由文本已自动校验。
 
 如果地点或历史时区、夏令时无法可靠核验，必须先说明限制。仅在用户明确确认后，才可使用民用出生记录调用 `bazi_calculate`，并设置 `timeBasis=civil-unverified`、`civilFallbackConfirmed=true`；输出必须标注**“未完成真太阳时复核”**。不得把该结果称为真太阳时排盘。
 
