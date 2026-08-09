@@ -86,6 +86,35 @@ export interface DailyRhythmToolInput {
   constitution?: string;
 }
 
+export interface XiYongToolInput {
+  dayMasterWuxing: '木' | '火' | '土' | '金' | '水';
+  elements: Record<'木' | '火' | '土' | '金' | '水', number>;
+}
+
+export interface NameToolInput {
+  surname: string;
+  givenName: string;
+  birthYear?: number;
+  birth?: BaziBirth;
+  baziTimeContext?: Input;
+}
+
+export interface CeziToolInput {
+  char: string;
+  aspect?: '事业' | '感情' | '财利' | '健康' | '综合';
+  birth?: BaziBirth;
+  baziTimeContext?: Input;
+}
+
+export interface HuangjiToolInput {
+  birth: { year: number; month: number; day: number; hour: number; minute: number };
+}
+
+export interface DreamToolInput {
+  keyword: string;
+  useFull: boolean;
+}
+
 export type LocalToolContractInput =
   | TrueSolarTimeToolInput
   | BaziToolInput
@@ -101,7 +130,12 @@ export type LocalToolContractInput =
   | YunqiToolInput
   | ChenguzToolInput
   | AlmanacToolInput
-  | DailyRhythmToolInput;
+  | DailyRhythmToolInput
+  | XiYongToolInput
+  | NameToolInput
+  | CeziToolInput
+  | HuangjiToolInput
+  | DreamToolInput;
 
 type Input = Record<string, unknown>;
 
@@ -164,6 +198,33 @@ function divinationBirth(value: unknown): DivinationBirth {
 function finiteNumber(value: unknown, label: string): number {
   if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error(`${label}必须是有限数字。`);
   return value;
+}
+
+function nonEmptyString(value: unknown, label: string): string {
+  if (typeof value !== 'string' || !value.trim()) throw new Error(`${label}必须是非空字符串。`);
+  return value.trim();
+}
+
+function huangjiBirth(value: unknown): HuangjiToolInput['birth'] {
+  const input = object(value, 'birth');
+  const birthYear = year(input.year, 'birth.year');
+  const month = integer(input.month, 'birth.month', 1, 12);
+  const day = integer(input.day, 'birth.day', 1, 31);
+  const hour = integer(input.hour, 'birth.hour', 0, 23);
+  const minute = input.minute === undefined ? 0 : integer(input.minute, 'birth.minute', 0, 59);
+  dateParts(birthYear, month, day, 'birth');
+  return { year: birthYear, month, day, hour, minute };
+}
+
+function baziTimeContext(value: unknown): Input {
+  const context = object(value, 'baziTimeContext');
+  if (context.timeBasis !== 'true-solar-verified' && context.timeBasis !== 'civil-unverified') {
+    throw new Error('baziTimeContext.timeBasis 必须是 true-solar-verified 或 civil-unverified。');
+  }
+  if (context.timeBasis === 'civil-unverified' && context.civilFallbackConfirmed !== true) {
+    throw new Error('baziTimeContext.timeBasis=civil-unverified 必须显式传 civilFallbackConfirmed=true。');
+  }
+  return context;
 }
 
 function year(value: unknown, label: string): number {
@@ -293,6 +354,42 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
         constitution: input.constitution as string | undefined,
       } as DailyRhythmToolInput;
     }
+    case 'calc_xiyong': {
+      if (!['木', '火', '土', '金', '水'].includes(input.dayMasterWuxing as string)) throw new Error('dayMasterWuxing 必须是五行之一。');
+      const rawElements = object(input.elements, 'elements');
+      const elements = Object.fromEntries(['木', '火', '土', '金', '水'].map((element) => {
+        const value = finiteNumber(rawElements[element], `elements.${element}`);
+        if (value < 0) throw new Error(`elements.${element}必须是非负数字。`);
+        return [element, value];
+      })) as XiYongToolInput['elements'];
+      return { dayMasterWuxing: input.dayMasterWuxing as XiYongToolInput['dayMasterWuxing'], elements };
+    }
+    case 'dream_interpret': {
+      if (input.useFull !== undefined && typeof input.useFull !== 'boolean') throw new Error('useFull 必须是布尔值。');
+      return { keyword: nonEmptyString(input.keyword, 'keyword'), useFull: input.useFull ?? false } as DreamToolInput;
+    }
+    case 'analyze_name': {
+      const birthInput = input.birth === undefined ? undefined : birth(input.birth, 'birth');
+      const birthYear = input.birthYear === undefined ? undefined : year(input.birthYear, 'birthYear');
+      if (birthInput && birthYear !== undefined && birthInput.year !== birthYear) throw new Error('birthYear 必须与 birth.year 一致。');
+      const context = input.baziTimeContext === undefined ? undefined : baziTimeContext(input.baziTimeContext);
+      if (birthInput && !context) throw new Error('提供 birth 时必须提供 baziTimeContext。');
+      if (!birthInput && context) throw new Error('未提供 birth 时不能提供 baziTimeContext。');
+      return { surname: nonEmptyString(input.surname, 'surname'), givenName: nonEmptyString(input.givenName, 'givenName'), birthYear, birth: birthInput, baziTimeContext: context } as NameToolInput;
+    }
+    case 'cast_cezi': {
+      const char = nonEmptyString(input.char, 'char');
+      if (Array.from(char).length !== 1) throw new Error('char 必须恰好包含一个字符。');
+      const aspect = input.aspect ?? '综合';
+      if (!['事业', '感情', '财利', '健康', '综合'].includes(aspect as string)) throw new Error('aspect 必须是事业、感情、财利、健康或综合。');
+      const birthInput = input.birth === undefined ? undefined : birth(input.birth, 'birth');
+      const context = input.baziTimeContext === undefined ? undefined : baziTimeContext(input.baziTimeContext);
+      if (birthInput && !context) throw new Error('提供 birth 时必须提供 baziTimeContext。');
+      if (!birthInput && context) throw new Error('未提供 birth 时不能提供 baziTimeContext。');
+      return { char, aspect: aspect as CeziToolInput['aspect'], birth: birthInput, baziTimeContext: context } as CeziToolInput;
+    }
+    case 'huangji_calculate':
+      return { birth: huangjiBirth(input.birth) } as HuangjiToolInput;
     default:
       return null;
   }

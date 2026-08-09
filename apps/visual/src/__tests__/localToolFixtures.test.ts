@@ -170,6 +170,56 @@ const successCases: SuccessCase[] = [
     name: 'get_daily_rhythm.boundary.json',
     assert: (result) => expect(result).toMatchObject({ ok: true, data: { date: '2024-02-29', meridian: { meridian: expect.any(String) } } }),
   },
+  {
+    tool: 'calc_xiyong',
+    name: 'calc_xiyong.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { dayMasterWuxing: '金', qiangRuo: '身弱', shen: '金', similarPoint: 6, heterogeneousPoint: 14 } }),
+  },
+  {
+    tool: 'calc_xiyong',
+    name: 'calc_xiyong.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { qiangRuo: '平衡', shen: '水', similarPoint: 2, heterogeneousPoint: 2 } }),
+  },
+  {
+    tool: 'dream_interpret',
+    name: 'dream_interpret.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, input_normalized: { keyword: '蛇', useFull: false }, data: { hit: true, entries: expect.any(Array) } }),
+  },
+  {
+    tool: 'dream_interpret',
+    name: 'dream_interpret.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { hit: false } }),
+  },
+  {
+    tool: 'analyze_name',
+    name: 'analyze_name.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { totalScore: expect.any(Number), grade: expect.any(String), dimensions: expect.any(Array) } }),
+  },
+  {
+    tool: 'analyze_name',
+    name: 'analyze_name.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { timeSource: { timeBasis: 'civil-unverified' } } }),
+  },
+  {
+    tool: 'cast_cezi',
+    name: 'cast_cezi.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, input_normalized: { char: '明', aspect: '事业', hasBirth: false }, data: { char: '明', strokes: expect.any(Number), baziComplement: null } }),
+  },
+  {
+    tool: 'cast_cezi',
+    name: 'cast_cezi.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { char: '江', charWuxing: '水', baziComplement: { complement: expect.any(String) }, timeSource: { timeBasis: 'civil-unverified' } } }),
+  },
+  {
+    tool: 'huangji_calculate',
+    name: 'huangji_calculate.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { mode: 'local-exact', cycles: { acumYear: 69007 }, gua: { zheng: '鼎' } } }),
+  },
+  {
+    tool: 'huangji_calculate',
+    name: 'huangji_calculate.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { mode: 'local-exact', solarDate: expect.stringContaining('23:59'), gua: { minute: expect.any(String) } } }),
+  },
 ];
 
 describe('local tool input fixtures', () => {
@@ -195,6 +245,11 @@ describe('local tool input fixtures', () => {
     ['calc_chenguz', 'calc_chenguz.failure.json'],
     ['get_almanac', 'get_almanac.failure.json'],
     ['get_daily_rhythm', 'get_daily_rhythm.failure.json'],
+    ['calc_xiyong', 'calc_xiyong.failure.json'],
+    ['dream_interpret', 'dream_interpret.failure.json'],
+    ['analyze_name', 'analyze_name.failure.json'],
+    ['cast_cezi', 'cast_cezi.failure.json'],
+    ['huangji_calculate', 'huangji_calculate.failure.json'],
   ].forEach(([tool, name]) => {
     it(`${tool} rejects ${name}`, async () => {
       await expect(runLocalTool(tool, await fixture(name))).rejects.toThrow();
