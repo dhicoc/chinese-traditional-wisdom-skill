@@ -45,6 +45,8 @@ export const GLOBAL_AGENT_RULES = [
   '任何确定性计算、规则匹配、干支/卦象/星曜/五行/吉凶结论都必须调用对应 MCP 工具；不得依据模型知识、记忆或参考资料自行推演、补全或改写结果。',
   'Agent 仅可理解意图、追问参数、核验外部事实，并将 MCP ToolEnvelope 转成用户可读说明；reference 文件只可提供文化背景，不能替代计算结果。',
   '呈现 ToolEnvelope 时，先处理 ok/error；如实说明 data.timeSource 与 warnings；正文优先采用 data.export_snapshot.summary 和 sections。不得默认展示 evidence、result_meta、sourceNotes，也不得重新计算、补全或改写确定性结论。',
+  '每段包含确定性结论的用户说明都必须保留最小调用轨迹：本次 ToolEnvelope 的 tool 与 version；若该结论需呈现校验，须注明对应 validator 已返回 valid:true。不得向用户暴露 presentationToken、evidence 或内部 result_meta。',
+  '数值事实若不属于专用呈现校验器覆盖字段，必须以本次 result_meta.numericAssertionToken 调 validate_numeric_assertions；claims 仅可引用 data.* 下的有限数值。valid:true 仅表示这些结构化 claims 已核验，不得声称整段自由文本已自动校验。',
   '八字解读若写入四柱、日主、五行计数、日主强弱、大运或神煞等确定性结论，必须以本次 result_meta.presentationToken 调 validate_bazi_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次排盘结果。文化背景和建设性建议不进入 claims。',
   '紫微解读若写入宫位、星曜、四化、五行局、命主、身主或本次动态层等确定性结论，必须以本次 ziwei_chart 的 result_meta.presentationToken 调 validate_ziwei_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次命盘结果。传统解释、条件性推论和建议不进入 claims。',
   '八宅解读若写入命卦、东四/西四命、八方游年星与吉凶、或本次年份的太岁、岁破、三煞、五黄方位等确定性结论，必须以本次 calc_bazhai 的 result_meta.presentationToken 调 validate_bazhai_presentation；每条结论逐项放入 claims，校验失败不得呈现为本次推算结果。传统释义、布局建议、门主灶与化解建议不进入 claims。',

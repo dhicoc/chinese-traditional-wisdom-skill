@@ -125,6 +125,10 @@ check(trueSolarTime.includes("equationOfTimeMinutes"), "trueSolarTime.ts 缺少�
   check(content.includes("未完成真太阳时复核"), `${name} 缺少真太阳时降级标记`);
 });
 check(rules.includes("禁止凭模型记忆"), "RULES.md 缺少禁止凭模型记忆校时规则");
+check(rules.includes("引擎依据与调用轨迹"), "RULES.md 缺少引擎依据与调用轨迹规则");
+check(rules.includes("ToolEnvelope.tool") && rules.includes("presentationToken"), "RULES.md 缺少调用轨迹字段边界");
+check(rules.includes("反模式表") && rules.includes("这个我凭知识能排") && rules.includes("自由文本已通过校验"), "RULES.md 缺少防编造反模式表");
+check(rules.includes("numericAssertionToken") && rules.includes("data.*") && rules.includes("自由文本已自动校验"), "RULES.md 缺少数值断言校验边界");
 [
   ["README.md", readme],
   ["README_AI.md", readmeAi],
@@ -132,7 +136,7 @@ check(rules.includes("禁止凭模型记忆"), "RULES.md 缺少禁止凭模型�
   ["tool-index.md", toolIndex],
   ["apps/mcp-server/README.md", mcpReadme],
 ].forEach(([name, content]) => {
-  check(content.includes("40 个工具"), `${name} 缺少 40 个工具当前统计`);
+  check(content.includes("41 个工具"), `${name} 缺少 41 个工具当前统计`);
   check(content.includes("32 个计算工具"), `${name} 缺少 32 个计算工具当前统计`);
   check(content.includes("validate_bazi_presentation"), `${name} 缺少八字呈现校验工具`);
   check(content.includes("validate_ziwei_presentation"), `${name} 缺少紫微呈现校验工具`);
@@ -140,6 +144,7 @@ check(rules.includes("禁止凭模型记忆"), "RULES.md 缺少禁止凭模型�
   check(content.includes("validate_feixing_presentation"), `${name} 缺少流年飞星呈现校验工具`);
   check(content.includes("validate_calendar_presentation"), `${name} 缺少历法与年度盘面呈现校验工具`);
   check(content.includes("validate_divination_presentation"), `${name} 缺少占测／卦象呈现校验工具`);
+  check(content.includes("validate_numeric_assertions"), `${name} 缺少数值断言校验工具`);
   check(content.includes("resolve_true_solar_time"), `${name} 缺少真太阳时 MCP 调用`);
   check(content.includes("trueSolarBirth"), `${name} 缺少 trueSolarBirth 调用链`);
 });

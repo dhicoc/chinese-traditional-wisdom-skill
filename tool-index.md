@@ -71,13 +71,13 @@ ToolEnvelope<TData> = { ok, tool, version, input_normalized, data: TData & { exp
 
 > `apps/mcp-server/`：薄壳包装上述 enveloped 引擎为 MCP 工具，供 Claude Code/Desktop/Cursor/Cline 调用。无计算逻辑，import 纯 TS 引擎。
 
-**40 个工具**（32 个计算工具 + 8 个元工具）：
+**41 个工具**（32 个计算工具 + 9 个元工具）：
 - 时间校准（1）：`resolve_true_solar_time`。Agent 必须先核验地点经度、IANA 时区、出生当日 UTC 偏移、夏令时状态和 `utcOffsetEvidence`；工具仅确定性计算，不解析地点或猜测历史规则。
 - 排盘计算（22）：`bazi_calculate` / `ziwei_chart` / `cast_liuyao` / `arrange_qimen` / `liuren_calculate` / `xingxiu_daily` / `taiyi_calculate` / `huangji_calculate` / `cast_meihua` / `calc_yunqi` / `analyze_name` / `calc_xiyong` / `get_constitution_tendency` / `dream_interpret` / `cast_cezi` / `calc_chenguz` / `get_almanac` / `calc_feixing` / `calc_bazhai` / `get_daily_rhythm` / `assess_constitution` / `list_constitution_questionnaire`
 - 跨系统联合分析（9）：`combo_annual_fortune` / `combo_monthly_fortune` / `combo_decision` / `combo_space_time` / `combo_sanshi` / `combo_sanshi_classic` / `combo_daily_wellness` / `combo_zeri` / `combo_marriage`
-- 元工具（8）：`agent_guidance`（参数引导防瞎猜）/ `validate_bazi_presentation`（八字呈现依据校验）/ `validate_ziwei_presentation`（紫微呈现依据校验）/ `validate_bazhai_presentation`（八宅呈现依据校验）/ `validate_feixing_presentation`（流年飞星呈现依据校验）/ `validate_calendar_presentation`（历法与年度盘面呈现依据校验）/ `validate_divination_presentation`（占测／卦象呈现依据校验）/ `wisdom_dispatch`（自然语言意图路由）
+- 元工具（9）：`agent_guidance`（参数引导防瞎猜）/ `validate_bazi_presentation`（八字呈现依据校验）/ `validate_ziwei_presentation`（紫微呈现依据校验）/ `validate_bazhai_presentation`（八宅呈现依据校验）/ `validate_feixing_presentation`（流年飞星呈现依据校验）/ `validate_calendar_presentation`（历法与年度盘面呈现依据校验）/ `validate_divination_presentation`（占测／卦象呈现依据校验）/ `validate_numeric_assertions`（数值断言依据校验）/ `wisdom_dispatch`（自然语言意图路由）
 
-八字调用顺序固定为：Agent 核验事实 → `resolve_true_solar_time` → 将 `trueSolarBirth` 传给 `bazi_calculate` → 使用本次 `presentationToken` 调 `validate_bazi_presentation` 校验待呈现的确定性 claims。紫微、八宅和飞星的确定性 facts 分别须用对应 validator 校验。五运六气的年度、干支、岁运、司天、在泉与客气步骤须使用本次 `calc_yunqi` 的 `presentationToken` 调 `validate_calendar_presentation`；星宿和黄历仅在显式传入 `queryDate` 或 `date` 后可校验基础历法字段。六爻、梅花、奇门、大六壬、太乙与皇极的卦名、动爻、局式、宫位、干支、三传与周期等基础盘面事实须使用本次 `presentationToken` 调 `validate_divination_presentation`；吉凶、应期、策略、传统解释与行动建议不进入 claims。无法可靠核验时，仅能在用户知情下按民用时间排盘并标注“未完成真太阳时复核”；Dashboard 只展示此状态，不独立作出真太阳时判断。
+八字调用顺序固定为：Agent 核验事实 → `resolve_true_solar_time` → 将 `trueSolarBirth` 传给 `bazi_calculate` → 使用本次 `presentationToken` 调 `validate_bazi_presentation` 校验待呈现的确定性 claims。紫微、八宅和飞星的确定性 facts 分别须用对应 validator 校验。五运六气的年度、干支、岁运、司天、在泉与客气步骤须使用本次 `calc_yunqi` 的 `presentationToken` 调 `validate_calendar_presentation`；星宿和黄历仅在显式传入 `queryDate` 或 `date` 后可校验基础历法字段。六爻、梅花、奇门、大六壬、太乙与皇极的卦名、动爻、局式、宫位、干支、三传与周期等基础盘面事实须使用本次 `presentationToken` 调 `validate_divination_presentation`；吉凶、应期、策略、传统解释与行动建议不进入 claims。未被专用 validator 覆盖的数值事实须使用本次 `numericAssertionToken` 调 `validate_numeric_assertions`，仅可提交显式 `data.*` 数值 claims，不能声称自由文本已被校验。无法可靠核验时，仅能在用户知情下按民用时间排盘并标注“未完成真太阳时复核”；Dashboard 只展示此状态，不独立作出真太阳时判断。
 
 **一键自动配置**（无需手动编辑 JSON）：
 ```bash

@@ -172,9 +172,9 @@
 **参照**：superpowers（验证门/反模式表）、SymbolicAI（输出契约）、RAGFlow（引用ID）
 
 **做法**：
-1. RULES.md §11 加"引擎依据"小节：报告固定列本次调用轨迹
-2. 反模式表：`| "这个我凭知识能排" | 排盘必须来自引擎 |` 等
-3. 输出契约校验器：校验解读里每个数值性断言是否在 ToolEnvelope 中
+1. ✅ RULES.md §11 加“引擎依据与调用轨迹”小节：每段确定性结论固定列本次 `ToolEnvelope.tool`、`version` 与适用 validator 的 `valid: true`；不向用户暴露 token 或内部证据字段。
+2. ✅ 反模式表：明确禁止凭知识排盘、复用旧凭证、把校验失败改写成计算事实、将解释伪装为已验证字段，以及宣称自由文本已通过校验。
+3. ✅ 输出契约校验器：`validate_numeric_assertions` 对本次成功计算工具的 `numericAssertionToken` 和显式 `data.*` 有限数值 claims 逐项比对；不解析或验证自由文本。
 4. ✅ P2.2 知识库条目稳定 citation ID：古籍搜索与知识引用面板复用同一书目索引，返回 `kb://fengshui/<相对路径>#<标题>`；映射表保持自身确定性来源，不伪装为古籍引用。
 5. ✅ P2.3 紫微呈现校验试点：`ziwei_chart` 对成功命盘签发进程内 `presentationToken`，`validate_ziwei_presentation` 校验宫位、星曜、四化、元资料与本次动态层 claims；同 stdio 会话覆盖有效与篡改断言。
 6. ✅ P2.4a 八宅呈现校验试点：`calc_bazhai` 对成功推算签发进程内 `presentationToken`，`validate_bazhai_presentation` 校验命卦、八方游年星与吉凶、以及本次年份的太岁、岁破、三煞、五黄方位 claims；同 stdio 会话覆盖有效与篡改断言。传统释义、布局建议、门主灶与化解建议不进入 claims。

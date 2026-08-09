@@ -163,7 +163,7 @@ describe('MCP Server 端到端协议', () => {
     expect(result.protocolVersion).toBe('2024-11-05');
   }, 30000);
 
-  it('tools/list 返回 40 个工具（32 计算 + 8 元工具）且 inputSchema 完整', async () => {
+  it('tools/list 返回 41 个工具（32 计算 + 9 元工具）且 inputSchema 完整', async () => {
     const responses = await runMcpSession([INIT_MSG, INITIALIZED_MSG, TOOLS_LIST_MSG]);
     const list = responses.find((r) => r.id === 2);
     expect(list).toBeDefined();
@@ -182,7 +182,7 @@ describe('MCP Server 端到端协议', () => {
         };
       }>;
     }).tools;
-    expect(tools.length).toBe(40);
+    expect(tools.length).toBe(41);
     tools.forEach((t) => {
       expect(t.name).toMatch(/^[a-z][a-z0-9_]*$/);
       expect(t.description.length).toBeGreaterThan(10);
@@ -202,6 +202,7 @@ describe('MCP Server 端到端协议', () => {
     expect(names).toContain('validate_feixing_presentation');
     expect(names).toContain('validate_calendar_presentation');
     expect(names).toContain('validate_divination_presentation');
+    expect(names).toContain('validate_numeric_assertions');
     expect(names).toContain('wisdom_dispatch');
     tools.forEach((tool) => {
       expect(tool.title).toBeTruthy();
@@ -628,6 +629,56 @@ describe('MCP Server 端到端协议', () => {
     const invalid = (responses.find((response) => response.id === 48)!.result as { structuredContent: { valid: boolean; violations: Array<{ kind: string }> } }).structuredContent;
     expect(valid).toEqual({ valid: true, violations: [] });
     expect(invalid).toMatchObject({ valid: false, violations: [expect.objectContaining({ kind: 'almanac' })] });
+  }, 30000);
+
+  it('tools/call validate_numeric_assertions 拒绝无效凭证', async () => {
+    const responses = await runMcpSession([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(53, 'validate_numeric_assertions', {
+        numericAssertionToken: '00000000-0000-4000-8000-000000000000',
+        claims: [{ path: 'data.year', value: 2026 }],
+      }),
+    ]);
+    const call = responses.find((response) => response.id === 53);
+    const result = call!.result as { content: Array<{ text: string }>; structuredContent: { valid: boolean; violations: Array<{ path: string }> } };
+    const payload = JSON.parse(result.content[0].text) as { valid: boolean; violations: Array<{ path: string }> };
+    expect(result.structuredContent).toEqual(payload);
+    expect(payload).toEqual({ valid: false, violations: [expect.objectContaining({ path: 'numericAssertionToken' })] });
+  }, 30000);
+
+  it('同一会话中仅允许通过校验的数值断言进入呈现', async () => {
+    const responses = await runMcpSessionWithFollowUp([
+      INIT_MSG, INITIALIZED_MSG,
+      toolCallMsg(54, 'calc_feixing', { year: 2026 }),
+    ], (calculation) => {
+      if (calculation.id !== 54) return null;
+      const envelope = (calculation.result as {
+        structuredContent: {
+          data: { year: number; center: { centerStar: number } };
+          result_meta: { numericAssertionToken: string };
+        };
+      }).structuredContent;
+      return [
+        toolCallMsg(55, 'validate_numeric_assertions', {
+          numericAssertionToken: envelope.result_meta.numericAssertionToken,
+          claims: [
+            { tool: 'calc_feixing', path: 'data.year', value: envelope.data.year },
+            { path: 'data.center.centerStar', value: envelope.data.center.centerStar },
+          ],
+        }),
+        toolCallMsg(56, 'validate_numeric_assertions', {
+          numericAssertionToken: envelope.result_meta.numericAssertionToken,
+          claims: [{ path: 'data.year', value: envelope.data.year + 1 }],
+        }),
+      ];
+    });
+    const valid = (responses.find((response) => response.id === 55)!.result as { structuredContent: { valid: boolean; violations: unknown[] } }).structuredContent;
+    const forged = (responses.find((response) => response.id === 56)!.result as { structuredContent: { valid: boolean; violations: Array<{ path: string; expected: number; actual: number }> } }).structuredContent;
+    expect(valid).toEqual({ valid: true, violations: [] });
+    expect(forged).toMatchObject({
+      valid: false,
+      violations: [expect.objectContaining({ path: 'data.year', expected: 2026, actual: 2027 })],
+    });
   }, 30000);
 
   it('同一会话中仅允许通过校验的占测／卦象盘面断言进入呈现', async () => {

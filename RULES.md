@@ -154,7 +154,19 @@
   3. 调用对应计算工具，取得 `ToolEnvelope` 结构化结果
   4. 仅基于工具结果做语言化解读；reference 文件只能补充文化背景与建设性建议
 - **解读边界**：模型可以转述结果、说明不确定性、补充文化背景；但**不得自行计算、修正或填补**排盘、干支、数值、吉凶与规则结论。
+- **引擎依据与调用轨迹**：每段包含确定性结论的最终说明，必须附上最小可复核轨迹：本次 `ToolEnvelope.tool` 与 `version`；若该事实受呈现校验约束，还须注明对应 validator 已返回 `valid: true`。仅可引用本次 MCP 调用的结果，不能沿用旧会话或自行构造轨迹；不得向用户暴露 `presentationToken`、`evidence`、`result_meta` 等内部字段。推荐格式：`引擎依据：bazi_calculate（local-exact）；呈现校验：validate_bazi_presentation 已通过。`
 - **八字呈现校验（试点）**：当最终说明写入四柱、日主、五行计数、日主强弱、大运或神煞等可验证的确定性结论时，Agent 必须用本次 `bazi_calculate` 返回的 `result_meta.presentationToken` 调用 `validate_bazi_presentation`，将每条结论以结构化 `claims` 提交。任何校验失败的断言不得表述为本次排盘结果；文化背景、条件性说明和建设性建议不属于 `claims`，不得伪装成确定性结论。
+- **数值断言校验**：未由专用呈现校验器覆盖的数值事实，必须使用本次成功计算结果的 `result_meta.numericAssertionToken` 调用 `validate_numeric_assertions`，每条 claim 仅可引用有限的 `data.*` 数值。`valid: true` 只表示结构化 claims 与本次 ToolEnvelope 一致，**不得声称自由文本已自动校验**；自由文本只能是已验证 claims 的转述。
+- **反模式表**：
+
+  | 禁止做法 | 正确做法 |
+  | --- | --- |
+  | “这个我凭知识能排” | 排盘、干支、卦象、数值和吉凶结论必须来自当次 MCP 引擎。 |
+  | 用旧会话结果或 token 充当本次依据 | 重新调用工具；凭证只在当前 MCP 进程和本次结果有效。 |
+  | 校验失败后改写措辞继续表述为计算事实 | 删除断言或回到本次 ToolEnvelope 提取真实字段后重新校验。 |
+  | 把传统解释、应期、策略或建议伪装成已验证字段 | 仅把确定性字段提交 claims；解释与建议须明确区分。 |
+  | 声称“自由文本已通过校验” | 只可声明结构化 claims 已通过校验；自然语言仅是对这些 claims 的转述。 |
+
 - **工具不可用时**：明确告知用户"当前环境未启用本地引擎，无法提供真实计算结果"，并引导运行 `node scripts/setup-mcp.mjs` 激活；**禁止在 MCP 不可用时凭知识凑答**。
 - **Dashboard 例外边界**：Dashboard 保持现有浏览器端纯 TypeScript 确定性计算与可视化能力，不需要经 MCP 转发；它不是语言模型推演，也不构成对话 Agent 绕过 MCP 的授权。Agent 在对话中仍必须走 MCP。
 - **反例**：

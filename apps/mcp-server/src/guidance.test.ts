@@ -45,6 +45,14 @@ describe('agent_guidance 参数引导', () => {
     expect(GLOBAL_AGENT_RULES.some((r) => r.includes('export_snapshot.summary') && r.includes('evidence'))).toBe(true);
   });
 
+  it('GLOBAL_AGENT_RULES 要求确定性段落保留可复核调用轨迹', () => {
+    expect(GLOBAL_AGENT_RULES.some((r) => r.includes('调用轨迹') && r.includes('tool') && r.includes('version') && r.includes('presentationToken'))).toBe(true);
+  });
+
+  it('GLOBAL_AGENT_RULES 限定数值校验仅覆盖结构化 claims', () => {
+    expect(GLOBAL_AGENT_RULES.some((r) => r.includes('numericAssertionToken') && r.includes('validate_numeric_assertions') && r.includes('自由文本'))).toBe(true);
+  });
+
   it('GLOBAL_AGENT_RULES 要求八字确定性断言通过呈现校验', () => {
     expect(GLOBAL_AGENT_RULES.some((r) => r.includes('presentationToken') && r.includes('validate_bazi_presentation') && r.includes('claims'))).toBe(true);
   });

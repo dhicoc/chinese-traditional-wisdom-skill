@@ -5846,6 +5846,67 @@ exports[`MCP Server 端到端协议 > tools/list 的公开输入输出契约保�
       "openWorldHint": false,
       "readOnlyHint": true,
     },
+    "description": "数值断言依据校验。对本次任一成功计算工具返回的 result_meta.numericAssertionToken 与 Agent 拟呈现的结构化数值断言逐项比对。每条 claim 仅可引用 data.* 下的有限数值；不解析或校验自由文本，不读取 result_meta、evidence 或其他内部字段。校验器不生成、补全或修正解读。",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "claims": {
+          "description": "拟呈现文本中的结构化数值断言；不包含自由文本",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "path": {
+                "description": "ToolEnvelope 中待校验的 data.* 数值路径，如 data.elements.木",
+                "pattern": "^data(?:\\.[^.]+)+$",
+                "type": "string",
+              },
+              "tool": {
+                "description": "可选的原始计算工具名；提供时必须与凭证所属工具一致",
+                "type": "string",
+              },
+              "value": {
+                "description": "拟呈现的数值",
+                "type": "number",
+              },
+            },
+            "required": [
+              "path",
+              "value",
+            ],
+            "type": "object",
+          },
+          "minItems": 1,
+          "type": "array",
+        },
+        "numericAssertionToken": {
+          "description": "本次成功计算工具返回的 result_meta.numericAssertionToken，仅在当前 MCP 进程有效",
+          "format": "uuid",
+          "type": "string",
+        },
+      },
+      "required": [
+        "numericAssertionToken",
+        "claims",
+      ],
+      "type": "object",
+    },
+    "name": "validate_numeric_assertions",
+    "outputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": true,
+      "properties": {},
+      "type": "object",
+    },
+    "title": "数值断言依据校验",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+    },
     "description": "紫微呈现依据校验。对本次 ziwei_chart 返回的 result_meta.presentationToken 与拟呈现的结构化确定性紫微断言逐项比对；仅核验宫位、星曜、四化、元资料与本次动态层。传统解释、条件性推论和建议不进入 claims。校验器不生成、补全或修正解读；任一断言不符时必须移除或改为引擎实际结果。",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",

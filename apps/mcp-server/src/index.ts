@@ -11,6 +11,7 @@
  * 运行：npx tsx src/index.ts（stdio 传输，供 Claude Desktop / Cursor 等客户端挂载）
  */
 
+import { randomUUID } from 'node:crypto';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
@@ -23,6 +24,7 @@ import { validateBazhaiPresentation, type BazhaiPresentationClaim } from './bazh
 import { validateCalendarPresentation, type CalendarPresentationClaim } from './calendarClaimVerifier.js';
 import { validateDivinationPresentation, type DivinationPresentationClaim } from './divinationClaimVerifier.js';
 import { validateFeixingPresentation, type FeixingPresentationClaim } from './feixingClaimVerifier.js';
+import { validateNumericAssertions, registerNumericAssertions, type NumericAssertionClaim } from './numericAssertionVerifier.js';
 import { validateZiweiPresentation, type ZiweiPresentationClaim } from './ziweiClaimVerifier.js';
 
 const server = new McpServer({
@@ -30,7 +32,16 @@ const server = new McpServer({
   version: '0.1.0',
 });
 
-const META_TOOLS_COUNT = 8;
+const META_TOOLS_COUNT = 9;
+
+function attachNumericAssertionToken(tool: string, result: Record<string, unknown>) {
+  if (result.ok !== true) return result;
+
+  const numericAssertionToken = randomUUID();
+  registerNumericAssertions(numericAssertionToken, tool, result);
+  const resultMeta = (result.result_meta as Record<string, unknown> | undefined) ?? {};
+  return { ...result, result_meta: { ...resultMeta, numericAssertionToken } };
+}
 
 // ─── 注册计算工具（Agent/MCP 硬闸门）───
 for (const tool of TOOLS) {
@@ -71,9 +82,10 @@ for (const tool of TOOLS) {
         }
 
         const result = await tool.handler(input) as Record<string, unknown>;
+        const resultWithNumericAssertionToken = attachNumericAssertionToken(tool.name, result);
         return {
-          content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
-          structuredContent: result,
+          content: [{ type: 'text' as const, text: JSON.stringify(resultWithNumericAssertionToken, null, 2) }],
+          structuredContent: resultWithNumericAssertionToken,
         };
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
@@ -351,7 +363,37 @@ server.registerTool(
   },
 );
 
-// ─── 元工具 8: wisdom_dispatch（自然语言意图路由）───
+// ─── 元工具 8: validate_numeric_assertions（数值断言依据校验）───
+server.registerTool(
+  'validate_numeric_assertions',
+  {
+    ...getToolContract('validate_numeric_assertions'),
+    description: '数值断言依据校验。对本次任一成功计算工具返回的 result_meta.numericAssertionToken 与 Agent 拟呈现的结构化数值断言逐项比对。每条 claim 仅可引用 data.* 下的有限数值；不解析或校验自由文本，不读取 result_meta、evidence 或其他内部字段。校验器不生成、补全或修正解读。',
+    inputSchema: {
+      numericAssertionToken: z.string().uuid().describe('本次成功计算工具返回的 result_meta.numericAssertionToken，仅在当前 MCP 进程有效'),
+      claims: z.array(z.object({
+        tool: z.string().optional().describe('可选的原始计算工具名；提供时必须与凭证所属工具一致'),
+        path: z.string().regex(/^data(?:\.[^.]+)+$/).describe('ToolEnvelope 中待校验的 data.* 数值路径，如 data.elements.木'),
+        value: z.number().finite().describe('拟呈现的数值'),
+      })).min(1).describe('拟呈现文本中的结构化数值断言；不包含自由文本'),
+    },
+    outputSchema: openObjectOutputSchema,
+  },
+  async (input: unknown) => {
+    const { numericAssertionToken, claims } = input as { numericAssertionToken: string; claims: NumericAssertionClaim[] };
+    const validation = validateNumericAssertions(numericAssertionToken, claims);
+    const structuredContent = validation ?? {
+      valid: false,
+      violations: [{ path: 'numericAssertionToken', message: 'numericAssertionToken 无效、已失效或不属于当前 MCP 进程；请重新调用对应计算工具。' }],
+    };
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(structuredContent, null, 2) }],
+      structuredContent: { ...structuredContent },
+    };
+  },
+);
+
+// ─── 元工具 9: wisdom_dispatch（自然语言意图路由）───
 server.registerTool(
   'wisdom_dispatch',
   {
