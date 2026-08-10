@@ -37,3 +37,47 @@ export function resolveZiweiEngineConfig(transit: { year: number; month: number 
     enabledDynamicLayers: ['decadal', 'yearly', 'monthly', 'age'],
   };
 }
+
+export interface ResolvedFeixingEngineConfig {
+  annualCenterStarAnchor: { year: 1984; star: 7 };
+  flightOrder: '中→乾→兑→艮→离→坎→坤→震→巽';
+  yuanYun: { startYear: 1864; cycleYears: 20 };
+  mingGuaRule: 'birth-year-gender';
+}
+
+export interface ResolvedBazhaiEngineConfig {
+  mingGuaRule: 'birth-year-gender';
+  directionsRule: 'eight-mansions-dayou-nian';
+  taisuiRule: 'gregorian-year-branch';
+}
+
+export interface ResolvedAlmanacEngineConfig {
+  provider: 'lunar-typescript';
+  calendarMode: 'exact-gregorian-lunar';
+  hourRangeRule: '子时23-1';
+}
+
+export function resolveFeixingEngineConfig(): ResolvedFeixingEngineConfig {
+  return {
+    annualCenterStarAnchor: { year: 1984, star: 7 },
+    flightOrder: '中→乾→兑→艮→离→坎→坤→震→巽',
+    yuanYun: { startYear: 1864, cycleYears: 20 },
+    mingGuaRule: 'birth-year-gender',
+  };
+}
+
+export function resolveBazhaiEngineConfig(): ResolvedBazhaiEngineConfig {
+  return {
+    mingGuaRule: 'birth-year-gender',
+    directionsRule: 'eight-mansions-dayou-nian',
+    taisuiRule: 'gregorian-year-branch',
+  };
+}
+
+export function resolveAlmanacEngineConfig(): ResolvedAlmanacEngineConfig {
+  return {
+    provider: 'lunar-typescript',
+    calendarMode: 'exact-gregorian-lunar',
+    hourRangeRule: '子时23-1',
+  };
+}

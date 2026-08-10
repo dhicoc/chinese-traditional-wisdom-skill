@@ -55,22 +55,30 @@ const successCases: SuccessCase[] = [
   {
     tool: 'calc_feixing',
     name: 'calc_feixing.success.json',
-    assert: (result) => expect(result).toMatchObject({ ok: true, data: { year: 2025, mingGua: { trigram: expect.any(String) } } }),
+    assert: (result) => expect(result).toMatchObject({
+      ok: true,
+      data: { year: 2025, mingGua: { trigram: expect.any(String) } },
+      result_meta: { calculationConfig: { annualCenterStarAnchor: { year: 1984, star: 7 }, flightOrder: '中→乾→兑→艮→离→坎→坤→震→巽', yuanYun: { startYear: 1864, cycleYears: 20 }, mingGuaRule: 'birth-year-gender' } },
+    }),
   },
   {
     tool: 'calc_feixing',
     name: 'calc_feixing.boundary.json',
-    assert: (result) => expect(result).toMatchObject({ ok: true, data: { year: 1 } }),
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { year: 1 }, result_meta: { calculationConfig: { flightOrder: '中→乾→兑→艮→离→坎→坤→震→巽' } } }),
   },
   {
     tool: 'calc_bazhai',
     name: 'calc_bazhai.success.json',
-    assert: (result) => expect(result).toMatchObject({ ok: true, data: { mingGua: { trigram: expect.any(String) }, menZhuZao: expect.any(Object) } }),
+    assert: (result) => expect(result).toMatchObject({
+      ok: true,
+      data: { mingGua: { trigram: expect.any(String) }, menZhuZao: expect.any(Object) },
+      result_meta: { calculationConfig: { mingGuaRule: 'birth-year-gender', directionsRule: 'eight-mansions-dayou-nian', taisuiRule: 'gregorian-year-branch' } },
+    }),
   },
   {
     tool: 'calc_bazhai',
     name: 'calc_bazhai.boundary.json',
-    assert: (result) => expect(result).toMatchObject({ ok: true, data: { taisui: expect.any(Object) } }),
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { taisui: expect.any(Object) }, result_meta: { calculationConfig: { taisuiRule: 'gregorian-year-branch' } } }),
   },
   {
     tool: 'cast_liuyao',
@@ -155,12 +163,16 @@ const successCases: SuccessCase[] = [
   {
     tool: 'get_almanac',
     name: 'get_almanac.success.json',
-    assert: (result) => expect(result).toMatchObject({ ok: true, data: { solarDate: expect.stringContaining('2024年2月10日'), hours: expect.any(Array) } }),
+    assert: (result) => expect(result).toMatchObject({
+      ok: true,
+      data: { solarDate: expect.stringContaining('2024年2月10日'), hours: expect.any(Array) },
+      result_meta: { calculationConfig: { provider: 'lunar-typescript', calendarMode: 'exact-gregorian-lunar', hourRangeRule: '子时23-1' } },
+    }),
   },
   {
     tool: 'get_almanac',
     name: 'get_almanac.boundary.json',
-    assert: (result) => expect(result).toMatchObject({ ok: true, data: { solarDate: expect.stringContaining('2024年2月29日') } }),
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { solarDate: expect.stringContaining('2024年2月29日') }, result_meta: { calculationConfig: { calendarMode: 'exact-gregorian-lunar' } } }),
   },
   {
     tool: 'get_daily_rhythm',

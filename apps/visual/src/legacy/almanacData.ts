@@ -7,6 +7,7 @@
  */
 
 import type { ToolEnvelope, ExportSnapshot } from './baseTypes';
+import { resolveAlmanacEngineConfig } from './engineConfig';
 
 export interface AlmanacTimeHour {
   /** 时辰干支，如「壬子」 */
@@ -248,6 +249,7 @@ export interface AlmanacInput {
  * 供本地运行器调用 get_almanac 工具。
  */
 export function getAlmanacEnveloped(input: AlmanacInput = {}): ToolEnvelope<AlmanacData> {
+  const config = resolveAlmanacEngineConfig();
   const today = (() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -295,5 +297,11 @@ export function getAlmanacEnveloped(input: AlmanacInput = {}): ToolEnvelope<Alma
     data: { ...data, export_snapshot: snapshot } as AlmanacData & { export_snapshot: ExportSnapshot },
     summary: [synthesis],
     warnings: [data.confidenceNote],
+    result_meta: {
+      engineVersion: '1.0.0',
+      evidenceSchemaVersion: '0.1.0',
+      algorithm: '黄历公农历转换与日时宜忌',
+      calculationConfig: { ...config },
+    },
   };
 }

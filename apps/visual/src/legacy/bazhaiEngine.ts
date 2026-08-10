@@ -14,6 +14,7 @@ import {
 } from './bazhaiHouse';
 import { calcMenZhuZao, type MenZhuZaoData } from './menZhuZaoEngine';
 import { calcTaisui, type TaisuiData } from './taisuiEngine';
+import { resolveBazhaiEngineConfig } from './engineConfig';
 
 export interface BazhaiInput {
   /** 出生年（推命卦，必填） */
@@ -58,6 +59,7 @@ function toneFromMingGua(group: string, menZhuZao?: MenZhuZaoData): Tone {
 }
 
 export function calcBazhai(input: BazhaiInput): ToolEnvelope<BazhaiResult> {
+  const config = resolveBazhaiEngineConfig();
   const { birthYear, gender } = input;
   if (!birthYear || !gender) {
     return {
@@ -149,6 +151,12 @@ export function calcBazhai(input: BazhaiInput): ToolEnvelope<BazhaiResult> {
     data: result,
     summary: [synthesis],
     warnings: [result.confidenceNote],
+    result_meta: {
+      engineVersion: '1.0.0',
+      evidenceSchemaVersion: '0.1.0',
+      algorithm: '八宅命卦与大游年',
+      calculationConfig: { ...config },
+    },
   };
 }
 

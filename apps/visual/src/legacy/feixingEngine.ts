@@ -18,6 +18,7 @@ import {
   type StarStatus,
 } from './flyingStarRemedies';
 import { calcMingGua } from './bazhaiHouse';
+import { resolveFeixingEngineConfig } from './engineConfig';
 
 export interface FeixingInput {
   /** 公历年，默认今年 */
@@ -57,6 +58,7 @@ function toneFromCenter(luck: string): Tone {
 }
 
 export function calcFeixing(input: FeixingInput = {}): ToolEnvelope<FeixingResult> {
+  const config = resolveFeixingEngineConfig();
   const year = input.year ?? new Date().getFullYear();
   const grid = getFeixingGrid(year);
   const summary = getFeixingSummary(year);
@@ -141,6 +143,12 @@ export function calcFeixing(input: FeixingInput = {}): ToolEnvelope<FeixingResul
     data: result,
     summary: [synthesis],
     warnings: [result.confidenceNote],
+    result_meta: {
+      engineVersion: '1.0.0',
+      evidenceSchemaVersion: '0.1.0',
+      algorithm: '流年九宫飞星',
+      calculationConfig: { ...config },
+    },
   };
 }
 
