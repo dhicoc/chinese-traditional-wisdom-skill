@@ -305,4 +305,46 @@ describe('runLocalTool', () => {
     });
     expect((envelope as { data: { timeSource: { verification: unknown } } }).data.timeSource.verification).not.toHaveProperty('unexpectedResolution');
   });
+
+  it('strips unknown fields from bazi direct true-solar inputs', async () => {
+    const trueSolarResolution = {
+      trueSolarBirth: BIRTH,
+      unexpectedResolution: 'sentinel',
+    };
+    const input = parseLocalToolInput('bazi_calculate', {
+      birth: BIRTH,
+      timeBasis: 'true-solar-verified',
+      trueSolarResolution,
+    });
+    expect((input as { trueSolarResolution: unknown }).trueSolarResolution).not.toHaveProperty('unexpectedResolution');
+
+    const envelope = await runLocalTool('bazi_calculate', {
+      birth: BIRTH,
+      timeBasis: 'true-solar-verified',
+      trueSolarResolution,
+    });
+    expect((envelope as { data: { timeSource: { verification: unknown } } }).data.timeSource.verification).not.toHaveProperty('unexpectedResolution');
+  });
+
+  it('strips unknown fields from true-solar locations', async () => {
+    const location = {
+      displayName: '北京市，中国',
+      longitude: 116.4074,
+      ianaTimeZone: 'Asia/Shanghai',
+      utcOffsetMinutes: 480,
+      utcOffsetEvidence: 'IANA 时区历史规则核验：当地 UTC+08:00',
+      unexpected: 'sentinel',
+    };
+    const input = parseLocalToolInput('resolve_true_solar_time', {
+      birth: BIRTH,
+      location,
+    });
+    expect((input as { location: unknown }).location).not.toHaveProperty('unexpected');
+
+    const result = await runLocalTool('resolve_true_solar_time', {
+      birth: BIRTH,
+      location,
+    });
+    expect((result as { location: unknown }).location).not.toHaveProperty('unexpected');
+  });
 });

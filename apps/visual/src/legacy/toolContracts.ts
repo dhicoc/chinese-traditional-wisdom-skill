@@ -379,20 +379,38 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
       if (typeof location.displayName !== 'string' || !location.displayName.trim()) throw new Error('location.displayName 必须是非空字符串。');
       if (typeof location.longitude !== 'number' || !Number.isFinite(location.longitude) || location.longitude < -180 || location.longitude > 180) throw new Error('location.longitude 必须是 -180 至 180 的数字。');
       if (typeof location.ianaTimeZone !== 'string' || !location.ianaTimeZone.includes('/')) throw new Error('location.ianaTimeZone 必须是 IANA 时区。');
-      integer(location.utcOffsetMinutes, 'location.utcOffsetMinutes', -840, 840);
+      const utcOffsetMinutes = integer(location.utcOffsetMinutes, 'location.utcOffsetMinutes', -840, 840);
       if (typeof location.utcOffsetEvidence !== 'string' || !location.utcOffsetEvidence.trim()) throw new Error('location.utcOffsetEvidence 必须是非空字符串。');
-      return { birth: birth(input.birth, 'birth'), location: location as unknown as VerifiedBirthLocation };
+      return {
+        birth: birth(input.birth, 'birth'),
+        location: {
+          displayName: location.displayName,
+          longitude: location.longitude,
+          ianaTimeZone: location.ianaTimeZone,
+          utcOffsetMinutes,
+          utcOffsetEvidence: location.utcOffsetEvidence,
+        },
+      };
     }
     case 'bazi_calculate': {
       const timeBasis = input.timeBasis;
       if (timeBasis !== 'true-solar-verified' && timeBasis !== 'civil-unverified') throw new Error('timeBasis 必须是 true-solar-verified 或 civil-unverified。');
       if (input.shenShaTrineSource !== undefined && input.shenShaTrineSource !== 'year' && input.shenShaTrineSource !== 'day') throw new Error('shenShaTrineSource 必须是 year 或 day。');
+      const trueSolarBirth = input.trueSolarBirth === undefined
+        ? undefined
+        : birth(input.trueSolarBirth, 'trueSolarBirth');
+      const resolution = input.trueSolarResolution === undefined
+        ? undefined
+        : object(input.trueSolarResolution, 'trueSolarResolution');
+      const trueSolarResolution = resolution === undefined
+        ? undefined
+        : { trueSolarBirth: birth(resolution.trueSolarBirth, 'trueSolarResolution.trueSolarBirth') };
       return {
         birth: birth(input.birth, 'birth'),
         timeBasis,
         civilFallbackConfirmed: input.civilFallbackConfirmed as boolean | undefined,
-        trueSolarBirth: input.trueSolarBirth as BaziBirth | undefined,
-        trueSolarResolution: input.trueSolarResolution as BaziToolInput['trueSolarResolution'],
+        trueSolarBirth,
+        trueSolarResolution,
         shenShaTrineSource: input.shenShaTrineSource as 'year' | 'day' | undefined,
       } as BaziToolInput;
     }
