@@ -87,14 +87,14 @@ export async function runLocalTool(tool: string, rawInput: unknown): Promise<Dir
     case 'calc_xiyong': return calcXiYongEnveloped(input.dayMasterWuxing, input.elements);
     case 'get_constitution_tendency': return getConstitutionTendencyEnveloped(input);
     case 'dream_interpret': return searchDreamEnveloped(input.keyword, input.useFull ?? false);
-    case 'combo_annual_fortune': return withTimeSource(calcAnnualFortuneCombo({ birth: input.birth, targetYear: input.targetYear, currentMonth: input.currentMonth, solar: Solar }), timeSource(input.birth, input.baziTimeContext ?? {}));
+    case 'combo_annual_fortune': return withTimeSource(calcAnnualFortuneCombo({ birth: input.birth, targetYear: input.targetYear, currentMonth: input.currentMonth, solar: Solar }), timeSource(input.birth, input.baziTimeContext));
     case 'combo_decision': return calcDecisionCombo({ birth: input.birth, question: input.question, seed: input.seed, solar: Solar });
     case 'combo_space_time': return calcSpaceTimeCombo({ birth: input.birth, targetYear: input.targetYear, facing: input.facing, solar: Solar });
     case 'combo_sanshi': return calcSanshiCombo({ birth: input.birth, question: input.question, solar: Solar });
     case 'combo_sanshi_classic': return calcSanshiClassicCombo({ birth: input.birth, question: input.question, solar: Solar });
-    case 'combo_daily_wellness': return calcDailyWellnessCombo({ birth: input.birth, constitution: input.constitution, now: input.now, targetYear: input.targetYear, solar: Solar });
+    case 'combo_daily_wellness': return withTimeSource(calcDailyWellnessCombo({ birth: input.birth, constitution: input.constitution, now: input.now, targetYear: input.targetYear, solar: Solar }), timeSource(input.birth, input.baziTimeContext));
     case 'combo_zeri': return calcZeriCombo({ birth: input.birth, purpose: input.purpose, startDate: input.startDate, endDate: input.endDate, targetYear: input.targetYear, topN: input.topN, solar: Solar });
-    case 'combo_monthly_fortune': return calcMonthlyFortuneCombo({ birth: input.birth, targetYear: input.targetYear, targetMonth: input.targetMonth, constitution: input.constitution, solar: Solar });
+    case 'combo_monthly_fortune': return withTimeSource(calcMonthlyFortuneCombo({ birth: input.birth, targetYear: input.targetYear, targetMonth: input.targetMonth, constitution: input.constitution, solar: Solar }), timeSource(input.birth, input.baziTimeContext));
     case 'combo_marriage': { const a = timeSource(input.personA.birth, input.personA.baziTimeContext ?? {}); const b = timeSource(input.personB.birth, input.personB.baziTimeContext ?? {}); const result = await calcMarriageCombo({ ...input, personA: { ...input.personA, solar: Solar }, personB: { ...input.personB, solar: Solar } }); return { ...withTimeSource(withTimeSource(result, a), b), data: { ...result.data, timeSource: { personA: a, personB: b } } }; }
     case 'cast_cezi': { const source = input.birth ? timeSource(input.birth, input.baziTimeContext ?? {}) : null; const result = await calcCeziEnveloped({ char: input.char, aspect: input.aspect, birth: input.birth, solar: Solar }); return source ? withTimeSource(result, source) : result; }
     case 'calc_chenguz': return calcChenguzEnveloped({ birth: input.birth, version: input.version, solar: Solar });

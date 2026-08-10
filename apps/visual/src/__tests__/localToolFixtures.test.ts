@@ -240,6 +240,36 @@ const successCases: SuccessCase[] = [
     name: 'assess_constitution.success.json',
     assert: (result) => expect(result).toMatchObject({ ok: true, input_normalized: { answerCount: 52, dominantType: '平和质' }, data: { dominantType: '平和质', scores: { 平和质: 100 }, tone: '吉' } }),
   },
+  {
+    tool: 'combo_annual_fortune',
+    name: 'combo_annual_fortune.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, tool: 'AnnualFortuneComboEngine', data: { comboName: '年度综合运势', context: { targetYear: 2026 }, subsystems: expect.any(Array), timeSource: { timeBasis: 'civil-unverified' } } }),
+  },
+  {
+    tool: 'combo_annual_fortune',
+    name: 'combo_annual_fortune.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { context: { targetYear: 1990 }, timeSource: { timeBasis: 'civil-unverified' } } }),
+  },
+  {
+    tool: 'combo_monthly_fortune',
+    name: 'combo_monthly_fortune.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, tool: 'MonthlyFortuneComboEngine', data: { comboName: '月度运势', context: { year: 2026, month: 8, jieqi: expect.any(String) }, subsystems: expect.any(Array), timeSource: { timeBasis: 'civil-unverified' } } }),
+  },
+  {
+    tool: 'combo_monthly_fortune',
+    name: 'combo_monthly_fortune.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { context: { year: 2026, month: 1 }, timeSource: { timeBasis: 'civil-unverified' } } }),
+  },
+  {
+    tool: 'combo_daily_wellness',
+    name: 'combo_daily_wellness.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, tool: 'DailyWellnessComboEngine', data: { comboName: '今日养生建议', context: { date: '2026年8月10日', shichen: expect.any(String) }, constitution: { type: '气虚质', source: '问卷' }, timeSource: { timeBasis: 'civil-unverified' } } }),
+  },
+  {
+    tool: 'combo_daily_wellness',
+    name: 'combo_daily_wellness.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { context: { date: '2026年8月10日', shichen: '子时' }, constitution: { source: '五运六气倾向参考' }, timeSource: { timeBasis: 'civil-unverified' } } }),
+  },
 ];
 
 type BoundaryCase = {
@@ -298,6 +328,9 @@ describe('local tool input fixtures', () => {
     ['get_constitution_tendency', 'get_constitution_tendency.failure.json'],
     ['assess_constitution', 'assess_constitution.failure.json'],
     ['list_constitution_questionnaire', 'list_constitution_questionnaire.failure.json'],
+    ['combo_annual_fortune', 'combo_annual_fortune.failure.json'],
+    ['combo_monthly_fortune', 'combo_monthly_fortune.failure.json'],
+    ['combo_daily_wellness', 'combo_daily_wellness.failure.json'],
   ].forEach(([tool, name]) => {
     it(`${tool} rejects ${name}`, async () => {
       await expect(runLocalTool(tool, await fixture(name))).rejects.toThrow();

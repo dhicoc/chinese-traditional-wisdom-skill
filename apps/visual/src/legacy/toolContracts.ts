@@ -131,6 +131,29 @@ export interface ConstitutionAssessmentToolInput {
 
 export interface ConstitutionQuestionnaireToolInput extends Input {}
 
+export interface ComboAnnualFortuneToolInput {
+  birth: BaziBirth;
+  baziTimeContext: Input;
+  targetYear?: number;
+  currentMonth?: number;
+}
+
+export interface ComboMonthlyFortuneToolInput {
+  birth: BaziBirth;
+  baziTimeContext: Input;
+  targetYear: number;
+  targetMonth: number;
+  constitution?: '平和质' | '气虚质' | '阳虚质' | '阴虚质' | '痰湿质' | '湿热质' | '血瘀质' | '气郁质' | '特禀质';
+}
+
+export interface ComboDailyWellnessToolInput {
+  birth: BaziBirth;
+  baziTimeContext: Input;
+  now: { year: number; month: number; day: number; hour: number };
+  constitution?: ComboMonthlyFortuneToolInput['constitution'];
+  targetYear?: number;
+}
+
 export type LocalToolContractInput =
   | TrueSolarTimeToolInput
   | BaziToolInput
@@ -154,7 +177,10 @@ export type LocalToolContractInput =
   | DreamToolInput
   | ConstitutionTendencyToolInput
   | ConstitutionAssessmentToolInput
-  | ConstitutionQuestionnaireToolInput;
+  | ConstitutionQuestionnaireToolInput
+  | ComboAnnualFortuneToolInput
+  | ComboMonthlyFortuneToolInput
+  | ComboDailyWellnessToolInput;
 
 type Input = Record<string, unknown>;
 
@@ -169,6 +195,7 @@ const CONSTITUTION_QUESTION_COUNTS: Record<ConstitutionAnswerToolInput['type'], 
   气郁质: 7,
   特禀质: 5,
 };
+const COMBO_CONSTITUTION_TYPES = ['平和质', ...CONSTITUTION_TYPES] as const;
 const DIRECTIONS = new Set(['东', '东南', '南', '西南', '西', '西北', '北', '东北']);
 
 function object(value: unknown, label: string): Input {
@@ -452,6 +479,47 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
     case 'list_constitution_questionnaire':
       if (Object.keys(input).length > 0) throw new Error('list_constitution_questionnaire 不接受输入字段。');
       return {} as ConstitutionQuestionnaireToolInput;
+    case 'combo_annual_fortune': {
+      const birthInput = birth(input.birth, 'birth');
+      const context = baziTimeContext(input.baziTimeContext);
+      return {
+        birth: birthInput,
+        baziTimeContext: context,
+        targetYear: input.targetYear === undefined ? undefined : year(input.targetYear, 'targetYear'),
+        currentMonth: input.currentMonth === undefined ? undefined : integer(input.currentMonth, 'currentMonth', 1, 12),
+      } as ComboAnnualFortuneToolInput;
+    }
+    case 'combo_monthly_fortune': {
+      const constitution = input.constitution as ComboMonthlyFortuneToolInput['constitution'];
+      if (constitution !== undefined && !COMBO_CONSTITUTION_TYPES.includes(constitution)) {
+        throw new Error('constitution 必须是九种体质之一。');
+      }
+      return {
+        birth: birth(input.birth, 'birth'),
+        baziTimeContext: baziTimeContext(input.baziTimeContext),
+        targetYear: year(input.targetYear, 'targetYear'),
+        targetMonth: integer(input.targetMonth, 'targetMonth', 1, 12),
+        constitution,
+      } as ComboMonthlyFortuneToolInput;
+    }
+    case 'combo_daily_wellness': {
+      const nowInput = object(input.now, 'now');
+      const nowYear = year(nowInput.year, 'now.year');
+      const nowMonth = integer(nowInput.month, 'now.month', 1, 12);
+      const nowDay = integer(nowInput.day, 'now.day', 1, 31);
+      dateParts(nowYear, nowMonth, nowDay, 'now');
+      const constitution = input.constitution as ComboDailyWellnessToolInput['constitution'];
+      if (constitution !== undefined && !COMBO_CONSTITUTION_TYPES.includes(constitution)) {
+        throw new Error('constitution 必须是九种体质之一。');
+      }
+      return {
+        birth: birth(input.birth, 'birth'),
+        baziTimeContext: baziTimeContext(input.baziTimeContext),
+        now: { year: nowYear, month: nowMonth, day: nowDay, hour: integer(nowInput.hour, 'now.hour', 0, 23) },
+        constitution,
+        targetYear: input.targetYear === undefined ? undefined : year(input.targetYear, 'targetYear'),
+      } as ComboDailyWellnessToolInput;
+    }
     default:
       return null;
   }
