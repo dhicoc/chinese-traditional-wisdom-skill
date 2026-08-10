@@ -27,6 +27,7 @@ cd apps/visual && pnpm engine ziwei_chart <input-json-file>
 1. 只从本次 `ToolEnvelope.data` 提取宫位、星曜、四化或元资料。
 2. 用本地 `validateZiweiClaims(data, claims)` 核验结构化 claims。
 3. 仅在通过时表述为本次命盘事实。
+4. 保留 `result_meta.calculationConfig`，其中披露实际 `iztro` 版本、动态层目标日期、早子时与宫名归一等计算口径。
 
 传统星曜释义、条件性推论、合婚判断、建议和自由文本不进入 claims，也不应被称为已验证。
 

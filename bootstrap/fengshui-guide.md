@@ -15,6 +15,8 @@ cd apps/visual && pnpm engine calc_feixing <input-json-file>
 
 工具返回 `ToolEnvelope`。命卦、方位、飞星和映射条目等结构化事实需以本次 `data` 调用本地 `validateBazhaiClaims`、`validateFeixingClaims` 或对应校验函数核对；古籍释义、布局建议、化解方案和综合判断不属于 claims。
 
+同时保留 `result_meta.calculationConfig` 作为本次实际规则口径：`calc_feixing` 披露中宫锚点、飞布顺序、元运与命卦规则；`calc_bazhai` 披露命卦、大游年与太岁规则。它用于复现和解释计算路径，不是自由文本结论的校验结果。
+
 ## 分析顺序
 
 1. 收集坐向、格局、大门/主卧/厨房、周边环境和目标年份；缺失时追问。

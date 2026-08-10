@@ -8,7 +8,7 @@
 
 - 盘面、干支、运限与星曜必须来自本地确定性引擎；Agent 只能引用本次 `ToolEnvelope` 的 `data`、`export_snapshot`、`evidence` 与 `warnings` 组织说明。
 - 本命层与动态层分开：浏览流年、流月、流日或小限时，不改写出生四柱或本命十二宫。
-- 外部依赖的版本与许可证见 [tool-index.md](../tool-index.md#外部参考来源归档)。升级 `lunar-javascript`、`iztro` 或其适配层前，必须先复核本页夹具。
+- 外部依赖以 `apps/visual/package.json` 为准。升级 `lunar-typescript`、`iztro` 或其适配层前，必须先复核本页夹具。
 - 流派不同的判断须显式标明边界；没有固定来源或尚未启用的能力不得伪装为计算结论。
 
 ## 已解析 EngineConfig 口径
@@ -18,15 +18,16 @@
 - 直接八字调用会写入 `timeBasis`：仅为 `true-solar-verified` 或经用户确认的 `civil-unverified`。地点和历史时区依据保留在 `data.timeSource`。
 - 紫微唯一可选项为动态层目标 `transit.year/month`；解析后固定补为该月 15 日。排盘固定使用 `iztro@2.5.8`、`23:00-23:59=>early-zi` 与 `仆役→交友`归一，已启用层级仅为大限、流年、流月、小限。
 - 流日、流时、三方四正和未定义的流派开关不属于当前 `EngineConfig`，Agent 不得自行指定或补全其结果。
+- 飞星 `calc_feixing` 固定披露 `annualCenterStarAnchor`、`flightOrder`、`yuanYun` 与 `mingGuaRule`；八宅 `calc_bazhai` 固定披露 `mingGuaRule`、`directionsRule` 与 `taisuiRule`；黄历 `get_almanac` 固定披露 `provider: 'lunar-typescript'`、`calendarMode` 与 `hourRangeRule`。三者均由 `localToolFixtures.test.ts` 的 success 与 boundary fixture 回归。
 
 ## 八字
 
 | 规则或层级 | 运行来源 | 适用边界 | 回归夹具 |
 |---|---|---|---|
-| 四柱、节气月、日干支 | `6tail/lunar-javascript`，由 `solarEntry.ts` 注入 `baziEngine.ts` | 精确路径依赖 Solar 入口；不可用时仅降级为本地近似，不能标为精确排盘 | `baziEngine.test.ts`：1990-06-15 12:00 男命本命、节气流月与流日 |
-| 大运与起运 | `lunar-javascript` 的 `getYun/getDaYun` | 精确路径保留顺逆、起运日期和年份；依赖不可用时采用本地简化大运并披露 | `baziEngine.test.ts`：顺行与起运日期；2025 年大运/流年夹具 |
+| 四柱、节气月、日干支 | `lunar-typescript`，由 `solarEntry.ts` 注入 `baziEngine.ts` | 精确路径依赖 Solar 入口；不可用时仅降级为本地近似，不能标为精确排盘 | `baziEngine.test.ts`：1990-06-15 12:00 男命本命、节气流月与流日 |
+| 大运与起运 | `lunar-typescript` 的 `getYun/getDaYun` | 精确路径保留顺逆、起运日期和年份；依赖不可用时采用本地简化大运并披露 | `baziEngine.test.ts`：顺行与起运日期；2025 年大运/流年夹具 |
 | 流年 | 干支六十甲子 + 本命/当前大运关系规则 | 仅叠加显示，不改写本命四柱 | `baziEngine.test.ts`：2025 乙巳、当前壬午大运及原局关系 |
-| 流月、流日 | `lunar-javascript` 的精确月干支、日干支 | 必须使用完整目标日期；流月按节气月，不按公历月直接推断 | `baziEngine.test.ts`：2025-07-15 癸未月、乙酉日及关系夹具 |
+| 流月、流日 | `lunar-typescript` 的精确月干支、日干支 | 必须使用完整目标日期；流月按节气月，不按公历月直接推断 | `baziEngine.test.ts`：2025-07-15 癸未月、乙酉日及关系夹具 |
 | 神煞 | 项目内 `shensha.ts` 规则表 | 神煞仅辅助观察；桃花、驿马、华盖、将星明确区分按年支或日支查法 | `baziEngine.test.ts`：年支/日支查法切换、魁罡、同柱去重 |
 | 高阶判断 | 项目内 `advancedBazi.ts` | 普通格取月支主气透干；化气仅取日干与相邻干五合；从格须日主极弱、无根无助且力量集中 | `advancedBazi.test.ts`：扶抑、普通格、从格、化气、调候、通关、病药夹具 |
 

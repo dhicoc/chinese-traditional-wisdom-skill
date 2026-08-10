@@ -30,11 +30,13 @@
 
 ## 5. 必须调用本地引擎，禁止模型自行推演
 
-所有确定性结论——排盘、干支、卦象、星曜、五行、数值、规则匹配、吉凶标签、择日、体质评分及组合结果——必须来自本次本地引擎结果。唯一允许的执行入口是：
+对 Agent/CLI 链路而言，所有确定性结论——排盘、干支、卦象、星曜、五行、数值、规则匹配、吉凶标签、择日、体质评分及组合结果——必须来自本次本地引擎结果。唯一允许的 Agent 执行入口是：
 
 ```bash
 cd apps/visual && pnpm engine <tool> <input-json-file>
 ```
+
+Dashboard 作为浏览器端可视化入口直接调用纯引擎，不经 CLI Runner；它同样不得让模型自行推演或伪造计算结果。
 
 正确流程：
 
@@ -70,7 +72,7 @@ cd apps/visual && pnpm engine <tool> <input-json-file>
 
 - 真太阳时是八字的默认预处理，但绝不能由模型自由推断。
 - 必须先外部核验经度、IANA 时区、出生当日 UTC 偏移、夏令时和 `utcOffsetEvidence`。
-- 调用 `resolve_true_solar_time` 后，直接把 `trueSolarBirth` 和 `trueSolarResolution` 传给八字引擎。
+- 调用 `resolve_true_solar_time` 后，真太阳时路径须将出生记录同时作为八字 `birth` 与 `trueSolarBirth` 或 `trueSolarResolution`，并声明 `timeBasis='true-solar-verified'`。
 - 不得凭模型记忆猜地点、历史时区、夏令时或均时差。
-- 无法可靠核验时，取得用户知情后使用民用出生记录，并明确标注**“未完成真太阳时复核”**。
+- 无法可靠核验时，取得用户知情后使用民用出生记录，显式传入 `timeBasis='civil-unverified'` 与 `civilFallbackConfirmed=true`，并明确标注**“未完成真太阳时复核”**。
 - Dashboard 只展示已核验、待核验或民用降级状态，不自行判断真太阳时。

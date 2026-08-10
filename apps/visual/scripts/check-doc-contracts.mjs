@@ -134,6 +134,66 @@ const mappingDir = path.join(root, "knowledge-base", "fengshui", "mappings");
 const mappingCount = fs.readdirSync(mappingDir).filter((name) => name.endsWith(".json")).length;
 check(mappingCount === 6, `映射表数量应为 6，当前为 ${mappingCount}`);
 
+const baziGuide = read("bootstrap/bazi-engine.md");
+const fengshuiGuide = read("bootstrap/fengshui-guide.md");
+const ziweiGuide = read("bootstrap/ziwei-engine.md");
+const yunqiGuide = read("bootstrap/yunqi-integration.md");
+const liuyaoGuide = read("bootstrap/liuyao-engine.md");
+const meihuaGuide = read("bootstrap/meihua-yishu-engine.md");
+const constitutionGuide = read("bootstrap/constitution-questionnaire.md");
+const engineFixtures = read("docs/ENGINE-REGRESSION-FIXTURES.md");
+const visualReportTemplate = read("templates/visual-report.md");
+const templateFiles = [
+  "templates/career-consultation.md",
+  "templates/comprehensive-report.md",
+  "templates/health-consultation.md",
+  "templates/marriage-consultation.md",
+  "reference-tcm.md",
+];
+const templateContent = templateFiles.map(read).join("\n");
+const allCheckedDocumentation = [
+  ...Object.values(docs),
+  baziGuide,
+  fengshuiGuide,
+  ziweiGuide,
+  yunqiGuide,
+  liuyaoGuide,
+  meihuaGuide,
+  constitutionGuide,
+  engineFixtures,
+  visualReportTemplate,
+  templateContent,
+].join("\n");
+
+check(baziGuide.includes("timeBasis") && baziGuide.includes("civilFallbackConfirmed"),
+  "bootstrap/bazi-engine.md 缺少 CLI 必填的 timeBasis / civilFallbackConfirmed 规则。");
+check(baziGuide.includes("TrueSolarTimeResolution"),
+  "bootstrap/bazi-engine.md 未说明 resolve_true_solar_time 的 TrueSolarTimeResolution 返回例外。");
+check(!yunqiGuide.includes("| solar |"),
+  "bootstrap/yunqi-integration.md 将内部 solar 参数误写为 CLI 输入。");
+check(yunqiGuide.includes("validateCalendarClaims('yunqi', data, claims)"),
+  "bootstrap/yunqi-integration.md 缺少 validateCalendarClaims 的 resultKind 参数。");
+check(liuyaoGuide.includes("validateDivinationClaims('cast_liuyao', data, claims)"),
+  "bootstrap/liuyao-engine.md 缺少 validateDivinationClaims 的工具参数。");
+check(meihuaGuide.includes("validateDivinationClaims('cast_meihua', data, claims)"),
+  "bootstrap/meihua-yishu-engine.md 缺少 validateDivinationClaims 的工具参数。");
+check(!meihuaGuide.includes("local-approx"),
+  "bootstrap/meihua-yishu-engine.md 错误声明梅花降级模式为 local-approx。");
+check(constitutionGuide.includes("validateDailyClaims('assess_constitution', data, claims)"),
+  "bootstrap/constitution-questionnaire.md 缺少 validateDailyClaims 的工具参数。");
+check(fengshuiGuide.includes("result_meta.calculationConfig"),
+  "bootstrap/fengshui-guide.md 缺少风水计算口径披露规则。");
+check(ziweiGuide.includes("result_meta.calculationConfig"),
+  "bootstrap/ziwei-engine.md 缺少紫微计算口径披露规则。");
+check(engineFixtures.includes("lunar-typescript") && !engineFixtures.includes("lunar-javascript") && engineFixtures.includes("calc_feixing") && engineFixtures.includes("calc_bazhai") && engineFixtures.includes("get_almanac"),
+  "ENGINE-REGRESSION-FIXTURES.md 未同步 lunar-typescript 或 P9 calculationConfig 覆盖。");
+check(visualReportTemplate.includes("本次本地 ToolEnvelope") && visualReportTemplate.includes("result_meta.calculationConfig"),
+  "templates/visual-report.md 未要求使用本次本地 ToolEnvelope 与 calculationConfig。");
+
+const forbiddenLegacyReferences = /calculate_yunqi_api\.py|ziwei-doushu|heming-knowledge|lunar-javascript|#外部参考来源归档/;
+check(!forbiddenLegacyReferences.test(allCheckedDocumentation),
+  "文档仍含已移除的工具、依赖或失效锚点引用。");
+
 console.log(`doc contracts: ${passed} passed, ${failed} failed`);
 if (failed > 0) {
   failures.forEach((message) => console.error(`- ${message}`));

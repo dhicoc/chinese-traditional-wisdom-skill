@@ -8,7 +8,7 @@
 cd apps/visual && pnpm engine <tool> <input-json-file>
 ```
 
-实现位置：`apps/visual/scripts/run-engine.ts`。CLI 读取 JSON 输入并调用 `src/legacy/directRunner.ts`，输出一个 JSON `ToolEnvelope`。没有可复核的本地输出时，AI 不得自行推演。
+实现位置：`apps/visual/scripts/run-engine.ts`。CLI 读取 JSON 输入并调用 `src/legacy/directRunner.ts`；除 `resolve_true_solar_time` 直接输出 `TrueSolarTimeResolution` 外，输出一个 JSON `ToolEnvelope`。没有可复核的本地输出时，AI 不得自行推演。
 
 公开输入 fixture 位于 `apps/visual/src/__fixtures__/local-tools/`。每个本地工具都有 `.success.json` 可执行示例；它同时是 CLI 回归的标准成功输入。对存在 `.boundary.json` 与 `.failure.json` 的工具，分别用于业务边界与契约拒绝回归。
 
@@ -17,6 +17,8 @@ cd apps/visual && pnpm engine <tool> <input-json-file>
 ```bash
 cd apps/visual && pnpm engine bazi_calculate - < src/__fixtures__/local-tools/bazi_calculate.success.json
 ```
+
+`resolve_true_solar_time` 是预处理工具：输入为已核验的 `birth` 和 `location`，输出 `TrueSolarTimeResolution` 的 `trueSolarBirth` 与证据明细，供后续八字 CLI 调用传入；它不使用 `ToolEnvelope.data`。
 
 ## ToolEnvelope 与本地校验
 

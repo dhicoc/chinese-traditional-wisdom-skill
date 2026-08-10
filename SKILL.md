@@ -17,10 +17,10 @@ description: 中国传统文化整体智慧咨询系统。遇到人生困惑、�
 cd apps/visual && pnpm engine <tool> <input-json-file>
 ```
 
-4. CLI 返回 `ToolEnvelope`。只从该次 `ToolEnvelope.data` 提取确定性事实；用对应本地 `validate*Claims(data, claims)` 核对结构化 claims 后，才能写成“本次引擎结果”。
+4. 除 `resolve_true_solar_time` 直接返回 `TrueSolarTimeResolution` 外，CLI 返回 `ToolEnvelope`。只从该次 `ToolEnvelope.data` 提取确定性事实；用对应本地 `validate*Claims(data, claims)` 核对结构化 claims 后，才能写成“本次引擎结果”。
 5. 引擎失败时遵守 Fail-Two：停止盲目重试，检查输入和备用方案；不要用模型记忆补答。
 
-本地 CLI 和 Dashboard 都使用纯 TypeScript 引擎；Python 工具仅可作命令行交叉验证，不是对话计算数据源。
+本地 CLI 与 Dashboard 都使用纯 TypeScript 引擎；CLI 经 `parseLocalToolInput()` / `runLocalTool()` 执行一次性契约，Dashboard 按页面直接调用纯引擎。Python 工具仅可作命令行交叉验证，不是对话计算数据源。
 
 ## 1. 三层路由
 
@@ -54,8 +54,8 @@ cd apps/visual && pnpm engine <tool> <input-json-file>
 1. 收集民用出生记录（公历年月日、时分、性别、可定位出生地）。
 2. 在外部可靠来源核验经度、IANA 时区、出生当日 UTC 偏移、夏令时和 `utcOffsetEvidence`；模型不得凭记忆填写。
 3. 调用 `resolve_true_solar_time`，直接取得 `trueSolarBirth` 与 `trueSolarResolution`。
-4. 将二者直接传给八字引擎，再解读其返回的 `ToolEnvelope`。
-5. 无法可靠核验时，先告知限制；仅在用户知情下使用民用出生记录，并标注“未完成真太阳时复核”。
+4. 真太阳时路径将该出生记录同时作为八字 `birth` 与 `trueSolarBirth` 或 `trueSolarResolution`，并传入 `timeBasis: 'true-solar-verified'`，再解读其返回的 `ToolEnvelope`。
+5. 无法可靠核验时，先告知限制；仅在用户知情下使用民用出生记录，传入 `timeBasis: 'civil-unverified'` 与 `civilFallbackConfirmed: true`，并标注“未完成真太阳时复核”。
 
 Dashboard 只能展示核验、待核验和民用降级状态，不能自行猜测地点或历史时区。
 

@@ -9,7 +9,7 @@ cd apps/visual && pnpm engine list_constitution_questionnaire <input-json-file>
 cd apps/visual && pnpm engine assess_constitution <input-json-file>
 ```
 
-先取题目，再将用户的结构化答题结果交给评分工具。输出为 `ToolEnvelope`；主体质与转化分等结构化结果可用本地 `validateDailyClaims(data, claims)` 核对。调养解释、生活建议和医疗安全性不属于 claims。
+先取题目，再将用户的结构化答题结果交给评分工具。输出为 `ToolEnvelope`；主体质与转化分等结构化结果可用本地 `validateDailyClaims('assess_constitution', data, claims)` 核对。调养解释、生活建议和医疗安全性不属于 claims。
 
 ## 使用方法
 

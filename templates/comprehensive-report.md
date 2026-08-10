@@ -29,7 +29,7 @@
 ## 一、玄学命理维度
 
 ### 紫微斗数排盘
-[调用 ziwei-doushu 引擎或 iztro 生成]
+[调用本地 CLI：`pnpm engine ziwei_chart <input-json-file>` 生成]
 - 命宫：[宫位+主星]
 - 命宫格局：[检测到的格局，引用 patterns.ts 知识库]
 - 四化分析：[禄权科忌的分布及影响]
@@ -58,7 +58,7 @@
 - 辨识依据：[体质问卷结果与症状的匹配]
 
 ### 五运六气
-[调用 calculate_yunqi_api.py]
+[调用本地 CLI：`pnpm engine calc_yunqi <input-json-file>`]
 - 当前岁运：[如"丙午年水运太过"]
 - 司天在泉：[如"少阴君火司天，阳明燥金在泉"]
 - 对体质的影响：[岁运与个人体质的交互分析]

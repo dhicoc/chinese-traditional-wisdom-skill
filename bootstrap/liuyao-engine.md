@@ -8,7 +8,7 @@
 cd apps/visual && pnpm engine cast_liuyao <input-json-file>
 ```
 
-实现：`apps/visual/src/legacy/liuyaoEngine.ts`。支持铜钱、时间、手动爻值和揲蓍法；在可用 Solar 输入下可采用 `local-exact` 日干支与空亡，其他情况必须标记 `local-approx`。
+实现：`apps/visual/src/legacy/liuyaoEngine.ts`。CLI Runner 固定注入 `lunar-typescript` 的 `Solar`，通常产生 `local-exact` 日干支与空亡；直接调用引擎且不提供 Solar 时才会标记 `local-approx`。
 
 ## 输入与输出
 
@@ -16,7 +16,7 @@ cd apps/visual && pnpm engine cast_liuyao <input-json-file>
 
 ## 校验和解释
 
-- 盘面事实必须从本次 `ToolEnvelope.data` 提取，并使用相应本地 `validateDivinationClaims(data, claims)` 核对。
+- 盘面事实必须从本次 `ToolEnvelope.data` 提取，并使用本地 `validateDivinationClaims('cast_liuyao', data, claims)` 核对。
 - 卦名、动爻、干支、世应、六亲、三传或局式等可作为结构化 facts。
 - 吉凶、应期、策略、传统解释和行动建议不属于 claims；不能被表述为已自动校验。
 - 重要决策仅供文化参考，不能替代法律、医疗、财务或安全判断。

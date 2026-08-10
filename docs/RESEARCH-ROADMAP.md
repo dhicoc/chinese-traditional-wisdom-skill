@@ -10,16 +10,18 @@ SKILL.md / RULES.md
   → apps/visual/scripts/run-engine.ts
   → apps/visual/src/legacy/directRunner.ts
   → 本地 TypeScript 引擎
-  → ToolEnvelope
+  → ToolEnvelope（真太阳时工具例外：TrueSolarTimeResolution）
   → apps/visual/src/legacy/claimVerification/validate*Claims(data, claims)
-  → Dashboard、报告或用户可读说明
+  → 解读、报告或用户可读说明
+
+Dashboard 按页面直接调用纯 TypeScript 引擎，不经过 `run-engine.ts`、`parseLocalToolInput()` 或 `runLocalTool()`；这是与 CLI 并列的浏览器端入口。
 ```
 
 | 责任 | 主入口 | 实施约束 |
 | --- | --- | --- |
 | Skill 路由与输入边界 | `SKILL.md`、`RULES.md`、`tool-index.md` | Agent 不自行计算确定性事实。 |
 | CLI 调度 | `apps/visual/scripts/run-engine.ts` | 一次性 JSON 输入、JSON 输出、不维护会话状态。 |
-| 工具注册 | `apps/visual/src/legacy/directRunner.ts` | 32 个工具名是唯一运行注册表。 |
+| 工具注册 | `apps/visual/src/legacy/toolContracts.ts` | `LOCAL_TOOL_NAMES` 是 32 个 CLI 工具名的运行时单一真源；Runner 负责分发。 |
 | 计算结果 | `apps/visual/src/legacy/*Engine.ts` | 返回 `ToolEnvelope` 或真太阳时校正结果。 |
 | 事实校验 | `apps/visual/src/legacy/claimVerification/` | 仅接受本次 `data` 与结构化 `claims`。 |
 | 可视化与报告 | `apps/visual/src/features/`、`templates/visual-report.md` | 显示能力模式、降级状态与解释边界。 |
@@ -35,9 +37,9 @@ SKILL.md / RULES.md
 ### 工作包
 
 1. 为工具输入建立按领域复用的 TypeScript 类型，供 CLI、Dashboard、组合工具和 fixture 使用。
-2. 以 `directRunner.ts` 为工具名、输入类型、结果类型和错误语义的唯一注册来源，避免文档手写清单漂移。
+2. 以 `toolContracts.ts` 的 `LOCAL_TOOL_NAMES` 为 CLI 工具名运行时单一真源，并让 `directRunner.ts` 按其输入类型分发，避免文档手写清单漂移。
 3. 为每个工具维护最小成功输入、边界输入和失败输入 fixture；可从 `apps/visual/src/__tests__/` 的现有 Vitest 模式扩展。
-4. 将口径差异写入 `result_meta.calculationConfig`，优先覆盖八字神煞、紫微动态层、飞星/八宅与历法边界。
+4. 维护 `result_meta.calculationConfig` 的口径差异：八字神煞、紫微动态层、飞星/八宅与历法边界均须有 fixture。飞星、八宅和黄历已完成 P9 覆盖。
 
 ### 完成定义
 

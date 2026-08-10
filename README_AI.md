@@ -18,7 +18,7 @@
 cd apps/visual && pnpm engine <tool> <input-json-file>
 ```
 
-命令输出 JSON `ToolEnvelope`。`run-engine.ts` 支持输入文件，也支持从 stdin 接收 JSON。不得把用户的完整生辰写入长期日志或案例记录。
+除 `resolve_true_solar_time` 直接输出 `TrueSolarTimeResolution` 外，命令输出 JSON `ToolEnvelope`。`run-engine.ts` 支持输入文件，也支持从 stdin 接收 JSON。不得把用户的完整生辰写入长期日志或案例记录。
 
 ## 2. 执行链路
 
@@ -27,7 +27,7 @@ cd apps/visual && pnpm engine <tool> <input-json-file>
   → 问题类型 / 学科 / 融合深度路由
   → 选择本地 tool 与 JSON 输入
   → pnpm engine <tool> <input-json-file>
-  → 读取本次 ToolEnvelope
+  → 读取本次 ToolEnvelope（真太阳时工具读取 TrueSolarTimeResolution）
   → validate*Claims(data, claims)
   → 仅据已核验结构化事实进行语言化解读
 ```
@@ -60,8 +60,8 @@ cd apps/visual && pnpm engine <tool> <input-json-file>
 1. 收集民用出生年月日、时分、性别和足以定位的出生地。
 2. 通过外部可靠资料核验经度、IANA 时区、出生当日 UTC 偏移、夏令时及 `utcOffsetEvidence`；不得凭模型记忆猜测。
 3. 调用 `resolve_true_solar_time`，取得 `trueSolarBirth` 与 `trueSolarResolution`。
-4. 只把这两个结果传给八字引擎。
-5. 无法可靠核验时，先告知限制；仅在用户知情下使用民用出生记录，并标注“未完成真太阳时复核”。
+4. 真太阳时路径将该出生记录同时作为八字 `birth` 与 `trueSolarBirth` 或 `trueSolarResolution`，并传入 `timeBasis: 'true-solar-verified'`。
+5. 无法可靠核验时，先告知限制；仅在用户知情下使用民用出生记录，传入 `timeBasis: 'civil-unverified'` 与 `civilFallbackConfirmed: true`，并标注“未完成真太阳时复核”。
 
 ## 6. 可视化与报告
 

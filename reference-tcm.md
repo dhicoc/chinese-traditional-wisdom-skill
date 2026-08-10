@@ -120,5 +120,5 @@
 
 - 本系统提供的是养生参考，**不能替代医疗诊断**
 - 食疗建议标注"请咨询中医师后使用"
-- 与 wuyun-liuqi 集成时，调用 calculate_yunqi_api.py 获取当前五运六气数据
+- 与五运六气集成时，通过本地 CLI `pnpm engine calc_yunqi <input-json-file>` 获取当前岁运与六气数据
 - 体质辨识需要结合用户症状综合判断

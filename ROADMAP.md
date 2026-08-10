@@ -5,7 +5,9 @@
 本项目的唯一运行模型是本地、一次性、可复核的 Skill 调用：
 
 ```text
-Skill / Agent → Local Engine CLI → ToolEnvelope → validate*Claims(data, claims) → Dashboard / Report
+Skill / Agent → Local Engine CLI → ToolEnvelope / 真太阳时校正结果 → validate*Claims(data, claims) → 解读与报告
+
+Dashboard 是独立的浏览器端入口，按页面直接调用纯 TypeScript 引擎，不经 CLI Runner；后续 CLI 契约工作不改变该边界。
 ```
 
 后续演进不改变以下边界：
@@ -21,9 +23,9 @@ Skill / Agent → Local Engine CLI → ToolEnvelope → validate*Claims(data, cl
 ## 当前完成基线
 
 - 32 个本地工具通过 `apps/visual/scripts/run-engine.ts` 和 `src/legacy/directRunner.ts` 调用。
-- 所有核心结果统一为 `ToolEnvelope`，并标识 `local-exact`、`local-approx`、民俗体验与降级状态。
+- 除 `resolve_true_solar_time` 返回 `TrueSolarTimeResolution` 外，CLI 核心结果统一为 `ToolEnvelope`，并标识 `local-exact`、`local-approx`、民俗体验与降级状态。
 - 八字、紫微、八宅、飞星、历法、占测、日用与联合分析均有无状态 `validate*Claims(data, claims)` 校验入口。
-- Dashboard、脱敏报告导出、真太阳时民用降级与 6 个风水映射表均已接入契约检查。
+- CLI 工具表、Runner 分发、success fixture、真太阳时民用降级、P9 风水/历法口径与 6 个风水映射表已接入契约检查；Dashboard 交互与报告隐私仍由对应测试覆盖。
 - CI 覆盖类型检查、单元测试、烟测、文档/数据契约和生产构建；跨浏览器 E2E 是发布前的完整验证层。
 
 ## 近期：输入与引擎契约
@@ -35,15 +37,15 @@ Skill / Agent → Local Engine CLI → ToolEnvelope → validate*Claims(data, cl
 ### 可交付项
 
 1. 按领域整理本地引擎的稳定公开导出层，避免 Dashboard 或组合工具跨模块依赖内部实现。
-2. 为 32 个工具建立共享 TypeScript 输入类型、JSON 示例与稳定错误语义，并让 `directRunner.ts` 注册表成为唯一工具清单来源。
-3. 为八字神煞、紫微动态层、风水口径与历法边界补充可披露的 `calculationConfig`。
+2. 为 32 个工具建立共享 TypeScript 输入类型、JSON 示例与稳定错误语义，并让 `LOCAL_TOOL_NAMES` 成为工具清单单一真源。
+3. 维护八字神煞、紫微动态层、风水口径与历法边界的可披露 `calculationConfig`；飞星、八宅和黄历的稳定口径已完成 P9 fixture 回归。
 4. 为真太阳时跨日期、时辰边界、子初边界和无证据 fallback 建立固定夹具。
 
 ### 验收
 
-- 每个工具均有可执行 CLI 输入示例或 fixture，并可稳定输出 `ToolEnvelope` 或真太阳时校正结果。
+- 每个工具均有可执行 CLI 输入示例或 fixture，并稳定输出 `ToolEnvelope` 或真太阳时校正结果。
 - 工具清单、CLI 文档与 Runner 注册表自动或契约化保持一致。
-- 规则口径改变会触发对应 fixture 或 `calculationConfig` 回归失败。
+- 规则口径改变会触发对应 fixture 或 `calculationConfig` 回归失败；飞星、八宅和黄历已覆盖此门。
 
 ## 中期：结构化事实与可复现呈现
 

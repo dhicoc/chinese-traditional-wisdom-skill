@@ -6,8 +6,9 @@
 
 ## 使用方式
 
-1. 完成文字报告后，将本次分析数据填入下方 HTML 模板的 `REPORT_DATA` 对象
-2. 将完整 HTML 保存为 `.html` 文件并呈现给用户
+1. 仅从本次本地 `ToolEnvelope.data` 或真太阳时 `TrueSolarTimeResolution` 提取数据，填入下方 HTML 模板的 `REPORT_DATA` 对象；模型不得自行计算或补全盘面字段。
+2. 同时记录每个已使用 `ToolEnvelope` 的能力模式、脱敏输入摘要与 `result_meta.calculationConfig`，使报告可追溯实际规则口径。
+3. 将完整 HTML 保存为 `.html` 文件并呈现给用户
 
 ## HTML 模板
 
@@ -109,6 +110,10 @@
 window.REPORT_DATA = {
   version: "0.2.0",
   generatedAt: "2026-07-02T00:00:00+08:00",
+  sourceEnvelopes: [
+    // 仅记录脱敏摘要与本次本地 ToolEnvelope 的能力模式、result_meta.calculationConfig。
+    // 真太阳时预处理记录 TrueSolarTimeResolution 的必要证据摘要，不伪装为 ToolEnvelope。
+  ],
   sourceNotes: [
     "八字与五运六气可来自本地近似引擎，节气/历法存在简化。",
     "紫微、六爻、梅花字段为 null 时自动隐藏；演示数据不得写成精确排盘。"
@@ -234,12 +239,13 @@ window.REPORT_DATA = {
 
 ## REPORT_DATA 字段说明
 
-**所有数据由 AI 在对话中根据用户提供的信息计算后填入，用户双击 HTML 文件即可直接查看，无需任何操作。**
+**所有确定性数据必须由本次本地 `ToolEnvelope.data` 或真太阳时 `TrueSolarTimeResolution` 提取后填入；AI 只负责脱敏、组织与解释，用户双击 HTML 文件即可直接查看，无需任何操作。**
 
 | 字段 | 类型 | AI 必须填 | 说明 |
 |------|------|----------|------|
 | version | String | 是 | REPORT_DATA 结构版本，当前为 `0.2.0` |
 | generatedAt | String | 是 | 报告生成时间，ISO 字符串 |
+| sourceEnvelopes | Array | 是 | 每项本地 ToolEnvelope 的脱敏输入摘要、能力模式与 `result_meta.calculationConfig`；真太阳时单列校正证据摘要 |
 | sourceNotes | Array | 是 | 数据来源、近似算法和外部引擎边界说明 |
 | bazi | Object | **是** | 八字四柱: {year,month,day,hour 各 {stem,branch,hidden[]}, dayMaster, gender} |
 | wuxing | Object | **是** | 五行计数: {"木":n,"火":n,"土":n,"金":n,"水":n} |

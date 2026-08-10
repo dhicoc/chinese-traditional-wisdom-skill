@@ -7,7 +7,9 @@
 迁移完成后，后续路线图以本地一次性调用为不变前提：
 
 ```text
-Skill → Local Engine CLI → ToolEnvelope → validate*Claims(data, claims) → Dashboard / Report
+Skill → Local Engine CLI → ToolEnvelope / 真太阳时校正结果 → validate*Claims(data, claims) → 解读 / Report
+
+Dashboard 是并列的浏览器端入口，按页面直接调用纯引擎，不经 CLI Runner。
 ```
 
 主路线图由 `ROADMAP.md` 维护阶段目标、验收条件和非目标；`docs/RESEARCH-ROADMAP.md` 只维护代码入口、fixture、校验器与质量门等实施细则。
@@ -32,7 +34,9 @@ Skill → Local Engine CLI → ToolEnvelope → validate*Claims(data, claims) �
 当前主架构固定为：
 
 ```text
-Skill → 直接本地 Engine/CLI → ToolEnvelope → 本地 validate*Claims(data, claims) → 解读 / Dashboard
+Skill → 直接本地 Engine CLI → ToolEnvelope / 真太阳时校正结果 → 本地 validate*Claims(data, claims) → 解读
+
+Dashboard 直接调用纯 TypeScript 引擎，不经 CLI 的输入解析与 Runner 分发。
 ```
 
 `apps/visual/scripts/run-engine.ts` 是命令行入口，调用本地 `directRunner.ts`；命令形式为：

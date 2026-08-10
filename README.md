@@ -10,7 +10,7 @@
 本项目提供本地优先的传统文化咨询工作流：AI 负责路由、补问与语言化解读；**确定性盘面、干支、数值、规则匹配与结构化事实必须由本地引擎计算，模型不得自行推演或补全。**
 
 ```
-用户问题 → Skill 三层路由 → 本地 Engine/CLI → ToolEnvelope → 本地 validate*Claims(data, claims) → 解读与报告
+用户问题 → Skill 三层路由 → 本地 Engine CLI → ToolEnvelope / 真太阳时校正结果 → 本地 validate*Claims(data, claims) → 解读与报告
 ```
 
 - **本地优先**：核心引擎在 `apps/visual/src/legacy/`，不上传完整生辰。
@@ -29,7 +29,7 @@ cd apps/visual && pnpm install
 cd apps/visual && pnpm engine <tool> <input-json-file>
 ```
 
-例如，`<tool>` 使用引擎注册表中的工具名。CLI 输出 JSON `ToolEnvelope`；AI 必须从本次结果提取结构化事实，再调用同一工具库中的本地 `validate*Claims(data, claims)` 函数核验拟呈现的 claims。
+例如，`<tool>` 使用引擎注册表中的工具名。除 `resolve_true_solar_time` 直接输出 `TrueSolarTimeResolution` 外，CLI 输出 JSON `ToolEnvelope`；AI 必须从本次结果提取结构化事实，再调用同一工具库中的本地 `validate*Claims(data, claims)` 函数核验拟呈现的 claims。
 
 ### Web Dashboard
 
@@ -39,7 +39,7 @@ cd apps/visual && pnpm dev
 cd apps/visual && pnpm build && pnpm preview
 ```
 
-Dashboard 是浏览器端本地计算与可视化入口。它不是语言模型推演，仍应明确显示 `local-exact`、`local-approx`、演示或降级状态。
+Dashboard 是浏览器端本地计算与可视化入口。它按页面直接调用纯 TypeScript 引擎，不经过 CLI 的 `parseLocalToolInput()` / `runLocalTool()` 契约；它不是语言模型推演，仍应明确显示 `local-exact`、`local-approx`、演示或降级状态。
 
 ## 本地直调架构
 
@@ -47,7 +47,7 @@ Dashboard 是浏览器端本地计算与可视化入口。它不是语言模型�
 |---|---|---|
 | Skill / Agent | 三层路由、参数补问、选择工具、解释结果 | 不自行计算或改写确定性事实 |
 | Local Engine / CLI | 运行确定性 TypeScript 引擎 | `pnpm engine <tool> <input-json-file>` |
-| ToolEnvelope | 返回规范化输入、数据、摘要、警告与能力模式 | 是确定性事实的唯一数据源 |
+| ToolEnvelope | 除真太阳时外，返回规范化输入、数据、摘要、警告、能力模式与规则口径 | 是 CLI 确定性事实的唯一数据源 |
 | Local verifier | `validate*Claims(data, claims)` 比对本次结构化结果 | 仅校验 claims，不校验自由文本、建议或预测 |
 
 当前引擎覆盖 32 个本地工具，包括时间校准、排盘、日用工具和联合分析。工具列表与输入约定见 [tool-index.md](tool-index.md)。
@@ -63,7 +63,7 @@ Dashboard 是浏览器端本地计算与可视化入口。它不是语言模型�
 
 ### 真太阳时
 
-八字默认尝试真太阳时，但不允许假精确：Agent 必须先通过外部可靠来源核验出生地点经度、IANA 时区、出生当日 UTC 偏移、夏令时状态及 `utcOffsetEvidence`，然后调用本地 `resolve_true_solar_time`。只将返回的 `trueSolarBirth` 与 `trueSolarResolution` 传给八字引擎。
+八字默认尝试真太阳时，但不允许假精确：Agent 必须先通过外部可靠来源核验出生地点经度、IANA 时区、出生当日 UTC 偏移、夏令时状态及 `utcOffsetEvidence`，然后调用本地 `resolve_true_solar_time`。真太阳时路径须将返回的真太阳时出生记录同时作为八字 `birth` 与 `trueSolarBirth` 或 `trueSolarResolution`，并声明 `timeBasis: 'true-solar-verified'`。
 
 无法可靠核验时，只有在用户知情下才可按民用出生记录计算，并在报告中明确写出**“未完成真太阳时复核”**。民用时间结果不得称为真太阳时结果。
 
