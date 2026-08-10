@@ -16,6 +16,7 @@ export interface BaziToolInput {
   trueSolarBirth?: BaziBirth;
   trueSolarResolution?: { trueSolarBirth: BaziBirth };
   shenShaTrineSource?: 'year' | 'day';
+  transitDate?: string;
 }
 
 export interface DivinationBirth {
@@ -452,6 +453,7 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
       const trueSolarResolution = resolution === undefined
         ? undefined
         : { trueSolarBirth: birth(resolution.trueSolarBirth, 'trueSolarResolution.trueSolarBirth') };
+      const transitDate = input.transitDate === undefined ? undefined : dateString(input.transitDate, 'transitDate');
       return {
         birth: birth(input.birth, 'birth'),
         timeBasis,
@@ -459,6 +461,7 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
         trueSolarBirth,
         trueSolarResolution,
         shenShaTrineSource: input.shenShaTrineSource as 'year' | 'day' | undefined,
+        transitDate,
       } as BaziToolInput;
     }
     case 'ziwei_chart': {

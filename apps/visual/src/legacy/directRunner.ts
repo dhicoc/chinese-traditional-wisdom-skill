@@ -94,7 +94,12 @@ export async function runLocalTool(tool: string, rawInput: unknown): Promise<Dir
   const { tool: parsedTool, input } = parsed;
   switch (parsedTool) {
     case 'resolve_true_solar_time': return resolveTrueSolarTime(trueSolarBirth(input.birth), input.location);
-    case 'bazi_calculate': return withTimeSource(calcBaziEnveloped({ birth: input.birth, solar: Solar, shenShaTrineSource: input.shenShaTrineSource }), timeSource(input.birth, input));
+    case 'bazi_calculate': return withTimeSource(calcBaziEnveloped({
+      birth: input.birth,
+      solar: Solar,
+      shenShaTrineSource: input.shenShaTrineSource,
+      transitDate: input.transitDate,
+    }), timeSource(input.birth, input));
     case 'ziwei_chart': return calcZiweiEnveloped({ birth: input.birth, mingGua: input.mingGua, transit: input.transit });
     case 'cast_liuyao': return calcLiuyaoEnveloped({ birth: input.birth, method: input.method, yaoValues: input.yaoValues, question: input.question, seed: input.seed, solar: Solar });
     case 'arrange_qimen': return calcQimenEnveloped({ birth: input.birth, question: input.question });

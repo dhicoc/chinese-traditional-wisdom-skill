@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { calculateBazi, calcBaziEnveloped, getBaziMonthDaySnapshot, getBaziTransitSnapshot } from '@/legacy/baziEngine';
+import {
+  buildBaziDynamicLayer,
+  buildDynamicRelationMatches,
+  calculateBazi,
+  calcBaziEnveloped,
+  deriveRelationNames,
+  getBaziMonthDaySnapshot,
+  getBaziTransitSnapshot,
+} from '@/legacy/baziEngine';
 import { getSolarEntry } from '@/legacy/solarEntry';
 import type { ToolEnvelope } from '@/legacy/baseTypes';
 import { calcShenSha } from '@/legacy/shensha';
@@ -175,6 +183,85 @@ describe('getBaziMonthDaySnapshot 流月流日分层', () => {
   });
 });
 
+describe('buildBaziDynamicLayer 统一动态层', () => {
+  const birth = { year: 1990, month: 6, day: 15, hour: 12, gender: '男', useExactCalendar: false };
+
+  it('按目标日期返回彼此独立的大运、小运、流年、流月与流日', () => {
+    const layer = buildBaziDynamicLayer(birth, '2025-07-15', getSolarEntry());
+
+    expect(layer).toMatchObject({
+      targetDate: '2025-07-15',
+      nominalAge: 36,
+      decadal: { direction: '顺行', current: { ageStart: 33, stem: '壬', branch: '午' } },
+      yearly: { stem: '乙', branch: '巳', stemShiShen: '正印', stemWuxing: '木' },
+      monthly: { stem: '癸', branch: '未', stemShiShen: '正官', stemWuxing: '水' },
+      daily: { stem: '乙', branch: '酉', stemShiShen: '正印', stemWuxing: '木' },
+      available: true,
+    });
+    expect(layer.minor).toMatchObject({
+      nominalAge: 36,
+      source: expect.stringMatching(/^(lunar-exact|local-fallback)$/),
+    });
+    expect(layer.minor.stem).toHaveLength(1);
+    expect(layer.minor.branch).toHaveLength(1);
+    expect(layer.limitations).toContain('动态层仅作传统文化规则参照，不对应现实结果保证。');
+  });
+
+  it('小运固定按虚岁，在出生当年为一且跨年递增', () => {
+    expect(buildBaziDynamicLayer(birth, '1990-06-15', getSolarEntry()).nominalAge).toBe(1);
+    expect(buildBaziDynamicLayer(birth, '1991-01-01', getSolarEntry()).nominalAge).toBe(2);
+  });
+
+  it('非法目标日期返回不可用层且不伪造动态干支', () => {
+    const layer = buildBaziDynamicLayer(birth, '2025-02-30', getSolarEntry());
+
+    expect(layer).toMatchObject({ targetDate: '2025-02-30', available: false });
+    expect(layer.yearly).toEqual({ stem: '', branch: '', stemShiShen: '', stemWuxing: '' });
+    expect(layer.limitations).toContain('目标日期不是有效公历日期。');
+  });
+
+  it('构造动态层不会改变既有本命计算', () => {
+    const natal = calculateBazi({ birth, solar: getSolarEntry() });
+    buildBaziDynamicLayer(birth, '2025-07-15', getSolarEntry());
+    const repeated = calculateBazi({ birth, solar: getSolarEntry() });
+
+    expect(repeated.pillars).toEqual(natal.pillars);
+    expect(repeated.elements).toEqual(natal.elements);
+    expect(repeated.shenSha).toEqual(natal.shenSha);
+  });
+
+  it('派生伏吟、反吟和天克地冲时保留基础关系', () => {
+    expect(deriveRelationNames('甲子', '甲子')).toContain('伏吟');
+
+    const clash = deriveRelationNames('甲子', '庚午');
+    expect(clash).toEqual(expect.arrayContaining(['天干冲', '六冲', '天克地冲', '反吟']));
+
+    const stemOnly = deriveRelationNames('甲丑', '庚寅');
+    expect(stemOnly).toContain('天干冲');
+    expect(stemOnly).not.toContain('天克地冲');
+    expect(stemOnly).not.toContain('反吟');
+  });
+
+  it('流年与当前大运干支相同则标记岁运并临', () => {
+    const relations = buildDynamicRelationMatches(
+      {
+        year: { stem: '甲', branch: '子', stemIndex: 0, branchIndex: 0 },
+        month: { stem: '乙', branch: '丑', stemIndex: 1, branchIndex: 1 },
+        day: { stem: '丙', branch: '寅', stemIndex: 2, branchIndex: 2 },
+        hour: { stem: '丁', branch: '卯', stemIndex: 3, branchIndex: 3 },
+      },
+      '甲子',
+      { ageStart: 1, stem: '甲', branch: '子', stemWuxing: '木' },
+      { nominalAge: 1, stem: '戊', branch: '辰', stemShiShen: '食神', stemWuxing: '土', source: 'local-fallback' },
+      'yearly',
+    );
+
+    expect(relations.decadal).toEqual([
+      expect.objectContaining({ reference: 'decadal', referenceGanZhi: '甲子', relations: expect.arrayContaining(['伏吟', '岁运并临']) }),
+    ]);
+  });
+});
+
 describe('calcShenSha 神煞推算（甲日干 · 午日支 · 年支子 fixture）', () => {
   const fixture = {
     year: { stem: '甲', branch: '子' },
@@ -249,6 +336,36 @@ describe('calcBaziEnveloped envelope 适配', () => {
     expect(overviewSection?.body).toContain('当前判断为');
     expect(Array.isArray(full.shenSha)).toBe(true);
     expect(full.export_snapshot.sections.some((s) => s.heading === '神煞')).toBe(true);
+  });
+
+  it('传 transitDate 时在 data、evidence、快照与 calculationConfig 输出动态层', () => {
+    const env = calcBaziEnveloped({
+      birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      solar: getSolarEntry(),
+      transitDate: '2025-07-15',
+    });
+    const data = env.data as {
+      transit?: { targetDate: string; nominalAge: number; available: boolean };
+      export_snapshot: { sections: Array<{ heading: string; body: string }> };
+    };
+
+    expect(data.transit).toMatchObject({ targetDate: '2025-07-15', nominalAge: 36, available: true });
+    expect(data.export_snapshot.sections.find((section) => section.heading === '动态层')?.body).toContain('虚岁36');
+    expect(env.evidence?.steps.map((step) => step.key)).toEqual(expect.arrayContaining([
+      'transit-date', 'transit-minor', 'transit-yearly', 'transit-monthly', 'transit-daily', 'transit-relations',
+    ]));
+    expect(env.result_meta?.calculationConfig).toMatchObject({
+      dynamicLayer: expect.objectContaining({ enabled: true, targetDate: '2025-07-15', minorFortuneAgeBasis: 'nominal-age' }),
+    });
+  });
+
+  it('未传 transitDate 时保持既有本命 envelope 形状', () => {
+    const env = calcBaziEnveloped({ birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } });
+    const data = env.data as { transit?: unknown; export_snapshot: { sections: Array<{ heading: string }> } };
+
+    expect(data.transit).toBeUndefined();
+    expect(data.export_snapshot.sections.some((section) => section.heading === '动态层')).toBe(false);
+    expect(env.result_meta?.calculationConfig).not.toHaveProperty('dynamicLayer');
   });
 
   it('校正后时间用于定盘，并在快照保留用户可读口径', () => {

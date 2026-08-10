@@ -28,6 +28,8 @@ export const NESTED_WHITELIST_CASES: readonly NestedWhitelistCase[] = [
     inject: (input, sentinel) => {
       const birth = input.birth as Record<string, unknown>;
       birth.unexpectedBirth = sentinel;
+      input.transitDate = '2025-07-15';
+      input.unexpectedTransit = sentinel;
       input.timeBasis = 'true-solar-verified';
       input.trueSolarResolution = { trueSolarBirth: { ...birth, unexpectedTrueSolarBirth: sentinel }, unexpectedResolution: sentinel };
     },

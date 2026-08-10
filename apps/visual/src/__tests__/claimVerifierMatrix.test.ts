@@ -42,6 +42,28 @@ describe('claims verifier 回归矩阵', () => {
     expect(validateBaziClaims(data, [{ kind: 'luck', ageStart: -1, value: '不存在' }]).violations[0]).toMatchObject({ expected: undefined });
   });
 
+  it('八字动态层：接受真实事实，拒绝篡改、缺失动态层和错误关系选择器', async () => {
+    const transit = await resultData<any>('bazi_calculate', 'bazi_calculate.transit.success.json');
+    const currentLuck = transit.transit.decadal.current;
+    const natalRelation = transit.transit.relations.yearly.natal[0];
+    const valid: BaziPresentationClaim[] = [
+      { kind: 'transitTargetDate', value: transit.transit.targetDate },
+      { kind: 'transitNominalAge', value: transit.transit.nominalAge },
+      { kind: 'transitDecadal', field: 'direction', value: transit.transit.decadal.direction },
+      { kind: 'transitDecadal', field: 'ganZhi', value: currentLuck ? `${currentLuck.stem}${currentLuck.branch}` : '' },
+      { kind: 'transitMinor', field: 'ganZhi', value: `${transit.transit.minor.stem}${transit.transit.minor.branch}` },
+      { kind: 'transitPillar', layer: 'yearly', field: 'ganZhi', value: `${transit.transit.yearly.stem}${transit.transit.yearly.branch}` },
+      { kind: 'transitRelation', layer: 'yearly', reference: 'natal', referenceKey: natalRelation.referenceKey, value: natalRelation.relations[0] },
+    ];
+
+    expect(validateBaziClaims(transit, valid)).toEqual({ valid: true, violations: [] });
+    expect(validateBaziClaims(transit, [{ kind: 'transitNominalAge', value: transit.transit.nominalAge + 1 }]).valid).toBe(false);
+    expect(validateBaziClaims(transit, [{ kind: 'transitRelation', layer: 'yearly', reference: 'natal', referenceKey: 'hour', value: '伏吟' }]).violations[0]).toMatchObject({ expected: undefined });
+
+    const natal = await resultData<any>('bazi_calculate', 'bazi_calculate.success.json');
+    expect(validateBaziClaims(natal, [{ kind: 'transitTargetDate', value: '2025-07-15' }]).violations[0]).toMatchObject({ expected: undefined });
+  });
+
   it('八宅：接受真实命卦与方位 claim，拒绝篡改与不存在方向', async () => {
     const data = await resultData<any>('calc_bazhai', 'calc_bazhai.success.json');
     const direction = data.directions[0];

@@ -22,6 +22,43 @@ describe('runLocalTool', () => {
     expect((result.data as { timeSource: { timeBasis: string } }).timeSource.timeBasis).toBe('civil-unverified');
   });
 
+  it('parses bazi transitDate, strips unknown fields, and passes it to the envelope', async () => {
+    const input = parseLocalToolInput('bazi_calculate', {
+      birth: BIRTH,
+      timeBasis: 'civil-unverified',
+      civilFallbackConfirmed: true,
+      transitDate: '2025-07-15',
+      unexpected: 'sentinel',
+    });
+
+    expect(input).toMatchObject({ transitDate: '2025-07-15' });
+    expect(input).not.toHaveProperty('unexpected');
+
+    const result = await runLocalTool('bazi_calculate', {
+      birth: BIRTH,
+      timeBasis: 'civil-unverified',
+      civilFallbackConfirmed: true,
+      transitDate: '2025-07-15',
+    });
+
+    expect(result).toMatchObject({
+      input_normalized: { transitDate: '2025-07-15' },
+      data: { transit: { targetDate: '2025-07-15', available: true } },
+    });
+  });
+
+  it.each(['2025-2-03', '2025-02-30', '2025/02/03', 20250203])(
+    'rejects invalid bazi transitDate %o',
+    (transitDate) => {
+      expect(() => parseLocalToolInput('bazi_calculate', {
+        birth: BIRTH,
+        timeBasis: 'civil-unverified',
+        civilFallbackConfirmed: true,
+        transitDate,
+      })).toThrow('transitDate');
+    },
+  );
+
   it('returns annual combo output with direct context', async () => {
     const envelope = await runLocalTool('combo_annual_fortune', {
       birth: BIRTH,

@@ -43,6 +43,16 @@ const successCases: SuccessCase[] = [
     assert: (result) => expect(result).toMatchObject({ ok: true, data: { shenShaTrineSource: 'day', pillars: { hour: { branch: '子' } } } }),
   },
   {
+    tool: 'bazi_calculate',
+    name: 'bazi_calculate.transit.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, input_normalized: { transitDate: '2025-07-15' }, data: { transit: { targetDate: '2025-07-15', available: true, minor: { nominalAge: 36 } } } }),
+  },
+  {
+    tool: 'bazi_calculate',
+    name: 'bazi_calculate.transit.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, input_normalized: { transitDate: '2026-02-04' }, data: { transit: { targetDate: '2026-02-04', available: true } } }),
+  },
+  {
     tool: 'ziwei_chart',
     name: 'ziwei_chart.success.json',
     assert: (result) => expect(result).toMatchObject({ ok: true, data: { mode: 'local-exact', birthInfo: { gender: '男' } } }),
@@ -409,6 +419,7 @@ describe('local tool input fixtures', () => {
   [
     ['resolve_true_solar_time', 'resolve_true_solar_time.failure.json'],
     ['bazi_calculate', 'bazi_calculate.failure.json'],
+    ['bazi_calculate', 'bazi_calculate.transit.failure.json'],
     ['ziwei_chart', 'ziwei_chart.failure.json'],
     ['calc_feixing', 'calc_feixing.failure.json'],
     ['calc_bazhai', 'calc_bazhai.failure.json'],

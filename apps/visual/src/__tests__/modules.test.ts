@@ -143,6 +143,22 @@ describe('Bazi true solar time runtime boundary', () => {
   });
 });
 
+describe('Bazi dynamic layer dashboard boundary', () => {
+  it('should render the pure engine dynamic layer without invoking CLI contracts', () => {
+    const source = readSource('features/bazi/BaziWorkspace.tsx');
+
+    expect(source).toContain('buildBaziDynamicLayer');
+    expect(source).not.toContain('getBaziTransitSnapshot');
+    expect(source).not.toContain('getBaziMonthDaySnapshot');
+    expect(source).not.toContain('runLocalTool');
+    expect(source).not.toContain('parseLocalToolInput');
+    expect(source).toContain('当前小运');
+    expect(source).toContain('小运按虚岁定位');
+    expect(source).toContain('动态层均按目标日期计算；本命盘保持不变。');
+    expect(source).toContain('传统文化参考');
+  });
+});
+
 describe('XuanOrbitLogo', () => {
   it('should be a decorative celestial orbit icon with the approved structure', () => {
     const source = readSource('components/app-shell/XuanOrbitLogo.tsx');
