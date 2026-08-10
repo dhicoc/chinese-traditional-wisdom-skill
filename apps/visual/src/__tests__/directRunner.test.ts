@@ -347,4 +347,57 @@ describe('runLocalTool', () => {
     });
     expect((result as { location: unknown }).location).not.toHaveProperty('unexpected');
   });
+
+  it('normalizes inputs for Runner branches that inject Solar', async () => {
+    const yunqi = await runLocalTool('calc_yunqi', {
+      year: 2026,
+      birthMonth: 6,
+      birthDay: 15,
+      currentMonth: 8,
+      unexpected: 'sentinel',
+    });
+    expect((yunqi as { input_normalized: unknown }).input_normalized).toMatchObject({
+      year: 2026,
+      birthMonth: 6,
+      birthDay: 15,
+      currentMonth: 8,
+    });
+    expect((yunqi as { input_normalized: unknown }).input_normalized).not.toHaveProperty('unexpected');
+
+    const rhythm = await runLocalTool('get_daily_rhythm', {
+      date: '2026-08-10',
+      hour: 9,
+      constitution: '平和质',
+      unexpected: 'sentinel',
+    });
+    expect((rhythm as { input_normalized: unknown }).input_normalized).toEqual({
+      date: '2026-08-10',
+      hour: 9,
+      constitution: '平和质',
+    });
+
+    const marriage = await runLocalTool('combo_marriage', {
+      personA: {
+        birth: BIRTH,
+        baziTimeContext: { timeBasis: 'civil-unverified', civilFallbackConfirmed: true },
+        label: '甲方',
+        unexpected: 'sentinel',
+      },
+      personB: {
+        birth: { year: 1988, month: 3, day: 20, hour: 8, gender: '女' },
+        baziTimeContext: { timeBasis: 'civil-unverified', civilFallbackConfirmed: true },
+        label: '乙方',
+        unexpected: 'sentinel',
+      },
+      scene: '合作',
+      targetYear: 2026,
+      purpose: '签约',
+      unexpected: 'sentinel',
+    });
+    expect((marriage as { input_normalized: unknown }).input_normalized).toEqual({
+      personA: { birthYear: 1990, gender: '男', label: '甲方' },
+      personB: { birthYear: 1988, gender: '女', label: '乙方' },
+      scene: '合作',
+    });
+  });
 });

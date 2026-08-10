@@ -82,7 +82,7 @@ export async function runLocalTool(tool: string, rawInput: unknown): Promise<Dir
     case 'taiyi_calculate': return calcTaiyiEnveloped({ birth: input.birth, jiStyle: input.jiStyle ?? 0, acumYear: input.acumYear ?? 0, solar: Solar });
     case 'huangji_calculate': return calcHuangjiEnveloped({ birth: input.birth, solar: Solar });
     case 'cast_meihua': return calcMeihuaEnveloped({ birth: input.birth, method: input.method, numberA: input.numberA, numberB: input.numberB }, Solar);
-    case 'calc_yunqi': return calcYunqiEnveloped({ ...input, solar: Solar } as any);
+    case 'calc_yunqi': return calcYunqiEnveloped({ year: input.year, birthMonth: input.birthMonth, birthDay: input.birthDay, currentMonth: input.currentMonth, solar: Solar });
     case 'analyze_name': { const source = input.birth ? timeSource(input.birth, input.baziTimeContext ?? {}) : null; const result = await calcNameRatingEnveloped(input.surname, input.givenName, input.birthYear, input.birth, Solar); return source ? withTimeSource(result, source) : result; }
     case 'calc_xiyong': return calcXiYongEnveloped(input.dayMasterWuxing, input.elements);
     case 'get_constitution_tendency': return getConstitutionTendencyEnveloped(input);
@@ -95,13 +95,13 @@ export async function runLocalTool(tool: string, rawInput: unknown): Promise<Dir
     case 'combo_daily_wellness': return withTimeSource(calcDailyWellnessCombo({ birth: input.birth, constitution: input.constitution, now: input.now, targetYear: input.targetYear, solar: Solar }), timeSource(input.birth, input.baziTimeContext));
     case 'combo_zeri': return calcZeriCombo({ birth: input.birth, purpose: input.purpose, startDate: input.startDate, endDate: input.endDate, targetYear: input.targetYear, topN: input.topN, solar: Solar });
     case 'combo_monthly_fortune': return withTimeSource(calcMonthlyFortuneCombo({ birth: input.birth, targetYear: input.targetYear, targetMonth: input.targetMonth, constitution: input.constitution, solar: Solar }), timeSource(input.birth, input.baziTimeContext));
-    case 'combo_marriage': { const a = timeSource(input.personA.birth, input.personA.baziTimeContext ?? {}); const b = timeSource(input.personB.birth, input.personB.baziTimeContext ?? {}); const result = await calcMarriageCombo({ ...input, personA: { ...input.personA, solar: Solar }, personB: { ...input.personB, solar: Solar } }); return { ...withTimeSource(withTimeSource(result, a), b), data: { ...result.data, timeSource: { personA: a, personB: b } } }; }
+    case 'combo_marriage': { const a = timeSource(input.personA.birth, input.personA.baziTimeContext ?? {}); const b = timeSource(input.personB.birth, input.personB.baziTimeContext ?? {}); const result = await calcMarriageCombo({ personA: { birth: input.personA.birth, surname: input.personA.surname, givenName: input.personA.givenName, label: input.personA.label, solar: Solar }, personB: { birth: input.personB.birth, surname: input.personB.surname, givenName: input.personB.givenName, label: input.personB.label, solar: Solar }, scene: input.scene, targetYear: input.targetYear, purpose: input.purpose }); return { ...withTimeSource(withTimeSource(result, a), b), data: { ...result.data, timeSource: { personA: a, personB: b } } }; }
     case 'cast_cezi': { const source = input.birth ? timeSource(input.birth, input.baziTimeContext ?? {}) : null; const result = await calcCeziEnveloped({ char: input.char, aspect: input.aspect, birth: input.birth, solar: Solar }); return source ? withTimeSource(result, source) : result; }
     case 'calc_chenguz': return withTimeSource(calcChenguzEnveloped({ birth: input.birth, version: input.version, solar: Solar }), timeSource(input.birth, input.baziTimeContext));
     case 'get_almanac': return getAlmanacEnveloped({ date: input.date, solar: Solar });
     case 'calc_feixing': return calcFeixingEnveloped({ year: input.year, gender: input.gender, birthYear: input.birthYear });
     case 'calc_bazhai': return calcBazhaiEnveloped({ birthYear: input.birthYear, gender: input.gender, door: input.door, bedroom: input.bedroom, kitchen: input.kitchen, year: input.year });
-    case 'get_daily_rhythm': return getDailyRhythmEnveloped({ ...input, solar: Solar });
+    case 'get_daily_rhythm': return getDailyRhythmEnveloped({ date: input.date, hour: input.hour, constitution: input.constitution, solar: Solar });
     case 'assess_constitution': return assessConstitutionEnveloped({ answers: input.answers });
     case 'list_constitution_questionnaire': { const groups = listConstitutionQuestionnaire(); return { ok: true, tool, version: '1.0.0', input_normalized: {}, data: { groups }, summary: [`九种体质问卷共 ${groups.length} 组、${groups.reduce((total, group) => total + group.questions.length, 0)} 题`] }; }
     default: throw new Error(`未知本地工具：${tool}`);
