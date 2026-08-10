@@ -332,10 +332,33 @@ function baziTimeContext(value: unknown): Input {
   if (context.timeBasis !== 'true-solar-verified' && context.timeBasis !== 'civil-unverified') {
     throw new Error('baziTimeContext.timeBasis 必须是 true-solar-verified 或 civil-unverified。');
   }
-  if (context.timeBasis === 'civil-unverified' && context.civilFallbackConfirmed !== true) {
-    throw new Error('baziTimeContext.timeBasis=civil-unverified 必须显式传 civilFallbackConfirmed=true。');
+  if (context.timeBasis === 'civil-unverified') {
+    if (context.civilFallbackConfirmed !== true) {
+      throw new Error('baziTimeContext.timeBasis=civil-unverified 必须显式传 civilFallbackConfirmed=true。');
+    }
+    return { timeBasis: context.timeBasis, civilFallbackConfirmed: true };
   }
-  return context;
+
+  const trueSolarBirth = context.trueSolarBirth === undefined
+    ? undefined
+    : birth(context.trueSolarBirth, 'baziTimeContext.trueSolarBirth');
+  const resolution = context.trueSolarResolution === undefined
+    ? undefined
+    : object(context.trueSolarResolution, 'baziTimeContext.trueSolarResolution');
+  const trueSolarResolution = resolution === undefined
+    ? undefined
+    : {
+      trueSolarBirth: birth(
+        resolution.trueSolarBirth,
+        'baziTimeContext.trueSolarResolution.trueSolarBirth',
+      ),
+    };
+
+  return {
+    timeBasis: context.timeBasis,
+    ...(trueSolarBirth === undefined ? {} : { trueSolarBirth }),
+    ...(trueSolarResolution === undefined ? {} : { trueSolarResolution }),
+  };
 }
 
 function year(value: unknown, label: string): number {

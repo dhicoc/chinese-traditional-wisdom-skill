@@ -273,4 +273,36 @@ describe('runLocalTool', () => {
       expect((envelope as { input_normalized: unknown }).input_normalized).not.toHaveProperty('unexpected');
     }
   });
+
+  it('strips unknown fields from verified true-solar time context', async () => {
+    const baziTimeContext = {
+      timeBasis: 'true-solar-verified',
+      trueSolarResolution: {
+        trueSolarBirth: BIRTH,
+        unexpectedResolution: 'sentinel',
+      },
+      unexpectedContext: 'sentinel',
+    };
+    const input = parseLocalToolInput('calc_chenguz', {
+      birth: BIRTH,
+      baziTimeContext,
+    });
+    expect(input).toMatchObject({
+      baziTimeContext: {
+        timeBasis: 'true-solar-verified',
+        trueSolarResolution: { trueSolarBirth: BIRTH },
+      },
+    });
+    expect((input as { baziTimeContext: unknown }).baziTimeContext).not.toHaveProperty('unexpectedContext');
+    expect((input as { baziTimeContext: { trueSolarResolution: unknown } }).baziTimeContext.trueSolarResolution).not.toHaveProperty('unexpectedResolution');
+
+    const envelope = await runLocalTool('calc_chenguz', {
+      birth: BIRTH,
+      baziTimeContext,
+    });
+    expect((envelope as { data: { timeSource: { verification: unknown } } }).data.timeSource.verification).toMatchObject({
+      trueSolarBirth: BIRTH,
+    });
+    expect((envelope as { data: { timeSource: { verification: unknown } } }).data.timeSource.verification).not.toHaveProperty('unexpectedResolution');
+  });
 });
