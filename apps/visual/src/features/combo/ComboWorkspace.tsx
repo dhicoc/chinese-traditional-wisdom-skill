@@ -6,6 +6,9 @@ import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { useBirth } from '@/lib/birthContext';
+import { dispatchCivilTimeFallbackIntent } from '@/lib/commandIntents';
+import { buildMarriageToolInput, toMarriageInputMessage } from '@/features/combo/marriageInputAdapter';
+import { runLocalTool } from '@/legacy/directRunner';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import {
   calcAnnualFortuneCombo,
@@ -22,7 +25,7 @@ import {
   type ZeriPurpose,
   type MonthlyFortuneResult,
 } from '@/legacy/comboEngine';
-import { calcMarriageCombo, type MarriageResult, type MarriageScene } from '@/legacy/marriageCombo';
+import { type MarriageResult, type MarriageScene } from '@/legacy/marriageCombo';
 import { DALIUREN_SCHOOLS, type DaliurenSchool } from '@/legacy/daliurenEngine';
 import { QUESTIONNAIRE } from '@/legacy/constitutionQuestionnaire';
 import type { ToolEnvelope } from '@/legacy/baseTypes';
@@ -76,7 +79,7 @@ function shiftStr(dateStr: string, deltaDays: number): string {
 }
 
 export function ComboWorkspace() {
-  const { solarBirth } = useBirth();
+  const { solarBirth, baziTimeStatus } = useBirth();
   const [comboType, setComboType] = useState<ComboType>('wellness');
   const [question, setQuestion] = useState('今年整体运势如何？');
   const [targetYear, setTargetYear] = useState<number>(solarBirth.year);
@@ -111,7 +114,8 @@ export function ComboWorkspace() {
   const [partnerMonth, setPartnerMonth] = useState<number>(6);
   const [partnerDay, setPartnerDay] = useState<number>(15);
   const [partnerHour, setPartnerHour] = useState<number>(12);
-  const [partnerGender, setPartnerGender] = useState<string>('女');
+  const [partnerGender, setPartnerGender] = useState<'男' | '女'>('女');
+  const [partnerCivilFallbackConfirmed, setPartnerCivilFallbackConfirmed] = useState(false);
   const [partnerSurname, setPartnerSurname] = useState<string>('');
   const [partnerGivenName, setPartnerGivenName] = useState<string>('');
   const [mySurname, setMySurname] = useState<string>('');
@@ -142,11 +146,11 @@ export function ComboWorkspace() {
     else setPartnerHour(n);
   };
 
-  const [result, setResult] = useState<{ envelope: ToolEnvelope<ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult> | null; loading: boolean }>({ envelope: null, loading: false });
+  const [result, setResult] = useState<{ envelope: ToolEnvelope<ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult> | null; loading: boolean; message: string | null }>({ envelope: null, loading: false, message: null });
 
   useEffect(() => {
     let cancelled = false;
-    setResult({ envelope: null, loading: true });
+    setResult({ envelope: null, loading: true, message: null });
     void (async () => {
       let envelope: ToolEnvelope<ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult> | null = null;
       try {
@@ -190,33 +194,43 @@ export function ComboWorkspace() {
             solar,
           }) as ToolEnvelope<ZeriResult>;
         } else if (comboType === 'marriage') {
-          envelope = await calcMarriageCombo({
+          const adapted = buildMarriageToolInput({
             personA: {
               birth: birthInput,
-              surname: mySurname || undefined,
-              givenName: myGivenName || undefined,
+              timeStatus: baziTimeStatus,
+              surname: mySurname,
+              givenName: myGivenName,
               label: marriageScene === '婚恋' ? '男方' : '甲方',
-              solar,
             },
             personB: {
               birth: { year: partnerYear, month: partnerMonth, day: partnerDay, hour: partnerHour, gender: partnerGender },
-              surname: partnerSurname || undefined,
-              givenName: partnerGivenName || undefined,
+              civilFallbackConfirmed: partnerCivilFallbackConfirmed,
+              surname: partnerSurname,
+              givenName: partnerGivenName,
               label: marriageScene === '婚恋' ? '女方' : '乙方',
             },
             scene: marriageScene,
             targetYear,
-          }) as ToolEnvelope<MarriageResult>;
+          });
+          if (!adapted.ok) {
+            if (!cancelled) setResult({ envelope: null, loading: false, message: adapted.message });
+            return;
+          }
+          envelope = await runLocalTool('combo_marriage', adapted.input) as ToolEnvelope<MarriageResult>;
         } else {
           envelope = calcSpaceTimeCombo({ birth: birthInput, targetYear, solar }) as ToolEnvelope<ComboResult>;
         }
-        if (!cancelled) setResult({ envelope, loading: false });
-      } catch {
-        if (!cancelled) setResult({ envelope: null, loading: false });
+        if (!cancelled) setResult({ envelope, loading: false, message: null });
+      } catch (error) {
+        if (!cancelled) setResult({
+          envelope: null,
+          loading: false,
+          message: comboType === 'marriage' ? toMarriageInputMessage(error) : '请检查输入资料后重试。',
+        });
       }
     })();
     return () => { cancelled = true; };
-  }, [comboType, solarBirth, question, targetYear, targetMonth, liurenSchool, constitution, zeriPurpose, zeriStart, zeriEnd, zeriTopN, partnerYear, partnerMonth, partnerDay, partnerHour, partnerGender, partnerSurname, partnerGivenName, mySurname, myGivenName, marriageScene]);
+  }, [comboType, solarBirth, baziTimeStatus, question, targetYear, targetMonth, liurenSchool, constitution, zeriPurpose, zeriStart, zeriEnd, zeriTopN, partnerYear, partnerMonth, partnerDay, partnerHour, partnerGender, partnerCivilFallbackConfirmed, partnerSurname, partnerGivenName, mySurname, myGivenName, marriageScene]);
 
   const fourLayer = useMemo<LayerReport | null>(() => {
     if (!result.envelope) return null;
@@ -425,7 +439,25 @@ export function ComboWorkspace() {
                   <option value="合作">合作（项目合作）</option>
                 </select>
               </label>
-              <p className="text-xs text-jade-100/55">甲方（你自己）生辰：<span className="font-mono text-jade-100">{birthSummary}</span></p>
+              <div className="rounded-card border border-white/8 bg-ink-900/40 px-3 py-2.5 text-xs">
+                <p className="text-jade-100/55">甲方（你自己）生辰：<span className="font-mono text-jade-100">{birthSummary}</span></p>
+                {baziTimeStatus.status === 'true-solar-verified' ? (
+                  <p className="mt-1 text-jade-300/80">已使用核验后的真太阳时计算甲方资料。</p>
+                ) : baziTimeStatus.status === 'civil-unverified' ? (
+                  <p className="mt-1 text-gold-300/80">已确认按记录时间计算甲方资料，未完成真太阳时复核。</p>
+                ) : (
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <p className="text-gold-300/80">甲方尚未完成真太阳时核验。可先核验，或确认按记录时间计算。</p>
+                    <button
+                      type="button"
+                      onClick={dispatchCivilTimeFallbackIntent}
+                      className="rounded-full border border-gold-400/35 bg-gold-400/10 px-2.5 py-1 text-[11px] text-gold-200 transition hover:border-gold-300/70"
+                    >
+                      确认按记录时间计算
+                    </button>
+                  </div>
+                )}
+              </div>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">乙方出生年</span>
@@ -445,7 +477,7 @@ export function ComboWorkspace() {
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">乙方性别</span>
-                  <select value={partnerGender} onChange={(e) => setPartnerGender(e.target.value)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45">
+                  <select value={partnerGender} onChange={(e) => setPartnerGender(e.target.value as '男' | '女')} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45">
                     <option value="男">男</option>
                     <option value="女">女</option>
                   </select>
@@ -467,8 +499,21 @@ export function ComboWorkspace() {
                   <input type="text" value={partnerGivenName} onChange={(e) => setPartnerGivenName(e.target.value)} placeholder="名" className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
                 </label>
               </div>
+              <div className="rounded-card border border-white/8 bg-ink-900/40 px-3 py-2.5 text-xs">
+                <p className="font-medium text-jade-100/70">乙方时间依据</p>
+                <p className="mt-1 text-jade-100/50">未提供出生地时，可按对方记录的出生时间计算；结果会明确标注尚未完成真太阳时复核。</p>
+                <label className="mt-2 flex items-start gap-2 text-jade-100/70">
+                  <input
+                    type="checkbox"
+                    checked={partnerCivilFallbackConfirmed}
+                    onChange={(e) => setPartnerCivilFallbackConfirmed(e.target.checked)}
+                    className="mt-0.5 h-3.5 w-3.5 accent-gold-400"
+                  />
+                  <span>我确认按乙方记录的出生时间计算</span>
+                </label>
+              </div>
               <p className="text-[10px] text-jade-100/35">
-                输入双方出生信息，分析八字日柱冲合、用神互补、紫微命宫对照、姓名匹配、婚房风水与吉日。姓名为可选，不填则跳过姓名维度。仅供文化参考。
+                姓名匹配是可选项：如需启用，请完整填写双方的姓与名；如不需要，请将四个姓名字段都留空。出生资料与时间依据只用于本次传统文化参考。
               </p>
             </div>
           )}
@@ -493,8 +538,8 @@ export function ComboWorkspace() {
       {/* 结果区 */}
       {result.loading && <LoadingSkeleton label="联合分析计算中" />}
       {!result.loading && !data && (
-        <InterpretationCard title="暂无结果" subtitle="请确认生辰后重试">
-          <p className="text-sm text-jade-100/55">联合分析需要完整生辰信息，请在顶部「全局生辰」面板填写。</p>
+        <InterpretationCard title={result.message ? '还差一步即可开始合婚分析' : '暂无结果'} subtitle={result.message ? '请按提示补全或确认资料' : '请确认生辰后重试'}>
+          <p className="text-sm text-jade-100/55">{result.message ?? '联合分析需要完整生辰信息，请在顶部「全局生辰」面板填写。'}</p>
         </InterpretationCard>
       )}
       {!result.loading && data && fourLayer && (
@@ -607,6 +652,7 @@ export function ComboWorkspace() {
                     ziweiCompare: (data as MarriageResult).ziweiCompare,
                     fengshuiAdvice: (data as MarriageResult).fengshuiAdvice,
                     auspiciousDays: (data as MarriageResult).auspiciousDays,
+                    timeSource: (data as MarriageResult & { timeSource?: unknown }).timeSource,
                   },
                 } : {
                   subsystems: (comboType === 'wellness' ? (data as DailyWellnessResult).subsystems
