@@ -644,7 +644,6 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
       return { answers } as ConstitutionAssessmentToolInput;
     }
     case 'list_constitution_questionnaire':
-      if (Object.keys(input).length > 0) throw new Error('list_constitution_questionnaire 不接受输入字段。');
       return {} as ConstitutionQuestionnaireToolInput;
     case 'combo_annual_fortune': {
       const birthInput = birth(input.birth, 'birth');

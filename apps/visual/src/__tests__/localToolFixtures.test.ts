@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { runLocalTool } from '@/legacy/directRunner';
+import { parseLocalToolInput } from '@/legacy/toolContracts';
 
 const fixtureDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -358,6 +359,23 @@ describe('local tool input fixtures', () => {
     });
   });
 
+  const whitelistCases = Array.from(
+    new Map(successCases
+      .filter(({ name }) => name.endsWith('.success.json'))
+      .map(({ tool, name }) => [tool, name])),
+    ([tool, name]) => ({ tool, name }),
+  );
+
+  whitelistCases.forEach(({ tool, name }) => {
+    it(`${tool} strips top-level sentinel fields from parser and Runner output`, async () => {
+      const sentinel = `p5-sentinel-${tool}`;
+      const input = { ...await fixture(name) as Record<string, unknown>, unexpected: sentinel };
+
+      expect(JSON.stringify(parseLocalToolInput(tool, input))).not.toContain(sentinel);
+      expect(JSON.stringify(await runLocalTool(tool, input))).not.toContain(sentinel);
+    });
+  });
+
   boundaryCases.forEach(({ tool, name, assert }) => {
     it(`${tool} returns its business boundary for ${name}`, async () => {
       assert(await runLocalTool(tool, await fixture(name)));
@@ -387,7 +405,6 @@ describe('local tool input fixtures', () => {
     ['huangji_calculate', 'huangji_calculate.failure.json'],
     ['get_constitution_tendency', 'get_constitution_tendency.failure.json'],
     ['assess_constitution', 'assess_constitution.failure.json'],
-    ['list_constitution_questionnaire', 'list_constitution_questionnaire.failure.json'],
     ['combo_annual_fortune', 'combo_annual_fortune.failure.json'],
     ['combo_monthly_fortune', 'combo_monthly_fortune.failure.json'],
     ['combo_daily_wellness', 'combo_daily_wellness.failure.json'],
