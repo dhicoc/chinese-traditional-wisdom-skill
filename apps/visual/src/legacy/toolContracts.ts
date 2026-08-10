@@ -364,7 +364,14 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
       const timeBasis = input.timeBasis;
       if (timeBasis !== 'true-solar-verified' && timeBasis !== 'civil-unverified') throw new Error('timeBasis 必须是 true-solar-verified 或 civil-unverified。');
       if (input.shenShaTrineSource !== undefined && input.shenShaTrineSource !== 'year' && input.shenShaTrineSource !== 'day') throw new Error('shenShaTrineSource 必须是 year 或 day。');
-      return { ...input, birth: birth(input.birth, 'birth'), timeBasis } as BaziToolInput;
+      return {
+        birth: birth(input.birth, 'birth'),
+        timeBasis,
+        civilFallbackConfirmed: input.civilFallbackConfirmed as boolean | undefined,
+        trueSolarBirth: input.trueSolarBirth as BaziBirth | undefined,
+        trueSolarResolution: input.trueSolarResolution as BaziToolInput['trueSolarResolution'],
+        shenShaTrineSource: input.shenShaTrineSource as 'year' | 'day' | undefined,
+      } as BaziToolInput;
     }
     case 'ziwei_chart': {
       const parsedBirth = birth(input.birth, 'birth');
@@ -448,14 +455,21 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
     case 'liuren_calculate': {
       const school = input.school ?? 'classic';
       if (!['classic', 'gufa', 'daxquan'].includes(school as string)) throw new Error('school 必须是 classic、gufa 或 daxquan。');
-      return { ...input, birth: divinationBirth(input.birth), school } as DaliurenToolInput;
+      return {
+        birth: divinationBirth(input.birth),
+        school,
+      } as DaliurenToolInput;
     }
     case 'taiyi_calculate': {
       const jiStyle = input.jiStyle ?? 0;
       const acumYear = input.acumYear ?? 0;
       if (!Number.isInteger(jiStyle) || ![0, 1, 2, 3, 4].includes(jiStyle as number)) throw new Error('jiStyle 必须是 0-4 的整数。');
       if (!Number.isInteger(acumYear) || ![0, 1, 2, 3].includes(acumYear as number)) throw new Error('acumYear 必须是 0-3 的整数。');
-      return { ...input, birth: divinationBirth(input.birth), jiStyle, acumYear } as TaiyiToolInput;
+      return {
+        birth: divinationBirth(input.birth),
+        jiStyle,
+        acumYear,
+      } as TaiyiToolInput;
     }
     case 'cast_meihua': {
       const method = input.method ?? 'time';

@@ -221,4 +221,56 @@ describe('runLocalTool', () => {
       transit: { year: 2025, month: 7 },
     });
   });
+
+  it('strips unknown fields from bazi, liuren and taiyi tool inputs', async () => {
+    const baziInput = parseLocalToolInput('bazi_calculate', {
+      birth: BIRTH,
+      timeBasis: 'civil-unverified',
+      civilFallbackConfirmed: true,
+      shenShaTrineSource: 'day',
+      unexpected: 'sentinel',
+    });
+    expect(baziInput).toMatchObject({
+      birth: BIRTH,
+      timeBasis: 'civil-unverified',
+      civilFallbackConfirmed: true,
+      shenShaTrineSource: 'day',
+    });
+    expect(baziInput).not.toHaveProperty('unexpected');
+
+    const liurenInput = parseLocalToolInput('liuren_calculate', {
+      birth: BIRTH,
+      school: 'gufa',
+      unexpected: 'sentinel',
+    });
+    expect(liurenInput).toMatchObject({ birth: BIRTH, school: 'gufa' });
+    expect(liurenInput).not.toHaveProperty('unexpected');
+
+    const taiyiInput = parseLocalToolInput('taiyi_calculate', {
+      birth: BIRTH,
+      jiStyle: 2,
+      acumYear: 3,
+      unexpected: 'sentinel',
+    });
+    expect(taiyiInput).toMatchObject({ birth: BIRTH, jiStyle: 2, acumYear: 3 });
+    expect(taiyiInput).not.toHaveProperty('unexpected');
+
+    const bazi = await runLocalTool('bazi_calculate', {
+      birth: BIRTH,
+      timeBasis: 'civil-unverified',
+      civilFallbackConfirmed: true,
+      shenShaTrineSource: 'day',
+      unexpected: 'sentinel',
+    });
+    expect((bazi as { data: { timeSource: { timeBasis: string } } }).data.timeSource.timeBasis).toBe('civil-unverified');
+    expect((bazi as { input_normalized: unknown }).input_normalized).not.toHaveProperty('unexpected');
+
+    for (const [tool, input] of [
+      ['liuren_calculate', { birth: BIRTH, school: 'gufa', unexpected: 'sentinel' }],
+      ['taiyi_calculate', { birth: BIRTH, jiStyle: 2, acumYear: 3, unexpected: 'sentinel' }],
+    ] as const) {
+      const envelope = await runLocalTool(tool, input);
+      expect((envelope as { input_normalized: unknown }).input_normalized).not.toHaveProperty('unexpected');
+    }
+  });
 });
