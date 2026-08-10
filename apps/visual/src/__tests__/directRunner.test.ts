@@ -73,4 +73,58 @@ describe('runLocalTool', () => {
       scene: 'invalid-scene',
     })).rejects.toThrow('scene 必须是婚恋、合伙或合作。');
   });
+
+  it('strips unknown fields from divination tool inputs and envelopes', async () => {
+    const qimenInput = parseLocalToolInput('arrange_qimen', {
+      birth: BIRTH,
+      question: '今日出行是否顺利？',
+      unexpected: 'sentinel',
+    });
+    expect(qimenInput).toMatchObject({
+      birth: BIRTH,
+      question: '今日出行是否顺利？',
+    });
+    expect(qimenInput).not.toHaveProperty('unexpected');
+
+    const meihuaInput = parseLocalToolInput('cast_meihua', {
+      birth: BIRTH,
+      method: 'number',
+      numberA: 12,
+      numberB: 34,
+      unexpected: 'sentinel',
+    });
+    expect(meihuaInput).toMatchObject({
+      birth: BIRTH,
+      method: 'number',
+      numberA: 12,
+      numberB: 34,
+    });
+    expect(meihuaInput).not.toHaveProperty('unexpected');
+
+    const liuyaoInput = parseLocalToolInput('cast_liuyao', {
+      birth: BIRTH,
+      method: 'manual',
+      yaoValues: '678987',
+      question: '项目能否推进？',
+      seed: 2026,
+      unexpected: 'sentinel',
+    });
+    expect(liuyaoInput).toMatchObject({
+      birth: BIRTH,
+      method: 'manual',
+      yaoValues: '678987',
+      question: '项目能否推进？',
+      seed: 2026,
+    });
+    expect(liuyaoInput).not.toHaveProperty('unexpected');
+
+    for (const [tool, input] of [
+      ['arrange_qimen', { birth: BIRTH, question: '今日出行是否顺利？', unexpected: 'sentinel' }],
+      ['cast_meihua', { birth: BIRTH, method: 'number', numberA: 12, numberB: 34, unexpected: 'sentinel' }],
+      ['cast_liuyao', { birth: BIRTH, method: 'manual', yaoValues: '678987', question: '项目能否推进？', seed: 2026, unexpected: 'sentinel' }],
+    ] as const) {
+      const envelope = await runLocalTool(tool, input);
+      expect((envelope as { input_normalized: unknown }).input_normalized).not.toHaveProperty('unexpected');
+    }
+  });
 });

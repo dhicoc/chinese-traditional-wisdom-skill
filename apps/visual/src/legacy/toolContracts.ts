@@ -397,11 +397,20 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
       }
       if (input.seed !== undefined) finiteNumber(input.seed, 'seed');
       if (input.question !== undefined && typeof input.question !== 'string') throw new Error('question 必须是字符串。');
-      return { ...input, birth: divinationBirth(input.birth), method } as LiuyaoToolInput;
+      return {
+        birth: divinationBirth(input.birth),
+        method,
+        yaoValues: input.yaoValues as string | undefined,
+        question: input.question as string | undefined,
+        seed: input.seed as number | undefined,
+      } as LiuyaoToolInput;
     }
     case 'arrange_qimen': {
       if (input.question !== undefined && typeof input.question !== 'string') throw new Error('question 必须是字符串。');
-      return { ...input, birth: divinationBirth(input.birth) } as QimenToolInput;
+      return {
+        birth: divinationBirth(input.birth),
+        question: input.question as string | undefined,
+      } as QimenToolInput;
     }
     case 'liuren_calculate': {
       const school = input.school ?? 'classic';
@@ -422,7 +431,12 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
         finiteNumber(input.numberA, 'numberA');
         finiteNumber(input.numberB, 'numberB');
       }
-      return { ...input, birth: divinationBirth(input.birth), method } as MeihuaToolInput;
+      return {
+        birth: divinationBirth(input.birth),
+        method,
+        numberA: input.numberA as number | undefined,
+        numberB: input.numberB as number | undefined,
+      } as MeihuaToolInput;
     }
     case 'xingxiu_daily': {
       const birthInput = object(input.birth, 'birth');

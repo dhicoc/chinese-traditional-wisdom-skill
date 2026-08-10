@@ -75,13 +75,13 @@ export async function runLocalTool(tool: string, rawInput: unknown): Promise<Dir
     case 'resolve_true_solar_time': return resolveTrueSolarTime({ ...input.birth, minute: input.birth.minute ?? 0, useExactCalendar: true }, input.location);
     case 'bazi_calculate': return withTimeSource(calcBaziEnveloped({ birth: input.birth, solar: Solar, shenShaTrineSource: input.shenShaTrineSource }), timeSource(input.birth, input));
     case 'ziwei_chart': return calcZiweiEnveloped(input as any);
-    case 'cast_liuyao': return calcLiuyaoEnveloped({ ...input, solar: Solar });
-    case 'arrange_qimen': return calcQimenEnveloped(input as any);
+    case 'cast_liuyao': return calcLiuyaoEnveloped({ birth: input.birth, method: input.method, yaoValues: input.yaoValues, question: input.question, seed: input.seed, solar: Solar });
+    case 'arrange_qimen': return calcQimenEnveloped({ birth: input.birth, question: input.question });
     case 'liuren_calculate': return calcDaliurenEnveloped({ birth: input.birth, school: input.school, solar: Solar });
     case 'xingxiu_daily': return calcXingXiuEnveloped({ birth: input.birth, method: input.method, queryDate: input.queryDate, solar: Solar });
     case 'taiyi_calculate': return calcTaiyiEnveloped({ birth: input.birth, jiStyle: input.jiStyle ?? 0, acumYear: input.acumYear ?? 0, solar: Solar });
     case 'huangji_calculate': return calcHuangjiEnveloped({ birth: input.birth, solar: Solar });
-    case 'cast_meihua': return calcMeihuaEnveloped(input as any, Solar);
+    case 'cast_meihua': return calcMeihuaEnveloped({ birth: input.birth, method: input.method, numberA: input.numberA, numberB: input.numberB }, Solar);
     case 'calc_yunqi': return calcYunqiEnveloped({ ...input, solar: Solar } as any);
     case 'analyze_name': { const source = input.birth ? timeSource(input.birth, input.baziTimeContext ?? {}) : null; const result = await calcNameRatingEnveloped(input.surname, input.givenName, input.birthYear, input.birth, Solar); return source ? withTimeSource(result, source) : result; }
     case 'calc_xiyong': return calcXiYongEnveloped(input.dayMasterWuxing, input.elements);
