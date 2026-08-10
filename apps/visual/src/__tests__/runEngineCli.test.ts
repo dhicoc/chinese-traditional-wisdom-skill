@@ -10,6 +10,89 @@ const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../.
 const tsxCli = require.resolve('tsx/cli');
 const fixture = (name: string) => path.join(appRoot, 'src/__fixtures__/local-tools', name);
 
+type NestedWhitelistCase = {
+  tool: string;
+  inject: (input: Record<string, unknown>, sentinel: string) => void;
+};
+
+const nestedWhitelistCases: NestedWhitelistCase[] = [
+  {
+    tool: 'resolve_true_solar_time',
+    inject: (input, sentinel) => {
+      (input.birth as Record<string, unknown>).unexpectedBirth = sentinel;
+      (input.location as Record<string, unknown>).unexpectedLocation = sentinel;
+    },
+  },
+  {
+    tool: 'bazi_calculate',
+    inject: (input, sentinel) => {
+      const birth = input.birth as Record<string, unknown>;
+      birth.unexpectedBirth = sentinel;
+      input.timeBasis = 'true-solar-verified';
+      input.trueSolarResolution = { trueSolarBirth: { ...birth, unexpectedTrueSolarBirth: sentinel }, unexpectedResolution: sentinel };
+    },
+  },
+  {
+    tool: 'ziwei_chart',
+    inject: (input, sentinel) => {
+      (input.birth as Record<string, unknown>).unexpectedBirth = sentinel;
+      (input.transit as Record<string, unknown>).unexpectedTransit = sentinel;
+      input.mingGua = { trigram: '离', group: '东四命', unexpectedMingGua: sentinel };
+    },
+  },
+  { tool: 'cast_liuyao', inject: (input, sentinel) => { (input.birth as Record<string, unknown>).unexpectedDivinationBirth = sentinel; } },
+  { tool: 'huangji_calculate', inject: (input, sentinel) => { (input.birth as Record<string, unknown>).unexpectedHuangjiBirth = sentinel; } },
+  { tool: 'calc_xiyong', inject: (input, sentinel) => { (input.elements as Record<string, unknown>).unexpectedElement = sentinel; } },
+  {
+    tool: 'calc_chenguz',
+    inject: (input, sentinel) => {
+      (input.birth as Record<string, unknown>).unexpectedBirth = sentinel;
+      (input.baziTimeContext as Record<string, unknown>).unexpectedTimeContext = sentinel;
+    },
+  },
+  {
+    tool: 'analyze_name',
+    inject: (input, sentinel) => {
+      input.birth = { year: 1990, month: 6, day: 15, hour: 12, gender: '男', unexpectedBirth: sentinel };
+      input.baziTimeContext = { timeBasis: 'civil-unverified', civilFallbackConfirmed: true, unexpectedTimeContext: sentinel };
+    },
+  },
+  {
+    tool: 'cast_cezi',
+    inject: (input, sentinel) => {
+      input.birth = { year: 1990, month: 6, day: 15, hour: 12, gender: '男', unexpectedBirth: sentinel };
+      input.baziTimeContext = { timeBasis: 'civil-unverified', civilFallbackConfirmed: true, unexpectedTimeContext: sentinel };
+    },
+  },
+  {
+    tool: 'get_constitution_tendency',
+    inject: (input, sentinel) => {
+      (input.wuyun as Record<string, unknown>).unexpectedWuyun = sentinel;
+      (input.liuqi as Record<string, unknown>).unexpectedLiuqi = sentinel;
+    },
+  },
+  { tool: 'assess_constitution', inject: (input, sentinel) => { ((input.answers as Record<string, unknown>[])[0]).unexpectedAnswer = sentinel; } },
+  {
+    tool: 'combo_daily_wellness',
+    inject: (input, sentinel) => {
+      (input.birth as Record<string, unknown>).unexpectedBirth = sentinel;
+      (input.baziTimeContext as Record<string, unknown>).unexpectedTimeContext = sentinel;
+      (input.now as Record<string, unknown>).unexpectedNow = sentinel;
+    },
+  },
+  {
+    tool: 'combo_marriage',
+    inject: (input, sentinel) => {
+      for (const personKey of ['personA', 'personB']) {
+        const person = input[personKey] as Record<string, unknown>;
+        person.unexpectedPerson = sentinel;
+        (person.birth as Record<string, unknown>).unexpectedBirth = sentinel;
+        (person.baziTimeContext as Record<string, unknown>).unexpectedTimeContext = sentinel;
+      }
+    },
+  },
+];
+
 type CliResult = {
   code: number | null;
   stdout: string;
@@ -73,6 +156,19 @@ describe('run-engine CLI', () => {
     expect(result.stdout).toBe('');
     expect(result.stderr).toMatch(/JSON/);
   });
+
+  it('does not serialize nested sentinel fields from CLI stdin', async () => {
+    for (const { tool, inject } of nestedWhitelistCases) {
+      const sentinel = `p6-cli-sentinel-${tool}`;
+      const input = JSON.parse(await readFile(fixture(`${tool}.success.json`), 'utf8')) as Record<string, unknown>;
+      inject(input, sentinel);
+      const result = await runEngine([tool, '-'], JSON.stringify(input));
+
+      expect(result.code).toBe(0);
+      expect(result.stderr).toBe('');
+      expect(result.stdout).not.toContain(sentinel);
+    }
+  }, 60_000);
 
   it('does not serialize top-level sentinel fields from every CLI tool', async () => {
     const fixtureNames = [
