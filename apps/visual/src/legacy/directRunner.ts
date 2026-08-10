@@ -89,9 +89,9 @@ export async function runLocalTool(tool: string, rawInput: unknown): Promise<Dir
     case 'dream_interpret': return searchDreamEnveloped(input.keyword, input.useFull ?? false);
     case 'combo_annual_fortune': return withTimeSource(calcAnnualFortuneCombo({ birth: input.birth, targetYear: input.targetYear, currentMonth: input.currentMonth, solar: Solar }), timeSource(input.birth, input.baziTimeContext));
     case 'combo_decision': return calcDecisionCombo({ birth: input.birth, question: input.question, seed: input.seed, solar: Solar });
-    case 'combo_space_time': return calcSpaceTimeCombo({ birth: input.birth, targetYear: input.targetYear, facing: input.facing, solar: Solar });
-    case 'combo_sanshi': return calcSanshiCombo({ birth: input.birth, question: input.question, solar: Solar });
-    case 'combo_sanshi_classic': return calcSanshiClassicCombo({ birth: input.birth, question: input.question, solar: Solar });
+    case 'combo_space_time': return calcSpaceTimeCombo({ birth: input.birth, targetYear: input.targetYear, solar: Solar });
+    case 'combo_sanshi': return calcSanshiCombo({ birth: input.birth, question: input.question, liurenSchool: input.liurenSchool, solar: Solar });
+    case 'combo_sanshi_classic': return calcSanshiClassicCombo({ birth: input.birth, question: input.question, liurenSchool: input.liurenSchool, taiyiJiStyle: input.taiyiJiStyle, taiyiAcumYear: input.taiyiAcumYear, solar: Solar });
     case 'combo_daily_wellness': return withTimeSource(calcDailyWellnessCombo({ birth: input.birth, constitution: input.constitution, now: input.now, targetYear: input.targetYear, solar: Solar }), timeSource(input.birth, input.baziTimeContext));
     case 'combo_zeri': return calcZeriCombo({ birth: input.birth, purpose: input.purpose, startDate: input.startDate, endDate: input.endDate, targetYear: input.targetYear, topN: input.topN, solar: Solar });
     case 'combo_monthly_fortune': return withTimeSource(calcMonthlyFortuneCombo({ birth: input.birth, targetYear: input.targetYear, targetMonth: input.targetMonth, constitution: input.constitution, solar: Solar }), timeSource(input.birth, input.baziTimeContext));

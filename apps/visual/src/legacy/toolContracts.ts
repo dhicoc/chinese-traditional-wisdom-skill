@@ -154,6 +154,37 @@ export interface ComboDailyWellnessToolInput {
   targetYear?: number;
 }
 
+export interface ComboDecisionToolInput {
+  birth: DivinationBirth;
+  question: string;
+  seed?: number;
+}
+
+export interface ComboSpaceTimeToolInput {
+  birth: BaziBirth;
+  targetYear?: number;
+}
+
+export interface ComboSanshiToolInput {
+  birth: DivinationBirth;
+  question: string;
+  liurenSchool?: 'classic' | 'gufa' | 'daxquan';
+}
+
+export interface ComboSanshiClassicToolInput extends ComboSanshiToolInput {
+  taiyiJiStyle?: 0 | 1 | 2 | 3 | 4;
+  taiyiAcumYear?: 0 | 1 | 2 | 3;
+}
+
+export interface ComboZeriToolInput {
+  birth: BaziBirth;
+  purpose: '开业' | '结婚' | '搬家' | '动土' | '出行' | '签约' | '安葬' | '祈福';
+  startDate: string;
+  endDate: string;
+  targetYear?: number;
+  topN?: number;
+}
+
 export type LocalToolContractInput =
   | TrueSolarTimeToolInput
   | BaziToolInput
@@ -180,7 +211,12 @@ export type LocalToolContractInput =
   | ConstitutionQuestionnaireToolInput
   | ComboAnnualFortuneToolInput
   | ComboMonthlyFortuneToolInput
-  | ComboDailyWellnessToolInput;
+  | ComboDailyWellnessToolInput
+  | ComboDecisionToolInput
+  | ComboSpaceTimeToolInput
+  | ComboSanshiToolInput
+  | ComboSanshiClassicToolInput
+  | ComboZeriToolInput;
 
 type Input = Record<string, unknown>;
 
@@ -519,6 +555,61 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
         constitution,
         targetYear: input.targetYear === undefined ? undefined : year(input.targetYear, 'targetYear'),
       } as ComboDailyWellnessToolInput;
+    }
+    case 'combo_decision':
+      return {
+        birth: divinationBirth(input.birth),
+        question: nonEmptyString(input.question, 'question'),
+        seed: input.seed === undefined ? undefined : finiteNumber(input.seed, 'seed'),
+      } as ComboDecisionToolInput;
+    case 'combo_space_time':
+      return {
+        birth: birth(input.birth, 'birth'),
+        targetYear: input.targetYear === undefined ? undefined : year(input.targetYear, 'targetYear'),
+      } as ComboSpaceTimeToolInput;
+    case 'combo_sanshi': {
+      const liurenSchool = input.liurenSchool ?? 'classic';
+      if (!['classic', 'gufa', 'daxquan'].includes(liurenSchool as string)) throw new Error('liurenSchool 必须是 classic、gufa 或 daxquan。');
+      return {
+        birth: divinationBirth(input.birth),
+        question: nonEmptyString(input.question, 'question'),
+        liurenSchool: liurenSchool as ComboSanshiToolInput['liurenSchool'],
+      } as ComboSanshiToolInput;
+    }
+    case 'combo_sanshi_classic': {
+      const liurenSchool = input.liurenSchool ?? 'classic';
+      const taiyiJiStyle = input.taiyiJiStyle ?? 0;
+      const taiyiAcumYear = input.taiyiAcumYear ?? 0;
+      if (!['classic', 'gufa', 'daxquan'].includes(liurenSchool as string)) throw new Error('liurenSchool 必须是 classic、gufa 或 daxquan。');
+      if (!Number.isInteger(taiyiJiStyle) || ![0, 1, 2, 3, 4].includes(taiyiJiStyle as number)) throw new Error('taiyiJiStyle 必须是 0-4 的整数。');
+      if (!Number.isInteger(taiyiAcumYear) || ![0, 1, 2, 3].includes(taiyiAcumYear as number)) throw new Error('taiyiAcumYear 必须是 0-3 的整数。');
+      return {
+        birth: divinationBirth(input.birth),
+        question: nonEmptyString(input.question, 'question'),
+        liurenSchool: liurenSchool as ComboSanshiClassicToolInput['liurenSchool'],
+        taiyiJiStyle: taiyiJiStyle as ComboSanshiClassicToolInput['taiyiJiStyle'],
+        taiyiAcumYear: taiyiAcumYear as ComboSanshiClassicToolInput['taiyiAcumYear'],
+      } as ComboSanshiClassicToolInput;
+    }
+    case 'combo_zeri': {
+      const startDate = dateString(input.startDate, 'startDate');
+      const endDate = dateString(input.endDate, 'endDate');
+      if (startDate > endDate) throw new Error('endDate 必须不早于 startDate。');
+      const start = Date.parse(`${startDate}T00:00:00Z`);
+      const end = Date.parse(`${endDate}T00:00:00Z`);
+      if ((end - start) / 86_400_000 + 1 > 400) throw new Error('日期区间最多支持 400 天。');
+      const purpose = input.purpose;
+      if (!['开业', '结婚', '搬家', '动土', '出行', '签约', '安葬', '祈福'].includes(purpose as string)) {
+        throw new Error('purpose 必须是开业、结婚、搬家、动土、出行、签约、安葬或祈福。');
+      }
+      return {
+        birth: birth(input.birth, 'birth'),
+        purpose: purpose as ComboZeriToolInput['purpose'],
+        startDate,
+        endDate,
+        targetYear: input.targetYear === undefined ? undefined : year(input.targetYear, 'targetYear'),
+        topN: input.topN === undefined ? undefined : integer(input.topN, 'topN', 1, 50),
+      } as ComboZeriToolInput;
     }
     default:
       return null;

@@ -10,7 +10,7 @@ cd apps/visual && pnpm engine <tool> <input-json-file>
 
 实现位置：`apps/visual/scripts/run-engine.ts`。CLI 读取 JSON 输入并调用 `src/legacy/directRunner.ts`，输出一个 JSON `ToolEnvelope`。没有可复核的本地输出时，AI 不得自行推演。
 
-前六批公开输入 fixture 位于 `apps/visual/src/__fixtures__/local-tools/`。每个已覆盖工具都有 `.success.json`、`.boundary.json` 和 `.failure.json`，可直接执行，例如：
+前七批公开输入 fixture 位于 `apps/visual/src/__fixtures__/local-tools/`。每个已覆盖工具都有 `.success.json`、`.boundary.json` 和 `.failure.json`，可直接执行，例如：
 
 ```bash
 cd apps/visual && pnpm engine bazi_calculate src/__fixtures__/local-tools/bazi_calculate.success.json
@@ -19,6 +19,7 @@ cd apps/visual && pnpm engine get_almanac src/__fixtures__/local-tools/get_alman
 cd apps/visual && pnpm engine huangji_calculate src/__fixtures__/local-tools/huangji_calculate.success.json
 cd apps/visual && pnpm engine list_constitution_questionnaire src/__fixtures__/local-tools/list_constitution_questionnaire.success.json
 cd apps/visual && pnpm engine combo_monthly_fortune src/__fixtures__/local-tools/combo_monthly_fortune.success.json
+cd apps/visual && pnpm engine combo_sanshi_classic src/__fixtures__/local-tools/combo_sanshi_classic.success.json
 ```
 
 ## ToolEnvelope 与本地校验

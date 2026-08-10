@@ -270,6 +270,56 @@ const successCases: SuccessCase[] = [
     name: 'combo_daily_wellness.boundary.json',
     assert: (result) => expect(result).toMatchObject({ ok: true, data: { context: { date: '2026年8月10日', shichen: '子时' }, constitution: { source: '五运六气倾向参考' }, timeSource: { timeBasis: 'civil-unverified' } } }),
   },
+  {
+    tool: 'combo_decision',
+    name: 'combo_decision.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, tool: 'DecisionComboEngine', input_normalized: { seed: 20260810 }, data: { comboName: '事件决策', subsystems: expect.any(Array) } }),
+  },
+  {
+    tool: 'combo_decision',
+    name: 'combo_decision.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, input_normalized: { birth: { hour: 23, minute: 59 } }, data: { comboName: '事件决策' } }),
+  },
+  {
+    tool: 'combo_space_time',
+    name: 'combo_space_time.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, tool: 'SpaceTimeComboEngine', data: { comboName: '空间+时间', inputs: { targetYear: 2026 } } }),
+  },
+  {
+    tool: 'combo_space_time',
+    name: 'combo_space_time.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { comboName: '空间+时间', inputs: { targetYear: 1990 } } }),
+  },
+  {
+    tool: 'combo_sanshi',
+    name: 'combo_sanshi.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, tool: 'SanshiComboEngine', input_normalized: { liurenSchool: 'gufa' }, data: { comboName: '三式互参', subsystems: expect.arrayContaining([expect.objectContaining({ name: '大六壬', envelope: expect.objectContaining({ data: expect.objectContaining({ school: 'gufa' }) }) })]) } }),
+  },
+  {
+    tool: 'combo_sanshi',
+    name: 'combo_sanshi.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, input_normalized: { liurenSchool: 'classic' }, data: { comboName: '三式互参' } }),
+  },
+  {
+    tool: 'combo_sanshi_classic',
+    name: 'combo_sanshi_classic.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, tool: 'SanshiClassicComboEngine', input_normalized: { liurenSchool: 'gufa', taiyiJiStyle: 1, taiyiAcumYear: 2 }, data: { comboName: '三式合一', subsystems: expect.any(Array) } }),
+  },
+  {
+    tool: 'combo_sanshi_classic',
+    name: 'combo_sanshi_classic.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, input_normalized: { liurenSchool: 'classic', taiyiJiStyle: 0, taiyiAcumYear: 0 }, data: { comboName: '三式合一' } }),
+  },
+  {
+    tool: 'combo_zeri',
+    name: 'combo_zeri.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, tool: 'ZeriComboEngine', data: { comboName: '综合择日', range: { scannedDays: 31 }, rankedDays: expect.any(Array) } }),
+  },
+  {
+    tool: 'combo_zeri',
+    name: 'combo_zeri.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { range: { start: '2024-02-29', end: '2024-02-29', scannedDays: 1 } } }),
+  },
 ];
 
 type BoundaryCase = {
@@ -331,6 +381,11 @@ describe('local tool input fixtures', () => {
     ['combo_annual_fortune', 'combo_annual_fortune.failure.json'],
     ['combo_monthly_fortune', 'combo_monthly_fortune.failure.json'],
     ['combo_daily_wellness', 'combo_daily_wellness.failure.json'],
+    ['combo_decision', 'combo_decision.failure.json'],
+    ['combo_space_time', 'combo_space_time.failure.json'],
+    ['combo_sanshi', 'combo_sanshi.failure.json'],
+    ['combo_sanshi_classic', 'combo_sanshi_classic.failure.json'],
+    ['combo_zeri', 'combo_zeri.failure.json'],
   ].forEach(([tool, name]) => {
     it(`${tool} rejects ${name}`, async () => {
       await expect(runLocalTool(tool, await fixture(name))).rejects.toThrow();
