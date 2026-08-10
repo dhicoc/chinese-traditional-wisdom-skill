@@ -10,17 +10,12 @@ cd apps/visual && pnpm engine <tool> <input-json-file>
 
 实现位置：`apps/visual/scripts/run-engine.ts`。CLI 读取 JSON 输入并调用 `src/legacy/directRunner.ts`，输出一个 JSON `ToolEnvelope`。没有可复核的本地输出时，AI 不得自行推演。
 
-前八批公开输入 fixture 位于 `apps/visual/src/__fixtures__/local-tools/`。每个已覆盖工具都有 `.success.json`、`.boundary.json` 和 `.failure.json`，可直接执行，例如：
+公开输入 fixture 位于 `apps/visual/src/__fixtures__/local-tools/`。每个本地工具都有 `.success.json` 可执行示例；它同时是 CLI 回归的标准成功输入。对存在 `.boundary.json` 与 `.failure.json` 的工具，分别用于业务边界与契约拒绝回归。
+
+从 stdin 调用时，将同一 JSON 内容传给 `-`：
 
 ```bash
-cd apps/visual && pnpm engine bazi_calculate src/__fixtures__/local-tools/bazi_calculate.success.json
-cd apps/visual && pnpm engine arrange_qimen src/__fixtures__/local-tools/arrange_qimen.success.json
-cd apps/visual && pnpm engine get_almanac src/__fixtures__/local-tools/get_almanac.success.json
-cd apps/visual && pnpm engine huangji_calculate src/__fixtures__/local-tools/huangji_calculate.success.json
-cd apps/visual && pnpm engine list_constitution_questionnaire src/__fixtures__/local-tools/list_constitution_questionnaire.success.json
-cd apps/visual && pnpm engine combo_monthly_fortune src/__fixtures__/local-tools/combo_monthly_fortune.success.json
-cd apps/visual && pnpm engine combo_sanshi_classic src/__fixtures__/local-tools/combo_sanshi_classic.success.json
-cd apps/visual && pnpm engine combo_marriage src/__fixtures__/local-tools/combo_marriage.success.json
+cd apps/visual && pnpm engine bazi_calculate - < src/__fixtures__/local-tools/bazi_calculate.success.json
 ```
 
 ## ToolEnvelope 与本地校验
@@ -40,13 +35,50 @@ ToolEnvelope<TData> = {
 
 使用规则：从本次 `data` 提取结构化 claims，调用本地 `validate*Claims(data, claims)`。校验仅覆盖结构化事实，不能验证自由文本、解释、建议或预测。
 
-## 32 个本地工具
+## 32 个本地 CLI 工具与标准输入
 
-| 类别 | 工具 |
-|---|---|
-| 时间校准（1） | `resolve_true_solar_time` |
-| 排盘与日用（22） | `bazi_calculate`、`ziwei_chart`、`cast_liuyao`、`arrange_qimen`、`liuren_calculate`、`xingxiu_daily`、`taiyi_calculate`、`huangji_calculate`、`cast_meihua`、`calc_yunqi`、`analyze_name`、`calc_xiyong`、`get_constitution_tendency`、`dream_interpret`、`cast_cezi`、`calc_chenguz`、`get_almanac`、`calc_feixing`、`calc_bazhai`、`get_daily_rhythm`、`assess_constitution`、`list_constitution_questionnaire` |
-| 联合分析（9） | `combo_annual_fortune`、`combo_monthly_fortune`、`combo_decision`、`combo_space_time`、`combo_sanshi`、`combo_sanshi_classic`、`combo_daily_wellness`、`combo_zeri`、`combo_marriage` |
+每行均可按以下形式直接执行：
+
+```bash
+cd apps/visual && pnpm engine <tool> <fixture>
+```
+
+| 工具 | 标准成功输入 fixture | 类别 |
+|---|---|---|
+| `resolve_true_solar_time` | `src/__fixtures__/local-tools/resolve_true_solar_time.success.json` | 时间校准 |
+| `bazi_calculate` | `src/__fixtures__/local-tools/bazi_calculate.success.json` | 排盘 |
+| `ziwei_chart` | `src/__fixtures__/local-tools/ziwei_chart.success.json` | 排盘 |
+| `calc_feixing` | `src/__fixtures__/local-tools/calc_feixing.success.json` | 风水 |
+| `calc_bazhai` | `src/__fixtures__/local-tools/calc_bazhai.success.json` | 风水 |
+| `cast_liuyao` | `src/__fixtures__/local-tools/cast_liuyao.success.json` | 占测 |
+| `arrange_qimen` | `src/__fixtures__/local-tools/arrange_qimen.success.json` | 占测 |
+| `liuren_calculate` | `src/__fixtures__/local-tools/liuren_calculate.success.json` | 占测 |
+| `taiyi_calculate` | `src/__fixtures__/local-tools/taiyi_calculate.success.json` | 占测 |
+| `cast_meihua` | `src/__fixtures__/local-tools/cast_meihua.success.json` | 占测 |
+| `xingxiu_daily` | `src/__fixtures__/local-tools/xingxiu_daily.success.json` | 日用 |
+| `calc_yunqi` | `src/__fixtures__/local-tools/calc_yunqi.success.json` | 日用 |
+| `calc_chenguz` | `src/__fixtures__/local-tools/calc_chenguz.success.json` | 日用 |
+| `get_almanac` | `src/__fixtures__/local-tools/get_almanac.success.json` | 日用 |
+| `get_daily_rhythm` | `src/__fixtures__/local-tools/get_daily_rhythm.success.json` | 日用 |
+| `calc_xiyong` | `src/__fixtures__/local-tools/calc_xiyong.success.json` | 解读 |
+| `dream_interpret` | `src/__fixtures__/local-tools/dream_interpret.success.json` | 解读 |
+| `analyze_name` | `src/__fixtures__/local-tools/analyze_name.success.json` | 姓名 |
+| `cast_cezi` | `src/__fixtures__/local-tools/cast_cezi.success.json` | 测字 |
+| `huangji_calculate` | `src/__fixtures__/local-tools/huangji_calculate.success.json` | 排盘 |
+| `get_constitution_tendency` | `src/__fixtures__/local-tools/get_constitution_tendency.success.json` | 体质 |
+| `list_constitution_questionnaire` | `src/__fixtures__/local-tools/list_constitution_questionnaire.success.json` | 体质 |
+| `assess_constitution` | `src/__fixtures__/local-tools/assess_constitution.success.json` | 体质 |
+| `combo_annual_fortune` | `src/__fixtures__/local-tools/combo_annual_fortune.success.json` | 联合分析 |
+| `combo_monthly_fortune` | `src/__fixtures__/local-tools/combo_monthly_fortune.success.json` | 联合分析 |
+| `combo_daily_wellness` | `src/__fixtures__/local-tools/combo_daily_wellness.success.json` | 联合分析 |
+| `combo_decision` | `src/__fixtures__/local-tools/combo_decision.success.json` | 联合分析 |
+| `combo_space_time` | `src/__fixtures__/local-tools/combo_space_time.success.json` | 联合分析 |
+| `combo_sanshi` | `src/__fixtures__/local-tools/combo_sanshi.success.json` | 联合分析 |
+| `combo_sanshi_classic` | `src/__fixtures__/local-tools/combo_sanshi_classic.success.json` | 联合分析 |
+| `combo_zeri` | `src/__fixtures__/local-tools/combo_zeri.success.json` | 联合分析 |
+| `combo_marriage` | `src/__fixtures__/local-tools/combo_marriage.success.json` | 联合分析 |
+
+该表由 `apps/visual/scripts/check-doc-contracts.mjs` 校验：工具契约清单、Runner 分发、文档条目和 success fixture 必须一一对应。
 
 ## 引擎实现
 

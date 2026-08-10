@@ -70,8 +70,21 @@ const docs = Object.fromEntries([
 const runner = read("apps/visual/scripts/run-engine.ts");
 const packageJson = read("apps/visual/package.json");
 const directRunner = read("apps/visual/src/legacy/directRunner.ts");
+const toolContracts = read("apps/visual/src/legacy/toolContracts.ts");
 const trueSolarTime = read("apps/visual/src/legacy/trueSolarTime.ts");
 const modules = read("apps/visual/src/lib/modules.ts");
+
+function extractMatches(content, pattern) {
+  return [...content.matchAll(pattern)].map((match) => match[1]);
+}
+
+function checkSameToolNames(label, actual, expected) {
+  const actualNames = [...new Set(actual)];
+  const missing = expected.filter((name) => !actualNames.includes(name));
+  const unexpected = actualNames.filter((name) => !expected.includes(name));
+  check(missing.length === 0 && unexpected.length === 0 && actualNames.length === expected.length,
+    `${label} 与 LOCAL_TOOL_NAMES 不一致：缺少 ${missing.join('、') || '无'}；多出 ${unexpected.join('、') || '无'}。`);
+}
 
 for (const [name, content] of Object.entries(docs)) {
   check(content.includes("ToolEnvelope"), `${name} 缺少 ToolEnvelope 直调契约`);
@@ -85,7 +98,26 @@ check(runner.includes("runLocalTool"), "run-engine.ts 未调用本地 direct run
 check(runner.includes("pnpm engine <tool> <input-json-file>"), "run-engine.ts 缺少 CLI 用法");
 check(packageJson.includes('"engine": "tsx scripts/run-engine.ts"'), "apps/visual/package.json 缺少 engine script");
 check(directRunner.includes("runLocalTool"), "directRunner.ts 缺少 runLocalTool");
-check(directRunner.includes("bazi_calculate") && directRunner.includes("ziwei_chart"), "directRunner.ts 缺少本地工具注册");
+
+const localToolNames = extractMatches(
+  toolContracts.match(/export const LOCAL_TOOL_NAMES = \[([\s\S]*?)\] as const/)?.[1] ?? '',
+  /'([^']+)'/g,
+);
+check(localToolNames.length > 0, "toolContracts.ts 缺少 LOCAL_TOOL_NAMES 运行时清单");
+
+const runnerToolNames = extractMatches(directRunner, /case '([^']+)'/g);
+checkSameToolNames("directRunner.ts 分发", runnerToolNames, localToolNames);
+
+const toolIndex = docs["tool-index.md"];
+const documentedTools = extractMatches(toolIndex, /\| `([^`]+)` \| `src\/__fixtures__\/local-tools\/[^`]+\.success\.json` \|/g);
+checkSameToolNames("tool-index.md CLI 工具表", documentedTools, localToolNames);
+
+for (const tool of localToolNames) {
+  const fixturePath = `apps/visual/src/__fixtures__/local-tools/${tool}.success.json`;
+  check(exists(fixturePath), `缺少 ${tool} 的 success fixture: ${fixturePath}`);
+  check(toolIndex.includes(`| \`${tool}\` | \`src/__fixtures__/local-tools/${tool}.success.json\` |`),
+    `tool-index.md 缺少 ${tool} 的 CLI fixture 行。`);
+}
 
 check(trueSolarTime.includes("resolveTrueSolarTime"), "trueSolarTime.ts 缺少本地校准函数");
 for (const [name, content] of Object.entries(docs)) {
