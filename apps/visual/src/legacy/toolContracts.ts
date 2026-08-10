@@ -367,18 +367,44 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
       return { ...input, birth: birth(input.birth, 'birth'), timeBasis } as BaziToolInput;
     }
     case 'ziwei_chart': {
+      const parsedBirth = birth(input.birth, 'birth');
       const transit = input.transit === undefined ? undefined : object(input.transit, 'transit');
       if (transit) {
         year(transit.year, 'transit.year');
         integer(transit.month, 'transit.month', 1, 12);
       }
-      return { ...input, birth: birth(input.birth, 'birth'), transit } as ZiweiInput;
+      const mingGua = input.mingGua === undefined ? undefined : object(input.mingGua, 'mingGua');
+      if (mingGua) {
+        nonEmptyString(mingGua.trigram, 'mingGua.trigram');
+        nonEmptyString(mingGua.group, 'mingGua.group');
+      }
+      return {
+        birth: {
+          year: parsedBirth.year,
+          month: parsedBirth.month,
+          day: parsedBirth.day,
+          hour: parsedBirth.hour,
+          gender: parsedBirth.gender,
+        },
+        mingGua: mingGua ? {
+          trigram: mingGua.trigram as string,
+          group: mingGua.group as string,
+        } : undefined,
+        transit: transit ? {
+          year: transit.year as number,
+          month: transit.month as number,
+        } : undefined,
+      } as ZiweiInput;
     }
     case 'calc_feixing': {
       if (input.year !== undefined) year(input.year, 'year');
       if (input.birthYear !== undefined) year(input.birthYear, 'birthYear');
       if (input.gender !== undefined && input.gender !== '男' && input.gender !== '女') throw new Error('gender 必须是“男”或“女”。');
-      return input as FeixingInput;
+      return {
+        year: input.year as number | undefined,
+        gender: input.gender as '男' | '女' | undefined,
+        birthYear: input.birthYear as number | undefined,
+      } as FeixingInput;
     }
     case 'calc_bazhai': {
       year(input.birthYear, 'birthYear');
@@ -387,7 +413,14 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
       for (const key of ['door', 'bedroom', 'kitchen'] as const) {
         if (input[key] !== undefined) direction(input[key], key);
       }
-      return input as unknown as BazhaiInput;
+      return {
+        birthYear: input.birthYear as number,
+        gender: input.gender as '男' | '女',
+        door: input.door as string | undefined,
+        bedroom: input.bedroom as string | undefined,
+        kitchen: input.kitchen as string | undefined,
+        year: input.year as number | undefined,
+      } as BazhaiInput;
     }
     case 'cast_liuyao': {
       const method = input.method ?? 'coin';

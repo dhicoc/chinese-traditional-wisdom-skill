@@ -74,7 +74,7 @@ export async function runLocalTool(tool: string, rawInput: unknown): Promise<Dir
   switch (tool) {
     case 'resolve_true_solar_time': return resolveTrueSolarTime({ ...input.birth, minute: input.birth.minute ?? 0, useExactCalendar: true }, input.location);
     case 'bazi_calculate': return withTimeSource(calcBaziEnveloped({ birth: input.birth, solar: Solar, shenShaTrineSource: input.shenShaTrineSource }), timeSource(input.birth, input));
-    case 'ziwei_chart': return calcZiweiEnveloped(input as any);
+    case 'ziwei_chart': return calcZiweiEnveloped({ birth: input.birth, mingGua: input.mingGua, transit: input.transit });
     case 'cast_liuyao': return calcLiuyaoEnveloped({ birth: input.birth, method: input.method, yaoValues: input.yaoValues, question: input.question, seed: input.seed, solar: Solar });
     case 'arrange_qimen': return calcQimenEnveloped({ birth: input.birth, question: input.question });
     case 'liuren_calculate': return calcDaliurenEnveloped({ birth: input.birth, school: input.school, solar: Solar });
@@ -99,8 +99,8 @@ export async function runLocalTool(tool: string, rawInput: unknown): Promise<Dir
     case 'cast_cezi': { const source = input.birth ? timeSource(input.birth, input.baziTimeContext ?? {}) : null; const result = await calcCeziEnveloped({ char: input.char, aspect: input.aspect, birth: input.birth, solar: Solar }); return source ? withTimeSource(result, source) : result; }
     case 'calc_chenguz': return withTimeSource(calcChenguzEnveloped({ birth: input.birth, version: input.version, solar: Solar }), timeSource(input.birth, input.baziTimeContext));
     case 'get_almanac': return getAlmanacEnveloped({ date: input.date, solar: Solar });
-    case 'calc_feixing': return calcFeixingEnveloped(input);
-    case 'calc_bazhai': return calcBazhaiEnveloped(input as any);
+    case 'calc_feixing': return calcFeixingEnveloped({ year: input.year, gender: input.gender, birthYear: input.birthYear });
+    case 'calc_bazhai': return calcBazhaiEnveloped({ birthYear: input.birthYear, gender: input.gender, door: input.door, bedroom: input.bedroom, kitchen: input.kitchen, year: input.year });
     case 'get_daily_rhythm': return getDailyRhythmEnveloped({ ...input, solar: Solar });
     case 'assess_constitution': return assessConstitutionEnveloped({ answers: input.answers });
     case 'list_constitution_questionnaire': { const groups = listConstitutionQuestionnaire(); return { ok: true, tool, version: '1.0.0', input_normalized: {}, data: { groups }, summary: [`九种体质问卷共 ${groups.length} 组、${groups.reduce((total, group) => total + group.questions.length, 0)} 题`] }; }

@@ -127,4 +127,98 @@ describe('runLocalTool', () => {
       expect((envelope as { input_normalized: unknown }).input_normalized).not.toHaveProperty('unexpected');
     }
   });
+
+  it('strips unknown fields from feixing and bazhai tool inputs', async () => {
+    const feixingInput = parseLocalToolInput('calc_feixing', {
+      year: 2026,
+      gender: '女',
+      birthYear: 1992,
+      unexpected: 'sentinel',
+    });
+    expect(feixingInput).toEqual({ year: 2026, gender: '女', birthYear: 1992 });
+
+    const bazhaiInput = parseLocalToolInput('calc_bazhai', {
+      birthYear: 1990,
+      gender: '男',
+      door: '东',
+      bedroom: '南',
+      kitchen: '北',
+      year: 2026,
+      unexpected: 'sentinel',
+    });
+    expect(bazhaiInput).toEqual({
+      birthYear: 1990,
+      gender: '男',
+      door: '东',
+      bedroom: '南',
+      kitchen: '北',
+      year: 2026,
+    });
+
+    const feixing = await runLocalTool('calc_feixing', {
+      year: 2026,
+      gender: '女',
+      birthYear: 1992,
+      unexpected: 'sentinel',
+    });
+    expect((feixing as { input_normalized: unknown }).input_normalized).toEqual({
+      year: 2026,
+      gender: '女',
+      birthYear: 1992,
+    });
+
+    const bazhai = await runLocalTool('calc_bazhai', {
+      birthYear: 1990,
+      gender: '男',
+      door: '东',
+      bedroom: '南',
+      kitchen: '北',
+      year: 2026,
+      unexpected: 'sentinel',
+    });
+    expect((bazhai as { input_normalized: unknown }).input_normalized).toEqual({
+      birthYear: 1990,
+      gender: '男',
+      door: '东',
+      bedroom: '南',
+      kitchen: '北',
+      year: 2026,
+    });
+  });
+
+  it('strips unknown fields from ziwei tool inputs and envelopes', async () => {
+    const input = parseLocalToolInput('ziwei_chart', {
+      birth: {
+        ...BIRTH,
+        minute: 30,
+        isLunar: true,
+        useExactCalendar: false,
+      },
+      mingGua: { trigram: '离', group: '东四命', unexpected: 'sentinel' },
+      transit: { year: 2025, month: 7, unexpected: 'sentinel' },
+      unexpected: 'sentinel',
+    });
+    expect(input).toEqual({
+      birth: BIRTH,
+      mingGua: { trigram: '离', group: '东四命' },
+      transit: { year: 2025, month: 7 },
+    });
+
+    const envelope = await runLocalTool('ziwei_chart', {
+      birth: {
+        ...BIRTH,
+        minute: 30,
+        isLunar: true,
+        useExactCalendar: false,
+      },
+      mingGua: { trigram: '离', group: '东四命', unexpected: 'sentinel' },
+      transit: { year: 2025, month: 7, unexpected: 'sentinel' },
+      unexpected: 'sentinel',
+    });
+    expect((envelope as { input_normalized: unknown }).input_normalized).toEqual({
+      birth: BIRTH,
+      mingGua: { trigram: '离', group: '东四命' },
+      transit: { year: 2025, month: 7 },
+    });
+  });
 });
