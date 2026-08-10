@@ -185,6 +185,22 @@ export interface ComboZeriToolInput {
   topN?: number;
 }
 
+export interface ComboMarriagePersonToolInput {
+  birth: BaziBirth;
+  baziTimeContext: Input;
+  surname?: string;
+  givenName?: string;
+  label?: string;
+}
+
+export interface ComboMarriageToolInput {
+  personA: ComboMarriagePersonToolInput;
+  personB: ComboMarriagePersonToolInput;
+  scene?: '婚恋' | '合伙' | '合作';
+  targetYear?: number;
+  purpose?: ComboZeriToolInput['purpose'];
+}
+
 export type LocalToolContractInput =
   | TrueSolarTimeToolInput
   | BaziToolInput
@@ -216,7 +232,8 @@ export type LocalToolContractInput =
   | ComboSpaceTimeToolInput
   | ComboSanshiToolInput
   | ComboSanshiClassicToolInput
-  | ComboZeriToolInput;
+  | ComboZeriToolInput
+  | ComboMarriageToolInput;
 
 type Input = Record<string, unknown>;
 
@@ -610,6 +627,39 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
         targetYear: input.targetYear === undefined ? undefined : year(input.targetYear, 'targetYear'),
         topN: input.topN === undefined ? undefined : integer(input.topN, 'topN', 1, 50),
       } as ComboZeriToolInput;
+    }
+    case 'combo_marriage': {
+      const parsePerson = (value: unknown, label: string): ComboMarriagePersonToolInput => {
+        const person = object(value, label);
+        const hasSurname = person.surname !== undefined;
+        const hasGivenName = person.givenName !== undefined;
+        if (hasSurname !== hasGivenName) throw new Error(`${label}.surname 与 ${label}.givenName 必须同时提供。`);
+        return {
+          birth: birth(person.birth, `${label}.birth`),
+          baziTimeContext: baziTimeContext(person.baziTimeContext),
+          surname: hasSurname ? nonEmptyString(person.surname, `${label}.surname`) : undefined,
+          givenName: hasGivenName ? nonEmptyString(person.givenName, `${label}.givenName`) : undefined,
+          label: person.label === undefined ? undefined : nonEmptyString(person.label, `${label}.label`),
+        };
+      };
+      const personA = parsePerson(input.personA, 'personA');
+      const personB = parsePerson(input.personB, 'personB');
+      const hasNamesA = personA.surname !== undefined;
+      const hasNamesB = personB.surname !== undefined;
+      if (hasNamesA !== hasNamesB) throw new Error('personA 与 personB 的姓名必须同时完整提供，或同时省略。');
+      const scene = input.scene ?? '婚恋';
+      if (!['婚恋', '合伙', '合作'].includes(scene as string)) throw new Error('scene 必须是婚恋、合伙或合作。');
+      const purpose = input.purpose;
+      if (purpose !== undefined && !['开业', '结婚', '搬家', '动土', '出行', '签约', '安葬', '祈福'].includes(purpose as string)) {
+        throw new Error('purpose 必须是开业、结婚、搬家、动土、出行、签约、安葬或祈福。');
+      }
+      return {
+        personA,
+        personB,
+        scene: scene as ComboMarriageToolInput['scene'],
+        targetYear: input.targetYear === undefined ? undefined : year(input.targetYear, 'targetYear'),
+        purpose: purpose as ComboMarriageToolInput['purpose'],
+      } as ComboMarriageToolInput;
     }
     default:
       return null;

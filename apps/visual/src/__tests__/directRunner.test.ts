@@ -41,4 +41,18 @@ describe('runLocalTool', () => {
   it('rejects an unknown tool name', async () => {
     await expect(runLocalTool('not_a_tool', {})).rejects.toThrow('未知本地工具');
   });
+
+  it('rejects an invalid combo_marriage scene before calculating', async () => {
+    await expect(runLocalTool('combo_marriage', {
+      personA: {
+        birth: BIRTH,
+        baziTimeContext: { timeBasis: 'civil-unverified', civilFallbackConfirmed: true },
+      },
+      personB: {
+        birth: { year: 1988, month: 3, day: 20, hour: 8, gender: '女' },
+        baziTimeContext: { timeBasis: 'civil-unverified', civilFallbackConfirmed: true },
+      },
+      scene: 'invalid-scene',
+    })).rejects.toThrow('scene 必须是婚恋、合伙或合作。');
+  });
 });

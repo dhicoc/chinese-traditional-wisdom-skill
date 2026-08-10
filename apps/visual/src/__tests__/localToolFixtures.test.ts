@@ -320,6 +320,16 @@ const successCases: SuccessCase[] = [
     name: 'combo_zeri.boundary.json',
     assert: (result) => expect(result).toMatchObject({ ok: true, data: { range: { start: '2024-02-29', end: '2024-02-29', scannedDays: 1 } } }),
   },
+  {
+    tool: 'combo_marriage',
+    name: 'combo_marriage.success.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, tool: 'combo_marriage', data: { comboName: '合婚配对', scene: '婚恋', nameMatch: expect.any(Number), timeSource: { personA: { timeBasis: 'civil-unverified' }, personB: { timeBasis: 'civil-unverified' } } } }),
+  },
+  {
+    tool: 'combo_marriage',
+    name: 'combo_marriage.boundary.json',
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { comboName: '合婚配对', scene: '婚恋', nameMatch: null, timeSource: { personA: { timeBasis: 'civil-unverified' }, personB: { timeBasis: 'civil-unverified' } } } }),
+  },
 ];
 
 type BoundaryCase = {
@@ -386,6 +396,7 @@ describe('local tool input fixtures', () => {
     ['combo_sanshi', 'combo_sanshi.failure.json'],
     ['combo_sanshi_classic', 'combo_sanshi_classic.failure.json'],
     ['combo_zeri', 'combo_zeri.failure.json'],
+    ['combo_marriage', 'combo_marriage.failure.json'],
   ].forEach(([tool, name]) => {
     it(`${tool} rejects ${name}`, async () => {
       await expect(runLocalTool(tool, await fixture(name))).rejects.toThrow();
