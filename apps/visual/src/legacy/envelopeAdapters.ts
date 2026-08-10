@@ -79,7 +79,7 @@ export async function calcNameRatingEnveloped(
   surname: string,
   givenName: string,
   birthYear?: number,
-  birth?: { year: number; month: number; day: number; hour: number; minute?: number; gender: string },
+  birth?: { year: number; month: number; day: number; hour: number; minute?: number; gender?: string },
   solar?: unknown,
 ): Promise<ToolEnvelope<NameRatingData>> {
   const input = { surname, givenName, birthYear, birth };

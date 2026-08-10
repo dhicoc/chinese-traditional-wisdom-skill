@@ -38,7 +38,7 @@ interface BirthInput {
   day: number;
   hour: number;
   minute?: number;
-  gender: string;
+  gender?: string;
 }
 
 interface SolarLike {

@@ -1,5 +1,6 @@
 import { Solar } from 'lunar-typescript';
 import type { ToolEnvelope } from './baseTypes';
+import type { SolarBirth } from './birthBridge';
 import { resolveTrueSolarTime, type TrueSolarTimeResolution } from './trueSolarTime';
 import { calcBaziEnveloped } from './baziEngine';
 import { calcZiweiEnveloped } from './ziweiEngine';
@@ -22,29 +23,49 @@ import { getDailyRhythmEnveloped } from './rhythmEngine';
 import { assessConstitutionEnveloped, listConstitutionQuestionnaire } from './constitutionAssessEngine';
 import { calcNameRatingEnveloped, calcXiYongEnveloped, getConstitutionTendencyEnveloped } from './envelopeAdapters';
 import { searchDreamEnveloped } from './envelopeSample';
-import { parseLocalToolInput } from './toolContracts';
+import { parseLocalToolCall } from './toolContracts';
 
-type Input = Record<string, any>;
-type DirectResult = ToolEnvelope<any> | TrueSolarTimeResolution;
+type Input = Record<string, unknown>;
+type DirectResult = ToolEnvelope<unknown> | TrueSolarTimeResolution;
+type ParsedBirth = {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute?: number;
+  gender?: string;
+};
+type TimeSourceContext = {
+  timeBasis?: unknown;
+  civilFallbackConfirmed?: unknown;
+  trueSolarBirth?: ParsedBirth;
+  trueSolarResolution?: { trueSolarBirth?: ParsedBirth };
+};
+const TIME_SOURCE_BIRTH_KEYS = ['year', 'month', 'day', 'hour', 'minute', 'gender'] as const;
 
 function record(input: unknown): Input {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('工具输入必须是 JSON 对象。');
   return input as Input;
 }
 
-function timeSource(birth: Input, context: Input) {
+function trueSolarBirth(birth: ParsedBirth): SolarBirth {
+  const gender: SolarBirth['gender'] = birth.gender === '女' ? '女' : '男';
+  return { ...birth, gender, minute: birth.minute ?? 0, useExactCalendar: true };
+}
+
+function timeSource(birth: ParsedBirth, context: TimeSourceContext) {
   if (context.timeBasis === 'civil-unverified') {
     if (context.civilFallbackConfirmed !== true) throw new Error('timeBasis=civil-unverified 必须显式传 civilFallbackConfirmed=true。');
     return { timeBasis: 'civil-unverified', verification: null, notice: '未完成真太阳时复核' };
   }
   if (context.timeBasis === 'true-solar-verified') {
     const resolution = context.trueSolarResolution as TrueSolarTimeResolution | undefined;
-    const trueSolarBirth = (resolution?.trueSolarBirth ?? context.trueSolarBirth) as Input | undefined;
-    if (!trueSolarBirth) throw new Error('timeBasis=true-solar-verified 必须提供 trueSolarResolution 或 trueSolarBirth。');
-    for (const key of ['year', 'month', 'day', 'hour', 'minute', 'gender']) {
-      if ((birth[key] ?? 0) !== (trueSolarBirth[key] ?? 0)) throw new Error(`trueSolarBirth 与 birth.${key} 不一致。`);
+    const resolvedBirth = resolution?.trueSolarBirth ?? context.trueSolarBirth;
+    if (!resolvedBirth) throw new Error('timeBasis=true-solar-verified 必须提供 trueSolarResolution 或 trueSolarBirth。');
+    for (const key of TIME_SOURCE_BIRTH_KEYS) {
+      if ((birth[key] ?? 0) !== (resolvedBirth[key] ?? 0)) throw new Error(`trueSolarBirth 与 birth.${key} 不一致。`);
     }
-    return { timeBasis: 'true-solar-verified', verification: resolution ?? { trueSolarBirth } };
+    return { timeBasis: 'true-solar-verified', verification: resolution ?? { trueSolarBirth: resolvedBirth } };
   }
   throw new Error('涉及八字的工具必须声明 timeBasis。');
 }
@@ -69,10 +90,10 @@ function withTimeSource(envelope: ToolEnvelope<any>, source: ReturnType<typeof t
 
 /** 直接调用 legacy enveloped 引擎，使用一次性输入和结果对象。 */
 export async function runLocalTool(tool: string, rawInput: unknown): Promise<DirectResult> {
-  const rawRecord = record(rawInput);
-  const input = parseLocalToolInput(tool, rawRecord) as Input;
-  switch (tool) {
-    case 'resolve_true_solar_time': return resolveTrueSolarTime({ ...input.birth, minute: input.birth.minute ?? 0, useExactCalendar: true }, input.location);
+  const parsed = parseLocalToolCall(tool, record(rawInput));
+  const { tool: parsedTool, input } = parsed;
+  switch (parsedTool) {
+    case 'resolve_true_solar_time': return resolveTrueSolarTime(trueSolarBirth(input.birth), input.location);
     case 'bazi_calculate': return withTimeSource(calcBaziEnveloped({ birth: input.birth, solar: Solar, shenShaTrineSource: input.shenShaTrineSource }), timeSource(input.birth, input));
     case 'ziwei_chart': return calcZiweiEnveloped({ birth: input.birth, mingGua: input.mingGua, transit: input.transit });
     case 'cast_liuyao': return calcLiuyaoEnveloped({ birth: input.birth, method: input.method, yaoValues: input.yaoValues, question: input.question, seed: input.seed, solar: Solar });

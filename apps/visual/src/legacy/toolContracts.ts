@@ -202,39 +202,46 @@ export interface ComboMarriageToolInput {
   purpose?: ComboZeriToolInput['purpose'];
 }
 
-export type LocalToolContractInput =
-  | TrueSolarTimeToolInput
-  | BaziToolInput
-  | ZiweiInput
-  | FeixingInput
-  | BazhaiInput
-  | LiuyaoToolInput
-  | QimenToolInput
-  | DaliurenToolInput
-  | TaiyiToolInput
-  | MeihuaToolInput
-  | XingxiuToolInput
-  | YunqiToolInput
-  | ChenguzToolInput
-  | AlmanacToolInput
-  | DailyRhythmToolInput
-  | XiYongToolInput
-  | NameToolInput
-  | CeziToolInput
-  | HuangjiToolInput
-  | DreamToolInput
-  | ConstitutionTendencyToolInput
-  | ConstitutionAssessmentToolInput
-  | ConstitutionQuestionnaireToolInput
-  | ComboAnnualFortuneToolInput
-  | ComboMonthlyFortuneToolInput
-  | ComboDailyWellnessToolInput
-  | ComboDecisionToolInput
-  | ComboSpaceTimeToolInput
-  | ComboSanshiToolInput
-  | ComboSanshiClassicToolInput
-  | ComboZeriToolInput
-  | ComboMarriageToolInput;
+export interface LocalToolInputByName {
+  resolve_true_solar_time: TrueSolarTimeToolInput;
+  bazi_calculate: BaziToolInput;
+  ziwei_chart: ZiweiInput;
+  calc_feixing: FeixingInput;
+  calc_bazhai: BazhaiInput;
+  cast_liuyao: LiuyaoToolInput;
+  arrange_qimen: QimenToolInput;
+  liuren_calculate: DaliurenToolInput;
+  taiyi_calculate: TaiyiToolInput;
+  cast_meihua: MeihuaToolInput;
+  xingxiu_daily: XingxiuToolInput;
+  calc_yunqi: YunqiToolInput;
+  calc_chenguz: ChenguzToolInput;
+  get_almanac: AlmanacToolInput;
+  get_daily_rhythm: DailyRhythmToolInput;
+  calc_xiyong: XiYongToolInput;
+  dream_interpret: DreamToolInput;
+  analyze_name: NameToolInput;
+  cast_cezi: CeziToolInput;
+  huangji_calculate: HuangjiToolInput;
+  get_constitution_tendency: ConstitutionTendencyToolInput;
+  assess_constitution: ConstitutionAssessmentToolInput;
+  list_constitution_questionnaire: ConstitutionQuestionnaireToolInput;
+  combo_annual_fortune: ComboAnnualFortuneToolInput;
+  combo_monthly_fortune: ComboMonthlyFortuneToolInput;
+  combo_daily_wellness: ComboDailyWellnessToolInput;
+  combo_decision: ComboDecisionToolInput;
+  combo_space_time: ComboSpaceTimeToolInput;
+  combo_sanshi: ComboSanshiToolInput;
+  combo_sanshi_classic: ComboSanshiClassicToolInput;
+  combo_zeri: ComboZeriToolInput;
+  combo_marriage: ComboMarriageToolInput;
+}
+
+export type LocalToolName = keyof LocalToolInputByName;
+export type LocalToolContractInput = LocalToolInputByName[LocalToolName];
+export type ParsedLocalToolCall = {
+  [Tool in LocalToolName]: { tool: Tool; input: LocalToolInputByName[Tool] };
+}[LocalToolName];
 
 type Input = Record<string, unknown>;
 
@@ -771,4 +778,9 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
     default:
       throw new Error(`未知本地工具：${tool}`);
   }
+}
+
+export function parseLocalToolCall(tool: string, rawInput: unknown): ParsedLocalToolCall {
+  const input = parseLocalToolInput(tool, rawInput);
+  return { tool: tool as LocalToolName, input } as ParsedLocalToolCall;
 }

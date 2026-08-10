@@ -136,7 +136,7 @@ export interface MingGua {
  * @param year 公历年
  * @param gender 男 / 女
  */
-export function calcMingGua(year: number, gender: string): MingGua {
+export function calcMingGua(year: number, gender?: string): MingGua {
   const y2 = year % 100;
   let rem: number;
   if (year >= 2000) {

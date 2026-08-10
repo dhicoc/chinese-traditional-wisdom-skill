@@ -122,7 +122,7 @@ export interface NameRatingBirth {
   day: number;
   hour: number;
   minute?: number;
-  gender: string;
+  gender?: string;
 }
 
 /**

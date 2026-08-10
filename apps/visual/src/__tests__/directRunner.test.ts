@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { runLocalTool } from '@/legacy/directRunner';
-import { parseLocalToolInput } from '@/legacy/toolContracts';
+import { parseLocalToolCall, parseLocalToolInput } from '@/legacy/toolContracts';
 
 const BIRTH = { year: 1990, month: 6, day: 15, hour: 12, gender: '男' };
 
@@ -45,6 +45,20 @@ describe('runLocalTool', () => {
 
   it('rejects an unknown tool name before using raw input', async () => {
     await expect(runLocalTool('not_a_tool', {})).rejects.toThrow('未知本地工具：not_a_tool');
+  });
+
+  it('pairs a local tool with its normalized input contract', () => {
+    const call = parseLocalToolCall('calc_yunqi', {
+      year: 2026,
+      currentMonth: 8,
+      unexpected: 'sentinel',
+    });
+
+    expect(call).toEqual({
+      tool: 'calc_yunqi',
+      input: { year: 2026, birthMonth: undefined, birthDay: undefined, currentMonth: 8 },
+    });
+    expect(() => parseLocalToolCall('not_a_tool', {})).toThrow('未知本地工具：not_a_tool');
   });
 
   it('requires a confirmed Bazi time context for calc_chenguz', async () => {
