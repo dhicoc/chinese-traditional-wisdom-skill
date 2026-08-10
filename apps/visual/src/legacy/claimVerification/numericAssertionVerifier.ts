@@ -31,7 +31,7 @@ export function validateNumericAssertionClaims(
         index,
         path: claim.path,
         message: claim.tool !== undefined && claim.tool !== tool
-          ? `该凭证属于 ${tool}，不能校验 ${claim.tool} 的数值断言。`
+          ? `该凭证属于 ${claim.tool}，不能校验 ${tool} 的数值断言。`
           : `路径 ${claim.path} 的数值与本次 ${tool} 结果不一致，或该路径不是有限数值。`,
         expected,
         actual: claim.value,
