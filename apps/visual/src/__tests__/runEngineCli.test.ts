@@ -4,94 +4,12 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { NESTED_WHITELIST_CASES, SUCCESS_TOOL_FIXTURES } from './localToolMatrix';
 
 const require = createRequire(import.meta.url);
 const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const tsxCli = require.resolve('tsx/cli');
 const fixture = (name: string) => path.join(appRoot, 'src/__fixtures__/local-tools', name);
-
-type NestedWhitelistCase = {
-  tool: string;
-  inject: (input: Record<string, unknown>, sentinel: string) => void;
-};
-
-const nestedWhitelistCases: NestedWhitelistCase[] = [
-  {
-    tool: 'resolve_true_solar_time',
-    inject: (input, sentinel) => {
-      (input.birth as Record<string, unknown>).unexpectedBirth = sentinel;
-      (input.location as Record<string, unknown>).unexpectedLocation = sentinel;
-    },
-  },
-  {
-    tool: 'bazi_calculate',
-    inject: (input, sentinel) => {
-      const birth = input.birth as Record<string, unknown>;
-      birth.unexpectedBirth = sentinel;
-      input.timeBasis = 'true-solar-verified';
-      input.trueSolarResolution = { trueSolarBirth: { ...birth, unexpectedTrueSolarBirth: sentinel }, unexpectedResolution: sentinel };
-    },
-  },
-  {
-    tool: 'ziwei_chart',
-    inject: (input, sentinel) => {
-      (input.birth as Record<string, unknown>).unexpectedBirth = sentinel;
-      (input.transit as Record<string, unknown>).unexpectedTransit = sentinel;
-      input.mingGua = { trigram: '离', group: '东四命', unexpectedMingGua: sentinel };
-    },
-  },
-  { tool: 'cast_liuyao', inject: (input, sentinel) => { (input.birth as Record<string, unknown>).unexpectedDivinationBirth = sentinel; } },
-  { tool: 'huangji_calculate', inject: (input, sentinel) => { (input.birth as Record<string, unknown>).unexpectedHuangjiBirth = sentinel; } },
-  { tool: 'calc_xiyong', inject: (input, sentinel) => { (input.elements as Record<string, unknown>).unexpectedElement = sentinel; } },
-  {
-    tool: 'calc_chenguz',
-    inject: (input, sentinel) => {
-      (input.birth as Record<string, unknown>).unexpectedBirth = sentinel;
-      (input.baziTimeContext as Record<string, unknown>).unexpectedTimeContext = sentinel;
-    },
-  },
-  {
-    tool: 'analyze_name',
-    inject: (input, sentinel) => {
-      input.birth = { year: 1990, month: 6, day: 15, hour: 12, gender: '男', unexpectedBirth: sentinel };
-      input.baziTimeContext = { timeBasis: 'civil-unverified', civilFallbackConfirmed: true, unexpectedTimeContext: sentinel };
-    },
-  },
-  {
-    tool: 'cast_cezi',
-    inject: (input, sentinel) => {
-      input.birth = { year: 1990, month: 6, day: 15, hour: 12, gender: '男', unexpectedBirth: sentinel };
-      input.baziTimeContext = { timeBasis: 'civil-unverified', civilFallbackConfirmed: true, unexpectedTimeContext: sentinel };
-    },
-  },
-  {
-    tool: 'get_constitution_tendency',
-    inject: (input, sentinel) => {
-      (input.wuyun as Record<string, unknown>).unexpectedWuyun = sentinel;
-      (input.liuqi as Record<string, unknown>).unexpectedLiuqi = sentinel;
-    },
-  },
-  { tool: 'assess_constitution', inject: (input, sentinel) => { ((input.answers as Record<string, unknown>[])[0]).unexpectedAnswer = sentinel; } },
-  {
-    tool: 'combo_daily_wellness',
-    inject: (input, sentinel) => {
-      (input.birth as Record<string, unknown>).unexpectedBirth = sentinel;
-      (input.baziTimeContext as Record<string, unknown>).unexpectedTimeContext = sentinel;
-      (input.now as Record<string, unknown>).unexpectedNow = sentinel;
-    },
-  },
-  {
-    tool: 'combo_marriage',
-    inject: (input, sentinel) => {
-      for (const personKey of ['personA', 'personB']) {
-        const person = input[personKey] as Record<string, unknown>;
-        person.unexpectedPerson = sentinel;
-        (person.birth as Record<string, unknown>).unexpectedBirth = sentinel;
-        (person.baziTimeContext as Record<string, unknown>).unexpectedTimeContext = sentinel;
-      }
-    },
-  },
-];
 
 type CliResult = {
   code: number | null;
@@ -158,9 +76,11 @@ describe('run-engine CLI', () => {
   });
 
   it('does not serialize nested sentinel fields from CLI stdin', async () => {
-    for (const { tool, inject } of nestedWhitelistCases) {
+    for (const { tool, inject } of NESTED_WHITELIST_CASES) {
       const sentinel = `p6-cli-sentinel-${tool}`;
-      const input = JSON.parse(await readFile(fixture(`${tool}.success.json`), 'utf8')) as Record<string, unknown>;
+      const fixtureCase = SUCCESS_TOOL_FIXTURES.find((candidate) => candidate.tool === tool);
+      if (!fixtureCase) throw new Error(`${tool} 缺少成功 fixture。`);
+      const input = JSON.parse(await readFile(fixture(fixtureCase.name), 'utf8')) as Record<string, unknown>;
       inject(input, sentinel);
       const result = await runEngine([tool, '-'], JSON.stringify(input));
 
@@ -171,45 +91,10 @@ describe('run-engine CLI', () => {
   }, 60_000);
 
   it('does not serialize top-level sentinel fields from every CLI tool', async () => {
-    const fixtureNames = [
-      'resolve_true_solar_time',
-      'bazi_calculate',
-      'ziwei_chart',
-      'calc_feixing',
-      'calc_bazhai',
-      'cast_liuyao',
-      'arrange_qimen',
-      'liuren_calculate',
-      'taiyi_calculate',
-      'cast_meihua',
-      'xingxiu_daily',
-      'calc_yunqi',
-      'calc_chenguz',
-      'get_almanac',
-      'get_daily_rhythm',
-      'calc_xiyong',
-      'dream_interpret',
-      'analyze_name',
-      'cast_cezi',
-      'huangji_calculate',
-      'get_constitution_tendency',
-      'list_constitution_questionnaire',
-      'assess_constitution',
-      'combo_annual_fortune',
-      'combo_monthly_fortune',
-      'combo_daily_wellness',
-      'combo_decision',
-      'combo_space_time',
-      'combo_sanshi',
-      'combo_sanshi_classic',
-      'combo_zeri',
-      'combo_marriage',
-    ] as const;
-
-    for (const tool of fixtureNames) {
+    for (const { tool, name } of SUCCESS_TOOL_FIXTURES) {
       const sentinel = `p5-cli-sentinel-${tool}`;
       const input = {
-        ...JSON.parse(await readFile(fixture(`${tool}.success.json`), 'utf8')) as Record<string, unknown>,
+        ...JSON.parse(await readFile(fixture(name), 'utf8')) as Record<string, unknown>,
         unexpected: sentinel,
       };
       const result = await runEngine([tool, '-'], JSON.stringify(input));

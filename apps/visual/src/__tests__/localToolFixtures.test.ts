@@ -3,7 +3,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { runLocalTool } from '@/legacy/directRunner';
-import { parseLocalToolInput } from '@/legacy/toolContracts';
+import { LOCAL_TOOL_NAMES, parseLocalToolInput } from '@/legacy/toolContracts';
+import { NESTED_WHITELIST_CASES, SUCCESS_TOOL_FIXTURES } from './localToolMatrix';
 
 const fixtureDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -13,123 +14,6 @@ const fixtureDir = path.resolve(
 async function fixture(name: string): Promise<unknown> {
   return JSON.parse(await readFile(path.join(fixtureDir, name), 'utf8'));
 }
-
-type NestedWhitelistCase = {
-  tool: string;
-  name: string;
-  inject: (input: Record<string, unknown>, sentinel: string) => void;
-};
-
-const nestedWhitelistCases: NestedWhitelistCase[] = [
-  {
-    tool: 'resolve_true_solar_time',
-    name: 'resolve_true_solar_time.success.json',
-    inject: (input, sentinel) => {
-      (input.birth as Record<string, unknown>).unexpectedBirth = sentinel;
-      (input.location as Record<string, unknown>).unexpectedLocation = sentinel;
-    },
-  },
-  {
-    tool: 'bazi_calculate',
-    name: 'bazi_calculate.success.json',
-    inject: (input, sentinel) => {
-      const birth = input.birth as Record<string, unknown>;
-      birth.unexpectedBirth = sentinel;
-      input.timeBasis = 'true-solar-verified';
-      input.trueSolarResolution = { trueSolarBirth: { ...birth, unexpectedTrueSolarBirth: sentinel }, unexpectedResolution: sentinel };
-    },
-  },
-  {
-    tool: 'ziwei_chart',
-    name: 'ziwei_chart.success.json',
-    inject: (input, sentinel) => {
-      (input.birth as Record<string, unknown>).unexpectedBirth = sentinel;
-      (input.transit as Record<string, unknown>).unexpectedTransit = sentinel;
-      input.mingGua = { trigram: '离', group: '东四命', unexpectedMingGua: sentinel };
-    },
-  },
-  {
-    tool: 'cast_liuyao',
-    name: 'cast_liuyao.success.json',
-    inject: (input, sentinel) => {
-      (input.birth as Record<string, unknown>).unexpectedDivinationBirth = sentinel;
-    },
-  },
-  {
-    tool: 'huangji_calculate',
-    name: 'huangji_calculate.success.json',
-    inject: (input, sentinel) => {
-      (input.birth as Record<string, unknown>).unexpectedHuangjiBirth = sentinel;
-    },
-  },
-  {
-    tool: 'calc_xiyong',
-    name: 'calc_xiyong.success.json',
-    inject: (input, sentinel) => {
-      (input.elements as Record<string, unknown>).unexpectedElement = sentinel;
-    },
-  },
-  {
-    tool: 'calc_chenguz',
-    name: 'calc_chenguz.success.json',
-    inject: (input, sentinel) => {
-      (input.birth as Record<string, unknown>).unexpectedBirth = sentinel;
-      (input.baziTimeContext as Record<string, unknown>).unexpectedTimeContext = sentinel;
-    },
-  },
-  {
-    tool: 'analyze_name',
-    name: 'analyze_name.success.json',
-    inject: (input, sentinel) => {
-      input.birth = { year: 1990, month: 6, day: 15, hour: 12, gender: '男', unexpectedBirth: sentinel };
-      input.baziTimeContext = { timeBasis: 'civil-unverified', civilFallbackConfirmed: true, unexpectedTimeContext: sentinel };
-    },
-  },
-  {
-    tool: 'cast_cezi',
-    name: 'cast_cezi.success.json',
-    inject: (input, sentinel) => {
-      input.birth = { year: 1990, month: 6, day: 15, hour: 12, gender: '男', unexpectedBirth: sentinel };
-      input.baziTimeContext = { timeBasis: 'civil-unverified', civilFallbackConfirmed: true, unexpectedTimeContext: sentinel };
-    },
-  },
-  {
-    tool: 'get_constitution_tendency',
-    name: 'get_constitution_tendency.success.json',
-    inject: (input, sentinel) => {
-      (input.wuyun as Record<string, unknown>).unexpectedWuyun = sentinel;
-      (input.liuqi as Record<string, unknown>).unexpectedLiuqi = sentinel;
-    },
-  },
-  {
-    tool: 'assess_constitution',
-    name: 'assess_constitution.success.json',
-    inject: (input, sentinel) => {
-      ((input.answers as Record<string, unknown>[])[0]).unexpectedAnswer = sentinel;
-    },
-  },
-  {
-    tool: 'combo_daily_wellness',
-    name: 'combo_daily_wellness.success.json',
-    inject: (input, sentinel) => {
-      (input.birth as Record<string, unknown>).unexpectedBirth = sentinel;
-      (input.baziTimeContext as Record<string, unknown>).unexpectedTimeContext = sentinel;
-      (input.now as Record<string, unknown>).unexpectedNow = sentinel;
-    },
-  },
-  {
-    tool: 'combo_marriage',
-    name: 'combo_marriage.success.json',
-    inject: (input, sentinel) => {
-      for (const personKey of ['personA', 'personB']) {
-        const person = input[personKey] as Record<string, unknown>;
-        person.unexpectedPerson = sentinel;
-        (person.birth as Record<string, unknown>).unexpectedBirth = sentinel;
-        (person.baziTimeContext as Record<string, unknown>).unexpectedTimeContext = sentinel;
-      }
-    },
-  },
-];
 
 type SuccessCase = {
   tool: string;
@@ -476,14 +360,12 @@ describe('local tool input fixtures', () => {
     });
   });
 
-  const whitelistCases = Array.from(
-    new Map(successCases
-      .filter(({ name }) => name.endsWith('.success.json'))
-      .map(({ tool, name }) => [tool, name])),
-    ([tool, name]) => ({ tool, name }),
-  );
+  it('keeps the success fixture matrix aligned with local tool contracts', async () => {
+    expect(SUCCESS_TOOL_FIXTURES.map(({ tool }) => tool)).toEqual(LOCAL_TOOL_NAMES);
+    await Promise.all(SUCCESS_TOOL_FIXTURES.map(({ name }) => fixture(name)));
+  });
 
-  whitelistCases.forEach(({ tool, name }) => {
+  SUCCESS_TOOL_FIXTURES.forEach(({ tool, name }) => {
     it(`${tool} strips top-level sentinel fields from parser and Runner output`, async () => {
       const sentinel = `p5-sentinel-${tool}`;
       const input = { ...await fixture(name) as Record<string, unknown>, unexpected: sentinel };
@@ -493,10 +375,12 @@ describe('local tool input fixtures', () => {
     });
   });
 
-  nestedWhitelistCases.forEach(({ tool, name, inject }) => {
+  NESTED_WHITELIST_CASES.forEach(({ tool, inject }) => {
     it(`${tool} strips nested sentinel fields from parser and Runner output`, async () => {
       const sentinel = `p6-sentinel-${tool}`;
-      const input = await fixture(name) as Record<string, unknown>;
+      const fixtureCase = SUCCESS_TOOL_FIXTURES.find((candidate) => candidate.tool === tool);
+      if (!fixtureCase) throw new Error(`${tool} 缺少成功 fixture。`);
+      const input = await fixture(fixtureCase.name) as Record<string, unknown>;
       inject(input, sentinel);
 
       expect(JSON.stringify(parseLocalToolInput(tool, input))).not.toContain(sentinel);
