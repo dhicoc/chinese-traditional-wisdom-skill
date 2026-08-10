@@ -66,6 +66,8 @@ ToolEnvelope<TData> = {
 
 `resolve_true_solar_time` 只接收已外部核验的经度、IANA 时区、出生当日 UTC 偏移、夏令时与 `utcOffsetEvidence`。输出 `trueSolarBirth`、`trueSolarResolution` 和校正明细。无法核验时应走民用时间 fallback，并显示“未完成真太阳时复核”。
 
+`calc_chenguz` 使用年干支、农历月日与时支，必须提供 `baziTimeContext`；CLI 输出会标记所用时间来源。`combo_space_time` 的出生年和性别仅用于命卦，出生月日时分仅用于构造奇门起局时刻，`targetYear` 会替换起局年份；它不使用本命八字四柱或八字真太阳时语义。`combo_zeri` 只使用出生年和性别（命卦与生肖冲合），不依赖出生月日时分或本命八字四柱。
+
 ## 参考与备用方案
 
 - `bootstrap/`：各领域输入、输出与解释边界。

@@ -73,6 +73,7 @@ export interface YunqiToolInput {
 
 export interface ChenguzToolInput {
   birth: BaziBirth;
+  baziTimeContext: Input;
   version?: 'standard' | 'folk' | 'full';
 }
 
@@ -346,7 +347,7 @@ function direction(value: unknown, label: string): string {
   return value;
 }
 
-export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolContractInput | null {
+export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolContractInput {
   const input = object(rawInput, '工具输入');
 
   switch (tool) {
@@ -452,7 +453,11 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
       if (input.version !== undefined && input.version !== 'standard' && input.version !== 'folk' && input.version !== 'full') {
         throw new Error('version 必须是 standard、folk 或 full。');
       }
-      return { birth: birth(input.birth, 'birth'), version: input.version } as ChenguzToolInput;
+      return {
+        birth: birth(input.birth, 'birth'),
+        baziTimeContext: baziTimeContext(input.baziTimeContext),
+        version: input.version,
+      } as ChenguzToolInput;
     }
     case 'get_almanac':
       return { date: dateString(input.date, 'date') } as AlmanacToolInput;
@@ -662,6 +667,6 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
       } as ComboMarriageToolInput;
     }
     default:
-      return null;
+      throw new Error(`未知本地工具：${tool}`);
   }
 }

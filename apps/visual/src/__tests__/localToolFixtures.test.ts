@@ -143,12 +143,12 @@ const successCases: SuccessCase[] = [
   {
     tool: 'calc_chenguz',
     name: 'calc_chenguz.success.json',
-    assert: (result) => expect(result).toMatchObject({ ok: true, data: { versionId: 'standard', totalText: expect.any(String) } }),
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { versionId: 'standard', totalText: expect.any(String), timeSource: { timeBasis: 'civil-unverified' } } }),
   },
   {
     tool: 'calc_chenguz',
     name: 'calc_chenguz.boundary.json',
-    assert: (result) => expect(result).toMatchObject({ ok: true, data: { versionId: 'folk', versionName: expect.any(String) } }),
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { versionId: 'folk', versionName: expect.any(String), timeSource: { timeBasis: 'civil-unverified' } } }),
   },
   {
     tool: 'get_almanac',

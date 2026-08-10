@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { runLocalTool } from '@/legacy/directRunner';
+import { parseLocalToolInput } from '@/legacy/toolContracts';
 
 const BIRTH = { year: 1990, month: 6, day: 15, hour: 12, gender: '男' };
 
@@ -38,8 +39,25 @@ describe('runLocalTool', () => {
     expect((result.data as { timeSource: { timeBasis: string } }).timeSource.timeBasis).toBe('civil-unverified');
   });
 
-  it('rejects an unknown tool name', async () => {
-    await expect(runLocalTool('not_a_tool', {})).rejects.toThrow('未知本地工具');
+  it('rejects a tool without an input contract before the Runner can use raw input', () => {
+    expect(() => parseLocalToolInput('not_a_tool', {})).toThrow('未知本地工具：not_a_tool');
+  });
+
+  it('rejects an unknown tool name before using raw input', async () => {
+    await expect(runLocalTool('not_a_tool', {})).rejects.toThrow('未知本地工具：not_a_tool');
+  });
+
+  it('requires a confirmed Bazi time context for calc_chenguz', async () => {
+    await expect(runLocalTool('calc_chenguz', {
+      birth: BIRTH,
+    })).rejects.toThrow('baziTimeContext必须是 JSON 对象。');
+
+    const envelope = await runLocalTool('calc_chenguz', {
+      birth: BIRTH,
+      baziTimeContext: { timeBasis: 'civil-unverified', civilFallbackConfirmed: true },
+    });
+    const result = envelope as Exclude<typeof envelope, { status: 'resolved' }>;
+    expect((result.data as { timeSource: { timeBasis: string } }).timeSource.timeBasis).toBe('civil-unverified');
   });
 
   it('rejects an invalid combo_marriage scene before calculating', async () => {

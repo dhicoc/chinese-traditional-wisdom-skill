@@ -70,7 +70,7 @@ function withTimeSource(envelope: ToolEnvelope<any>, source: ReturnType<typeof t
 /** 直接调用 legacy enveloped 引擎，使用一次性输入和结果对象。 */
 export async function runLocalTool(tool: string, rawInput: unknown): Promise<DirectResult> {
   const rawRecord = record(rawInput);
-  const input = (parseLocalToolInput(tool, rawRecord) ?? rawRecord) as Input;
+  const input = parseLocalToolInput(tool, rawRecord) as Input;
   switch (tool) {
     case 'resolve_true_solar_time': return resolveTrueSolarTime({ ...input.birth, minute: input.birth.minute ?? 0, useExactCalendar: true }, input.location);
     case 'bazi_calculate': return withTimeSource(calcBaziEnveloped({ birth: input.birth, solar: Solar, shenShaTrineSource: input.shenShaTrineSource }), timeSource(input.birth, input));
@@ -97,7 +97,7 @@ export async function runLocalTool(tool: string, rawInput: unknown): Promise<Dir
     case 'combo_monthly_fortune': return withTimeSource(calcMonthlyFortuneCombo({ birth: input.birth, targetYear: input.targetYear, targetMonth: input.targetMonth, constitution: input.constitution, solar: Solar }), timeSource(input.birth, input.baziTimeContext));
     case 'combo_marriage': { const a = timeSource(input.personA.birth, input.personA.baziTimeContext ?? {}); const b = timeSource(input.personB.birth, input.personB.baziTimeContext ?? {}); const result = await calcMarriageCombo({ ...input, personA: { ...input.personA, solar: Solar }, personB: { ...input.personB, solar: Solar } }); return { ...withTimeSource(withTimeSource(result, a), b), data: { ...result.data, timeSource: { personA: a, personB: b } } }; }
     case 'cast_cezi': { const source = input.birth ? timeSource(input.birth, input.baziTimeContext ?? {}) : null; const result = await calcCeziEnveloped({ char: input.char, aspect: input.aspect, birth: input.birth, solar: Solar }); return source ? withTimeSource(result, source) : result; }
-    case 'calc_chenguz': return calcChenguzEnveloped({ birth: input.birth, version: input.version, solar: Solar });
+    case 'calc_chenguz': return withTimeSource(calcChenguzEnveloped({ birth: input.birth, version: input.version, solar: Solar }), timeSource(input.birth, input.baziTimeContext));
     case 'get_almanac': return getAlmanacEnveloped({ date: input.date, solar: Solar });
     case 'calc_feixing': return calcFeixingEnveloped(input);
     case 'calc_bazhai': return calcBazhaiEnveloped(input as any);
