@@ -82,6 +82,9 @@ export function XingXiuWorkspace() {
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               中国古代天文学二十八宿体系：按四象分组，每日值宿轮转，主吉凶宜忌与择日参考。
             </p>
+            <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
+              二十八星宿结果仅作传统文化学习参考，不作为现实决策依据。
+            </p>
           </div>
           <div className="flex flex-col items-end gap-2">
             <div className="flex gap-2">

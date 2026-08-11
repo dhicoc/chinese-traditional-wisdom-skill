@@ -1,0 +1,50 @@
+import { test, expect } from '@playwright/test';
+
+const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
+
+async function openWorkspace(page: import('@playwright/test').Page, title: string, workspaceId: string) {
+  await page.goto(BASE_URL);
+  await expect(page.locator('[data-testid="app-shell"]')).toBeVisible();
+  await page.getByRole('button', { name: '打开命令面板' }).click();
+  const input = page.getByTestId('command-input');
+  await input.fill(title);
+  await page.getByTestId('command-result').filter({ hasText: title }).filter({ hasText: '导航' }).click();
+  await expect(page.locator(`[data-testid="workspace-${workspaceId}"]`)).toBeVisible({ timeout: 60000 });
+}
+
+test.describe('P1.3v 二十八星宿用户侧验收', () => {
+  test.setTimeout(90000);
+
+  test('全局出生年份和计算口径刷新星宿结果，并呈现传统参考边界', async ({ page }) => {
+    await openWorkspace(page, '二十八星宿', 'xingxiu');
+    const workspace = page.locator('[data-testid="workspace-xingxiu"]');
+    const birthYear = page.locator('input[aria-label="全局出生年"]:visible');
+    const birthCard = workspace.getByText('本命星宿', { exact: true }).locator('..');
+
+    await expect(workspace.getByRole('heading', { name: '二十八星宿', exact: true })).toBeVisible();
+    await expect(workspace.getByText('当日值宿', { exact: true })).toBeVisible();
+    await expect(birthCard).toBeVisible();
+    await expect(workspace.getByTestId('xingxiu-chart')).toBeVisible();
+    await expect(workspace.getByRole('heading', { name: '二十八星宿解读', exact: true })).toBeVisible();
+    await expect(birthYear).toHaveValue('1990');
+
+    const initialBirth = await birthCard.textContent();
+    await birthYear.fill('1991');
+    await birthYear.press('Tab');
+    await expect(birthYear).toHaveValue('1991');
+    await expect.poll(() => birthCard.textContent()).not.toBe(initialBirth);
+
+    const lookup = workspace.getByRole('button', { name: '查表法', exact: true });
+    const rotational = workspace.getByRole('button', { name: '轮转法', exact: true });
+    await lookup.click();
+    await expect(lookup).toHaveClass(/bg-jade-500\/20/);
+    await rotational.click();
+    await expect(rotational).toHaveClass(/bg-jade-500\/20/);
+
+    await birthYear.fill('1990');
+    await birthYear.press('Tab');
+    await expect(birthYear).toHaveValue('1990');
+    await expect(workspace.getByText('二十八星宿结果仅作传统文化学习参考，不作为现实决策依据。')).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual((await page.viewportSize())!.width + 1);
+  });
+});
