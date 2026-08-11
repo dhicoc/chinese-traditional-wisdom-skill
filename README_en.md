@@ -48,7 +48,40 @@ Your question
 | Explore constitution tendencies or wellness cultivation | Constitution questionnaire, Five Movements and Six Qi, wellness combinations | Cultural reference and lifestyle suggestions; consult a physician first for symptoms or disease concerns |
 | Discuss names, dreams, relationships, or life choices | Name analysis, dream interpretation, marriage compatibility, annual/monthly combinations | Structured reference information and a non-fatalistic discussion framework |
 
-See [tool-index.md](tool-index.md) for the complete tool list and input contracts.
+### Complete Dashboard feature directory
+
+The Dashboard currently provides these **24 workspaces**. Calculation workspaces call local TypeScript engines directly; knowledge and local-storage workspaces disclose their reference and data boundaries.
+
+| Category | Feature | Main capabilities |
+|---|---|---|
+| Charting | BaZi chart | Four Pillars, Five Elements, Ten Gods, favorable elements, ShenSha, decadal/minor fortune, and target-date dynamic layers |
+| Charting | Ziwei Doushu | Twelve palaces, principal/supporting stars, transformations, and structured charts |
+| Divination | Liuyao divination | Coin, time, or manual casting; NaJia, relations, spirits, host/guest, and changing hexagrams |
+| Divination | Meihua Yishu | Time/number casting, body/use, moving lines, mutual, changing, inverse, and reversed hexagrams |
+| Divination | Qimen Dunjia | Time-based Qimen Nine Palaces, doors/stars/spirits, Three Wonders/Six Instruments, and pattern hints |
+| Divination | Daliuren | Heaven/Earth plates, Four Lessons, Three Transmissions, ShenSha, and pattern reference |
+| Divination | Taiyi Shenshu | Taiyi palace, host/guest calculations, Four Generals, and traditional pattern reference |
+| Divination | Huangji Jingshi | Yuan/Hui/Yun/Shi cycles, principal/era/year hexagrams, and long-cycle reference |
+| Divination | Character divination | Stroke numerology, character-element meanings, form, and optional BaZi complement |
+| Calendar and daily use | Daily almanac | Suitability, auspicious/inauspicious hours, solar terms, and seasonal folk reference |
+| Calendar and daily use | Twenty-Eight Mansions | Daily and natal mansion, Four Symbols, Seven Luminaries, suitability, and chart |
+| Calendar and daily use | Five Movements and Six Qi | Annual movement, controlling/heavenly influence, and six guest-Qi steps |
+| Calendar and daily use | Daily rhythm | Twelve double-hours, meridian correspondences, and wellness-rhythm cultural reference |
+| Calendar and daily use | Yuan Tiangang bone weight | Lunar bone-weight calculation and traditional verse reference from global birth data |
+| Everyday folk reference | Name Five Elements | Strokes, elements, Three Talents, Five Grids, and favorable-element complement reference |
+| Everyday folk reference | Dream interpretation | Dream-symbol search, modern explanations, and classical excerpts |
+| Fengshui | Fengshui compass | Twenty-Four Mountains, Bagua directions, and related knowledge notes |
+| Fengshui | Annual Flying Stars | Year-specific Nine Palace Flying Star structure reference |
+| Fengshui | Eight Mansions | Life trigram, house trigram, East/West group, and annual-pattern reference |
+| Combined reference | Combined analysis | Annual, monthly, decision, space-time, Three Styles, date selection, marriage, and daily-wellness combinations |
+| Health cultural reference | Constitution tendency | Nine-constitution questionnaire, radar chart, and cultivation prompts; not medical care |
+| Knowledge and data | Classical text reader | *Bazhai Mingjing* text, mapping notes, keyword search, and highlighting |
+| Knowledge and data | Local history and favorites | Up to 30 redacted local summaries, favorites, removal, and privacy notes |
+| Development and verification | Test console | Local test registry and development-verification information |
+
+The Dashboard also includes global birth-data management, true-solar-time verification/civil-time fallback status, Command Palette navigation, page-summary copying, structured report export, and local history recording.
+
+> **About the counts:** The 24 Dashboard workspaces are user-facing page entry points. The repository also contains **32 local CLI tools**, including true-solar-time preprocessing, underlying charting/daily calculations, constitution questionnaires, and multiple combined analyses. A CLI tool can map to one or more Dashboard functions. See [tool-index.md](tool-index.md) for exact names, input contracts, and runnable fixtures.
 
 ## Get Started
 
