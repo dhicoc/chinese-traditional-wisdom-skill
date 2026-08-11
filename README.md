@@ -84,8 +84,6 @@ Dashboard 是浏览器端本地计算与可视化入口。它按页面直接调�
 | [RULES.md](RULES.md) | 伦理规则、输入完整性、不得自行推演的硬规则 |
 | [tool-index.md](tool-index.md) | 32 个本地工具、CLI 和校验边界 |
 | [README_AI.md](README_AI.md) | AI 执行入口与故障处理 |
-| [EVOLUTION.md](EVOLUTION.md) | 架构演进记录 |
-| [ROADMAP.md](ROADMAP.md) | 后续路线图 |
 | `bootstrap/` | 各领域引擎接入指南 |
 | `apps/visual/` | React Dashboard、引擎和 CLI |
 
