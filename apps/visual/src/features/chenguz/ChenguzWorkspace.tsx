@@ -49,6 +49,9 @@ export function ChenguzWorkspace() {
         <p className="mt-3 text-xs leading-5 text-jade-100/45">
           袁天罡称骨法：按农历年月日时查四柱骨重（两+钱），总重对应称骨歌一段，定命格轻重。骨越重命越贵，骨轻则多劳。用顶部全局生辰即可，无需额外输入。仅供文化参考。
         </p>
+        <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
+          称骨结果仅作传统民俗文化学习参考，不作为现实决策依据。
+        </p>
 
         {/* 版本选择器 */}
         <div className="mt-3 rounded-card border border-white/8 bg-ink-900/40 px-3 py-2">
