@@ -89,6 +89,9 @@ export function TaiyiWorkspace() {
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               传统三式之首：以太乙积年推局数，太乙落宫、文昌始击定目、主客算与四将，据掩迫关囚击格等格局断事件吉凶与主客胜负。
             </p>
+            <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
+              太乙神数结果仅作传统术数文化学习参考，不作为现实决策依据。
+            </p>
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="taiyi" title="太乙神数摘要" payload={contextPayload} />
