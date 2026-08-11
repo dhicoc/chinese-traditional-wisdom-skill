@@ -46,6 +46,10 @@ cd apps/visual && pnpm engine <tool> <input-json-file>
 3. 联合分析：年度、月度、决策、空间时间、三式、养生、择日与合婚。
 4. 本地路由和参数检查：按本次请求在 Skill 侧完成；缺参必须追问，不得猜填。
 
+### 八字动态层路由
+
+需要查询指定日期的大运、小运、流年、流月或流日时，继续使用 `bazi_calculate`，在既有输入中加入严格格式的 `transitDate: "YYYY-MM-DD"`。从本次 `ToolEnvelope.data.transit` 读取动态事实；小运按虚岁定位，并根据 `minor.source` 披露本地历法序列或 `local-fallback`。不要新建动态层工具，也不要让 Dashboard 经过 CLI Runner。
+
 ## 4. claims 校验边界
 
 在最终文本中呈现确定性事实前，从本次 `ToolEnvelope.data` 提取最小 claims 集并调用对应本地 `validate*Claims(data, claims)`：

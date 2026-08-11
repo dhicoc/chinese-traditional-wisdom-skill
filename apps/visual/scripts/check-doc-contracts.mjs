@@ -169,6 +169,14 @@ check(baziGuide.includes("timeBasis") && baziGuide.includes("civilFallbackConfir
   "bootstrap/bazi-engine.md 缺少 CLI 必填的 timeBasis / civilFallbackConfirmed 规则。");
 check(baziGuide.includes("TrueSolarTimeResolution"),
   "bootstrap/bazi-engine.md 未说明 resolve_true_solar_time 的 TrueSolarTimeResolution 返回例外。");
+check(baziGuide.includes("transitDate") && baziGuide.includes("ToolEnvelope.data.transit") && baziGuide.includes("bazi_calculate.transit.success.json"),
+  "bootstrap/bazi-engine.md 缺少八字动态层的 transitDate、data.transit 或 CLI fixture 说明。");
+check(docs["SKILL.md"].includes("transitDate") && docs["SKILL.md"].includes("local-fallback"),
+  "SKILL.md 缺少八字动态层的 transitDate 或小运降级披露规则。");
+check(docs["README_AI.md"].includes("transitDate") && docs["README_AI.md"].includes("ToolEnvelope.data.transit"),
+  "README_AI.md 缺少八字动态层的 transitDate 或 data.transit 路由说明。");
+check(toolIndex.includes("bazi_calculate.transit.success.json") && toolIndex.includes("bazi_calculate.transit.failure.json"),
+  "tool-index.md 缺少八字动态层的 success 或 failure fixture 导航。");
 check(!yunqiGuide.includes("| solar |"),
   "bootstrap/yunqi-integration.md 将内部 solar 参数误写为 CLI 输入。");
 check(yunqiGuide.includes("validateCalendarClaims('yunqi', data, claims)"),

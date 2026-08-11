@@ -20,6 +20,16 @@ cd apps/visual && pnpm engine bazi_calculate - < src/__fixtures__/local-tools/ba
 
 `resolve_true_solar_time` 是预处理工具：输入为已核验的 `birth` 和 `location`，输出 `TrueSolarTimeResolution` 的 `trueSolarBirth` 与证据明细，供后续八字 CLI 调用传入；它不使用 `ToolEnvelope.data`。
 
+### 八字动态层 fixture
+
+`bazi_calculate` 可选接收严格格式的 `transitDate: "YYYY-MM-DD"`。需要查询指定日期的大运、小运、流年、流月或流日时，运行：
+
+```bash
+cd apps/visual && pnpm engine bazi_calculate - < src/__fixtures__/local-tools/bazi_calculate.transit.success.json
+```
+
+结果仍为 `ToolEnvelope`，动态事实位于 `data.transit`。`bazi_calculate.transit.boundary.json` 覆盖节气边界，`bazi_calculate.transit.failure.json` 用于确认非法日期会被 CLI 契约拒绝。详细字段、claims 和解释边界见 `bootstrap/bazi-engine.md`。
+
 ## ToolEnvelope 与本地校验
 
 ```ts

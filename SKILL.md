@@ -59,7 +59,15 @@ cd apps/visual && pnpm engine <tool> <input-json-file>
 
 Dashboard 只能展示核验、待核验和民用降级状态，不能自行猜测地点或历史时区。
 
-## 4. 解读与报告
+## 4. 八字动态层
+
+当问题需要查看指定日期的大运、小运、流年、流月或流日时，仍调用 `bazi_calculate`，并加入可选公历字段 `transitDate: "YYYY-MM-DD"`；不要新建或猜测其他动态层工具。结果从本次 `ToolEnvelope.data.transit` 读取：其中包含目标日期、虚岁小运、十年大运、流年、流月、流日及可复核的干支关系。
+
+小运按目标日期的虚岁定位，`minor.source` 为 `lunar-exact` 时表示来自本地历法序列，为 `local-fallback` 时必须在解读中说明使用了本地降级规则。关系字段只说明干支规则事实，不可据此直接断言事业、婚恋、健康、财富或其他现实结果。完整输入示例与 claims 写法见 `bootstrap/bazi-engine.md`。
+
+CLI / Skill / Agent 必须经 `parseLocalToolInput()` 和 `runLocalTool()` 取得 `ToolEnvelope`；Dashboard 仍按页面直接调用纯 TypeScript 引擎，不经 CLI Runner。
+
+## 5. 解读与报告
 
 - 先呈现经过本地结果核对的结构化事实，再以明确的“传统解释”“文化背景”“建议”区分自由文本。
 - 健康问题先建议就医；中医养生只作文化参考。

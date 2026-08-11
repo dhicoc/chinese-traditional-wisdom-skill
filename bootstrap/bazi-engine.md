@@ -37,10 +37,37 @@ cd apps/visual && pnpm engine resolve_true_solar_time <input-json-file>
 | trueSolarBirth / trueSolarResolution | `true-solar-verified` 时必填；出生记录必须与 `birth` 一致 |
 | civilFallbackConfirmed | `civil-unverified` 时必须为 `true` |
 | shenShaTrineSource | 可选：`year` 或 `day` |
+| transitDate | 可选：目标公历日期，严格为 `YYYY-MM-DD`；提供后返回统一动态层 |
+
+## 查询指定日期的动态层
+
+查看指定日期的大运、小运、流年、流月和流日时，继续调用 `bazi_calculate`，并在既有八字输入中增加 `transitDate`。例如，以下输入按用户确认的民用时间计算：
+
+```json
+{
+  "birth": { "year": 1990, "month": 6, "day": 15, "hour": 12, "minute": 0, "gender": "男" },
+  "timeBasis": "civil-unverified",
+  "civilFallbackConfirmed": true,
+  "shenShaTrineSource": "year",
+  "transitDate": "2025-07-15"
+}
+```
+
+运行：
+
+```bash
+cd apps/visual && pnpm engine bazi_calculate - < src/__fixtures__/local-tools/bazi_calculate.transit.success.json
+```
+
+不要为动态层创建其他工具名，也不要把 `transitDate` 传给 Dashboard Runner。CLI / Skill / Agent 经 `parseLocalToolInput()` 和 `runLocalTool()` 执行；Dashboard 保持按页面直接调用纯 TypeScript 引擎。
 
 ## 输出与校验
 
-结果包含四柱、十神、五行、大运、神煞及警告。最终呈现确定性字段前，只从本次 `ToolEnvelope.data` 组织结构化 claims，并调用本地 `validateBaziClaims(data, claims)`（以实际导出函数为准）。保留 `result_meta.calculationConfig`，其中包含实际历法、神煞与起运口径；Runner 会补充实际 `timeBasis`。校验不覆盖格局解释、用神建议、健康含义或其他自由文本。
+结果包含四柱、十神、五行、大运、神煞及警告。提供 `transitDate` 时，从本次 `ToolEnvelope.data.transit` 读取动态层：`targetDate`、`nominalAge`、`decadal`、`minor`、`yearly`、`monthly`、`daily` 与 `relations`。本命四柱不因目标日期而改变。
+
+小运按目标日期的虚岁定位。`minor.source: "lunar-exact"` 表示来自本地历法序列；`"local-fallback"` 表示使用确定性本地降级规则，必须在结果解读中披露。`relations` 仅包含可复核的干支关系和派生标签，不得直接推出事业、婚恋、健康、财富或其他现实结果。
+
+最终呈现确定性字段前，只从本次 `ToolEnvelope.data` 组织结构化 claims，并调用本地 `validateBaziClaims(data, claims)`。例如，可校验 `transitTargetDate`、`transitNominalAge`、`transitDecadal`、`transitMinor`、`transitPillar` 与 `transitRelation`；关系 claim 必须同时指定层级、参照类型和本命柱选择器。保留 `result_meta.calculationConfig`，其中包含实际历法、神煞、起运和动态层口径；Runner 会补充实际 `timeBasis`。校验不覆盖格局解释、用神建议、健康含义或其他自由文本。
 
 ## 解读边界
 
