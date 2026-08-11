@@ -62,6 +62,9 @@ export function CeziWorkspace() {
         <p className="mt-3 text-xs leading-5 text-jade-100/45">
           输入一个字，看笔画数理、字义五行、字形结构与偏旁象义。可选结合八字用神，判断该字对事业/感情的影响与起名建议。仅供文化参考。
         </p>
+        <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
+          测字结果仅作传统民俗文化学习参考，不作为现实决策依据。
+        </p>
       </div>
 
       {/* 输入区 */}
