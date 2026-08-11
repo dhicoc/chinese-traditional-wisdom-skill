@@ -1,0 +1,70 @@
+import { test, expect } from '@playwright/test';
+
+const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
+
+async function openWorkspace(page: import('@playwright/test').Page, title: string, workspaceId: string) {
+  await page.goto(BASE_URL);
+  await expect(page.locator('[data-testid="app-shell"]')).toBeVisible();
+  await page.getByRole('button', { name: '打开命令面板' }).click();
+  const input = page.getByTestId('command-input');
+  await input.fill(title);
+  await page.getByTestId('command-result').filter({ hasText: title }).filter({ hasText: '导航' }).click();
+  await expect(page.locator(`[data-testid="workspace-${workspaceId}"]`)).toBeVisible({ timeout: 60000 });
+}
+
+async function expectNoHorizontalOverflow(page: import('@playwright/test').Page) {
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual((await page.viewportSize())!.width + 1);
+}
+
+test.describe('P1.3i 六爻与梅花用户侧验收', () => {
+  test.setTimeout(90000);
+
+  test('六爻按手动爻值和占问事项更新卦象、变卦与解读边界', async ({ page }) => {
+    await openWorkspace(page, '六爻占卜', 'liuyao');
+    const workspace = page.locator('[data-testid="workspace-liuyao"]');
+
+    await expect(workspace.getByRole('heading', { name: '六爻占卜', exact: true })).toBeVisible();
+    await expect(workspace.getByText('六爻为传统文化占问参考，非绝对预测；同一事不宜反复起卦。')).toBeVisible();
+
+    await workspace.getByLabel('起卦方式').selectOption('manual');
+    await workspace.getByLabel('占问事项（影响用神选取）').fill('今年财运如何');
+    await workspace.getByLabel('爻值（初爻→上爻）').fill('677777');
+
+    await expect(workspace.getByText('天风姤', { exact: true }).first()).toBeVisible();
+    await expect(workspace.getByText('乾为天', { exact: true }).first()).toBeVisible();
+    await expect(workspace.getByText('妻财', { exact: true }).first()).toBeVisible();
+    await expect(workspace.getByText('动爻', { exact: true }).first()).toBeVisible();
+    await expect(workspace.getByText('1', { exact: true }).first()).toBeVisible();
+    await expect(workspace.getByRole('heading', { name: '本卦', exact: true })).toBeVisible();
+    await expect(workspace.getByRole('heading', { name: '变卦', exact: true })).toBeVisible();
+    await expect(workspace.getByTestId('hexagram-chart').first()).toBeVisible();
+    await expect(workspace.getByText('纳甲六爻明细')).toBeVisible();
+
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test('梅花按上下卦、动爻与体用关系更新图表和参考策略', async ({ page }) => {
+    await openWorkspace(page, '梅花易数', 'meihua');
+    const workspace = page.locator('[data-testid="workspace-meihua"]');
+
+    await expect(workspace.getByRole('heading', { name: '梅花易数', exact: true })).toBeVisible();
+    await expect(workspace.getByText('梅花易数为传统文化观察参考，非绝对预测或现实决策依据。')).toBeVisible();
+
+    await workspace.getByLabel('上卦').selectOption('离');
+    await workspace.getByLabel('下卦').selectOption('坎');
+    await workspace.getByLabel('动爻').selectOption('2');
+    await workspace.getByLabel('体用关系').selectOption('克');
+
+    await expect(workspace.getByTestId('meihua-chart')).toBeVisible();
+    await expect(workspace.getByText('火水', { exact: true })).toBeVisible();
+    await expect(workspace.getByText('动爻: 2爻', { exact: true })).toBeVisible();
+    await expect(workspace.getByText('大凶', { exact: true })).toBeVisible();
+    await expect(workspace.getByText('用克体，受阻')).toBeVisible();
+    await expect(workspace.getByText('策略：守——受制之象，宜静观待变')).toBeVisible();
+    await expect(workspace.getByText('卦德', { exact: true })).toBeVisible();
+    await expect(workspace.getByText('错卦：')).toBeVisible();
+    await expect(workspace.getByText('综卦：')).toBeVisible();
+
+    await expectNoHorizontalOverflow(page);
+  });
+});

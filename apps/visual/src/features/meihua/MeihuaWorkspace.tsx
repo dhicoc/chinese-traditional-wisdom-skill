@@ -116,6 +116,9 @@ export function MeihuaWorkspace() {
             <ExportReportButton module="梅花易数" report={exportReport} />
           </div>
         </div>
+        <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
+          梅花易数为传统文化观察参考，非绝对预测或现实决策依据。
+        </p>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
