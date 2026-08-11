@@ -55,20 +55,23 @@ function generateId(): string {
   return `h_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function redactFullBirthDate(value: string): string {
+  return value
+    .replace(/\d{4}-\d{2}-\d{2}/g, '****')
+    .replace(/\d{4}年\d{1,2}月\d{1,2}日/g, '****');
+}
+
 function sanitize(entry: Partial<HistoryEntry>): HistoryEntry {
-  const clean: HistoryEntry = {
+  return {
     id: entry.id || generateId(),
     module: String(entry.module || 'unknown').slice(0, 30),
-    title: String(entry.title || '').slice(0, 120),
-    summary: String(entry.summary || '').slice(0, 500),
-    tags: Array.isArray(entry.tags) ? entry.tags.slice(0, 10).map((t) => String(t).slice(0, 30)) : [],
+    title: redactFullBirthDate(String(entry.title || '').slice(0, 120)),
+    summary: redactFullBirthDate(String(entry.summary || '').slice(0, 500)),
+    tags: Array.isArray(entry.tags) ? entry.tags.slice(0, 10).map((tag) => redactFullBirthDate(String(tag).slice(0, 30))) : [],
     mode: String(entry.mode || 'unknown').slice(0, 20),
     createdAt: entry.createdAt || new Date().toISOString(),
     favorite: entry.favorite === true,
   };
-  clean.summary = clean.summary.replace(/\d{4}-\d{2}-\d{2}/g, '****');
-  clean.title = clean.title.replace(/\d{4}-\d{2}-\d{2}/g, '****');
-  return clean;
 }
 
 export const HistoryStore = {

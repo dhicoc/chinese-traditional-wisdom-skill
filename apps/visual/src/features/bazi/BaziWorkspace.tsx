@@ -134,6 +134,19 @@ export function BaziWorkspace() {
     ? shenSha.filter((item) => item.pillar === selectedShenShaPillar)
     : [];
   const presentation = useMemo(() => envelope ? toUserPresentation(envelope) : null, [envelope]);
+  const exportPresentation = useMemo(() => {
+    if (!presentation?.exportReport) return null;
+    const timeNotice = baziTimeStatus.status === 'true-solar-verified'
+      ? '已核验真太阳时。'
+      : baziTimeStatus.status === 'civil-unverified'
+        ? '未完成真太阳时复核：已按用户确认的民用出生记录排盘。'
+        : '等待 Agent 核验出生地点、历史时区与夏令时；当前暂按民用时间展示。';
+    return {
+      report: presentation.exportReport,
+      notices: [...presentation.notices, timeNotice],
+      warnings: presentation.warnings,
+    };
+  }, [baziTimeStatus.status, presentation]);
   const pillarRows = [
     ['年柱', pillars.year],
     ['月柱', pillars.month],
@@ -202,14 +215,7 @@ export function BaziWorkspace() {
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="bazi" title="八字命盘摘要" payload={contextPayload} />
-            <ExportReportButton
-              module="八字命盘"
-              presentation={presentation?.exportReport ? {
-                report: presentation.exportReport,
-                notices: presentation.notices,
-                warnings: presentation.warnings,
-              } : null}
-            />
+            <ExportReportButton module="八字命盘" presentation={exportPresentation} />
           </div>
         </div>
       </div>

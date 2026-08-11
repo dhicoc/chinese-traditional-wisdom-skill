@@ -120,7 +120,7 @@ export function ExportReportButton({ module, report, presentation }: ExportRepor
   const handleExport = useCallback(async () => {
     setExporting(true);
     try {
-      const birthSummary = `${birth.year}年${birth.month}月${birth.day}日 ${birth.hour}时，${birth.gender}，${birth.isLunar ? '农历' : '公历'}`;
+      const birthSummary = `${birth.year}年出生，${birth.gender}，${birth.isLunar ? '农历' : '公历'}`;
       const content = createExportReportHtml({
         title,
         generatedAt: new Date().toLocaleString('zh-CN'),
