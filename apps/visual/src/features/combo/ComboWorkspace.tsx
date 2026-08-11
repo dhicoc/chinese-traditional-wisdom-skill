@@ -412,7 +412,12 @@ export function ComboWorkspace() {
                   min={1}
                   max={20}
                   value={draftZeriTopN}
-                  onChange={(e) => setDraftZeriTopN(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setDraftZeriTopN(value);
+                    const topN = Number.parseInt(value, 10);
+                    if (topN >= 1 && topN <= 20) setZeriTopN(topN);
+                  }}
                   onBlur={() => commitComboDraft('zeriTopN', draftZeriTopN)}
                   className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
                 />
