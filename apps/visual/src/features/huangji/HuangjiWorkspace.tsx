@@ -80,6 +80,9 @@ export function HuangjiWorkspace() {
         <p className="mt-3 text-xs leading-5 text-jade-100/45">
           以「元会运世」宇宙周期（1元=129600年=12会×30运×12世×30年）定位当下时空。正卦主一运大势，世卦主当下三十年气数，年卦主本年应象。属传统象数参考。
         </p>
+        <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
+          皇极经世结果仅作传统象数文化学习参考，不作为现实决策依据。
+        </p>
       </div>
 
       {/* 起盘信息 + 周期定位 */}
