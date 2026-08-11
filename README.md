@@ -176,15 +176,3 @@ templates/                     # 报告模板
 SKILL.md                       # Skill 主入口
 RULES.md                       # 安全与伦理规则
 ```
-
-## English Summary
-
-**Chinese Traditional Wisdom Skill** is a local-first Skill for traditional-culture consultation and reflection. It supports BaZi, Ziwei, divination, date selection, Fengshui, constitution reference, and related topics.
-
-Deterministic facts come from the local engine, not model inference. The CLI is:
-
-```bash
-cd apps/visual && pnpm engine <tool> <input-json-file>
-```
-
-Most commands return a `ToolEnvelope`; `resolve_true_solar_time` returns `TrueSolarTimeResolution`. Validate only structured claims with local `validate*Claims(data, claims)` functions. Treat all interpretations as cultural reference, disclose civil-time fallback when true-solar time cannot be verified, and never use results as medical, financial, or absolute predictive advice.
