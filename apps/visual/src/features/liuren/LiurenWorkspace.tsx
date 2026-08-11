@@ -101,6 +101,9 @@ export function LiurenWorkspace() {
             <ExportReportButton module="大六壬" report={result.envelope?.data.export_snapshot ?? null} />
           </div>
         </div>
+        <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
+          大六壬结果仅作传统卜筮文化学习参考，不作为现实决策依据。
+        </p>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
