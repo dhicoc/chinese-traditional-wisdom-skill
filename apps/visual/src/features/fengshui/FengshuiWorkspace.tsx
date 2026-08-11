@@ -166,6 +166,7 @@ export function FengshuiWorkspace() {
           <div>
             <p className="mb-2 text-xs font-semibold text-jade-100/70">房屋坐向</p>
             <select
+              aria-label="房屋坐向"
               value={facing}
               onChange={(e) => setFacing(e.target.value)}
               className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
@@ -180,6 +181,7 @@ export function FengshuiWorkspace() {
           <div>
             <p className="mb-2 text-xs font-semibold text-jade-100/70">流年年份</p>
             <input
+              aria-label="流年年份"
               type="number"
               min={1900}
               max={2100}
