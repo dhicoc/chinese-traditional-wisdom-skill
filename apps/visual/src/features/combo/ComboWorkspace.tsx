@@ -142,11 +142,15 @@ export function ComboWorkspace() {
     else setPartnerHour(n);
   };
 
-  const [result, setResult] = useState<{ envelope: ToolEnvelope<ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult> | null; loading: boolean }>({ envelope: null, loading: false });
+  const [result, setResult] = useState<{
+    comboType: ComboType | null;
+    envelope: ToolEnvelope<ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult> | null;
+    loading: boolean;
+  }>({ comboType: null, envelope: null, loading: false });
 
   useEffect(() => {
     let cancelled = false;
-    setResult({ envelope: null, loading: true });
+    setResult({ comboType, envelope: null, loading: true });
     void (async () => {
       let envelope: ToolEnvelope<ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult> | null = null;
       try {
@@ -210,20 +214,23 @@ export function ComboWorkspace() {
         } else {
           envelope = calcSpaceTimeCombo({ birth: birthInput, targetYear, solar }) as ToolEnvelope<ComboResult>;
         }
-        if (!cancelled) setResult({ envelope, loading: false });
+        if (!cancelled) setResult({ comboType, envelope, loading: false });
       } catch {
-        if (!cancelled) setResult({ envelope: null, loading: false });
+        if (!cancelled) setResult({ comboType, envelope: null, loading: false });
       }
     })();
     return () => { cancelled = true; };
   }, [comboType, solarBirth, question, targetYear, targetMonth, liurenSchool, constitution, zeriPurpose, zeriStart, zeriEnd, zeriTopN, partnerYear, partnerMonth, partnerDay, partnerHour, partnerGender, partnerSurname, partnerGivenName, mySurname, myGivenName, marriageScene]);
 
+  const isCurrentResult = result.comboType === comboType;
   const fourLayer = useMemo<LayerReport | null>(() => {
-    if (!result.envelope) return null;
+    if (!isCurrentResult || !result.envelope) return null;
     return toFourLayer(result.envelope.data.export_snapshot as ReadingLike);
-  }, [result.envelope]);
+  }, [isCurrentResult, result.envelope]);
 
-  const data = result.envelope?.data as (ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult) | undefined;
+  const data = isCurrentResult
+    ? result.envelope?.data as (ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult) | undefined
+    : undefined;
   const birthSummary = `${solarBirth.year}-${String(solarBirth.month).padStart(2, '0')}-${String(solarBirth.day).padStart(2, '0')} ${String(solarBirth.hour).padStart(2, '0')}:00 ${solarBirth.gender}`;
 
   return (
@@ -369,6 +376,7 @@ export function ComboWorkspace() {
               <label className="flex flex-col gap-1 text-sm">
                 <span className="text-jade-100/55">择日用途</span>
                 <select
+                  aria-label="择日用途"
                   value={zeriPurpose}
                   onChange={(e) => setZeriPurpose(e.target.value as ZeriPurpose)}
                   className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
@@ -379,6 +387,7 @@ export function ComboWorkspace() {
               <label className="flex flex-col gap-1 text-sm">
                 <span className="text-jade-100/55">区间起（含）</span>
                 <input
+                  aria-label="择日区间起"
                   type="date"
                   value={zeriStart}
                   onChange={(e) => setZeriStart(e.target.value)}
@@ -388,6 +397,7 @@ export function ComboWorkspace() {
               <label className="flex flex-col gap-1 text-sm">
                 <span className="text-jade-100/55">区间止（含）</span>
                 <input
+                  aria-label="择日区间止"
                   type="date"
                   value={zeriEnd}
                   onChange={(e) => setZeriEnd(e.target.value)}
@@ -397,6 +407,7 @@ export function ComboWorkspace() {
               <label className="flex flex-col gap-1 text-sm">
                 <span className="text-jade-100/55">返回前 N 个吉日</span>
                 <input
+                  aria-label="择日返回数量"
                   type="number"
                   min={1}
                   max={20}
@@ -416,6 +427,7 @@ export function ComboWorkspace() {
               <label className="flex flex-col gap-1 text-sm">
                 <span className="text-jade-100/55">关系类型</span>
                 <select
+                  aria-label="合婚关系类型"
                   value={marriageScene}
                   onChange={(e) => setMarriageScene(e.target.value as MarriageScene)}
                   className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
@@ -429,7 +441,7 @@ export function ComboWorkspace() {
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">乙方出生年</span>
-                  <input type="number" min={1900} max={2100} value={draftPartnerYear} onChange={(e) => setDraftPartnerYear(e.target.value)} onBlur={() => commitPartnerDraft('year', draftPartnerYear)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
+                  <input aria-label="合婚乙方出生年" type="number" min={1900} max={2100} value={draftPartnerYear} onChange={(e) => setDraftPartnerYear(e.target.value)} onBlur={() => commitPartnerDraft('year', draftPartnerYear)} className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">月</span>
@@ -460,11 +472,11 @@ export function ComboWorkspace() {
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">乙方姓名（可选）</span>
-                  <input type="text" value={partnerSurname} onChange={(e) => setPartnerSurname(e.target.value)} placeholder="姓" className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
+                  <input aria-label="合婚乙方姓名" type="text" value={partnerSurname} onChange={(e) => setPartnerSurname(e.target.value)} placeholder="姓" className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-jade-100/55">乙方名（可选）</span>
-                  <input type="text" value={partnerGivenName} onChange={(e) => setPartnerGivenName(e.target.value)} placeholder="名" className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
+                  <input aria-label="合婚乙方名" type="text" value={partnerGivenName} onChange={(e) => setPartnerGivenName(e.target.value)} placeholder="名" className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition-colors duration-200 focus:border-jade-500/45" />
                 </label>
               </div>
               <p className="text-[10px] text-jade-100/35">
@@ -601,7 +613,7 @@ export function ComboWorkspace() {
                     chongHeTotalScore: (data as MarriageResult).chongHeTotalScore,
                     personA: (data as MarriageResult).personA,
                     personB: (data as MarriageResult).personB,
-                    chongHeScan: (data as MarriageResult).chongHeScan.map((s) => ({
+                    chongHeScan: ((data as MarriageResult).chongHeScan ?? []).map((s) => ({
                       pillar: s.pillar, aGanZhi: s.aGanZhi, bGanZhi: s.bGanZhi, note: s.note, score: s.score,
                     })),
                     ziweiCompare: (data as MarriageResult).ziweiCompare,
@@ -718,7 +730,7 @@ function MarriageResultView({ data }: { data: MarriageResult }) {
         <div>
           <p className="mb-1 text-xs font-semibold text-jade-100/70">干支冲合（日柱权重最大）</p>
           <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4">
-            {m.chongHeScan.map((s) => (
+            {(m.chongHeScan ?? []).map((s) => (
               <div key={s.pillar} className={`rounded-card border px-3 py-2 text-[11px] ${s.score > 0 ? 'border-jade-500/25 bg-jade-500/5' : s.score < 0 ? 'border-red-500/25 bg-red-500/5' : 'border-white/8 bg-ink-900/40'}`}>
                 <p className="font-medium text-jade-100/70">{s.pillar}</p>
                 <p className="mt-0.5 font-mono text-jade-100">{s.aGanZhi} ↔ {s.bGanZhi}</p>

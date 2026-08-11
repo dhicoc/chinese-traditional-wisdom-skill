@@ -120,6 +120,7 @@ export function BirthPanel() {
           <div className="grid grid-cols-2 gap-2">
             <ControlField
               label="年"
+              ariaLabel="全局出生年"
               type="number"
               min={1900}
               max={2100}
@@ -130,6 +131,7 @@ export function BirthPanel() {
             />
             <ControlField
               label="月"
+              ariaLabel="全局出生月"
               type="number"
               min={1}
               max={12}
@@ -140,6 +142,7 @@ export function BirthPanel() {
             />
             <ControlField
               label="日"
+              ariaLabel="全局出生日"
               type="number"
               min={1}
               max={31}
@@ -150,6 +153,7 @@ export function BirthPanel() {
             />
             <ControlField
               label="时"
+              ariaLabel="全局出生时"
               type="number"
               min={0}
               max={23}
@@ -160,6 +164,7 @@ export function BirthPanel() {
             />
             <ControlField
               label="分"
+              ariaLabel="全局出生分"
               type="number"
               min={0}
               max={59}

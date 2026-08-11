@@ -11,9 +11,10 @@ type ControlFieldProps = {
   min?: number;
   max?: number;
   inputMode?: 'text' | 'numeric' | 'decimal';
+  ariaLabel?: string;
 };
 
-export function ControlField({ label, hint, children, value, onChange, onBlur, type = 'text', min, max, inputMode }: ControlFieldProps) {
+export function ControlField({ label, hint, children, value, onChange, onBlur, type = 'text', min, max, inputMode, ariaLabel }: ControlFieldProps) {
   return (
     <label className="grid gap-1 text-xs text-jade-100/45">
       <span className="flex items-center justify-between gap-2">
@@ -29,6 +30,7 @@ export function ControlField({ label, hint, children, value, onChange, onBlur, t
           min={min}
           max={max}
           inputMode={inputMode}
+          aria-label={ariaLabel}
           className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45 focus:ring-1 focus:ring-jade-500/20"
         />
       )}

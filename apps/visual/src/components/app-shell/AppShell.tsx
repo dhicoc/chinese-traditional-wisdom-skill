@@ -4,6 +4,7 @@ import { SidebarNav } from './SidebarNav';
 import { CommandBar } from './CommandBar';
 import { WorkspaceTabs } from './WorkspaceTabs';
 import { GlobalToast } from '@/components/shared/GlobalToast';
+import { BirthPanel } from '@/components/shared/BirthPanel';
 import { SearchModal } from '@/features/search/SearchModal';
 import { resolveWorkspace } from './workspaceRegistry';
 import { HomeDashboard } from '@/features/home/HomeDashboard';
@@ -42,6 +43,9 @@ export function AppShell({ activeModule, onSelectModule }: AppShellProps) {
 
         <main className="min-w-0 space-y-4">
           <CommandBar activeModule={activeModule} onSelectModule={onSelectModule} />
+          <div className="lg:hidden">
+            <BirthPanel />
+          </div>
           <div className="lg:hidden">
             <WorkspaceTabs activeModule={activeModule} onSelectModule={onSelectModule} />
           </div>
