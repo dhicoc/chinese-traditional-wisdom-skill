@@ -10,6 +10,10 @@
 </p>
 
 <p align="center">
+  🌐 <a href="README_en.md">English</a>
+</p>
+
+<p align="center">
   <a href="#能做什么">能做什么</a> ·
   <a href="#开始使用">开始使用</a> ·
   <a href="#准备哪些信息">准备哪些信息</a> ·

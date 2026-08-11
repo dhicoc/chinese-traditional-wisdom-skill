@@ -26,6 +26,7 @@ function exists(relPath) {
 
 const requiredFiles = [
   "README.md",
+  "README_en.md",
   "README_AI.md",
   "SKILL.md",
   "RULES.md",
@@ -67,6 +68,7 @@ const docs = Object.fromEntries([
   "EVOLUTION.md",
   "docs/RESEARCH-ROADMAP.md"
 ].map((relPath) => [relPath, read(relPath)]));
+const readmeEnglish = read("README_en.md");
 const runner = read("apps/visual/scripts/run-engine.ts");
 const packageJson = read("apps/visual/package.json");
 const directRunner = read("apps/visual/src/legacy/directRunner.ts");
@@ -93,6 +95,17 @@ for (const [name, content] of Object.entries(docs)) {
   check(content.includes("模型不得自行推演") || content.includes("不得自行推演") || content.includes("禁止模型自行推演"), `${name} 缺少禁止模型自行推演规则`);
   check(!/\bMCP\b|mcp-server|setup-mcp|stdio|JSON-RPC|MCP SDK|presentationToken|numericAssertionToken/.test(content), `${name} 仍含已移除架构术语`);
 }
+
+check(docs["README.md"].includes("README_en.md") && readmeEnglish.includes("README.md"),
+  "中英文 README 缺少双向语言跳转链接。");
+check(readmeEnglish.includes("ToolEnvelope") && readmeEnglish.includes("local-exact") && readmeEnglish.includes("local-approx"),
+  "README_en.md 缺少本地结果或计算口径说明。");
+check(readmeEnglish.includes("resolve_true_solar_time") && readmeEnglish.includes("trueSolarBirth") && readmeEnglish.includes("trueSolarResolution"),
+  "README_en.md 缺少真太阳时输入或输出说明。");
+check(readmeEnglish.includes("transitDate") && readmeEnglish.includes("local-fallback"),
+  "README_en.md 缺少八字动态层说明。");
+check(!/\bMCP\b|mcp-server|setup-mcp|stdio|JSON-RPC|MCP SDK|presentationToken|numericAssertionToken/.test(readmeEnglish),
+  "README_en.md 仍含已移除架构术语。");
 
 check(runner.includes("runLocalTool"), "run-engine.ts 未调用本地 direct runner");
 check(runner.includes("pnpm engine <tool> <input-json-file>"), "run-engine.ts 缺少 CLI 用法");
