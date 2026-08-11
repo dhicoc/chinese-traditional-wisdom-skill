@@ -21,7 +21,7 @@ test.describe('Application Smoke Tests', () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
-    await expect(page.getByRole('heading', { name: '玄学排盘' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '玄枢' })).toBeVisible();
   });
 
   test('should render sidebar navigation', async ({ page }) => {

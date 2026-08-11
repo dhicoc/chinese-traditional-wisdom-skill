@@ -16,7 +16,7 @@ export function SidebarNav(_props: SidebarNavProps) {
             <XuanOrbitLogo className="h-9 w-9" />
           </div>
           <div className="min-w-0">
-            <h1 className="truncate font-serif text-base font-semibold tracking-[0.14em] text-jade-50">玄学排盘</h1>
+            <h1 className="truncate font-serif text-base font-semibold tracking-[0.14em] text-jade-50">玄枢</h1>
           </div>
         </div>
         <p className="mt-2 text-[11px] leading-5 text-jade-100/55">传统文化解读工具</p>
