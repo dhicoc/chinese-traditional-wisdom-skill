@@ -72,6 +72,8 @@ export interface ReaderSearchIntentDetail {
   raw: string;
 }
 
+let pendingReaderSearchIntent: ReaderSearchIntentDetail | null = null;
+
 export interface CommandFeedbackDetail {
   title: string;
   description?: string;
@@ -272,7 +274,14 @@ export function dispatchMeihuaIntent(detail: MeihuaIntentDetail): void {
 }
 
 export function dispatchReaderSearchIntent(detail: ReaderSearchIntentDetail): void {
+  pendingReaderSearchIntent = detail;
   window.dispatchEvent(new CustomEvent<ReaderSearchIntentDetail>(READER_SEARCH_INTENT_EVENT, { detail }));
+}
+
+export function consumeReaderSearchIntent(): ReaderSearchIntentDetail | null {
+  const detail = pendingReaderSearchIntent;
+  pendingReaderSearchIntent = null;
+  return detail;
 }
 
 export function dispatchCommandFeedback(detail: CommandFeedbackDetail): void {

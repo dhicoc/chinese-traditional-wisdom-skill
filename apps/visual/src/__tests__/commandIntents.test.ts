@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   buildCommandFeedback,
+  consumeReaderSearchIntent,
+  dispatchReaderSearchIntent,
   isRefreshAllCommand,
   isHistoryStoreReady,
   listCommandHistory,
@@ -154,6 +156,12 @@ describe('divination and reader command parsers', () => {
   it('parses reader search commands', () => {
     expect(parseReaderSearchCommand('古籍 生气')).toMatchObject({ term: '生气' });
     expect(parseReaderSearchCommand('reader 八宅')).toMatchObject({ term: '八宅' });
+  });
+
+  it('retains a reader search until its lazy workspace consumes it', () => {
+    dispatchReaderSearchIntent({ term: '生气', raw: '古籍 生气' });
+    expect(consumeReaderSearchIntent()).toMatchObject({ term: '生气' });
+    expect(consumeReaderSearchIntent()).toBeNull();
   });
 
   it('detects refresh all commands', () => {

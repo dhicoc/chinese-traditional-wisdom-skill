@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
-import { READER_SEARCH_INTENT_EVENT, type ReaderSearchIntentDetail } from '@/lib/commandIntents';
+import {
+  consumeReaderSearchIntent,
+  READER_SEARCH_INTENT_EVENT,
+  type ReaderSearchIntentDetail,
+} from '@/lib/commandIntents';
 
 // 构建时导入古籍原文和映射 JSON（Vite ?raw）
 import bazhaiText from '@kb/fengshui/03-yang-house/八宅明镜.md?raw';
@@ -85,12 +89,16 @@ export function AncientTextSplitReader() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    function handleReaderSearchIntent(event: Event) {
-      const detail = (event as CustomEvent<ReaderSearchIntentDetail>).detail;
+    function applyReaderSearchIntent(detail: ReaderSearchIntentDetail | null) {
       if (!detail?.term) return;
       setSearchTerm(detail.term);
     }
 
+    function handleReaderSearchIntent(event: Event) {
+      applyReaderSearchIntent(consumeReaderSearchIntent() ?? (event as CustomEvent<ReaderSearchIntentDetail>).detail);
+    }
+
+    applyReaderSearchIntent(consumeReaderSearchIntent());
     window.addEventListener(READER_SEARCH_INTENT_EVENT, handleReaderSearchIntent);
     return () => window.removeEventListener(READER_SEARCH_INTENT_EVENT, handleReaderSearchIntent);
   }, []);
@@ -127,6 +135,9 @@ export function AncientTextSplitReader() {
             <h2 className="font-serif text-2xl font-semibold text-jade-100">古籍阅读</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               阅读古籍原文与相关说明，支持关键词搜索与重点标记；现收录《八宅明镜》。
+            </p>
+            <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
+              古籍阅读内容仅作传统文化知识学习参考，不作为现实决策依据。
             </p>
           </div>
           <CopyContextButton commandScope="reader" title="古籍阅读摘要" payload={contextPayload} />
@@ -176,7 +187,7 @@ export function AncientTextSplitReader() {
       {/* Split View */}
       <div className="grid gap-4 xl:grid-cols-2">
         {/* 左侧：古籍原文 */}
-        <div className="rounded-panel border border-ink-700 bg-ink-850/60 p-4">
+        <div className="min-w-0 rounded-panel border border-ink-700 bg-ink-850/60 p-4">
           <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
             <h3 className="font-serif text-sm font-semibold text-jade-100/70">古籍原文</h3>
           </div>
@@ -187,11 +198,11 @@ export function AncientTextSplitReader() {
         </div>
 
         {/* 右侧：相关说明 */}
-        <div className="rounded-panel border border-ink-700 bg-ink-850/60 p-4">
+        <div className="min-w-0 rounded-panel border border-ink-700 bg-ink-850/60 p-4">
           <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
             <h3 className="font-serif text-sm font-semibold text-jade-100/70">相关说明</h3>
           </div>
-          <pre className="max-h-[60vh] overflow-auto rounded-card border border-white/8 bg-black/30 p-3 text-xs leading-5">
+          <pre className="max-h-[60vh] max-w-full overflow-auto rounded-card border border-white/8 bg-black/30 p-3 text-xs leading-5">
             <code dangerouslySetInnerHTML={{ __html: highlightedJson }} />
           </pre>
         </div>
