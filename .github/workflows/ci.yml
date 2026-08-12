@@ -38,3 +38,53 @@ jobs:
           node scripts/check-search-index.mjs
       - name: build
         run: pnpm build
+
+  playwright-e2e:
+    name: Playwright E2E (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - project: chromium
+            browser: chromium
+          - project: webkit
+            browser: webkit
+          - project: Mobile Chrome
+            browser: chromium
+          - project: Mobile Safari
+            browser: webkit
+    defaults:
+      run:
+        working-directory: apps/visual
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v5
+        with:
+          version: 10
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: apps/visual/pnpm-lock.yaml
+      - name: install visual deps
+        run: pnpm install --no-frozen-lockfile
+      - name: install Playwright browser
+        run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
+      - name: run Playwright E2E
+        run: pnpm test:e2e --project "${{ matrix.project }}"
+      - name: upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: apps/visual/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: upload Playwright test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-${{ matrix.project }}
+          path: apps/visual/test-results/
+          if-no-files-found: ignore
+          retention-days: 14
