@@ -9,14 +9,13 @@ import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
-import { buildBaziDynamicLayer, calculateBazi as calculateBaziPure, calcBaziEnveloped } from '@/legacy/baziEngine';
+import { buildBaziDynamicLayer, calculateBazi as calculateBaziPure, calcBaziEnveloped, calcXiYong } from '@/engine-api/bazi';
 import type { AdvancedBaziAnalysis } from '@/legacy/advancedBazi';
 import type { TrineSource } from '@/legacy/shensha';
 import { toUserPresentation } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { type BaziPillars, type WuxingStats } from '@/legacy/canvasRenderers';
 import type { ShenShaItem } from '@/legacy/shensha';
-import { calcXiYong } from '@/legacy/xiyong';
 import type { SolarBirth } from '@/legacy/birthBridge';
 import { useBirth } from '@/lib/birthContext';
 

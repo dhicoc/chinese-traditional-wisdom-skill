@@ -16,16 +16,17 @@ import {
   calcDailyWellnessCombo,
   calcZeriCombo,
   calcMonthlyFortuneCombo,
+  DALIUREN_SCHOOLS,
   type ComboResult,
   type DailyWellnessResult,
+  type DaliurenSchool,
   type ZeriResult,
   type ZeriPurpose,
   type MonthlyFortuneResult,
-} from '@/legacy/comboEngine';
-import { calcMarriageCombo, type MarriageResult, type MarriageScene } from '@/legacy/marriageCombo';
-import { DALIUREN_SCHOOLS, type DaliurenSchool } from '@/legacy/daliurenEngine';
+} from '@/engine-api/combo';
+import { calcMarriageCombo, type MarriageResult, type MarriageScene } from '@/engine-api/marriage';
+import type { ToolEnvelope } from '@/engine-api/types';
 import { QUESTIONNAIRE } from '@/legacy/constitutionQuestionnaire';
-import type { ToolEnvelope } from '@/legacy/baseTypes';
 
 /**
  * 联合分析工作区（ROADMAP 功能层增强 Step 1 的 Dashboard 入口）。
