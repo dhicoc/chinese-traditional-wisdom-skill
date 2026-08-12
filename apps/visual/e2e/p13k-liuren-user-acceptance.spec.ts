@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openWorkspace } from './p13-helpers';
+import { expectNoHorizontalOverflow, openWorkspace } from './p13-helpers';
 
 test.describe('P1.3k 大六壬用户侧验收', () => {
   test.setTimeout(90000);
@@ -29,6 +29,6 @@ test.describe('P1.3k 大六壬用户侧验收', () => {
     await expect(workspace.getByRole('heading', { name: '四课', exact: true })).toBeVisible();
     await expect(workspace.getByRole('heading', { name: '三传', exact: true })).toBeVisible();
 
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual((await page.viewportSize())!.width + 1);
+    await expectNoHorizontalOverflow(page);
   });
 });

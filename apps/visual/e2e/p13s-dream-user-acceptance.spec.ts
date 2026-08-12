@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openWorkspace } from './p13-helpers';
+import { expectNoHorizontalOverflow, openWorkspace } from './p13-helpers';
 
 test.describe('P1.3s 周公解梦用户侧验收', () => {
   test.setTimeout(90000);
@@ -29,6 +29,6 @@ test.describe('P1.3s 周公解梦用户侧验收', () => {
     const usageCard = workspace.locator('section').filter({ hasText: '使用说明' });
     await expect(usageCard).toBeVisible();
     await expect(usageCard).toContainText('非预言绝对');
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual((await page.viewportSize())!.width + 1);
+    await expectNoHorizontalOverflow(page);
   });
 });

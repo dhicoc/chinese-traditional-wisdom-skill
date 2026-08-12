@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openWorkspace } from './p13-helpers';
+import { expectNoHorizontalOverflow, openWorkspace } from './p13-helpers';
 
 test.describe('P1.3j 五运六气用户侧验收', () => {
   test.setTimeout(90000);
@@ -31,6 +31,6 @@ test.describe('P1.3j 五运六气用户侧验收', () => {
     await expect(workspace.getByTestId('yunqi-chart')).toHaveAttribute('aria-label', '五运六气 1990年 庚午');
     await expect(workspace.getByText('甲辰', { exact: true })).toHaveCount(0);
 
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual((await page.viewportSize())!.width + 1);
+    await expectNoHorizontalOverflow(page);
   });
 });

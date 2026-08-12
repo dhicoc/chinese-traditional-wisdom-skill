@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openWorkspace } from './p13-helpers';
+import { expectNoHorizontalOverflow, openWorkspace } from './p13-helpers';
 
 test.describe('P1.3l 太乙神数用户侧验收', () => {
   test.setTimeout(90000);
@@ -36,6 +36,6 @@ test.describe('P1.3l 太乙神数用户侧验收', () => {
     await expect(workspace.getByText('八门与三将', { exact: true })).toBeVisible();
 
     await expect(workspace.getByText('太乙神数结果仅作传统术数文化学习参考，不作为现实决策依据。')).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual((await page.viewportSize())!.width + 1);
+    await expectNoHorizontalOverflow(page);
   });
 });

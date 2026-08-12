@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openWorkspace, visibleBirthInput } from './p13-helpers';
+import { expectNoHorizontalOverflow, openWorkspace, visibleBirthInput } from './p13-helpers';
 
 test.describe('P1.3q 袁天罡称骨用户侧验收', () => {
   test.setTimeout(90000);
@@ -38,6 +38,6 @@ test.describe('P1.3q 袁天罡称骨用户侧验收', () => {
     await birthYear.press('Tab');
     await expect(birthYear).toHaveValue('1990');
     await expect(workspace.getByText('称骨结果仅作传统民俗文化学习参考，不作为现实决策依据。')).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual((await page.viewportSize())!.width + 1);
+    await expectNoHorizontalOverflow(page);
   });
 });

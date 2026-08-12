@@ -1,9 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openWorkspace } from './p13-helpers';
-
-async function expectNoHorizontalOverflow(page: import('@playwright/test').Page) {
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual((await page.viewportSize())!.width + 1);
-}
+import { expectNoHorizontalOverflow, openWorkspace } from './p13-helpers';
 
 test.describe('P1.3i 六爻与梅花用户侧验收', () => {
   test.setTimeout(90000);

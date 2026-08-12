@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openWorkspace, visibleBirthInput } from './p13-helpers';
+import { expectNoHorizontalOverflow, openWorkspace, visibleBirthInput } from './p13-helpers';
 
 test.describe('P1.3m 奇门遁甲用户侧验收', () => {
   test.setTimeout(90000);
@@ -36,6 +36,6 @@ test.describe('P1.3m 奇门遁甲用户侧验收', () => {
     await expect(workspace.getByTestId('qimen-chart')).toBeVisible();
 
     await expect(workspace.getByText('奇门遁甲结果仅作传统术数文化学习参考，不作为现实决策依据。')).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual((await page.viewportSize())!.width + 1);
+    await expectNoHorizontalOverflow(page);
   });
 });

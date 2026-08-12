@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openWorkspace, visibleBirthInput } from './p13-helpers';
+import { expectNoHorizontalOverflow, openWorkspace, visibleBirthInput } from './p13-helpers';
 
 test.describe('P1.3n 流年飞星用户侧验收', () => {
   test.setTimeout(90000);
@@ -44,6 +44,6 @@ test.describe('P1.3n 流年飞星用户侧验收', () => {
     await expect.poll(() => mingGua.textContent()).toBe(initialMingGua);
 
     await expect(workspace.getByText('飞星布局仅作传统文化学习与方位参考，不构成风水操作或决策建议。')).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual((await page.viewportSize())!.width + 1);
+    await expectNoHorizontalOverflow(page);
   });
 });
