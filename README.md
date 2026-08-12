@@ -180,21 +180,24 @@ pnpm engine <tool> <input-json-file>
 | [RULES.md](RULES.md) | 伦理、隐私、健康与输入完整性边界 |
 | [README_AI.md](README_AI.md) | AI Agent 的本地调用说明与故障处理 |
 | [tool-index.md](tool-index.md) | 32 个本地工具、标准 fixture 与 CLI 参考 |
+| [发布前验证与故障排查](docs/RELEASE-VERIFICATION.md) | 新环境安装、质量门、四浏览器回归与失败产物定位 |
 | [`bootstrap/`](bootstrap/) | 八字、紫微、六爻、梅花、风水等领域的详细说明 |
 | [`apps/visual/`](apps/visual/) | Dashboard、纯 TypeScript 引擎与测试 |
 
 ### 开发验证
 
-改动引擎、输入契约或公开文档后，在 `apps/visual` 运行：
+改动引擎、输入契约、Dashboard 或公开文档后，在 `apps/visual` 运行：
 
 ```bash
+pnpm typecheck
+pnpm test:unit
+pnpm test
 node scripts/check-doc-contracts.mjs
-npm run test:unit
-npm run typecheck
-npm run build
+pnpm build
+pnpm test:e2e
 ```
 
-文档契约检查会确保公开工具清单、CLI、fixture 和关键使用约定保持一致。
+文档契约检查会确保公开工具清单、CLI、fixture 和关键使用约定保持一致。仅修改文档时，至少运行文档契约检查与 `git diff --check`；完整命令顺序、四浏览器准备和失败产物定位见[发布前验证与故障排查](docs/RELEASE-VERIFICATION.md)。
 
 ## 仓库结构
 
