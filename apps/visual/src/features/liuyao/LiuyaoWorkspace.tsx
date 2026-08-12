@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getSolarEntry } from '@/legacy/solarEntry';
+import { getSolarEntry } from '@/engine-api/calendar';
 import { ControlField } from '@/components/shared/ControlField';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';

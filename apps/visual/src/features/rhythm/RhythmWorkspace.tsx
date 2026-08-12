@@ -3,8 +3,13 @@ import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { MeridianClock } from '@/components/shared/MeridianClock';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
-import { MERIDIAN_HOURS, WUXING_COLORS, getMeridianByHour, type MeridianHour } from '@/legacy/meridianClock';
-import { queryJieqiWellness } from '@/legacy/jieqiWellness';
+import {
+  getMeridianByHour,
+  MERIDIAN_HOURS,
+  queryJieqiWellness,
+  type MeridianHour,
+  WUXING_COLORS,
+} from '@/engine-api/rhythm';
 
 /**
  * 每日节律工作区

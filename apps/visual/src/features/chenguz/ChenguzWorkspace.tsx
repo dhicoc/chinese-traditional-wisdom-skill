@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { getSolarEntry } from '@/legacy/solarEntry';
+import { getSolarEntry } from '@/engine-api/calendar';
 import { useBirth } from '@/lib/birthContext';
 import { calcChenguz, type ChenguzResult } from '@/engine-api/folklore';
 import { CHENGUZ_VERSIONS, DEFAULT_CHENGUZ_VERSION, type ChenguzVersionId } from '@/legacy/chenguzVersions';

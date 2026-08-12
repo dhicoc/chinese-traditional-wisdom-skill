@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { calculateBazi as calculateBaziPure } from '@/engine-api/bazi';
-import { getSolarEntry } from '@/legacy/solarEntry';
+import { getSolarEntry } from '@/engine-api/calendar';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { HomeBaziPlate } from '@/components/shared/HomeBaziPlate';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';

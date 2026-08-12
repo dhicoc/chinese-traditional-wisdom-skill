@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { getSolarEntry } from '@/legacy/solarEntry';
+import { getSolarEntry } from '@/engine-api/calendar';
 import { BaziPillarsChart } from '@/components/shared/BaziPillarsChart';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 

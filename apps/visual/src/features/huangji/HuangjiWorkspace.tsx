@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { getSolarEntry } from '@/legacy/solarEntry';
+import { getSolarEntry } from '@/engine-api/calendar';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';

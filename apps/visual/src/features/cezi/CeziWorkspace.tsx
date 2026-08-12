@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getSolarEntry } from '@/legacy/solarEntry';
+import { getSolarEntry } from '@/engine-api/calendar';
 import { useBirth } from '@/lib/birthContext';
 import { calcCezi, type CeziResult } from '@/engine-api/folklore';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';

@@ -1,12 +1,16 @@
 import { useMemo, useState } from 'react';
-import { getSolarEntry } from '@/legacy/solarEntry';
+import {
+  analyzeName,
+  calcNameRating,
+  type NameAnalysis,
+  type NameRatingBirth,
+} from '@/engine-api/name';
+import { getSolarEntry } from '@/engine-api/calendar';
 import { ControlField } from '@/components/shared/ControlField';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { FiveElementsChart } from '@/components/shared/FiveElementsChart';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
-import { analyzeName, type NameAnalysis } from '@/legacy/nameWuxing';
-import { calcNameRating, type NameRatingBirth } from '@/legacy/nameRating';
 import { useBirth } from '@/lib/birthContext';
 
 /**

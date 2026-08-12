@@ -1,9 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getSolarEntry } from '@/legacy/solarEntry';
+import { getAlmanacData, getSolarEntry, type AlmanacData } from '@/engine-api/calendar';
 import { ControlField } from '@/components/shared/ControlField';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
-import { getAlmanacData, type AlmanacData } from '@/legacy/almanacData';
 
 /**
  * 每日黄历工作区

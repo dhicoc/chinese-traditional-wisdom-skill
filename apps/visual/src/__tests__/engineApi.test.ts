@@ -11,6 +11,21 @@ import {
 } from '@/engine-api/combo';
 import { calcMarriageCombo } from '@/engine-api/marriage';
 import {
+  getAlmanacData,
+  getLunarEntry,
+  getSolarEntry,
+} from '@/engine-api/calendar';
+import {
+  analyzeName,
+  calcNameRating,
+} from '@/engine-api/name';
+import {
+  getMeridianByHour,
+  MERIDIAN_HOURS,
+  queryJieqiWellness,
+  WUXING_COLORS,
+} from '@/engine-api/rhythm';
+import {
   calcDaliurenEnveloped,
   calcLiuyaoEnveloped,
   calcQimenEnveloped,
@@ -82,6 +97,19 @@ import {
 import { calcCezi as calcCeziLegacy } from '@/legacy/ceziEngine';
 import { calcChenguz as calcChenguzLegacy } from '@/legacy/chenguzEngine';
 import { calculateScoresFromAnswers as calculateScoresFromAnswersLegacy } from '@/legacy/constitutionQuestionnaire';
+import { getAlmanacData as getAlmanacDataLegacy } from '@/legacy/almanacData';
+import { queryJieqiWellness as queryJieqiWellnessLegacy } from '@/legacy/jieqiWellness';
+import {
+  getMeridianByHour as getMeridianByHourLegacy,
+  MERIDIAN_HOURS as MERIDIAN_HOURS_LEGACY,
+  WUXING_COLORS as WUXING_COLORS_LEGACY,
+} from '@/legacy/meridianClock';
+import { analyzeName as analyzeNameLegacy } from '@/legacy/nameWuxing';
+import { calcNameRating as calcNameRatingLegacy } from '@/legacy/nameRating';
+import {
+  getLunarEntry as getLunarEntryLegacy,
+  getSolarEntry as getSolarEntryLegacy,
+} from '@/legacy/solarEntry';
 import { NINE_STAR_REMEDIES as NINE_STAR_REMEDIES_LEGACY, getYuanYun as getYuanYunLegacy } from '@/legacy/flyingStarRemedies';
 import { calcHuangjiEnveloped as calcHuangjiEnvelopedLegacy } from '@/legacy/huangjiEngine';
 import { calcXingXiuEnveloped as calcXingXiuEnvelopedLegacy } from '@/legacy/xingxiuEngine';
@@ -92,6 +120,24 @@ describe('engine-api', () => {
     expect(calculateBazi).toBe(calculateBaziLegacy);
     expect(calcBaziEnveloped).toBe(calcBaziEnvelopedLegacy);
     expect(buildBaziDynamicLayer).toBe(buildBaziDynamicLayerLegacy);
+  });
+
+  it('公开历法 API 仅转发既有精确历法与黄历函数', () => {
+    expect(getSolarEntry).toBe(getSolarEntryLegacy);
+    expect(getLunarEntry).toBe(getLunarEntryLegacy);
+    expect(getAlmanacData).toBe(getAlmanacDataLegacy);
+  });
+
+  it('公开姓名 API 仅转发既有本地计算函数', () => {
+    expect(analyzeName).toBe(analyzeNameLegacy);
+    expect(calcNameRating).toBe(calcNameRatingLegacy);
+  });
+
+  it('公开节律 API 仅转发既有本地计算函数和映射', () => {
+    expect(queryJieqiWellness).toBe(queryJieqiWellnessLegacy);
+    expect(getMeridianByHour).toBe(getMeridianByHourLegacy);
+    expect(MERIDIAN_HOURS).toBe(MERIDIAN_HOURS_LEGACY);
+    expect(WUXING_COLORS).toBe(WUXING_COLORS_LEGACY);
   });
 
   it('公开组合 API 仅转发既有纯引擎函数和选项', () => {
