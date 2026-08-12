@@ -46,3 +46,4 @@ apps/visual/.playwright-cli/
 .qwen/
 
 .gstack/
+.worktrees/
