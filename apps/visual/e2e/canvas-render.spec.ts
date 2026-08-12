@@ -134,16 +134,10 @@ test.describe('Chart Responsiveness', () => {
     const svg = page.locator('[data-testid="radar-chart"]');
 
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.waitForTimeout(300);
-    const box1 = await svg.boundingBox();
-    expect(box1).not.toBeNull();
-    expect(box1!.width).toBeGreaterThan(100);
+    await expect.poll(async () => (await svg.boundingBox())?.width ?? 0).toBeGreaterThan(100);
 
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.waitForTimeout(300);
-    const box2 = await svg.boundingBox();
-    expect(box2).not.toBeNull();
-    expect(box2!.width).toBeGreaterThan(0);
-    expect(box2!.height).toBeGreaterThan(0);
+    await expect.poll(async () => (await svg.boundingBox())?.width ?? 0).toBeGreaterThan(0);
+    await expect.poll(async () => (await svg.boundingBox())?.height ?? 0).toBeGreaterThan(0);
   });
 });

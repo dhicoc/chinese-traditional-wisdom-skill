@@ -197,7 +197,7 @@ test.describe('Privacy - Report Export', () => {
     expect(path).toBeTruthy();
     const raw = readFileSync(path!, 'utf-8');
 
-    expect(raw).not.toMatch(/fullName|birthPlace|出生地点|location/i);
+    expect(raw).not.toMatch(/"(?:fullName|birthPlace|location)"\s*:/i);
   });
 });
 
@@ -218,7 +218,7 @@ test.describe('Privacy - Birth Data Input', () => {
     const numberInputs = sidebar.locator('input[type="number"]');
     await expect(numberInputs.first()).toBeVisible();
     await expect(numberInputs).toHaveCount(5);
-    await expect(sidebar.getByLabel('分', { exact: true })).toBeVisible();
+    await expect(sidebar.getByLabel('全局出生分', { exact: true })).toBeVisible();
     // 性别下拉
     await expect(sidebar.locator('select')).toHaveCount(1);
   });

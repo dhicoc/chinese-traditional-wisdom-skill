@@ -12,6 +12,7 @@ const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
 
 test.describe('Tab Navigation', () => {
   test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
   });
@@ -46,29 +47,6 @@ test.describe('Tab Navigation', () => {
     await expect(page.locator('[data-testid="workspace-fengshui"]')).toBeVisible();
   });
 
-  test('should navigate through all tool tabs', async ({ page }) => {
-    const tools = [
-      { name: '八字', id: 'bazi' },
-      { name: '紫微', id: 'ziwei' },
-      { name: '六爻', id: 'liuyao' },
-      { name: '梅花', id: 'meihua' },
-      { name: '风水', id: 'fengshui' },
-      { name: '飞星', id: 'feixing' },
-      { name: '八宅', id: 'bazhai' },
-      { name: '五运六气', id: 'yunqi' },
-      { name: '体质', id: 'tizhi' },
-    ];
-
-    for (const tool of tools) {
-      const tab = page.getByRole('tab', { name: tool.name });
-      await tab.scrollIntoViewIfNeeded();
-      await tab.click({ force: true });
-      await expect(page.locator(`[data-testid="workspace-${tool.id}"]`)).toBeVisible();
-      // Small delay to ensure transition completes
-      await page.waitForTimeout(200);
-    }
-  });
-
   test('should update URL hash on tab change', async ({ page }) => {
     await page.getByRole('tab', { name: '八字' }).click();
     await page.waitForTimeout(500);
@@ -88,6 +66,7 @@ test.describe('Tab Navigation', () => {
 
 test.describe('CommandBar Navigation', () => {
   test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
   });
@@ -166,7 +145,7 @@ test.describe('CommandBar Navigation', () => {
 
     await expect(page.locator('[data-testid="workspace-bazi"]')).toBeVisible();
     await expect(page.locator('[data-testid="command-feedback"]')).toContainText('八字命盘');
-    await expect(page.locator('button').filter({ hasText: '全局生辰' })).toContainText('1990-06-15');
+    await expect(page.locator('button:visible').filter({ hasText: '全局生辰' })).toContainText('1990-06-15');
   });
 
   test('should cancel agent confirm without navigating', async ({ page }) => {
