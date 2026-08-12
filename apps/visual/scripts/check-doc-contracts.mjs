@@ -72,7 +72,7 @@ const readmeEnglish = read("README_en.md");
 const runner = read("apps/visual/scripts/run-engine.ts");
 const packageJson = read("apps/visual/package.json");
 const directRunner = read("apps/visual/src/legacy/directRunner.ts");
-const toolContracts = read("apps/visual/src/legacy/toolContracts.ts");
+const localToolRegistry = read("apps/visual/src/legacy/localToolRegistry.ts");
 const trueSolarTime = read("apps/visual/src/legacy/trueSolarTime.ts");
 const modules = read("apps/visual/src/lib/modules.ts");
 
@@ -113,21 +113,23 @@ check(packageJson.includes('"engine": "tsx scripts/run-engine.ts"'), "apps/visua
 check(directRunner.includes("runLocalTool"), "directRunner.ts 缺少 runLocalTool");
 
 const localToolNames = extractMatches(
-  toolContracts.match(/export const LOCAL_TOOL_NAMES = \[([\s\S]*?)\] as const/)?.[1] ?? '',
-  /'([^']+)'/g,
+  localToolRegistry.match(/export const LOCAL_TOOL_REGISTRY = \{([\s\S]*?)\} as const/)?.[1] ?? '',
+  /^\s{2}([a-z_]+): \{\},$/gm,
 );
-check(localToolNames.length > 0, "toolContracts.ts 缺少 LOCAL_TOOL_NAMES 运行时清单");
-
-const runnerToolNames = extractMatches(directRunner, /case '([^']+)'/g);
-checkSameToolNames("directRunner.ts 分发", runnerToolNames, localToolNames);
+check(localToolNames.length > 0, "localToolRegistry.ts 缺少 LOCAL_TOOL_REGISTRY 运行时清单");
+check(directRunner.includes('parseLocalToolCall'), "directRunner.ts 未通过共享工具契约解析输入");
 
 const toolIndex = docs["tool-index.md"];
 const documentedTools = extractMatches(toolIndex, /\| `([^`]+)` \| `src\/__fixtures__\/local-tools\/[^`]+\.success\.json` \|/g);
 checkSameToolNames("tool-index.md CLI 工具表", documentedTools, localToolNames);
 
 for (const tool of localToolNames) {
-  const fixturePath = `apps/visual/src/__fixtures__/local-tools/${tool}.success.json`;
-  check(exists(fixturePath), `缺少 ${tool} 的 success fixture: ${fixturePath}`);
+  const successFixturePath = `apps/visual/src/__fixtures__/local-tools/${tool}.success.json`;
+  const boundaryFixturePath = `apps/visual/src/__fixtures__/local-tools/${tool}.boundary.json`;
+  const failureFixturePath = `apps/visual/src/__fixtures__/local-tools/${tool}.failure.json`;
+  check(exists(successFixturePath), `缺少 ${tool} 的 success fixture: ${successFixturePath}`);
+  check(exists(boundaryFixturePath), `缺少 ${tool} 的 boundary fixture: ${boundaryFixturePath}`);
+  check(exists(failureFixturePath), `缺少 ${tool} 的 failure fixture: ${failureFixturePath}`);
   check(toolIndex.includes(`| \`${tool}\` | \`src/__fixtures__/local-tools/${tool}.success.json\` |`),
     `tool-index.md 缺少 ${tool} 的 CLI fixture 行。`);
 }

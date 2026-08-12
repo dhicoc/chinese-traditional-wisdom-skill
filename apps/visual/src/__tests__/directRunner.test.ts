@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { runLocalTool } from '@/legacy/directRunner';
+import { LocalToolError } from '@/legacy/localToolErrors';
 import { parseLocalToolCall, parseLocalToolInput } from '@/legacy/toolContracts';
 
 const BIRTH = { year: 1990, month: 6, day: 15, hour: 12, gender: '男' };
@@ -76,12 +77,22 @@ describe('runLocalTool', () => {
     expect((result.data as { timeSource: { timeBasis: string } }).timeSource.timeBasis).toBe('civil-unverified');
   });
 
-  it('rejects a tool without an input contract before the Runner can use raw input', () => {
+  it('classifies a tool without an input contract before the Runner can use raw input', () => {
     expect(() => parseLocalToolInput('not_a_tool', {})).toThrow('未知本地工具：not_a_tool');
+    try {
+      parseLocalToolInput('not_a_tool', {});
+    } catch (error) {
+      expect(error).toBeInstanceOf(LocalToolError);
+      expect(error).toMatchObject({ code: 'UNKNOWN_TOOL', tool: 'not_a_tool' });
+    }
   });
 
-  it('rejects an unknown tool name before using raw input', async () => {
-    await expect(runLocalTool('not_a_tool', {})).rejects.toThrow('未知本地工具：not_a_tool');
+  it('classifies an unknown tool name before using raw input', async () => {
+    await expect(runLocalTool('not_a_tool', {})).rejects.toMatchObject({
+      code: 'UNKNOWN_TOOL',
+      tool: 'not_a_tool',
+      message: '未知本地工具：not_a_tool',
+    });
   });
 
   it('pairs a local tool with its normalized input contract', () => {

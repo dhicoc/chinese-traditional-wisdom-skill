@@ -59,20 +59,56 @@ describe('run-engine CLI', () => {
     });
   });
 
-  it('returns a non-zero exit code for a contract failure', async () => {
+  it('preserves a business boundary envelope as a successful CLI result', async () => {
+    const result = await runEngine(['assess_constitution', fixture('assess_constitution.boundary.json')]);
+
+    expect(result.code).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      ok: false,
+      error: { code: 'NO_ANSWERS' },
+    });
+  });
+
+  it('returns a stable JSON error for a contract failure', async () => {
     const result = await runEngine(['calc_chenguz', fixture('calc_chenguz.failure.json')]);
 
     expect(result.code).toBe(1);
     expect(result.stdout).toBe('');
-    expect(result.stderr).toContain('version 必须是 standard、folk 或 full。');
+    expect(JSON.parse(result.stderr)).toMatchObject({
+      ok: false,
+      error: {
+        code: 'INVALID_INPUT',
+        tool: 'calc_chenguz',
+        message: 'version 必须是 standard、folk 或 full。',
+      },
+    });
   });
 
-  it('returns a non-zero exit code for invalid JSON', async () => {
+  it('returns a stable JSON error for invalid JSON', async () => {
     const result = await runEngine(['list_constitution_questionnaire', '-'], '{');
 
     expect(result.code).toBe(1);
     expect(result.stdout).toBe('');
-    expect(result.stderr).toMatch(/JSON/);
+    expect(JSON.parse(result.stderr)).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_JSON', tool: 'list_constitution_questionnaire' },
+    });
+  });
+
+  it('returns a stable JSON error for an unknown tool', async () => {
+    const result = await runEngine(['not_a_tool', '-'], '{}');
+
+    expect(result.code).toBe(1);
+    expect(result.stdout).toBe('');
+    expect(JSON.parse(result.stderr)).toMatchObject({
+      ok: false,
+      error: {
+        code: 'UNKNOWN_TOOL',
+        tool: 'not_a_tool',
+        message: '未知本地工具：not_a_tool',
+      },
+    });
   });
 
   it('does not serialize nested sentinel fields from CLI stdin', async () => {

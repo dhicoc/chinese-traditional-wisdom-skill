@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { runLocalTool } from '@/legacy/directRunner';
+import { LocalToolError } from '@/legacy/localToolErrors';
 import { LOCAL_TOOL_NAMES, parseLocalToolInput } from '@/legacy/toolContracts';
 import { NESTED_WHITELIST_CASES, SUCCESS_TOOL_FIXTURES } from './localToolMatrix';
 
@@ -450,8 +451,12 @@ describe('local tool input fixtures', () => {
     ['combo_zeri', 'combo_zeri.failure.json'],
     ['combo_marriage', 'combo_marriage.failure.json'],
   ].forEach(([tool, name]) => {
-    it(`${tool} rejects ${name}`, async () => {
-      await expect(runLocalTool(tool, await fixture(name))).rejects.toThrow();
+    it(`${tool} classifies ${name} as invalid input`, async () => {
+      await expect(runLocalTool(tool, await fixture(name))).rejects.toBeInstanceOf(LocalToolError);
+      await expect(runLocalTool(tool, await fixture(name))).rejects.toMatchObject({
+        code: 'INVALID_INPUT',
+        tool,
+      });
     });
   });
 });

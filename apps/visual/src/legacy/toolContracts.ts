@@ -1,6 +1,8 @@
 import type { BaziBirth } from './baziEngine';
 import type { BazhaiInput } from './bazhaiEngine';
 import type { FeixingInput } from './feixingEngine';
+import { asLocalToolError, LocalToolError } from './localToolErrors';
+import { isLocalToolName, LOCAL_TOOL_NAMES, type LocalToolName } from './localToolRegistry';
 import type { VerifiedBirthLocation } from './trueSolarTime';
 import type { ZiweiInput } from './ziweiEngine';
 
@@ -238,46 +240,14 @@ export interface LocalToolInputByName {
   combo_marriage: ComboMarriageToolInput;
 }
 
-export type LocalToolName = keyof LocalToolInputByName;
-
-export const LOCAL_TOOL_NAMES = [
-  'resolve_true_solar_time',
-  'bazi_calculate',
-  'ziwei_chart',
-  'calc_feixing',
-  'calc_bazhai',
-  'cast_liuyao',
-  'arrange_qimen',
-  'liuren_calculate',
-  'taiyi_calculate',
-  'cast_meihua',
-  'xingxiu_daily',
-  'calc_yunqi',
-  'calc_chenguz',
-  'get_almanac',
-  'get_daily_rhythm',
-  'calc_xiyong',
-  'dream_interpret',
-  'analyze_name',
-  'cast_cezi',
-  'huangji_calculate',
-  'get_constitution_tendency',
-  'assess_constitution',
-  'list_constitution_questionnaire',
-  'combo_annual_fortune',
-  'combo_monthly_fortune',
-  'combo_daily_wellness',
-  'combo_decision',
-  'combo_space_time',
-  'combo_sanshi',
-  'combo_sanshi_classic',
-  'combo_zeri',
-  'combo_marriage',
-] as const satisfies readonly LocalToolName[];
-
 type AssertNever<Value extends never> = Value;
-type MissingLocalToolNames = Exclude<LocalToolName, typeof LOCAL_TOOL_NAMES[number]>;
-type _LocalToolNamesCoverContracts = AssertNever<MissingLocalToolNames>;
+type MissingLocalToolContracts = Exclude<LocalToolName, keyof LocalToolInputByName>;
+type UnexpectedLocalToolContracts = Exclude<keyof LocalToolInputByName, LocalToolName>;
+type _LocalToolRegistryCoversContracts = AssertNever<MissingLocalToolContracts>;
+type _LocalToolContractsMatchRegistry = AssertNever<UnexpectedLocalToolContracts>;
+
+export { LOCAL_TOOL_NAMES };
+export type { LocalToolName };
 
 export type LocalToolContractInput = LocalToolInputByName[LocalToolName];
 export type ParsedLocalToolCall = {
@@ -419,9 +389,14 @@ function direction(value: unknown, label: string): string {
 }
 
 export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolContractInput {
-  const input = object(rawInput, '工具输入');
+  if (!isLocalToolName(tool)) {
+    throw new LocalToolError('UNKNOWN_TOOL', `未知本地工具：${tool}`, tool);
+  }
 
-  switch (tool) {
+  try {
+    const input = object(rawInput, '工具输入');
+
+    switch (tool) {
     case 'resolve_true_solar_time': {
       const location = object(input.location, 'location');
       if (typeof location.displayName !== 'string' || !location.displayName.trim()) throw new Error('location.displayName 必须是非空字符串。');
@@ -444,6 +419,9 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
       const timeBasis = input.timeBasis;
       if (timeBasis !== 'true-solar-verified' && timeBasis !== 'civil-unverified') throw new Error('timeBasis 必须是 true-solar-verified 或 civil-unverified。');
       if (input.shenShaTrineSource !== undefined && input.shenShaTrineSource !== 'year' && input.shenShaTrineSource !== 'day') throw new Error('shenShaTrineSource 必须是 year 或 day。');
+      if (timeBasis === 'civil-unverified' && input.civilFallbackConfirmed !== true) {
+        throw new Error('timeBasis=civil-unverified 必须显式传 civilFallbackConfirmed=true。');
+      }
       const trueSolarBirth = input.trueSolarBirth === undefined
         ? undefined
         : birth(input.trueSolarBirth, 'trueSolarBirth');
@@ -817,8 +795,11 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
         purpose: purpose as ComboMarriageToolInput['purpose'],
       } as ComboMarriageToolInput;
     }
-    default:
-      throw new Error(`未知本地工具：${tool}`);
+      default:
+        throw new LocalToolError('UNKNOWN_TOOL', `未知本地工具：${tool}`, tool);
+    }
+  } catch (error) {
+    throw asLocalToolError('INVALID_INPUT', error, tool);
   }
 }
 

@@ -10,7 +10,7 @@ cd apps/visual && pnpm engine <tool> <input-json-file>
 
 实现位置：`apps/visual/scripts/run-engine.ts`。CLI 读取 JSON 输入并调用 `src/legacy/directRunner.ts`；除 `resolve_true_solar_time` 直接输出 `TrueSolarTimeResolution` 外，输出一个 JSON `ToolEnvelope`。没有可复核的本地输出时，AI 不得自行推演。
 
-公开输入 fixture 位于 `apps/visual/src/__fixtures__/local-tools/`。每个本地工具都有 `.success.json` 可执行示例；它同时是 CLI 回归的标准成功输入。对存在 `.boundary.json` 与 `.failure.json` 的工具，分别用于业务边界与契约拒绝回归。
+公开输入 fixture 位于 `apps/visual/src/__fixtures__/local-tools/`。每个本地工具都有 `.success.json` 可执行示例；它同时是 CLI 回归的标准成功输入。每个工具也有 `.boundary.json` 与 `.failure.json`，分别覆盖业务边界和必须被 CLI 契约拒绝的输入。工具名、三类 fixture 与 CLI 工具表由 `apps/visual/src/legacy/localToolRegistry.ts` 的 `LOCAL_TOOL_REGISTRY` / `LOCAL_TOOL_NAMES` 统一派生，文档检查会阻止任何遗漏。
 
 从 stdin 调用时，将同一 JSON 内容传给 `-`：
 
@@ -29,6 +29,23 @@ cd apps/visual && pnpm engine bazi_calculate - < src/__fixtures__/local-tools/ba
 ```
 
 结果仍为 `ToolEnvelope`，动态事实位于 `data.transit`。`bazi_calculate.transit.boundary.json` 覆盖节气边界，`bazi_calculate.transit.failure.json` 用于确认非法日期会被 CLI 契约拒绝。详细字段、claims 和解释边界见 `bootstrap/bazi-engine.md`。
+
+## CLI 错误语义
+
+CLI 成功时仍只在 stdout 输出 `ToolEnvelope` 或 `TrueSolarTimeResolution`。读取输入、JSON 解析、工具名或输入契约失败时，stdout 为空、进程以 `1` 退出，并在 stderr 输出以下稳定 JSON：
+
+```json
+{
+  "ok": false,
+  "error": {
+    "code": "INVALID_INPUT",
+    "tool": "calc_chenguz",
+    "message": "version 必须是 standard、folk 或 full。"
+  }
+}
+```
+
+`code` 可为 `INVALID_JSON`、`INPUT_READ_FAILURE`、`UNKNOWN_TOOL`、`INVALID_INPUT` 或 `ENGINE_FAILURE`。其中 `ToolEnvelope` 内的 `ok: false` 是工具的正常业务结果，不是 CLI 异常，CLI 仍以 `0` 退出并原样输出该 envelope。
 
 ## ToolEnvelope 与本地校验
 

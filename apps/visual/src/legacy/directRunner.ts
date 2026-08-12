@@ -23,6 +23,7 @@ import { getDailyRhythmEnveloped } from './rhythmEngine';
 import { assessConstitutionEnveloped, listConstitutionQuestionnaire } from './constitutionAssessEngine';
 import { calcNameRatingEnveloped, calcXiYongEnveloped, getConstitutionTendencyEnveloped } from './envelopeAdapters';
 import { searchDreamEnveloped } from './envelopeSample';
+import { asLocalToolError, LocalToolError } from './localToolErrors';
 import { parseLocalToolCall } from './toolContracts';
 
 type Input = Record<string, unknown>;
@@ -46,6 +47,10 @@ const TIME_SOURCE_BIRTH_KEYS = ['year', 'month', 'day', 'hour', 'minute', 'gende
 function record(input: unknown): Input {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('工具输入必须是 JSON 对象。');
   return input as Input;
+}
+
+function unexpectedTool(tool: never): never {
+  throw new LocalToolError('UNKNOWN_TOOL', `未知本地工具：${tool}`, tool);
 }
 
 function trueSolarBirth(birth: ParsedBirth): SolarBirth {
@@ -90,9 +95,10 @@ function withTimeSource(envelope: ToolEnvelope<any>, source: ReturnType<typeof t
 
 /** 直接调用 legacy enveloped 引擎，使用一次性输入和结果对象。 */
 export async function runLocalTool(tool: string, rawInput: unknown): Promise<DirectResult> {
-  const parsed = parseLocalToolCall(tool, record(rawInput));
-  const { tool: parsedTool, input } = parsed;
-  switch (parsedTool) {
+  try {
+    const parsed = parseLocalToolCall(tool, record(rawInput));
+    const { tool: parsedTool, input } = parsed;
+    switch (parsedTool) {
     case 'resolve_true_solar_time': return resolveTrueSolarTime(trueSolarBirth(input.birth), input.location);
     case 'bazi_calculate': return withTimeSource(calcBaziEnveloped({
       birth: input.birth,
@@ -129,7 +135,11 @@ export async function runLocalTool(tool: string, rawInput: unknown): Promise<Dir
     case 'calc_bazhai': return calcBazhaiEnveloped({ birthYear: input.birthYear, gender: input.gender, door: input.door, bedroom: input.bedroom, kitchen: input.kitchen, year: input.year });
     case 'get_daily_rhythm': return getDailyRhythmEnveloped({ date: input.date, hour: input.hour, constitution: input.constitution, solar: Solar });
     case 'assess_constitution': return assessConstitutionEnveloped({ answers: input.answers });
-    case 'list_constitution_questionnaire': { const groups = listConstitutionQuestionnaire(); return { ok: true, tool, version: '1.0.0', input_normalized: {}, data: { groups }, summary: [`九种体质问卷共 ${groups.length} 组、${groups.reduce((total, group) => total + group.questions.length, 0)} 题`] }; }
-    default: throw new Error(`未知本地工具：${tool}`);
+      case 'list_constitution_questionnaire': { const groups = listConstitutionQuestionnaire(); return { ok: true, tool, version: '1.0.0', input_normalized: {}, data: { groups }, summary: [`九种体质问卷共 ${groups.length} 组、${groups.reduce((total, group) => total + group.questions.length, 0)} 题`] }; }
+      default: return unexpectedTool(parsedTool);
+    }
+  } catch (error) {
+    if (error instanceof LocalToolError) throw error;
+    throw asLocalToolError('ENGINE_FAILURE', error, tool);
   }
 }
