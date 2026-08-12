@@ -34,9 +34,34 @@ const successCases: SuccessCase[] = [
     assert: (result) => expect(result).toMatchObject({ crossedShichen: true, crossedZiChu: true }),
   },
   {
+    tool: 'resolve_true_solar_time',
+    name: 'resolve_true_solar_time.cross-date.success.json',
+    assert: (result) => expect(result).toMatchObject({
+      crossedDate: true,
+      trueSolarBirth: { year: 1990, month: 6, day: 14, hour: 12, minute: 10 },
+    }),
+  },
+  {
+    tool: 'resolve_true_solar_time',
+    name: 'resolve_true_solar_time.shichen-zi-chu.success.json',
+    assert: (result) => expect(result).toMatchObject({
+      crossedShichen: true,
+      crossedZiChu: true,
+      trueSolarBirth: { hour: 23, minute: 5 },
+    }),
+  },
+  {
     tool: 'bazi_calculate',
     name: 'bazi_calculate.success.json',
     assert: (result) => expect(result).toMatchObject({ ok: true, data: { timeSource: { timeBasis: 'civil-unverified' } } }),
+  },
+  {
+    tool: 'bazi_calculate',
+    name: 'bazi_calculate.civil-fallback.success.json',
+    assert: (result) => expect(result).toMatchObject({
+      ok: true,
+      data: { timeSource: { timeBasis: 'civil-unverified', notice: '未完成真太阳时复核' } },
+    }),
   },
   {
     tool: 'bazi_calculate',

@@ -134,6 +134,20 @@ for (const tool of localToolNames) {
     `tool-index.md 缺少 ${tool} 的 CLI fixture 行。`);
 }
 
+const trueSolarTimeFixtureMatrix = [
+  "apps/visual/src/__fixtures__/local-tools/resolve_true_solar_time.success.json",
+  "apps/visual/src/__fixtures__/local-tools/resolve_true_solar_time.cross-date.success.json",
+  "apps/visual/src/__fixtures__/local-tools/resolve_true_solar_time.shichen-zi-chu.success.json",
+  "apps/visual/src/__fixtures__/local-tools/bazi_calculate.civil-fallback.success.json",
+];
+for (const fixturePath of trueSolarTimeFixtureMatrix) {
+  check(exists(fixturePath), `缺少真太阳时固定矩阵 fixture: ${fixturePath}`);
+}
+check(toolIndex.includes("真太阳时固定 fixture 矩阵"), "tool-index.md 缺少真太阳时固定 fixture 矩阵说明。");
+for (const fixtureName of trueSolarTimeFixtureMatrix.map((fixturePath) => path.basename(fixturePath))) {
+  check(toolIndex.includes(fixtureName), `tool-index.md 缺少真太阳时矩阵 fixture: ${fixtureName}`);
+}
+
 check(trueSolarTime.includes("resolveTrueSolarTime"), "trueSolarTime.ts 缺少本地校准函数");
 for (const [name, content] of Object.entries(docs)) {
   check(content.includes("resolve_true_solar_time"), `${name} 缺少真太阳时入口`);

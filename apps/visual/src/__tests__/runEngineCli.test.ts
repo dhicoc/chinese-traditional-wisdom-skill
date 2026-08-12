@@ -59,6 +59,49 @@ describe('run-engine CLI', () => {
     });
   });
 
+  it('executes the fixed true solar time fixture matrix', async () => {
+    const matrix = [
+      {
+        tool: 'resolve_true_solar_time',
+        name: 'resolve_true_solar_time.success.json',
+        expected: { trueSolarBirth: { hour: 11, minute: 4 } },
+      },
+      {
+        tool: 'resolve_true_solar_time',
+        name: 'resolve_true_solar_time.cross-date.success.json',
+        expected: {
+          crossedDate: true,
+          trueSolarBirth: { year: 1990, month: 6, day: 14, hour: 12, minute: 10 },
+        },
+      },
+      {
+        tool: 'resolve_true_solar_time',
+        name: 'resolve_true_solar_time.shichen-zi-chu.success.json',
+        expected: {
+          crossedShichen: true,
+          crossedZiChu: true,
+          trueSolarBirth: { hour: 23, minute: 5 },
+        },
+      },
+      {
+        tool: 'bazi_calculate',
+        name: 'bazi_calculate.civil-fallback.success.json',
+        expected: {
+          ok: true,
+          data: { timeSource: { timeBasis: 'civil-unverified', notice: '未完成真太阳时复核' } },
+        },
+      },
+    ];
+
+    for (const { tool, name, expected } of matrix) {
+      const result = await runEngine([tool, fixture(name)]);
+
+      expect(result.code).toBe(0);
+      expect(result.stderr).toBe('');
+      expect(JSON.parse(result.stdout)).toMatchObject(expected);
+    }
+  }, 15_000);
+
   it('preserves a business boundary envelope as a successful CLI result', async () => {
     const result = await runEngine(['assess_constitution', fixture('assess_constitution.boundary.json')]);
 

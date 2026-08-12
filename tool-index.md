@@ -20,6 +20,29 @@ cd apps/visual && pnpm engine bazi_calculate - < src/__fixtures__/local-tools/ba
 
 `resolve_true_solar_time` 是预处理工具：输入为已核验的 `birth` 和 `location`，输出 `TrueSolarTimeResolution` 的 `trueSolarBirth` 与证据明细，供后续八字 CLI 调用传入；它不使用 `ToolEnvelope.data`。
 
+### 真太阳时固定 fixture 矩阵
+
+以下固定输入将已核验校正与无法核验时的民用时间 fallback 分开覆盖。除最后一项外，均以 `resolve_true_solar_time` 输出 `TrueSolarTimeResolution`；民用 fallback 不伪造该 resolution，而由 `bazi_calculate` 明确披露时间来源。
+
+| 场景 | fixture | 固定验收语义 |
+|---|---|---|
+| 已核验标准校正 | `resolve_true_solar_time.success.json` | 纽约经度、IANA 时区和夏令时 UTC 偏移经证据核验，输出 `trueSolarBirth`。 |
+| 跨日期 | `resolve_true_solar_time.cross-date.success.json` | 校正后为 1990-06-14 12:10，`crossedDate: true`。 |
+| 跨时辰与子初 | `resolve_true_solar_time.shichen-zi-chu.success.json` | 校正后为 23:05，`crossedShichen: true` 且 `crossedZiChu: true`。 |
+| 无证据民用 fallback | `bazi_calculate.civil-fallback.success.json` | 使用 `timeBasis: "civil-unverified"` 与 `civilFallbackConfirmed: true`，结果必须标记“未完成真太阳时复核”。 |
+
+可用如下方式执行任一真太阳时 fixture：
+
+```bash
+cd apps/visual && pnpm engine resolve_true_solar_time src/__fixtures__/local-tools/resolve_true_solar_time.cross-date.success.json
+```
+
+民用 fallback 通过八字入口执行：
+
+```bash
+cd apps/visual && pnpm engine bazi_calculate src/__fixtures__/local-tools/bazi_calculate.civil-fallback.success.json
+```
+
 ### 八字动态层 fixture
 
 `bazi_calculate` 可选接收严格格式的 `transitDate: "YYYY-MM-DD"`。需要查询指定日期的大运、小运、流年、流月或流日时，运行：
