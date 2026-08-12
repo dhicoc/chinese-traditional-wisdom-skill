@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openWorkspace } from './p13-helpers';
+import { openWorkspace, visibleBirthInput } from './p13-helpers';
 
 test.describe('P1.3p 皇极经世用户侧验收', () => {
   test.setTimeout(90000);
@@ -20,7 +20,7 @@ test.describe('P1.3p 皇极经世用户侧验收', () => {
     const initialChart = await chart.textContent();
     const acumYear = workspace.getByText('积年', { exact: true }).locator('..');
     const initialAcumYear = await acumYear.textContent();
-    const birthYear = page.locator('input[aria-label="全局出生年"]:visible');
+    const birthYear = visibleBirthInput(page, 'year');
     await expect(birthYear).toHaveValue('1990');
 
     await birthYear.fill('1991');

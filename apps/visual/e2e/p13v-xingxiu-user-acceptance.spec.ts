@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openWorkspace } from './p13-helpers';
+import { openWorkspace, visibleBirthInput } from './p13-helpers';
 
 test.describe('P1.3v 二十八星宿用户侧验收', () => {
   test.setTimeout(90000);
@@ -7,7 +7,7 @@ test.describe('P1.3v 二十八星宿用户侧验收', () => {
   test('全局出生年份和计算口径刷新星宿结果，并呈现传统参考边界', async ({ page }) => {
     await openWorkspace(page, '二十八星宿', 'xingxiu');
     const workspace = page.locator('[data-testid="workspace-xingxiu"]');
-    const birthYear = page.locator('input[aria-label="全局出生年"]:visible');
+    const birthYear = visibleBirthInput(page, 'year');
     const birthCard = workspace.getByText('本命星宿', { exact: true }).locator('..');
 
     await expect(workspace.getByRole('heading', { name: '二十八星宿', exact: true })).toBeVisible();

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { visibleBirthInput } from './p13-helpers';
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
 
@@ -33,7 +34,7 @@ test.describe('P1.3h 风水罗盘用户侧验收', () => {
 
     const mingGua = workspace.getByText(/命卦：.+卦 ·/).first();
     const previousMingGua = await mingGua.textContent();
-    const birthYear = page.locator('input[aria-label="全局出生年"]:visible');
+    const birthYear = visibleBirthInput(page, 'year');
     await birthYear.fill('1991');
     await birthYear.press('Tab');
     await expect(mingGua).not.toHaveText(previousMingGua ?? '');

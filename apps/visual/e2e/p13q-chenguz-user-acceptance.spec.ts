@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openWorkspace } from './p13-helpers';
+import { openWorkspace, visibleBirthInput } from './p13-helpers';
 
 test.describe('P1.3q 袁天罡称骨用户侧验收', () => {
   test.setTimeout(90000);
@@ -16,7 +16,7 @@ test.describe('P1.3q 袁天罡称骨用户侧验收', () => {
 
     const result = workspace.getByText(/称骨 · 总重.+两/).first().locator('..');
     const initialResult = await result.textContent();
-    const birthYear = page.locator('input[aria-label="全局出生年"]:visible');
+    const birthYear = visibleBirthInput(page, 'year');
     await expect(birthYear).toHaveValue('1990');
 
     await birthYear.fill('1983');

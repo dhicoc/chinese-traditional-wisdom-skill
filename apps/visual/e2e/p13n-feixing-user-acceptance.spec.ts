@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openWorkspace } from './p13-helpers';
+import { openWorkspace, visibleBirthInput } from './p13-helpers';
 
 test.describe('P1.3n 流年飞星用户侧验收', () => {
   test.setTimeout(90000);
@@ -32,7 +32,7 @@ test.describe('P1.3n 流年飞星用户侧验收', () => {
 
     const mingGua = workspace.getByText('命卦合参', { exact: true }).locator('..');
     const initialMingGua = await mingGua.textContent();
-    const birthYear = page.locator('input[aria-label="全局出生年"]:visible');
+    const birthYear = visibleBirthInput(page, 'year');
     await birthYear.fill('1991');
     await birthYear.press('Tab');
     await expect(birthYear).toHaveValue('1991');

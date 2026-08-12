@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openWorkspace } from './p13-helpers';
+import { openWorkspace, visibleBirthInput } from './p13-helpers';
 
 test.describe('P1.3m 奇门遁甲用户侧验收', () => {
   test.setTimeout(90000);
@@ -19,7 +19,7 @@ test.describe('P1.3m 奇门遁甲用户侧验收', () => {
     const initialChart = await chart.textContent();
     const hourPillar = workspace.locator('dt').filter({ hasText: /^时柱$/ }).locator('..');
     const initialHourPillar = await hourPillar.textContent();
-    const birthHour = page.locator('input[aria-label="全局出生时"]:visible');
+    const birthHour = visibleBirthInput(page, 'hour');
     await expect(birthHour).toHaveValue('12');
 
     await birthHour.fill('9');

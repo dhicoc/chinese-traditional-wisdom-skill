@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openWorkspace } from './p13-helpers';
+import { openWorkspace, visibleBirthInput } from './p13-helpers';
 
 test.describe('P1.3d 用户侧高频咨询验收', () => {
   test.setTimeout(90000);
@@ -56,7 +56,7 @@ test.describe('P1.3d 用户侧高频咨询验收', () => {
     await dateInput.fill('2025-07-15');
     const previousNatalYear = await workspace.locator('table').getByRole('row').nth(1).locator('td').nth(0).textContent();
 
-    const birthYear = page.locator('input[aria-label="全局出生年"]:visible');
+    const birthYear = visibleBirthInput(page, 'year');
     await birthYear.fill('1992');
     await birthYear.press('Tab');
 
