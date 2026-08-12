@@ -1,16 +1,5 @@
 import { test, expect } from '@playwright/test';
-
-const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
-
-async function openWorkspace(page: import('@playwright/test').Page, title: string, workspaceId: string) {
-  await page.goto(BASE_URL);
-  await expect(page.locator('[data-testid="app-shell"]')).toBeVisible();
-  await page.getByRole('button', { name: '打开命令面板' }).click();
-  const input = page.getByTestId('command-input');
-  await input.fill(title);
-  await page.getByTestId('command-result').filter({ hasText: title }).filter({ hasText: '导航' }).click();
-  await expect(page.locator(`[data-testid="workspace-${workspaceId}"]`)).toBeVisible({ timeout: 60000 });
-}
+import { expectNoHorizontalOverflow, openWorkspace, visibleBirthInput } from './p13-helpers';
 
 test.describe('P1.3m 奇门遁甲用户侧验收', () => {
   test.setTimeout(90000);
@@ -30,7 +19,7 @@ test.describe('P1.3m 奇门遁甲用户侧验收', () => {
     const initialChart = await chart.textContent();
     const hourPillar = workspace.locator('dt').filter({ hasText: /^时柱$/ }).locator('..');
     const initialHourPillar = await hourPillar.textContent();
-    const birthHour = page.locator('input[aria-label="全局出生时"]:visible');
+    const birthHour = visibleBirthInput(page, 'hour');
     await expect(birthHour).toHaveValue('12');
 
     await birthHour.fill('9');
@@ -47,6 +36,6 @@ test.describe('P1.3m 奇门遁甲用户侧验收', () => {
     await expect(workspace.getByTestId('qimen-chart')).toBeVisible();
 
     await expect(workspace.getByText('奇门遁甲结果仅作传统术数文化学习参考，不作为现实决策依据。')).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual((await page.viewportSize())!.width + 1);
+    await expectNoHorizontalOverflow(page);
   });
 });

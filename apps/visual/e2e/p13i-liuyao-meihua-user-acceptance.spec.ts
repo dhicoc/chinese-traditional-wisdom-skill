@@ -1,20 +1,5 @@
 import { test, expect } from '@playwright/test';
-
-const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
-
-async function openWorkspace(page: import('@playwright/test').Page, title: string, workspaceId: string) {
-  await page.goto(BASE_URL);
-  await expect(page.locator('[data-testid="app-shell"]')).toBeVisible();
-  await page.getByRole('button', { name: '打开命令面板' }).click();
-  const input = page.getByTestId('command-input');
-  await input.fill(title);
-  await page.getByTestId('command-result').filter({ hasText: title }).filter({ hasText: '导航' }).click();
-  await expect(page.locator(`[data-testid="workspace-${workspaceId}"]`)).toBeVisible({ timeout: 60000 });
-}
-
-async function expectNoHorizontalOverflow(page: import('@playwright/test').Page) {
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual((await page.viewportSize())!.width + 1);
-}
+import { expectNoHorizontalOverflow, openWorkspace } from './p13-helpers';
 
 test.describe('P1.3i 六爻与梅花用户侧验收', () => {
   test.setTimeout(90000);

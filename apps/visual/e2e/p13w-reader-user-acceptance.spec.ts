@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { expectNoHorizontalOverflow } from './p13-helpers';
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
 
@@ -34,6 +35,6 @@ test.describe('P1.3w 古籍阅读用户侧验收', () => {
     await expect(searchInput).toHaveValue('');
     await expect(workspace.locator('mark')).toHaveCount(0);
     await expect(workspace.getByText('古籍阅读内容仅作传统文化知识学习参考，不作为现实决策依据。')).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual((await page.viewportSize())!.width + 1);
+    await expectNoHorizontalOverflow(page);
   });
 });

@@ -1,16 +1,5 @@
 import { test, expect } from '@playwright/test';
-
-const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
-
-async function openWorkspace(page: import('@playwright/test').Page, title: string, workspaceId: string) {
-  await page.goto(BASE_URL);
-  await expect(page.locator('[data-testid="app-shell"]')).toBeVisible();
-  await page.getByRole('button', { name: '打开命令面板' }).click();
-  const input = page.getByTestId('command-input');
-  await input.fill(title);
-  await page.getByTestId('command-result').filter({ hasText: title }).filter({ hasText: '导航' }).click();
-  await expect(page.locator(`[data-testid="workspace-${workspaceId}"]`)).toBeVisible({ timeout: 60000 });
-}
+import { expectNoHorizontalOverflow, openWorkspace, visibleBirthInput } from './p13-helpers';
 
 test.describe('P1.3q 袁天罡称骨用户侧验收', () => {
   test.setTimeout(90000);
@@ -27,7 +16,7 @@ test.describe('P1.3q 袁天罡称骨用户侧验收', () => {
 
     const result = workspace.getByText(/称骨 · 总重.+两/).first().locator('..');
     const initialResult = await result.textContent();
-    const birthYear = page.locator('input[aria-label="全局出生年"]:visible');
+    const birthYear = visibleBirthInput(page, 'year');
     await expect(birthYear).toHaveValue('1990');
 
     await birthYear.fill('1983');
@@ -49,6 +38,6 @@ test.describe('P1.3q 袁天罡称骨用户侧验收', () => {
     await birthYear.press('Tab');
     await expect(birthYear).toHaveValue('1990');
     await expect(workspace.getByText('称骨结果仅作传统民俗文化学习参考，不作为现实决策依据。')).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual((await page.viewportSize())!.width + 1);
+    await expectNoHorizontalOverflow(page);
   });
 });

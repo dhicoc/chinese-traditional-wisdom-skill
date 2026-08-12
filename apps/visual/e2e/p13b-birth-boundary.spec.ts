@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { fillVisibleBirthField } from './p13-helpers';
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
 
@@ -10,16 +11,10 @@ async function openBazi(page: Page) {
   await expect(page.getByRole('heading', { name: '八字排盘' })).toBeVisible();
 }
 
-async function fillBirthField(page: Page, ariaLabel: string, value: string) {
-  const field = page.locator(`input[aria-label="${ariaLabel}"]:visible`);
-  await field.fill(value);
-  await field.blur();
-}
-
 test.describe('出生时间与真太阳时边界验收', () => {
   test('默认以民用时间展示，并明确等待 Agent 真太阳时核验', async ({ page }) => {
     await openBazi(page);
-    await fillBirthField(page, '全局出生分', '37');
+    await fillVisibleBirthField(page, 'minute', '37');
 
     await expect(page.getByText('民用时间：1990-06-15 12:37')).toBeVisible();
     await expect(page.getByText('等待 Agent 核验出生地点、历史时区与夏令时；当前暂按民用时间展示，尚未称为真太阳时排盘。')).toBeVisible();
@@ -36,16 +31,16 @@ test.describe('出生时间与真太阳时边界验收', () => {
 
   test('修改小时和分钟后保留民用出生记录', async ({ page }) => {
     await openBazi(page);
-    await fillBirthField(page, '全局出生时', '13');
-    await fillBirthField(page, '全局出生分', '5');
+    await fillVisibleBirthField(page, 'hour', '13');
+    await fillVisibleBirthField(page, 'minute', '5');
 
     await expect(page.getByText('民用时间：1990-06-15 13:05')).toBeVisible();
   });
 
   test('子初附近的民用时间不会被前端自行校正', async ({ page }) => {
     await openBazi(page);
-    await fillBirthField(page, '全局出生时', '00');
-    await fillBirthField(page, '全局出生分', '10');
+    await fillVisibleBirthField(page, 'hour', '00');
+    await fillVisibleBirthField(page, 'minute', '10');
 
     await expect(page.getByText('民用时间：1990-06-15 00:10')).toBeVisible();
     await expect(page.getByText(/真太阳时已跨越/)).toHaveCount(0);

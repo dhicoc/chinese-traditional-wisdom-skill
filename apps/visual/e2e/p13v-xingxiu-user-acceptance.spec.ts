@@ -1,16 +1,5 @@
 import { test, expect } from '@playwright/test';
-
-const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
-
-async function openWorkspace(page: import('@playwright/test').Page, title: string, workspaceId: string) {
-  await page.goto(BASE_URL);
-  await expect(page.locator('[data-testid="app-shell"]')).toBeVisible();
-  await page.getByRole('button', { name: '打开命令面板' }).click();
-  const input = page.getByTestId('command-input');
-  await input.fill(title);
-  await page.getByTestId('command-result').filter({ hasText: title }).filter({ hasText: '导航' }).click();
-  await expect(page.locator(`[data-testid="workspace-${workspaceId}"]`)).toBeVisible({ timeout: 60000 });
-}
+import { expectNoHorizontalOverflow, openWorkspace, visibleBirthInput } from './p13-helpers';
 
 test.describe('P1.3v 二十八星宿用户侧验收', () => {
   test.setTimeout(90000);
@@ -18,7 +7,7 @@ test.describe('P1.3v 二十八星宿用户侧验收', () => {
   test('全局出生年份和计算口径刷新星宿结果，并呈现传统参考边界', async ({ page }) => {
     await openWorkspace(page, '二十八星宿', 'xingxiu');
     const workspace = page.locator('[data-testid="workspace-xingxiu"]');
-    const birthYear = page.locator('input[aria-label="全局出生年"]:visible');
+    const birthYear = visibleBirthInput(page, 'year');
     const birthCard = workspace.getByText('本命星宿', { exact: true }).locator('..');
 
     await expect(workspace.getByRole('heading', { name: '二十八星宿', exact: true })).toBeVisible();
@@ -45,6 +34,6 @@ test.describe('P1.3v 二十八星宿用户侧验收', () => {
     await birthYear.press('Tab');
     await expect(birthYear).toHaveValue('1990');
     await expect(workspace.getByText('二十八星宿结果仅作传统文化学习参考，不作为现实决策依据。')).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual((await page.viewportSize())!.width + 1);
+    await expectNoHorizontalOverflow(page);
   });
 });

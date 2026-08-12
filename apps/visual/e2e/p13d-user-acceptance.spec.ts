@@ -1,16 +1,5 @@
 import { test, expect } from '@playwright/test';
-
-const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
-
-async function openWorkspace(page: import('@playwright/test').Page, title: string, workspaceId: string) {
-  await page.goto(BASE_URL);
-  await expect(page.locator('[data-testid="app-shell"]')).toBeVisible();
-  await page.getByRole('button', { name: '打开命令面板' }).click();
-  const input = page.getByTestId('command-input');
-  await input.fill(title);
-  await page.getByTestId('command-result').filter({ hasText: title }).filter({ hasText: '导航' }).click();
-  await expect(page.locator(`[data-testid="workspace-${workspaceId}"]`)).toBeVisible({ timeout: 60000 });
-}
+import { openWorkspace, visibleBirthInput } from './p13-helpers';
 
 test.describe('P1.3d 用户侧高频咨询验收', () => {
   test.setTimeout(90000);
@@ -67,7 +56,7 @@ test.describe('P1.3d 用户侧高频咨询验收', () => {
     await dateInput.fill('2025-07-15');
     const previousNatalYear = await workspace.locator('table').getByRole('row').nth(1).locator('td').nth(0).textContent();
 
-    const birthYear = page.locator('input[aria-label="全局出生年"]:visible');
+    const birthYear = visibleBirthInput(page, 'year');
     await birthYear.fill('1992');
     await birthYear.press('Tab');
 

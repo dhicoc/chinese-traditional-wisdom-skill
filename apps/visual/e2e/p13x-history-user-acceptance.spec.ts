@@ -1,18 +1,5 @@
 import { test, expect } from '@playwright/test';
-
-const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
-
-async function openCommandPalette(page: import('@playwright/test').Page) {
-  await page.getByRole('button', { name: '打开命令面板' }).click();
-  return page.getByTestId('command-input');
-}
-
-async function navigateFromCommandPalette(page: import('@playwright/test').Page, title: string, workspaceId: string) {
-  const input = await openCommandPalette(page);
-  await input.fill(title);
-  await page.getByTestId('command-result').filter({ hasText: title }).filter({ hasText: '导航' }).click();
-  await expect(page.locator(`[data-testid="workspace-${workspaceId}"]`)).toBeVisible({ timeout: 60000 });
-}
+import { BASE_URL, expectNoHorizontalOverflow, openWorkspace } from './p13-helpers';
 
 test.describe('P1.3x 本地历史与收藏用户侧验收', () => {
   test.setTimeout(90000);
@@ -24,10 +11,9 @@ test.describe('P1.3x 本地历史与收藏用户侧验收', () => {
     await page.reload();
     await expect(page.locator('[data-testid="app-shell"]')).toBeVisible();
 
-    await navigateFromCommandPalette(page, '古籍阅读', 'reader');
-    await navigateFromCommandPalette(page, '本地历史与收藏', 'history');
+    await openWorkspace(page, '古籍阅读', 'reader');
+    const workspace = await openWorkspace(page, '本地历史与收藏', 'history');
 
-    const workspace = page.locator('[data-testid="workspace-history"]');
     await expect(workspace.locator('h2').filter({ hasText: '本地历史与收藏' })).toBeVisible();
     await expect(workspace.getByText('历史记录', { exact: true })).toBeVisible();
     await expect(workspace.getByRole('button', { name: '收藏 (0)', exact: true })).toBeVisible();
@@ -48,6 +34,6 @@ test.describe('P1.3x 本地历史与收藏用户侧验收', () => {
 
     await expect(workspace.getByText('仅保留模块、标题、摘要和标签，不保存完整姓名、完整出生日期或具体地点。')).toBeVisible();
     await expect(workspace.getByText('数据完全本地化，不上传任何服务器。')).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual((await page.viewportSize())!.width + 1);
+    await expectNoHorizontalOverflow(page);
   });
 });

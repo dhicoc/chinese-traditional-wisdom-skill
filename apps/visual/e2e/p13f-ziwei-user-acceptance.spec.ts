@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { visibleBirthInput } from './p13-helpers';
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
 
@@ -14,7 +15,7 @@ test.describe('P1.3f 紫微斗数用户侧验收', () => {
     const chart = workspace.getByTestId('ziwei-palace-grid');
     await expect(chart).toBeVisible();
 
-    const birthYear = page.locator('input[aria-label="全局出生年"]:visible');
+    const birthYear = visibleBirthInput(page, 'year');
     await birthYear.fill('1991');
     await birthYear.press('Tab');
     await expect(chart).toContainText('1991年6月15日');
