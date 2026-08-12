@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { calculateBazi as calculateBaziPure } from '@/legacy/baziEngine';
+import { calculateBazi as calculateBaziPure } from '@/engine-api/bazi';
 import { getSolarEntry } from '@/legacy/solarEntry';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { HomeBaziPlate } from '@/components/shared/HomeBaziPlate';

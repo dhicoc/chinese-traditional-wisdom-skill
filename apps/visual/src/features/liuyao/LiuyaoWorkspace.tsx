@@ -9,7 +9,7 @@ import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import type { LiuyaoData } from '@/legacy/canvasRenderers';
 import type { LiuyaoLine } from '@/legacy/divinationTypes';
-import { calculateLiuyao as calculateLiuyaoPure, calcLiuyaoEnveloped, type LiuyaoInput } from '@/legacy/liuyaoEngine';
+import { calculateLiuyao as calculateLiuyaoPure, calcLiuyaoEnveloped, type LiuyaoInput } from '@/engine-api/divination';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';

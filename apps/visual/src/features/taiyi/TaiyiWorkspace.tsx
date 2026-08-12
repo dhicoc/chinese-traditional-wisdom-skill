@@ -9,9 +9,9 @@ import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { TaiyiChart } from '@/components/shared/TaiyiChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
-import { calcTaiyiEnveloped, JI_STYLE_NAMES, ACUM_YEAR_NAMES, type TaiyiData, type JiStyle, type AcumYearMethod } from '@/legacy/taiyiEngine';
+import { calcTaiyiEnveloped, JI_STYLE_NAMES, ACUM_YEAR_NAMES, type TaiyiData, type JiStyle, type AcumYearMethod } from '@/engine-api/divination';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
-import type { ToolEnvelope } from '@/legacy/baseTypes';
+import type { ToolEnvelope } from '@/engine-api/types';
 
 /** 宫数→宫名（太乙九宫：1乾/2午/3艮/4卯/5中/6酉/7坤/8子/9巽） */
 const NUM2GONG: Record<number, string> = { 1: '乾', 2: '午', 3: '艮', 4: '卯', 5: '中', 6: '酉', 7: '坤', 8: '子', 9: '巽' };

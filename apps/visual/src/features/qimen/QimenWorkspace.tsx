@@ -3,7 +3,7 @@ import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
-import { calculateQimen as calculateQimenPure, calcQimenEnveloped } from '@/legacy/qimenEngine';
+import { calculateQimen as calculateQimenPure, calcQimenEnveloped } from '@/engine-api/divination';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { QimenChart } from '@/components/shared/QimenChart';

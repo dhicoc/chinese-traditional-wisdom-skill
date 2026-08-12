@@ -13,7 +13,7 @@ import {
   getZiweiTransitSnapshot,
   type ZiweiPalace,
   type ZiweiStar,
-} from '@/legacy/ziweiEngine';
+} from '@/engine-api/ziwei';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';

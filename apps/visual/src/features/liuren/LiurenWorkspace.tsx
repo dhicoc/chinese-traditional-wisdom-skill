@@ -9,9 +9,9 @@ import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { DaliurenChart } from '@/components/shared/DaliurenChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
-import { calcDaliurenEnveloped, DALIUREN_SCHOOLS, type DaliurenData, type DaliurenSchool } from '@/legacy/daliurenEngine';
+import { calcDaliurenEnveloped, DALIUREN_SCHOOLS, type DaliurenData, type DaliurenSchool } from '@/engine-api/divination';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
-import type { ToolEnvelope } from '@/legacy/baseTypes';
+import type { ToolEnvelope } from '@/engine-api/types';
 
 /**
  * 大六壬工作区。

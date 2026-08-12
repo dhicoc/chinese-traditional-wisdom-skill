@@ -7,21 +7,19 @@ import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferenceP
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import {
+  calcMenZhuZao,
+  calcTaisui,
+  checkMingZhaiCompatibility,
+  combineBazhaiFeixing,
+  FACING_OPTIONS,
   getBazhaiGrid,
   getBazhaiSummary,
   getFeixingGrid,
-} from '@/legacy/canvasRenderers';
-import {
-  checkMingZhaiCompatibility,
-  combineBazhaiFeixing,
   getHouseGua,
   getPersonalDirections,
   getSectorAnalysis,
   SHAPE_SHA,
-  FACING_OPTIONS,
-} from '@/legacy/bazhaiHouse';
-import { calcTaisui } from '@/legacy/taisuiEngine';
-import { calcMenZhuZao } from '@/legacy/menZhuZaoEngine';
+} from '@/engine-api/bazhai';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 
 export function BazhaiWorkspace() {

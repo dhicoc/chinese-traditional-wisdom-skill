@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { calculateYunqi } from '@/legacy/yunqiEngine';
+import { calculateYunqi } from '@/engine-api/yunqi';
 import { getSolarEntry } from '@/legacy/solarEntry';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
@@ -7,12 +7,13 @@ import { ControlField } from '@/components/shared/ControlField';
 import { RadarChart, type RadarAxis } from '@/components/shared/RadarChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import {
+  calculateScoresFromAnswers,
   deriveDominantConstitution,
+  getConstitutionTendency,
   type ConstitutionScores,
-} from '@/legacy/canvasRenderers';
+} from '@/engine-api/daily';
 import { CONSTITUTION_TYPES } from '@/legacy/baseTypes';
-import { QUESTIONNAIRE, calculateScoresFromAnswers } from '@/legacy/constitutionQuestionnaire';
-import { getConstitutionTendency } from '@/legacy/constitutionTendency';
+import { QUESTIONNAIRE } from '@/legacy/constitutionQuestionnaire';
 import { useBirth } from '@/lib/birthContext';
 
 const DEFAULT_SCORES: ConstitutionScores = {
