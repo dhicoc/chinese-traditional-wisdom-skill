@@ -19,11 +19,21 @@ import {
 } from '@/engine-api/divination';
 import {
   calcMenZhuZao,
+  calcMingGua,
   calcTaisui,
   combineBazhaiFeixing,
   getBazhaiGrid,
   getBazhaiSummary,
+  getFeixingSummary,
+  getYuanYun,
+  NINE_STAR_REMEDIES,
 } from '@/engine-api/bazhai';
+import {
+  calcCezi,
+  calcChenguz,
+  calcHuangjiEnveloped,
+  calcXingXiuEnveloped,
+} from '@/engine-api/folklore';
 import {
   calculateScoresFromAnswers,
   deriveDominantConstitution,
@@ -59,9 +69,22 @@ import { calcTaiyiEnveloped as calcTaiyiEnvelopedLegacy } from '@/legacy/taiyiEn
 import { calcTaisui as calcTaisuiLegacy } from '@/legacy/taisuiEngine';
 import { calcYunqiEnveloped as calcYunqiEnvelopedLegacy, calculateYunqi as calculateYunqiLegacy } from '@/legacy/yunqiEngine';
 import { calcZiweiEnveloped as calcZiweiEnvelopedLegacy, calculateZiwei as calculateZiweiLegacy, getZiweiTransitSnapshot as getZiweiTransitSnapshotLegacy } from '@/legacy/ziweiEngine';
-import { combineBazhaiFeixing as combineBazhaiFeixingLegacy } from '@/legacy/bazhaiHouse';
-import { getBazhaiGrid as getBazhaiGridLegacy, getBazhaiSummary as getBazhaiSummaryLegacy, deriveDominantConstitution as deriveDominantConstitutionLegacy } from '@/legacy/canvasRenderers';
+import {
+  calcMingGua as calcMingGuaLegacy,
+  combineBazhaiFeixing as combineBazhaiFeixingLegacy,
+} from '@/legacy/bazhaiHouse';
+import {
+  deriveDominantConstitution as deriveDominantConstitutionLegacy,
+  getBazhaiGrid as getBazhaiGridLegacy,
+  getBazhaiSummary as getBazhaiSummaryLegacy,
+  getFeixingSummary as getFeixingSummaryLegacy,
+} from '@/legacy/canvasRenderers';
+import { calcCezi as calcCeziLegacy } from '@/legacy/ceziEngine';
+import { calcChenguz as calcChenguzLegacy } from '@/legacy/chenguzEngine';
 import { calculateScoresFromAnswers as calculateScoresFromAnswersLegacy } from '@/legacy/constitutionQuestionnaire';
+import { NINE_STAR_REMEDIES as NINE_STAR_REMEDIES_LEGACY, getYuanYun as getYuanYunLegacy } from '@/legacy/flyingStarRemedies';
+import { calcHuangjiEnveloped as calcHuangjiEnvelopedLegacy } from '@/legacy/huangjiEngine';
+import { calcXingXiuEnveloped as calcXingXiuEnvelopedLegacy } from '@/legacy/xingxiuEngine';
 import { getConstitutionTendency as getConstitutionTendencyLegacy } from '@/legacy/constitutionTendency';
 
 describe('engine-api', () => {
@@ -109,5 +132,19 @@ describe('engine-api', () => {
     expect(deriveDominantConstitution).toBe(deriveDominantConstitutionLegacy);
     expect(calculateScoresFromAnswers).toBe(calculateScoresFromAnswersLegacy);
     expect(getConstitutionTendency).toBe(getConstitutionTendencyLegacy);
+  });
+
+  it('公开飞星与方位 API 仅转发既有本地计算函数和映射', () => {
+    expect(getFeixingSummary).toBe(getFeixingSummaryLegacy);
+    expect(getYuanYun).toBe(getYuanYunLegacy);
+    expect(calcMingGua).toBe(calcMingGuaLegacy);
+    expect(NINE_STAR_REMEDIES).toBe(NINE_STAR_REMEDIES_LEGACY);
+  });
+
+  it('公开民俗 API 仅转发既有本地计算函数', () => {
+    expect(calcXingXiuEnveloped).toBe(calcXingXiuEnvelopedLegacy);
+    expect(calcHuangjiEnveloped).toBe(calcHuangjiEnvelopedLegacy);
+    expect(calcCezi).toBe(calcCeziLegacy);
+    expect(calcChenguz).toBe(calcChenguzLegacy);
   });
 });

@@ -33,3 +33,26 @@ export type { TaisuiData } from '@/legacy/taisuiEngine';
 
 export { calcMenZhuZao } from '@/legacy/menZhuZaoEngine';
 export type { MenZhuZaoData, MenZhuZaoInput } from '@/legacy/menZhuZaoEngine';
+
+export { getFeixingSummary } from '@/legacy/canvasRenderers';
+export type { FlyingStarsSummary } from '@/legacy/canvasRenderers';
+
+export { calcMingGua } from '@/legacy/bazhaiHouse';
+export type { MingGua } from '@/legacy/bazhaiHouse';
+
+export {
+  DIR_TO_PALACE,
+  getStarStatuses,
+  getYuanYun,
+  MING_GUA_DIRECTIONS,
+  NINE_STAR_REMEDIES,
+  PALACE_TO_DIR,
+  YUAN_YUN,
+} from '@/legacy/flyingStarRemedies';
+
+export type {
+  MingGuaDirections,
+  NineStarRemedy,
+  StarStatus,
+  YuanYun,
+} from '@/legacy/flyingStarRemedies';

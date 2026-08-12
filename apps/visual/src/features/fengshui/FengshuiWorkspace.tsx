@@ -5,8 +5,14 @@ import { FengshuiCompass } from '@/components/shared/FengshuiCompass';
 import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
-import { getFeixingGrid, getBazhaiGrid } from '@/legacy/canvasRenderers';
-import { NINE_STAR_REMEDIES, MING_GUA_DIRECTIONS, PALACE_TO_DIR, getYuanYun } from '@/legacy/flyingStarRemedies';
+import {
+  getFeixingGrid,
+  getBazhaiGrid,
+  NINE_STAR_REMEDIES,
+  MING_GUA_DIRECTIONS,
+  PALACE_TO_DIR,
+  getYuanYun,
+} from '@/engine-api/bazhai';
 import { useBirth } from '@/lib/birthContext';
 
 // 坐向选项（坐山→朝向）

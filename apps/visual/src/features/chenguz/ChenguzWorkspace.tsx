@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { getSolarEntry } from '@/legacy/solarEntry';
 import { useBirth } from '@/lib/birthContext';
-import { calcChenguz, type ChenguzResult } from '@/legacy/chenguzEngine';
+import { calcChenguz, type ChenguzResult } from '@/engine-api/folklore';
 import { CHENGUZ_VERSIONS, DEFAULT_CHENGUZ_VERSION, type ChenguzVersionId } from '@/legacy/chenguzVersions';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';

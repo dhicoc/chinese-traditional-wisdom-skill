@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { calcMingGua } from '@/legacy/bazhaiHouse';
 import { ControlField } from '@/components/shared/ControlField';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { LegendPanel, type LegendItem } from '@/components/shared/LegendPanel';
@@ -8,19 +7,18 @@ import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
 import { NinePalaceGrid } from '@/components/shared/NinePalaceGrid';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
-import {
-  getFeixingGrid,
-  getFeixingSummary,
-} from '@/legacy/canvasRenderers';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import {
+  calcMingGua,
+  getFeixingGrid,
+  getFeixingSummary,
   NINE_STAR_REMEDIES,
   getYuanYun,
   getStarStatuses,
   MING_GUA_DIRECTIONS,
   PALACE_TO_DIR,
   type NineStarRemedy,
-} from '@/legacy/flyingStarRemedies';
+} from '@/engine-api/bazhai';
 import { useBirth } from '@/lib/birthContext';
 import {
   YEAR_INTENT_EVENT,

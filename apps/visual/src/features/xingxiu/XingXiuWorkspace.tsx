@@ -7,9 +7,9 @@ import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { XingXiuChart } from '@/components/shared/XingXiuChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
-import { calcXingXiuEnveloped, type XingXiuData, type XingXiuEntry, type XiuMethod } from '@/legacy/xingxiuEngine';
+import { calcXingXiuEnveloped, type XingXiuData, type XingXiuEntry, type XiuMethod } from '@/engine-api/folklore';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
-import type { ToolEnvelope } from '@/legacy/baseTypes';
+import type { ToolEnvelope } from '@/engine-api/types';
 
 /**
  * 二十八星宿工作区。

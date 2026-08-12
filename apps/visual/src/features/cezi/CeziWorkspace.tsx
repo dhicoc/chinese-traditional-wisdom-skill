@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getSolarEntry } from '@/legacy/solarEntry';
 import { useBirth } from '@/lib/birthContext';
-import { calcCezi, type CeziResult } from '@/legacy/ceziEngine';
+import { calcCezi, type CeziResult } from '@/engine-api/folklore';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';

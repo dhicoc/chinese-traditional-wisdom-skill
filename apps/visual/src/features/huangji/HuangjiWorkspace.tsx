@@ -7,9 +7,9 @@ import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { HuangjiGuaCircle } from '@/components/shared/HuangjiGuaCircle';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
-import { calcHuangjiEnveloped, type HuangjiData } from '@/legacy/huangjiEngine';
+import { calcHuangjiEnveloped, type HuangjiData } from '@/engine-api/folklore';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
-import type { ToolEnvelope } from '@/legacy/baseTypes';
+import type { ToolEnvelope } from '@/engine-api/types';
 
 /**
  * 皇极经世工作区。
