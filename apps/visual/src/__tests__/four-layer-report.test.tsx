@@ -122,29 +122,6 @@ describe('FourLayerReport 渲染', () => {
     expect(screen.getAllByRole('listitem')[1].textContent).toContain('流派口径可能存在差异');
   });
 
-  it('有语义报告时显示已核对事实、免责声明与传统解释标签', () => {
-    const report: LayerReport = {
-      tldr: 't', overallTone: '中', highlights: [], details: [{ heading: '四柱', body: '传统解释' }], actions: [],
-    };
-    render(
-      <FourLayerReport
-        report={report}
-        semanticReport={{
-          facts: [{ label: '日主', value: '辛', tool: 'bazi_calculate' }],
-          traditionalInterpretations: [{ heading: '四柱', body: '传统解释' }],
-          actions: [],
-          disclaimers: ['仅作传统文化参考。'],
-        }}
-      />,
-    );
-
-    expect(screen.getByText('结构化事实核对')).toBeInTheDocument();
-    expect(screen.getByText('日主')).toBeInTheDocument();
-    expect(screen.getByText('以下内容已与本次本地计算结果核对；不包含传统解释、建议或现实效果判断。')).toBeInTheDocument();
-    expect(screen.getByText('免责声明')).toBeInTheDocument();
-    expect(screen.getByText('查看传统解释')).toBeInTheDocument();
-  });
-
   it('用显式语义报告渲染已核对事实与传统解释边界', () => {
     const report: LayerReport = {
       tldr: 't', overallTone: '中', highlights: [], details: [{ heading: '四柱', body: '传统解释' }], actions: [],
@@ -164,6 +141,8 @@ describe('FourLayerReport 渲染', () => {
     expect(screen.getByText('结构化事实核对')).toBeInTheDocument();
     expect(screen.getByText('日干支')).toBeInTheDocument();
     expect(screen.getByText('甲子')).toBeInTheDocument();
+    expect(screen.getByText('以下内容已与本次本地计算结果核对；不包含传统解释、建议或现实效果判断。')).toBeInTheDocument();
+    expect(screen.getByText('免责声明')).toBeInTheDocument();
     expect(screen.getByText('查看传统解释')).toBeInTheDocument();
     expect(screen.getAllByText((_, element) => element?.textContent === '· 仅作传统文化参考。').length).toBeGreaterThan(0);
   });

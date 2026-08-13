@@ -68,7 +68,7 @@ describe('ExportReportButton', () => {
     expect(html).not.toContain('旧章节内容');
   });
 
-  it('从有效 presentation 的语义报告导出已核对事实，不暴露 evidence', () => {
+  it('从有效 presentation 的语义报告导出已核对事实，不暴露运行时附加内部字段', () => {
     const presentation: ExportUserPresentation = {
       report: { summary: '摘要', sections: [] },
       semanticReport: {
@@ -78,17 +78,26 @@ describe('ExportReportButton', () => {
         disclaimers: [],
       },
     };
+    const reportWithInternalField = {
+      ...presentation.report,
+      evidence: 'INTERNAL_EVIDENCE_SENTINEL',
+    };
+    const presentationWithInternalField = {
+      ...presentation,
+      report: reportWithInternalField,
+      internalEvidence: 'INTERNAL_EVIDENCE_SENTINEL',
+    };
     const html = createExportReportHtml({
       title: '星宿报告',
       generatedAt: '2026/8/7 12:00:00',
       birthSummary: '1990年6月15日 12时',
-      ...presentation,
+      ...presentationWithInternalField,
     });
 
     expect(html).toContain('结构化事实核对');
     expect(html).toContain('值宿');
     expect(html).toContain('角');
-    expect(html).not.toContain('evidence');
+    expect(html).not.toContain('INTERNAL_EVIDENCE_SENTINEL');
   });
 
   it('以 HTML Blob 和 .html 文件名下载传入的结构化报告', async () => {

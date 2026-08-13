@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 
-describe('Dashboard 结构化事实边界', () => {
-  it('仅将已验证事实带入语义报告，并保留 export_snapshot 的可导出正文', () => {
+describe('共享 presentation adapter 的 valid-only filtering', () => {
+  it('仅将手工注入的已验证事实带入语义报告，并保留 export_snapshot 的可导出正文', () => {
     const factChecks: StructuredFactCheck[] = [
       {
         fact: { label: '值宿', value: '角', tool: 'xingxiu_daily' },
