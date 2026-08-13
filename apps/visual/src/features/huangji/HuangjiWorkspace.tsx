@@ -52,8 +52,21 @@ export function HuangjiWorkspace() {
       const solarEntry = getSolarEntry();
       const env = calcHuangjiEnveloped({ birth: solarBirth, solar: solarEntry ?? null });
       return { envelope: env, loading: false };
-    } catch {
-      return { envelope: null, loading: false };
+    } catch (error) {
+      return {
+        envelope: {
+          ok: false,
+          tool: 'huangji_calculate',
+          version: 'unknown',
+          input_normalized: { birth: solarBirth },
+          data: {} as HuangjiData,
+          error: {
+            code: 'calculation_exception',
+            message: error instanceof Error && error.message ? error.message : '本次计算未能完成，请核对输入后重试。',
+          },
+        },
+        loading: false,
+      };
     }
   }, [solarBirth]);
 
@@ -77,6 +90,16 @@ export function HuangjiWorkspace() {
     warnings: presentation.warnings,
     semanticReport: presentation.semanticReport,
   }) : null, [presentation]);
+
+  if (presentation?.state === 'error') {
+    return (
+      <section className="space-y-4">
+        <InterpretationCard title="计算未完成" subtitle="请核对输入">
+          <p className="text-sm text-jade-100/55">{presentation.error?.message}</p>
+        </InterpretationCard>
+      </section>
+    );
+  }
 
   if (!data) {
     return (

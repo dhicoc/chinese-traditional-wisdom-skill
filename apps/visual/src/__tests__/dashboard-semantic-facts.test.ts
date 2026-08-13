@@ -68,16 +68,35 @@ describe('Dashboard 同源 presentation 的核验事实', () => {
     const taiyiFacts = createTaiyiFactChecks(taiyi.data);
     const taiyiPresentation = toUserPresentation(taiyi, { factChecks: taiyiFacts });
     expect(taiyiPresentation.exportReport).not.toBeNull();
+    expect(taiyiPresentation.exportReport?.summary).toBe(taiyi.data.export_snapshot.summary);
+    expect(taiyiPresentation.exportReport?.sections).toEqual(taiyi.data.export_snapshot.sections);
     expect(taiyiPresentation.semanticReport?.facts).toEqual(taiyiFacts.filter(({ validation }) => validation.valid).map(({ fact }) => fact));
 
     const liurenFacts = createLiurenFactChecks(liuren.data);
     const liurenPresentation = toUserPresentation(liuren, { factChecks: liurenFacts });
     expect(liurenPresentation.exportReport).not.toBeNull();
+    expect(liurenPresentation.exportReport?.summary).toBe(liuren.data.export_snapshot.summary);
+    expect(liurenPresentation.exportReport?.sections).toEqual(liuren.data.export_snapshot.sections);
     expect(liurenPresentation.semanticReport?.facts).toEqual(liurenFacts.filter(({ validation }) => validation.valid).map(({ fact }) => fact));
 
     const huangjiFacts = createHuangjiFactChecks(huangji.data);
     const huangjiPresentation = toUserPresentation(huangji, { factChecks: huangjiFacts });
     expect(huangjiPresentation.exportReport).not.toBeNull();
+    expect(huangjiPresentation.exportReport?.summary).toBe(huangji.data.export_snapshot.summary);
+    expect(huangjiPresentation.exportReport?.sections).toEqual(huangji.data.export_snapshot.sections);
     expect(huangjiPresentation.semanticReport?.facts).toEqual(huangjiFacts.filter(({ validation }) => validation.valid).map(({ fact }) => fact));
+  });
+
+  it('失败 envelope 映射为错误 presentation，不提供语义报告或导出报告', () => {
+    const message = '请补充出生时辰。';
+    const presentation = toUserPresentation({
+      ok: false,
+      error: { code: 'validation_error', message },
+    });
+
+    expect(presentation.state).toBe('error');
+    expect(presentation.semanticReport).toBeNull();
+    expect(presentation.exportReport).toBeNull();
+    expect(presentation.error?.message).toBe(message);
   });
 });

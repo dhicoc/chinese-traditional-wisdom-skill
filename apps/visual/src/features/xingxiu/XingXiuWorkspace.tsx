@@ -47,8 +47,20 @@ export function XingXiuWorkspace() {
     try {
       const solarEntry = getSolarEntry();
       return { envelope: calcXingXiuEnveloped({ birth: solarBirth, solar: solarEntry ?? null, method }) };
-    } catch {
-      return { envelope: null };
+    } catch (error) {
+      return {
+        envelope: {
+          ok: false,
+          tool: 'xingxiu_daily',
+          version: 'unknown',
+          input_normalized: { birth: solarBirth, method },
+          data: {} as XingXiuData,
+          error: {
+            code: 'calculation_exception',
+            message: error instanceof Error && error.message ? error.message : '本次计算未能完成，请核对输入后重试。',
+          },
+        },
+      };
     }
   }, [solarBirth, method]);
 
@@ -86,6 +98,16 @@ export function XingXiuWorkspace() {
     所属四象: data?.xiang ?? '—',
     宜忌参考: data?.luck ?? '—',
   }), [data, solarBirth]);
+
+  if (presentation?.state === 'error') {
+    return (
+      <section className="space-y-4">
+        <InterpretationCard title="计算未完成" subtitle="请核对输入">
+          <p className="text-sm text-jade-100/55">{presentation.error?.message}</p>
+        </InterpretationCard>
+      </section>
+    );
+  }
 
   if (!data) {
     return (

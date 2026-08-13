@@ -46,8 +46,21 @@ export function TaiyiWorkspace() {
       const solarEntry = getSolarEntry();
       const env = calcTaiyiEnveloped({ birth: solarBirth, jiStyle, acumYear, solar: solarEntry ?? null });
       return { envelope: env, loading: false };
-    } catch {
-      return { envelope: null, loading: false };
+    } catch (error) {
+      return {
+        envelope: {
+          ok: false,
+          tool: 'taiyi_calculate',
+          version: 'unknown',
+          input_normalized: { birth: solarBirth, jiStyle, acumYear },
+          data: {} as TaiyiData,
+          error: {
+            code: 'calculation_exception',
+            message: error instanceof Error && error.message ? error.message : '本次计算未能完成，请核对输入后重试。',
+          },
+        },
+        loading: false,
+      };
     }
   }, [solarBirth, jiStyle, acumYear]);
 
@@ -76,6 +89,16 @@ export function TaiyiWorkspace() {
     return (
       <section className="space-y-4">
         <LoadingSkeleton label="正在排盘" />
+      </section>
+    );
+  }
+
+  if (presentation?.state === 'error') {
+    return (
+      <section className="space-y-4">
+        <InterpretationCard title="计算未完成" subtitle="请核对输入">
+          <p className="text-sm text-jade-100/55">{presentation.error?.message}</p>
+        </InterpretationCard>
       </section>
     );
   }

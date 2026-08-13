@@ -64,8 +64,21 @@ export function LiurenWorkspace() {
       const solarEntry = getSolarEntry();
       const env = calcDaliurenEnveloped({ birth: solarBirth, solar: solarEntry ?? null, school });
       return { envelope: env, loading: false };
-    } catch {
-      return { envelope: null, loading: false };
+    } catch (error) {
+      return {
+        envelope: {
+          ok: false,
+          tool: 'liuren_calculate',
+          version: 'unknown',
+          input_normalized: { birth: solarBirth, school },
+          data: {} as DaliurenData,
+          error: {
+            code: 'calculation_exception',
+            message: error instanceof Error && error.message ? error.message : '本次计算未能完成，请核对输入后重试。',
+          },
+        },
+        loading: false,
+      };
     }
   }, [solarBirth, school]);
 
@@ -94,6 +107,16 @@ export function LiurenWorkspace() {
     return (
       <section className="space-y-4">
         <LoadingSkeleton label="正在排盘" />
+      </section>
+    );
+  }
+
+  if (presentation?.state === 'error') {
+    return (
+      <section className="space-y-4">
+        <InterpretationCard title="计算未完成" subtitle="请核对输入">
+          <p className="text-sm text-jade-100/55">{presentation.error?.message}</p>
+        </InterpretationCard>
       </section>
     );
   }
