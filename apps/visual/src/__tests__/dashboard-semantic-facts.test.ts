@@ -11,9 +11,11 @@ import {
   calcZeriCombo,
 } from '@/engine-api/combo';
 import { calcMarriageCombo } from '@/engine-api/marriage';
+import { calcZiweiEnveloped } from '@/engine-api/ziwei';
 import { createCeziFactChecks, sanitizeCeziEnvelope } from '@/features/cezi/CeziWorkspace';
 import { createChenguzFactChecks, sanitizeChenguzEnvelope } from '@/features/chenguz/ChenguzWorkspace';
 import { createComboFactChecks, sanitizeComboEnvelope } from '@/features/combo/ComboWorkspace';
+import { createZiweiFactChecks } from '@/features/ziwei/ZiweiWorkspace';
 import { toUserPresentation, type ReadingLike, type StructuredFactCheck } from '@/legacy/reportLayers';
 
 const SAFE_ERROR_MESSAGE = '本次计算未能完成，请核对输入后重试。';
@@ -77,6 +79,38 @@ describe('Dashboard 同源 presentation 的核验事实', () => {
       if (!envelope.ok) throw new Error(`expected ${comboType} envelope`);
       expectPresentationMatchesSnapshot(envelope, factChecks());
     }
+  });
+
+  it('紫微成功 envelope 只产生白名单本命 facts，并与同一导出快照一致', () => {
+    const ziwei = calcZiweiEnveloped({
+      birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '男' },
+      mingGua: { trigram: '乾', group: '西四命' },
+      transit: { year: 2025, month: 3 },
+    });
+
+    expect(ziwei.ok).toBe(true);
+    if (!ziwei.ok) throw new Error('expected successful ziwei envelope');
+
+    const palaceName = Object.keys(ziwei.data.palaces).find((name) => ziwei.data.palaces[name]?.stars.length) ?? Object.keys(ziwei.data.palaces)[0];
+    expect(palaceName).toBeTruthy();
+    const facts = createZiweiFactChecks(ziwei.data, palaceName!);
+
+    expect(facts.map(({ fact }) => fact.label)).toEqual(['五行局', '命主', `${palaceName}宫位`, `${palaceName}主星`]);
+    expect(facts.map(({ fact }) => fact.value)).toEqual([
+      String(ziwei.data.fiveElementsClass),
+      String(ziwei.data.soul),
+      String(ziwei.data.palaces[palaceName!]?.position),
+      String(ziwei.data.palaces[palaceName!]?.stars[0]),
+    ]);
+    expectPresentationMatchesSnapshot(ziwei, facts);
+
+    const invalid: StructuredFactCheck = {
+      fact: { ...facts[0].fact, value: '篡改值' },
+      validation: { valid: false },
+    };
+    const presentation = toUserPresentation(ziwei, { factChecks: [facts[0], invalid], disclaimers: DISCLAIMERS });
+    expect(presentation.semanticReport?.facts).toEqual([facts[0].fact]);
+    expect(presentation.semanticReport?.facts).not.toContainEqual(invalid.fact);
   });
 
   it('未支持的联合模式绝不产生 facts', () => {

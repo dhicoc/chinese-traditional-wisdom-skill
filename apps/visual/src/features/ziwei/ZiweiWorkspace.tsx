@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
@@ -7,14 +7,16 @@ import { ZiweiPalaceGrid } from '@/components/shared/ZiweiPalaceGrid';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import {
-  calculateZiwei as calculateZiweiPure,
   calcZiweiEnveloped,
   getZiweiHoroscopeSummary,
   getZiweiTransitSnapshot,
+  type ZiweiData,
   type ZiweiPalace,
   type ZiweiStar,
 } from '@/engine-api/ziwei';
-import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
+import type { ToolEnvelope } from '@/engine-api/types';
+import { validateZiweiClaims, type ZiweiPresentationClaim } from '@/legacy/claimVerification/ziweiClaimVerifier';
+import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import type { SolarBirth } from '@/legacy/birthBridge';
@@ -23,22 +25,6 @@ import { useBirth } from '@/lib/birthContext';
 interface ZiweiMingGua {
   trigram: string;
   group: string;
-}
-
-interface ZiweiData {
-  birthInfo: Pick<SolarBirth, 'year' | 'month' | 'day' | 'hour' | 'gender'>;
-  mingGua: ZiweiMingGua;
-  palaces: Record<string, ZiweiPalace>;
-  sihua: Record<string, string>;
-  mainStars: string[];
-  engineName?: string;
-  mode?: string;
-  version?: string;
-  fiveElementsClass?: string;
-  soul?: string;
-  body?: string;
-  bodyPalaceBranch?: string;
-  originalPalaceBranch?: string;
 }
 
 const PALACE_NAMES = ['命宫', '兄弟', '夫妻', '子女', '财帛', '疾厄', '迁移', '交友', '官禄', '田宅', '福德', '父母'] as const;
@@ -116,22 +102,69 @@ function buildFallbackZiweiData(solarBirth: SolarBirth, mingGua: ZiweiMingGua): 
     palaces,
     sihua: { 廉贞: '禄', 破军: '权', 武曲: '科', 太阳: '忌' },
     mainStars: [...STARS],
+    chart: null,
+    export_snapshot: {
+      summary: '暂未生成完整命盘，请稍后重试。',
+      sections: [],
+    },
     engineName: 'FallbackZiweiShell',
-    mode: 'fallback-demo',
+    mode: 'demo',
     version: 'react-shell',
   };
 }
 
-function calculateZiweiData(solarBirth: SolarBirth, ready: boolean): ZiweiData {
-  const mingGua = calcMingGua(solarBirth.year, solarBirth.gender);
-  if (!ready) return buildFallbackZiweiData(solarBirth, mingGua);
-  try {
-    return calculateZiweiPure({ birth: solarBirth, mingGua }) as ZiweiData;
-  } catch {
-    return buildFallbackZiweiData(solarBirth, mingGua);
-  }
+const SAFE_ERROR_MESSAGE = '本次计算未能完成，请核对输入后重试。';
+
+/** Dashboard 边界：失败信封绝不把引擎内部错误带到用户界面。 */
+export function sanitizeZiweiEnvelope(envelope: ToolEnvelope<ZiweiData>): ToolEnvelope<ZiweiData> {
+  if (envelope.ok) return envelope;
+  return {
+    ...envelope,
+    error: { code: 'calculation_failed', message: SAFE_ERROR_MESSAGE },
+  };
 }
 
+function createZiweiFailureEnvelope(
+  solarBirth: SolarBirth,
+  mingGua: ZiweiMingGua,
+  transit: { year: number; month: number },
+): ToolEnvelope<ZiweiData> {
+  return sanitizeZiweiEnvelope({
+    ok: false,
+    tool: 'ziwei_chart',
+    version: 'unknown',
+    input_normalized: { birth: solarBirth, mingGua, transit },
+    data: {} as ZiweiData,
+    error: { code: 'calculation_exception', message: SAFE_ERROR_MESSAGE },
+  });
+}
+
+/** 仅输出本命白名单事实；每条候选均独立与当前成功命盘核验。 */
+export function createZiweiFactChecks(data: ZiweiData, palaceName: string): StructuredFactCheck[] {
+  const palace = data.palaces[palaceName];
+  const candidates: Array<{ claim: ZiweiPresentationClaim; label: string; value: string }> = [];
+  if (data.fiveElementsClass) candidates.push({
+    claim: { tool: 'ziwei_chart', kind: 'metadata', field: 'fiveElementsClass', value: data.fiveElementsClass },
+    label: '五行局', value: data.fiveElementsClass,
+  });
+  if (data.soul) candidates.push({
+    claim: { tool: 'ziwei_chart', kind: 'metadata', field: 'soul', value: data.soul },
+    label: '命主', value: data.soul,
+  });
+  if (palace?.position) candidates.push({
+    claim: { tool: 'ziwei_chart', kind: 'palace', palace: palaceName, field: 'position', value: palace.position },
+    label: `${palaceName}宫位`, value: palace.position,
+  });
+  const firstStar = palace?.stars[0];
+  if (firstStar) candidates.push({
+    claim: { tool: 'ziwei_chart', kind: 'palaceStar', palace: palaceName, value: firstStar },
+    label: `${palaceName}主星`, value: firstStar,
+  });
+  return candidates.map(({ claim, label, value }) => ({
+    fact: { label, value: String(value), tool: 'ziwei_chart' },
+    validation: validateZiweiClaims(data, [claim]),
+  }));
+}
 
 export function ZiweiWorkspace() {
   const { solarBirth } = useBirth();
@@ -140,40 +173,51 @@ export function ZiweiWorkspace() {
   const [transitMonth, setTransitMonth] = useState(() => String(new Date().getMonth() + 1));
 
   const ready = true;
-  const data = useMemo(() => calculateZiweiData(solarBirth, ready), [solarBirth, ready]);
   const transitQuery = useMemo(() => ({
     year: Number(transitYear) || new Date().getFullYear(),
     month: Math.min(12, Math.max(1, Number(transitMonth) || new Date().getMonth() + 1)),
   }), [transitMonth, transitYear]);
+  const mingGua = useMemo(() => calcMingGua(solarBirth.year, solarBirth.gender), [solarBirth.gender, solarBirth.year]);
+  const envelope = useMemo(() => {
+    try {
+      return sanitizeZiweiEnvelope(calcZiweiEnveloped({ birth: solarBirth, mingGua, transit: transitQuery }));
+    } catch {
+      return createZiweiFailureEnvelope(solarBirth, mingGua, transitQuery);
+    }
+  }, [mingGua, solarBirth, transitQuery]);
+  const successData = envelope.ok ? envelope.data : null;
+  const fallbackData = useMemo(() => buildFallbackZiweiData(solarBirth, mingGua), [mingGua, solarBirth]);
+  const data = successData ?? fallbackData;
   const transitDate = `${transitQuery.year}-${String(transitQuery.month).padStart(2, '0')}-15`;
   const transit = useMemo(() => getZiweiTransitSnapshot(solarBirth, transitDate), [solarBirth, transitDate]);
   const horoscope = useMemo(
     () => getZiweiHoroscopeSummary(solarBirth, transitQuery.year, transitQuery.month),
     [solarBirth, transitQuery],
   );
-  const firstPalaceWithStars = PALACE_NAMES.find((name) => data.palaces[name]?.stars.length > 0) ?? null;
+  const firstPalaceWithStars = Object.keys(data.palaces).find((name) => data.palaces[name]?.stars.length > 0)
+    ?? Object.keys(data.palaces)[0]
+    ?? null;
   const selectedPalaceName = activePalace && data.palaces[activePalace] ? activePalace : firstPalaceWithStars;
   const selectedPalace = selectedPalaceName ? data.palaces[selectedPalaceName] : null;
+  const factChecks = useMemo(
+    () => successData && selectedPalaceName ? createZiweiFactChecks(successData, selectedPalaceName) : [],
+    [selectedPalaceName, successData],
+  );
+  const presentation = useMemo(() => toUserPresentation(envelope, {
+    factChecks,
+    disclaimers: ['紫微斗数结果仅作传统文化学习参考，不作为现实决策依据。'],
+  }), [envelope, factChecks]);
+  const exportPresentation = useMemo(() => presentation.exportReport ? ({
+    report: presentation.exportReport,
+    notices: presentation.notices,
+    warnings: presentation.warnings,
+    semanticReport: presentation.semanticReport,
+  }) : null, [presentation]);
   const natalDeities = PALACE_NAMES.flatMap((palace) => {
     const item = data.palaces[palace];
     if (!item?.changsheng12 || !item.boshi12) return [];
     return [{ palace, changsheng12: item.changsheng12, boshi12: item.boshi12 }];
   });
-  const exportSnapshot = useMemo(() => {
-    if (!ready) return null;
-    try {
-      return calcZiweiEnveloped({
-        birth: solarBirth,
-        mingGua: { trigram: '?', group: '?' },
-        transit: transitQuery,
-      }).data.export_snapshot;
-    } catch {
-      return null;
-    }
-  }, [solarBirth, ready, transitQuery]);
-  const fourLayer = useMemo<LayerReport | null>(() => (
-    exportSnapshot ? toFourLayer(exportSnapshot as ReadingLike) : null
-  ), [exportSnapshot]);
   const palaceCount = Object.keys(data.palaces || {}).length;
   const contextPayload = useMemo(
     () => ({
@@ -197,7 +241,7 @@ export function ZiweiWorkspace() {
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="ziwei" title="紫微斗数命盘摘要" payload={contextPayload} />
-            <ExportReportButton module="紫微斗数命盘" report={exportSnapshot} />
+            <ExportReportButton module="紫微斗数命盘" presentation={exportPresentation} />
           </div>
         </div>
       </div>
@@ -234,9 +278,20 @@ export function ZiweiWorkspace() {
             terms={["紫微","天机","太阳","武曲","天同","廉贞","天府","太阴","贪狼","巨门","天相","天梁","七杀","破军","庙旺","落陷","四化","命宫","福德"]}
             description="点击星曜或术语查看通俗解释。"
           />
-          {fourLayer && (
+          {presentation.state === 'error' && (
+            <InterpretationCard title="计算未完成" subtitle="请核对输入">
+              <p className="text-sm text-jade-100/55">{presentation.error?.message}</p>
+            </InterpretationCard>
+          )}
+          {presentation.report && (
             <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-              <FourLayerReport report={fourLayer} title="命盘解读" />
+              <FourLayerReport
+                report={presentation.report}
+                semanticReport={presentation.semanticReport}
+                notices={presentation.notices}
+                warnings={presentation.warnings}
+                title="命盘解读"
+              />
             </div>
           )}
         </aside>

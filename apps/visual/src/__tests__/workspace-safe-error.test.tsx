@@ -23,6 +23,16 @@ vi.mock('@/engine-api/divination', async (importOriginal) => {
   };
 });
 
+vi.mock('@/engine-api/ziwei', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/engine-api/ziwei')>();
+  return {
+    ...actual,
+    calcZiweiEnveloped: () => {
+      throw new Error('ziwei internal sentinel');
+    },
+  };
+});
+
 vi.mock('@/engine-api/folklore', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/engine-api/folklore')>();
   return {
@@ -48,6 +58,7 @@ import { HuangjiWorkspace } from '@/features/huangji/HuangjiWorkspace';
 import { LiurenWorkspace } from '@/features/liuren/LiurenWorkspace';
 import { TaiyiWorkspace } from '@/features/taiyi/TaiyiWorkspace';
 import { XingXiuWorkspace } from '@/features/xingxiu/XingXiuWorkspace';
+import { ZiweiWorkspace } from '@/features/ziwei/ZiweiWorkspace';
 
 const SAFE_ERROR_MESSAGE = '本次计算未能完成，请核对输入后重试。';
 
@@ -67,6 +78,12 @@ describe('Workspace 计算错误呈现', () => {
     expect(await screen.findByText(SAFE_ERROR_MESSAGE)).toBeInTheDocument();
     expect(container.textContent).not.toContain('cezi internal sentinel');
     expect(screen.queryByText('暂无结果')).not.toBeInTheDocument();
+  });
+
+  it('紫微直接引擎计算抛异常时只显示安全文案', () => {
+    const { container } = render(<ZiweiWorkspace />);
+
+    expectSafeErrorState(container, 'ziwei internal sentinel', '命盘解读');
   });
 
   it('称骨直接引擎计算抛异常时只显示安全文案', () => {
