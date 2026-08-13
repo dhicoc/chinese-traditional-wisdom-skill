@@ -10,8 +10,22 @@ import { TaiyiChart } from '@/components/shared/TaiyiChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
 import { calcTaiyiEnveloped, JI_STYLE_NAMES, ACUM_YEAR_NAMES, type TaiyiData, type JiStyle, type AcumYearMethod } from '@/engine-api/divination';
-import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
+import { validateDivinationClaims, type DivinationPresentationClaim } from '@/legacy/claimVerification/divinationClaimVerifier';
+import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import type { ToolEnvelope } from '@/engine-api/types';
+
+export function createTaiyiFactChecks(data: TaiyiData): StructuredFactCheck[] {
+  const claims: Array<{ claim: DivinationPresentationClaim; label: string; value: string }> = [
+    { claim: { tool: 'taiyi_calculate', kind: 'basic', field: 'dayGz', value: data.basicInfo.dayGz }, label: '日干支', value: data.basicInfo.dayGz },
+    { claim: { tool: 'taiyi_calculate', kind: 'kook', field: 'wen', value: data.kook.wen }, label: '局式', value: data.kook.wen },
+    { claim: { tool: 'taiyi_calculate', kind: 'position', subject: 'taiyi', field: 'gong', value: data.taiyi.gong }, label: '太乙落宫', value: data.taiyi.gong },
+    { claim: { tool: 'taiyi_calculate', kind: 'calculation', side: 'home', field: 'cal', value: data.home.cal }, label: '主算', value: String(data.home.cal) },
+  ];
+  return claims.map(({ claim, label, value }) => ({
+    fact: { label, value, tool: 'taiyi_calculate' },
+    validation: validateDivinationClaims('taiyi_calculate', data, [claim]),
+  }));
+}
 
 /** 宫数→宫名（太乙九宫：1乾/2午/3艮/4卯/5中/6酉/7坤/8子/9巽） */
 const NUM2GONG: Record<number, string> = { 1: '乾', 2: '午', 3: '艮', 4: '卯', 5: '中', 6: '酉', 7: '坤', 8: '子', 9: '巽' };
@@ -37,12 +51,26 @@ export function TaiyiWorkspace() {
     }
   }, [solarBirth, jiStyle, acumYear]);
 
-  const fourLayer = useMemo<LayerReport | null>(() => {
-    if (!result.envelope) return null;
-    return toFourLayer(result.envelope.data.export_snapshot as ReadingLike);
-  }, [result.envelope]);
-
   const data = result.envelope?.data;
+  const factChecks = useMemo(
+    () => result.envelope?.ok ? createTaiyiFactChecks(result.envelope.data) : [],
+    [result.envelope],
+  );
+  const presentation = useMemo(
+    () => result.envelope
+      ? toUserPresentation(result.envelope, {
+        factChecks,
+        disclaimers: ['太乙神数结果仅作传统术数文化学习参考，不构成对现实结果的保证或专业建议。'],
+      })
+      : null,
+    [result.envelope, factChecks],
+  );
+  const exportPresentation = useMemo(() => presentation?.exportReport ? ({
+    report: presentation.exportReport,
+    notices: presentation.notices,
+    warnings: presentation.warnings,
+    semanticReport: presentation.semanticReport,
+  }) : null, [presentation]);
 
   if (result.loading) {
     return (
@@ -95,7 +123,7 @@ export function TaiyiWorkspace() {
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="taiyi" title="太乙神数摘要" payload={contextPayload} />
-            <ExportReportButton module="太乙神数" report={result.envelope?.data.export_snapshot ?? null} />
+            <ExportReportButton module="太乙神数" presentation={exportPresentation} />
           </div>
         </div>
       </div>
@@ -161,9 +189,15 @@ export function TaiyiWorkspace() {
               { label: '百六', value: shenSha.baliu },
             ]}
           />
-          {fourLayer && (
+          {presentation?.report && (
             <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-              <FourLayerReport report={fourLayer} title="太乙神数解读" />
+              <FourLayerReport
+                report={presentation.report}
+                semanticReport={presentation.semanticReport}
+                notices={presentation.notices}
+                warnings={presentation.warnings}
+                title="太乙神数解读"
+              />
             </div>
           )}
         </aside>

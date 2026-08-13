@@ -8,8 +8,22 @@ import { XingXiuChart } from '@/components/shared/XingXiuChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
 import { calcXingXiuEnveloped, type XingXiuData, type XingXiuEntry, type XiuMethod } from '@/engine-api/folklore';
-import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
+import { validateCalendarClaims, type CalendarPresentationClaim } from '@/legacy/claimVerification/calendarClaimVerifier';
+import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import type { ToolEnvelope } from '@/engine-api/types';
+
+export function createXingxiuFactChecks(data: XingXiuData): StructuredFactCheck[] {
+  const claims: Array<{ claim: CalendarPresentationClaim; label: string; value: string }> = [
+    { claim: { tool: 'xingxiu_daily', kind: 'xingxiu', field: 'zhiXiu', value: data.zhiXiu }, label: '当日值宿', value: data.zhiXiu },
+    { claim: { tool: 'xingxiu_daily', kind: 'xingxiu', field: 'zhiXiuFull', value: data.zhiXiuFull }, label: '值宿全称', value: data.zhiXiuFull },
+    { claim: { tool: 'xingxiu_daily', kind: 'xingxiu', field: 'xiang', value: data.xiang }, label: '所属四象', value: data.xiang },
+    { claim: { tool: 'xingxiu_daily', kind: 'xingxiu', field: 'wuxing', value: data.wuxing }, label: '五行', value: data.wuxing },
+  ];
+  return claims.map(({ claim, label, value }) => ({
+    fact: { label, value, tool: 'xingxiu_daily' },
+    validation: validateCalendarClaims('xingxiu', data, [claim]),
+  }));
+}
 
 /**
  * 二十八星宿工作区。
@@ -38,12 +52,26 @@ export function XingXiuWorkspace() {
     }
   }, [solarBirth, method]);
 
-  const fourLayer = useMemo<LayerReport | null>(() => {
-    if (!result.envelope) return null;
-    return toFourLayer(result.envelope.data.export_snapshot as ReadingLike);
-  }, [result.envelope]);
-
   const data = result.envelope?.data;
+  const factChecks = useMemo(
+    () => result.envelope?.ok ? createXingxiuFactChecks(result.envelope.data) : [],
+    [result.envelope],
+  );
+  const presentation = useMemo(
+    () => result.envelope
+      ? toUserPresentation(result.envelope, {
+        factChecks,
+        disclaimers: ['二十八星宿结果仅作传统文化学习参考，不构成对现实结果的保证或专业建议。'],
+      })
+      : null,
+    [result.envelope, factChecks],
+  );
+  const exportPresentation = useMemo(() => presentation?.exportReport ? ({
+    report: presentation.exportReport,
+    notices: presentation.notices,
+    warnings: presentation.warnings,
+    semanticReport: presentation.semanticReport,
+  }) : null, [presentation]);
 
   if (!data) {
     return (
@@ -89,7 +117,7 @@ export function XingXiuWorkspace() {
           <div className="flex flex-col items-end gap-2">
             <div className="flex gap-2">
               <CopyContextButton commandScope="xingxiu" title="二十八星宿摘要" payload={contextPayload} />
-              <ExportReportButton module="二十八星宿" report={result.envelope?.data.export_snapshot ?? null} />
+              <ExportReportButton module="二十八星宿" presentation={exportPresentation} />
             </div>
             <div className="flex items-center gap-1 rounded-full border border-white/10 bg-black/30 p-0.5">
               <button
@@ -143,9 +171,15 @@ export function XingXiuWorkspace() {
               <p className="text-xs leading-5 text-jade-100/55">{data.song}</p>
             </InterpretationCard>
           )}
-          {fourLayer && (
+          {presentation?.report && (
             <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-              <FourLayerReport report={fourLayer} title="二十八星宿解读" />
+              <FourLayerReport
+                report={presentation.report}
+                semanticReport={presentation.semanticReport}
+                notices={presentation.notices}
+                warnings={presentation.warnings}
+                title="二十八星宿解读"
+              />
             </div>
           )}
         </aside>

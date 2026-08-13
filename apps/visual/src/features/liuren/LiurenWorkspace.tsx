@@ -10,8 +10,29 @@ import { DaliurenChart } from '@/components/shared/DaliurenChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
 import { calcDaliurenEnveloped, DALIUREN_SCHOOLS, type DaliurenData, type DaliurenSchool } from '@/engine-api/divination';
-import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
+import { validateDivinationClaims, type DivinationPresentationClaim } from '@/legacy/claimVerification/divinationClaimVerifier';
+import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import type { ToolEnvelope } from '@/engine-api/types';
+
+export function createLiurenFactChecks(data: DaliurenData): StructuredFactCheck[] {
+  const claims: Array<{ claim: DivinationPresentationClaim; label: string; value: string }> = [
+    { claim: { tool: 'liuren_calculate', kind: 'basic', field: 'dayGanZhi', value: data.basicInfo.dayGanZhi }, label: '日干支', value: data.basicInfo.dayGanZhi },
+    { claim: { tool: 'liuren_calculate', kind: 'basic', field: 'yueJiangName', value: data.basicInfo.yueJiangName }, label: '月将', value: data.basicInfo.yueJiangName },
+    { claim: { tool: 'liuren_calculate', kind: 'sanchuan', stage: 'chuChuan', field: 'diZhi', value: data.sanChuan.chuChuan.diZhi }, label: '初传', value: data.sanChuan.chuChuan.diZhi },
+  ];
+  const firstKe = data.siKe.list.find((item) => item.position === 1);
+  if (firstKe) {
+    claims.splice(2, 0, {
+      claim: { tool: 'liuren_calculate', kind: 'sike', position: 1, field: 'shangShen', value: firstKe.shangShen },
+      label: '第一课上神',
+      value: firstKe.shangShen,
+    });
+  }
+  return claims.map(({ claim, label, value }) => ({
+    fact: { label, value, tool: 'liuren_calculate' },
+    validation: validateDivinationClaims('liuren_calculate', data, [claim]),
+  }));
+}
 
 /**
  * 大六壬工作区。
@@ -48,12 +69,26 @@ export function LiurenWorkspace() {
     }
   }, [solarBirth, school]);
 
-  const fourLayer = useMemo<LayerReport | null>(() => {
-    if (!result.envelope) return null;
-    return toFourLayer(result.envelope.data.export_snapshot as ReadingLike);
-  }, [result.envelope]);
-
   const data = result.envelope?.data;
+  const factChecks = useMemo(
+    () => result.envelope?.ok ? createLiurenFactChecks(result.envelope.data) : [],
+    [result.envelope],
+  );
+  const presentation = useMemo(
+    () => result.envelope
+      ? toUserPresentation(result.envelope, {
+        factChecks,
+        disclaimers: ['大六壬结果仅作传统卜筮文化学习参考，不构成对现实结果的保证或专业建议。'],
+      })
+      : null,
+    [result.envelope, factChecks],
+  );
+  const exportPresentation = useMemo(() => presentation?.exportReport ? ({
+    report: presentation.exportReport,
+    notices: presentation.notices,
+    warnings: presentation.warnings,
+    semanticReport: presentation.semanticReport,
+  }) : null, [presentation]);
 
   if (result.loading) {
     return (
@@ -98,7 +133,7 @@ export function LiurenWorkspace() {
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="liuren" title="大六壬摘要" payload={contextPayload} />
-            <ExportReportButton module="大六壬" report={result.envelope?.data.export_snapshot ?? null} />
+            <ExportReportButton module="大六壬" presentation={exportPresentation} />
           </div>
         </div>
         <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
@@ -152,9 +187,15 @@ export function LiurenWorkspace() {
               { label: '闪电', value: shenSha.shanDian },
             ]}
           />
-          {fourLayer && (
+          {presentation?.report && (
             <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-              <FourLayerReport report={fourLayer} title="大六壬解读" />
+              <FourLayerReport
+                report={presentation.report}
+                semanticReport={presentation.semanticReport}
+                notices={presentation.notices}
+                warnings={presentation.warnings}
+                title="大六壬解读"
+              />
             </div>
           )}
         </aside>

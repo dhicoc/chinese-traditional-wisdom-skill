@@ -8,8 +8,22 @@ import { HuangjiGuaCircle } from '@/components/shared/HuangjiGuaCircle';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
 import { calcHuangjiEnveloped, type HuangjiData } from '@/engine-api/folklore';
-import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
+import { validateDivinationClaims, type DivinationPresentationClaim } from '@/legacy/claimVerification/divinationClaimVerifier';
+import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import type { ToolEnvelope } from '@/engine-api/types';
+
+export function createHuangjiFactChecks(data: HuangjiData): StructuredFactCheck[] {
+  const claims: Array<{ claim: DivinationPresentationClaim; label: string; value: string }> = [
+    { claim: { tool: 'huangji_calculate', kind: 'cycle', field: 'acumYear', value: data.cycles.acumYear }, label: '积年', value: String(data.cycles.acumYear) },
+    { claim: { tool: 'huangji_calculate', kind: 'cycle', field: 'hui', value: data.cycles.hui }, label: '会', value: String(data.cycles.hui) },
+    { claim: { tool: 'huangji_calculate', kind: 'gua', layer: 'shi', value: data.gua.shi }, label: '世卦', value: data.gua.shi },
+    { claim: { tool: 'huangji_calculate', kind: 'movingLine', layer: 'shi', value: data.movingLines.shi }, label: '世爻', value: String(data.movingLines.shi) },
+  ];
+  return claims.map(({ claim, label, value }) => ({
+    fact: { label, value, tool: 'huangji_calculate' },
+    validation: validateDivinationClaims('huangji_calculate', data, [claim]),
+  }));
+}
 
 /**
  * 皇极经世工作区。
@@ -43,12 +57,26 @@ export function HuangjiWorkspace() {
     }
   }, [solarBirth]);
 
-  const fourLayer = useMemo<LayerReport | null>(() => {
-    if (!result.envelope) return null;
-    return toFourLayer(result.envelope.data.export_snapshot as ReadingLike);
-  }, [result.envelope]);
-
   const data = result.envelope?.data;
+  const factChecks = useMemo(
+    () => result.envelope?.ok ? createHuangjiFactChecks(result.envelope.data) : [],
+    [result.envelope],
+  );
+  const presentation = useMemo(
+    () => result.envelope
+      ? toUserPresentation(result.envelope, {
+        factChecks,
+        disclaimers: ['皇极经世结果仅作传统象数文化学习参考，不构成对现实结果的保证或专业建议。'],
+      })
+      : null,
+    [result.envelope, factChecks],
+  );
+  const exportPresentation = useMemo(() => presentation?.exportReport ? ({
+    report: presentation.exportReport,
+    notices: presentation.notices,
+    warnings: presentation.warnings,
+    semanticReport: presentation.semanticReport,
+  }) : null, [presentation]);
 
   if (!data) {
     return (
@@ -74,7 +102,7 @@ export function HuangjiWorkspace() {
           </div>
           <div className="flex items-center gap-2">
             <span className="rounded-full border border-[rgb(var(--earth)/0.30)] bg-[rgb(var(--earth)/0.10)] px-3 py-1 text-xs text-[var(--c-gold)]">长期宏观</span>
-            <ExportReportButton module="皇极经世" report={result.envelope?.data.export_snapshot ?? null} />
+            <ExportReportButton module="皇极经世" presentation={exportPresentation} />
           </div>
         </div>
         <p className="mt-3 text-xs leading-5 text-jade-100/45">
@@ -166,9 +194,17 @@ export function HuangjiWorkspace() {
       </InterpretationCard>
 
       {/* 解读 */}
-      <div className="console-panel rounded-panel border border-[rgb(var(--earth)/0.16)] bg-ink-950/90 p-4 shadow-instrument">
-        <FourLayerReport report={fourLayer!} title="皇极经世解读" />
-      </div>
+      {presentation?.report && (
+        <div className="console-panel rounded-panel border border-[rgb(var(--earth)/0.16)] bg-ink-950/90 p-4 shadow-instrument">
+          <FourLayerReport
+            report={presentation.report}
+            semanticReport={presentation.semanticReport}
+            notices={presentation.notices}
+            warnings={presentation.warnings}
+            title="皇极经世解读"
+          />
+        </div>
+      )}
 
       <div className="flex justify-end">
         <CopyContextButton
