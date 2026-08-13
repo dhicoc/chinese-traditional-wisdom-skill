@@ -71,7 +71,8 @@ vi.mock('@/engine-api/marriage', async (importOriginal) => {
   };
 });
 
-import { ComboWorkspace } from '@/features/combo/ComboWorkspace';
+import { ComboWorkspace, createComboFactChecks } from '@/features/combo/ComboWorkspace';
+import type { AnnualFortuneResult } from '@/engine-api/combo';
 
 const SAFE_ERROR_MESSAGE = '本次计算未能完成，请核对输入后重试。';
 
@@ -114,15 +115,23 @@ describe('ComboWorkspace presentation 边界', () => {
     expect(revokeObjectUrl).toHaveBeenCalledWith('blob:combo-report');
     const html = await downloadedBlob?.text();
     const envelope = engineState.lastSuccessEnvelope as {
-      data: { export_snapshot: { summary: string; sections: Array<{ heading: string; body: string }> } };
+      data: AnnualFortuneResult;
     };
 
     expect(html).toContain(envelope.data.export_snapshot.summary);
     expect(html).toContain(envelope.data.export_snapshot.sections[0]?.heading);
     expect(html).toContain(envelope.data.export_snapshot.sections[0]?.body);
-    // 年度结果的已校验事实由 annualFactChecks 绑定到 combo_annual_fortune；导出 HTML 应至少保留其 label/value。
-    expect(html).toContain('目标年份');
-    expect(html).toContain(String(solarBirth.year));
+    const downloadedText = new DOMParser()
+      .parseFromString(html?.replace(/<br>/g, '\n') ?? '', 'text/html')
+      .body.textContent;
+    for (const section of envelope.data.export_snapshot.sections) {
+      expect(downloadedText).toContain(section.heading);
+      expect(downloadedText).toContain(section.body);
+    }
+    for (const { fact } of createComboFactChecks({ comboType: 'annual', data: envelope.data })) {
+      expect(html).toContain(fact.label);
+      expect(html).toContain(fact.value);
+    }
     expect(html).toContain('COMBO_EXPORT_NOTICE');
     expect(html).toContain('COMBO_EXPORT_WARNING');
     expect(html).not.toContain(INTERNAL_EVIDENCE_SENTINEL);
