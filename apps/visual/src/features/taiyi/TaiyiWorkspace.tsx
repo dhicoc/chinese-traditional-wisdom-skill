@@ -96,7 +96,7 @@ export function TaiyiWorkspace() {
   const gejuList = Object.entries(geju).filter(([k]) => k !== '无格局');
   const hasGeju = gejuList.length > 0;
 
-  const contextPayload = useMemo(() => ({
+  const contextPayload = {
     项目: '太乙神数',
     计式: basicInfo.jiStyleName,
     积年法: basicInfo.acumYearName,
@@ -105,7 +105,7 @@ export function TaiyiWorkspace() {
     时干支: basicInfo.hourGz,
     局式: kook.wen,
     太乙落宫: taiyi.gong,
-  }), [solarBirth, basicInfo, kook, taiyi]);
+  };
 
   return (
     <section className="space-y-4">

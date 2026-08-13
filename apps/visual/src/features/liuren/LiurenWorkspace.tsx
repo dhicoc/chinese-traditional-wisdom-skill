@@ -111,14 +111,14 @@ export function LiurenWorkspace() {
   const { basicInfo, tianDiPan, siKe, sanChuan, shenSha } = data;
   const birthSummary = `${solarBirth.year}-${String(solarBirth.month).padStart(2, '0')}-${String(solarBirth.day).padStart(2, '0')} ${String(solarBirth.hour).padStart(2, '0')}:00`;
 
-  const contextPayload = useMemo(() => ({
+  const contextPayload = {
     项目: '大六壬',
     生辰: { 年份: solarBirth.year, 性别: solarBirth.gender },
     日干支: basicInfo.dayGanZhi,
     时干支: basicInfo.hourGanZhi,
     三传格局: `${sanChuan.geJu}·${sanChuan.geJuDetail}`,
     三传: `${sanChuan.chuChuan.diZhi}→${sanChuan.zhongChuan.diZhi}→${sanChuan.moChuan.diZhi}`,
-  }), [solarBirth, basicInfo, sanChuan]);
+  };
 
   return (
     <section className="space-y-4">

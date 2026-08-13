@@ -72,6 +72,20 @@ export function XingXiuWorkspace() {
     warnings: presentation.warnings,
     semanticReport: presentation.semanticReport,
   }) : null, [presentation]);
+  const grouped = useMemo(() => {
+    const map: Record<string, XingXiuEntry[]> = {};
+    for (const x of data?.allXiu ?? []) {
+      (map[x.xiang] ??= []).push(x);
+    }
+    return map;
+  }, [data]);
+  const contextPayload = useMemo(() => ({
+    项目: '二十八星宿',
+    日期: `${solarBirth.year}-${solarBirth.month}-${solarBirth.day}`,
+    当日值宿: data?.zhiXiuFull ?? '—',
+    所属四象: data?.xiang ?? '—',
+    宜忌参考: data?.luck ?? '—',
+  }), [data, solarBirth]);
 
   if (!data) {
     return (
@@ -82,23 +96,6 @@ export function XingXiuWorkspace() {
       </section>
     );
   }
-
-  // 按四象分组
-  const grouped = useMemo(() => {
-    const map: Record<string, XingXiuEntry[]> = {};
-    for (const x of data.allXiu) {
-      (map[x.xiang] ??= []).push(x);
-    }
-    return map;
-  }, [data]);
-
-  const contextPayload = useMemo(() => ({
-    项目: '二十八星宿',
-    日期: `${solarBirth.year}-${solarBirth.month}-${solarBirth.day}`,
-    当日值宿: data.zhiXiuFull,
-    所属四象: data.xiang,
-    宜忌参考: data.luck,
-  }), [data, solarBirth]);
 
   return (
     <section className="space-y-4">
