@@ -1,12 +1,18 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 
-const { yunqiEngineMock, ziweiEngineMock } = vi.hoisted(() => ({
+const { yunqiEngineMock, ziweiEngineMock, qimenEngineMock, liuyaoEngineMock } = vi.hoisted(() => ({
   yunqiEngineMock: vi.fn<() => unknown>(() => {
     throw new Error('yunqi internal sentinel');
   }),
   ziweiEngineMock: vi.fn<() => unknown>(() => {
     throw new Error('ziwei internal sentinel');
+  }),
+  qimenEngineMock: vi.fn<() => unknown>(() => {
+    throw new Error('qimen internal sentinel');
+  }),
+  liuyaoEngineMock: vi.fn<() => unknown>(() => {
+    throw new Error('liuyao internal sentinel');
   }),
 }));
 
@@ -29,6 +35,8 @@ vi.mock('@/engine-api/divination', async (importOriginal) => {
     calcDaliurenEnveloped: () => {
       throw new Error('liuren internal detail');
     },
+    calcQimenEnveloped: qimenEngineMock,
+    calcLiuyaoEnveloped: liuyaoEngineMock,
   };
 });
 
@@ -71,6 +79,8 @@ import { CeziWorkspace } from '@/features/cezi/CeziWorkspace';
 import { ChenguzWorkspace } from '@/features/chenguz/ChenguzWorkspace';
 import { HuangjiWorkspace } from '@/features/huangji/HuangjiWorkspace';
 import { LiurenWorkspace } from '@/features/liuren/LiurenWorkspace';
+import { QimenWorkspace } from '@/features/qimen/QimenWorkspace';
+import { LiuyaoWorkspace } from '@/features/liuyao/LiuyaoWorkspace';
 import { TaiyiWorkspace } from '@/features/taiyi/TaiyiWorkspace';
 import { XingXiuWorkspace } from '@/features/xingxiu/XingXiuWorkspace';
 import { YunqiWorkspace } from '@/features/yunqi/YunqiWorkspace';
@@ -88,6 +98,31 @@ function expectSafeErrorState(container: HTMLElement, internalDetail: string, su
 afterEach(() => cleanup());
 
 describe('Workspace 计算错误呈现', () => {
+  it('奇门与六爻直接引擎抛异常时仅显示受控错误面板', () => {
+    for (const [Workspace, detail, title] of [
+      [QimenWorkspace, 'qimen internal sentinel', '九宫式盘'],
+      [LiuyaoWorkspace, 'liuyao internal sentinel', '本卦'],
+    ] as const) {
+      const { container, unmount } = render(<Workspace />);
+      expectSafeErrorState(container, detail, title);
+      expect(screen.queryByRole('button', { name: '导出报告' })).not.toBeInTheDocument();
+      unmount();
+    }
+  });
+
+  it('奇门与六爻失败 envelope 不泄露 sentinel 或展示 fallback 成功内容', () => {
+    qimenEngineMock.mockReturnValueOnce({ ok: false, tool: 'arrange_qimen', version: 'test', input_normalized: {}, data: {}, error: { code: 'internal_failure', message: 'qimen failure sentinel' } });
+    liuyaoEngineMock.mockReturnValueOnce({ ok: false, tool: 'cast_liuyao', version: 'test', input_normalized: {}, data: {}, error: { code: 'internal_failure', message: 'liuyao failure sentinel' } });
+
+    const qimen = render(<QimenWorkspace />);
+    expectSafeErrorState(qimen.container, 'qimen failure sentinel', '九宫式盘');
+    qimen.unmount();
+    const liuyao = render(<LiuyaoWorkspace />);
+    expectSafeErrorState(liuyao.container, 'liuyao failure sentinel', '本卦');
+    expect(liuyao.container.textContent).not.toContain('乾为天');
+    expect(screen.queryByRole('button', { name: '导出报告' })).not.toBeInTheDocument();
+  });
+
   it('五运六气直接引擎计算抛异常时不泄露内部错误或展示成功内容', () => {
     const { container } = render(<YunqiWorkspace />);
 

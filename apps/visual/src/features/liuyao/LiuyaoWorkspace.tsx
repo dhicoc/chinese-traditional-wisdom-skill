@@ -9,8 +9,10 @@ import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import type { LiuyaoData } from '@/legacy/canvasRenderers';
 import type { LiuyaoLine } from '@/legacy/divinationTypes';
-import { calculateLiuyao as calculateLiuyaoPure, calcLiuyaoEnveloped, type LiuyaoInput } from '@/engine-api/divination';
-import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
+import { calcLiuyaoEnveloped, type LiuyaoData as EngineLiuyaoData, type LiuyaoInput } from '@/engine-api/divination';
+import { validateDivinationClaims, type DivinationPresentationClaim } from '@/legacy/claimVerification/divinationClaimVerifier';
+import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
+import type { ToolEnvelope } from '@/engine-api/types';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { useBirth } from '@/lib/birthContext';
@@ -78,6 +80,19 @@ function isValidYaoValues(v: string) {
   return /^[6-9]{6}$/.test(v.replace(/\s/g, ''));
 }
 
+export function createLiuyaoFactChecks(data: EngineLiuyaoData): StructuredFactCheck[] {
+  const claims: Array<{ claim: DivinationPresentationClaim; label: string; value: string }> = [
+    { claim: { tool: 'cast_liuyao', kind: 'hexagram', field: 'name', value: data.hexagramName }, label: '本卦', value: data.hexagramName },
+    ...(data.changingHexagramName ? [{ claim: { tool: 'cast_liuyao', kind: 'hexagram', field: 'changedName', value: data.changingHexagramName } as DivinationPresentationClaim, label: '变卦', value: data.changingHexagramName }] : []),
+    { claim: { tool: 'cast_liuyao', kind: 'yao', field: 'shiYao', value: data.shiYao }, label: '世爻', value: String(data.shiYao) },
+    { claim: { tool: 'cast_liuyao', kind: 'yao', field: 'changingYao', value: data.changingYao.join('、') } as DivinationPresentationClaim, label: '动爻', value: data.changingYao.join('、') },
+  ];
+  return claims.map(({ claim, label, value }) => ({
+    fact: { label, value, tool: 'cast_liuyao' },
+    validation: validateDivinationClaims('cast_liuyao', data, [claim]),
+  }));
+}
+
 export function LiuyaoWorkspace() {
   const { solarBirth } = useBirth();
   const [method, setMethod] = useState<CastMethod>('coin');
@@ -107,51 +122,53 @@ export function LiuyaoWorkspace() {
 
   const ready = true;
 
-  const result = useMemo<LiuyaoResult>(() => {
-    if (!ready) return DEFAULT_FALLBACK;
-    const input: { method: CastMethod; question?: string; yaoValues?: string; seed?: number } = {
-      method,
-      question: question || undefined,
-    };
-    if (method === 'manual' && isValidYaoValues(yaoValues)) {
-      input.yaoValues = yaoValues.replace(/\s/g, '');
-    }
-    if (method === 'coin' || method === 'yarrow') {
-      input.seed = solarBirth.year * 10000 + solarBirth.month * 100 + solarBirth.day + solarBirth.hour + castCount * 7919;
-    }
-    try {
-      return calculateLiuyaoPure({ birth: solarBirth, ...input, solar: getSolarEntry() }) as unknown as LiuyaoResult;
-    } catch {
-      return DEFAULT_FALLBACK;
-    }
-  }, [ready, solarBirth, method, question, yaoValues, castCount]);
-
-  const exportSnapshot = useMemo(() => {
+  const input = useMemo<LiuyaoInput>(() => {
+    const next: LiuyaoInput = { birth: solarBirth, method, solar: getSolarEntry() as never };
+    if (question) next.question = question;
+    if (method === 'manual' && isValidYaoValues(yaoValues)) next.yaoValues = yaoValues.replace(/\s/g, '');
+    if (method === 'coin' || method === 'yarrow') next.seed = solarBirth.year * 10000 + solarBirth.month * 100 + solarBirth.day + solarBirth.hour + castCount * 7919;
+    return next;
+  }, [solarBirth, method, question, yaoValues, castCount]);
+  const envelope = useMemo<ToolEnvelope<EngineLiuyaoData> | null>(() => {
     if (!ready) return null;
     try {
-      const input: LiuyaoInput = {
-        birth: solarBirth, method, solar: getSolarEntry() as never,
+      const result = calcLiuyaoEnveloped(input);
+      return result.ok ? result : {
+        ...result,
+        error: { code: 'calculation_failed', message: '本次计算未能完成，请核对输入后重试。' },
       };
-      if (question) input.question = question;
-      if (method === 'manual' && yaoValues) input.yaoValues = yaoValues.replace(/\s/g, '');
-      if (method === 'coin' || method === 'yarrow') input.seed = solarBirth.year * 10000 + solarBirth.month * 100 + solarBirth.day + solarBirth.hour + castCount * 7919;
-      return calcLiuyaoEnveloped(input).data.export_snapshot;
     } catch {
-      return null;
+      return {
+        ok: false,
+        tool: 'cast_liuyao',
+        version: 'unknown',
+        input_normalized: input as unknown as Record<string, unknown>,
+        data: {} as EngineLiuyaoData,
+        error: { code: 'calculation_exception', message: '本次计算未能完成，请核对输入后重试。' },
+      };
     }
-  }, [ready, solarBirth, method, question, yaoValues, castCount]);
-  const fourLayer = useMemo<LayerReport | null>(() => (
-    exportSnapshot ? toFourLayer(exportSnapshot as ReadingLike) : null
-  ), [exportSnapshot]);
+  }, [ready, input]);
+  const factChecks = useMemo(() => envelope?.ok ? createLiuyaoFactChecks(envelope.data) : [], [envelope]);
+  const presentation = useMemo(() => envelope ? toUserPresentation(envelope, {
+    factChecks,
+    disclaimers: ['六爻为传统文化占问参考，不作为现实决策依据。'],
+  }) : null, [envelope, factChecks]);
+  const exportPresentation = useMemo(() => presentation?.exportReport ? ({
+    report: presentation.exportReport,
+    notices: presentation.notices,
+    warnings: presentation.warnings,
+    semanticReport: presentation.semanticReport,
+  }) : null, [presentation]);
+  const result = (envelope?.ok ? envelope.data : (!ready ? DEFAULT_FALLBACK : null)) as LiuyaoResult | null;
 
   const changedLines = useMemo<LiuyaoData | null>(() => {
-    if (!result.changingYao || result.changingYao.length === 0) return null;
+    if (!result?.changingYao || result.changingYao.length === 0) return null;
     const lines = result.lines.map((l) => ({ ...l, yin: l.changing ? !l.yin : l.yin, changing: false }));
     return { ...result, lines, isOriginal: false, hexagramName: result.changingHexagramName ?? result.hexagramName };
   }, [result]);
 
-  const isReal = result.mode === 'local-exact' || result.engineName === 'LocalLiuyaoNajiaAdapter';
-  const palaceSummary = result.palace ? `${result.palace} · 五行${result.palaceElement ?? '?'}` : '—';
+  const isReal = result?.mode === 'local-exact' || result?.engineName === 'LocalLiuyaoNajiaAdapter';
+  const palaceSummary = result?.palace ? `${result.palace} · 五行${result.palaceElement ?? '?'}` : '—';
 
   const contextPayload = useMemo(
     () => ({
@@ -159,15 +176,29 @@ export function LiuyaoWorkspace() {
       起卦方式: method,
       生辰: solarBirth,
       所问事项: question || '未填写',
-      本卦: result.hexagramName,
-      变卦: result.changingHexagramName,
-      用神: result.yongShen,
-      世爻: result.shiYao,
-      应爻: result.yingYao,
-      动爻: result.changingYao,
+      本卦: result?.hexagramName,
+      变卦: result?.changingHexagramName,
+      用神: result?.yongShen,
+      世爻: result?.shiYao,
+      应爻: result?.yingYao,
+      动爻: result?.changingYao,
     }),
     [result, method, solarBirth, question],
   );
+
+  if (presentation?.state === 'error') {
+    return (
+      <section className="space-y-4">
+        <InterpretationCard title="计算未完成" subtitle="请核对输入">
+          <p className="text-sm text-jade-100/55">{presentation.error?.message}</p>
+        </InterpretationCard>
+      </section>
+    );
+  }
+
+  if (!result) {
+    return <section className="space-y-4"><LoadingSkeleton label="正在排盘" /></section>;
+  }
 
   return (
     <section className="space-y-4">
@@ -182,7 +213,7 @@ export function LiuyaoWorkspace() {
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="liuyao" title="六爻占卜摘要" payload={contextPayload} />
-            <ExportReportButton module="六爻占卜" report={exportSnapshot} />
+            {exportPresentation && <ExportReportButton module="六爻占卜" report={exportPresentation.report} />}
           </div>
         </div>
         <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
@@ -283,9 +314,9 @@ export function LiuyaoWorkspace() {
             terms={['世爻', '应爻', '用神', '原神', '忌神', '动爻', '变爻', '纳甲', '六亲', '六神', '青龙', '朱雀', '勾陈', '螣蛇', '白虎', '玄武', '妻财', '官鬼', '父母', '子孙', '兄弟']}
             description="点击术语查看通俗解释。"
           />
-          {fourLayer && (
+          {presentation?.report && (
             <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-              <FourLayerReport report={fourLayer} title="六爻解读" />
+              <FourLayerReport report={presentation.report} title="六爻解读" />
             </div>
           )}
         </aside>

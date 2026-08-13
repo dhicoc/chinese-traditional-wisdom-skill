@@ -18,6 +18,9 @@ import { createChenguzFactChecks, sanitizeChenguzEnvelope } from '@/features/che
 import { createComboFactChecks, sanitizeComboEnvelope } from '@/features/combo/ComboWorkspace';
 import { createYunqiFactChecks, sanitizeYunqiEnvelope } from '@/features/yunqi/YunqiWorkspace';
 import { createZiweiFactChecks, sanitizeZiweiEnvelope } from '@/features/ziwei/ZiweiWorkspace';
+import { createQimenFactChecks } from '@/features/qimen/QimenWorkspace';
+import { createLiuyaoFactChecks } from '@/features/liuyao/LiuyaoWorkspace';
+import { calcQimenEnveloped, calcLiuyaoEnveloped } from '@/engine-api/divination';
 import { toUserPresentation, type ReadingLike, type StructuredFactCheck } from '@/legacy/reportLayers';
 
 const SAFE_ERROR_MESSAGE = '本次计算未能完成，请核对输入后重试。';
@@ -106,6 +109,32 @@ describe('Dashboard 同源 presentation 的核验事实', () => {
       if (!envelope.ok) throw new Error(`expected ${comboType} envelope`);
       expectPresentationMatchesSnapshot(envelope, factChecks());
     }
+  });
+
+  it('奇门与六爻成功 envelope 只产生经逐条核验的白名单 facts，并与同一导出快照一致', () => {
+    const qimen = calcQimenEnveloped({ birth: BIRTH });
+    const liuyao = calcLiuyaoEnveloped({ birth: BIRTH, method: 'manual', yaoValues: '789789', solar: SOLAR });
+
+    expect(qimen.ok).toBe(true);
+    expect(liuyao.ok).toBe(true);
+    if (!qimen.ok || !liuyao.ok) throw new Error('expected successful divination envelopes');
+
+    const qimenFacts = createQimenFactChecks(qimen.data);
+    const liuyaoFacts = createLiuyaoFactChecks(liuyao.data);
+    expect(qimenFacts.map(({ fact }) => fact.label)).toEqual(['阴阳遁', '局数', '值符', '值使']);
+    expect(liuyaoFacts.map(({ fact }) => fact.label)).toEqual(['本卦', '变卦', '世爻', '动爻']);
+    expectPresentationMatchesSnapshot(qimen, qimenFacts);
+    expectPresentationMatchesSnapshot(liuyao, liuyaoFacts);
+
+    const noChangedName = { ...liuyao.data, changingHexagramName: '' };
+    expect(createLiuyaoFactChecks(noChangedName).map(({ fact }) => fact.label)).not.toContain('变卦');
+
+    const invalid: StructuredFactCheck = {
+      fact: { ...qimenFacts[0].fact, value: '篡改值' },
+      validation: { valid: false },
+    };
+    const presentation = toUserPresentation(qimen, { factChecks: [qimenFacts[0], invalid], disclaimers: DISCLAIMERS });
+    expect(presentation.semanticReport?.facts).toEqual([qimenFacts[0].fact]);
   });
 
   it('紫微成功 envelope 只产生白名单本命 facts，并与同一导出快照一致', () => {

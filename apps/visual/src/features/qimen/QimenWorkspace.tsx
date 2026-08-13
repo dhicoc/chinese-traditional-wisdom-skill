@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
-import { calculateQimen as calculateQimenPure, calcQimenEnveloped } from '@/engine-api/divination';
-import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
+import { calcQimenEnveloped, type QimenData } from '@/engine-api/divination';
+import { validateDivinationClaims, type DivinationPresentationClaim } from '@/legacy/claimVerification/divinationClaimVerifier';
+import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
+import type { ToolEnvelope } from '@/engine-api/types';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { QimenChart } from '@/components/shared/QimenChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
@@ -44,6 +46,19 @@ interface QimenPalace {
   tenStemResponse: { heavenlyToEarthly: string; timeToDay: string } | null;
 }
 
+export function createQimenFactChecks(data: QimenData): StructuredFactCheck[] {
+  const claims: Array<{ claim: DivinationPresentationClaim; label: string; value: string }> = [
+    { claim: { tool: 'arrange_qimen', kind: 'basic', field: 'dun', value: data.dun }, label: '阴阳遁', value: data.dun },
+    { claim: { tool: 'arrange_qimen', kind: 'basic', field: 'ju', value: data.ju }, label: '局数', value: data.ju },
+    ...(data.zhiFu ? [{ claim: { tool: 'arrange_qimen', kind: 'zhiFu', field: 'star', value: data.zhiFu.star } as DivinationPresentationClaim, label: '值符', value: data.zhiFu.star }] : []),
+    ...(data.zhiShi ? [{ claim: { tool: 'arrange_qimen', kind: 'zhiShi', field: 'gate', value: data.zhiShi.gate } as DivinationPresentationClaim, label: '值使', value: data.zhiShi.gate }] : []),
+  ];
+  return claims.map(({ claim, label, value }) => ({
+    fact: { label, value, tool: 'arrange_qimen' },
+    validation: validateDivinationClaims('arrange_qimen', data, [claim]),
+  }));
+}
+
 interface QimenResult {
   engineName: string;
   mode: string;
@@ -69,26 +84,37 @@ export function QimenWorkspace() {
   const { solarBirth } = useBirth();
 
   const ready = true;
-  const result = useMemo<QimenResult | null>(() => {
+  const envelope = useMemo<ToolEnvelope<QimenData> | null>(() => {
     if (!ready) return null;
     try {
-      return calculateQimenPure({ birth: solarBirth }) as unknown as QimenResult;
+      const result = calcQimenEnveloped({ birth: solarBirth });
+      return result.ok ? result : {
+        ...result,
+        error: { code: 'calculation_failed', message: '本次计算未能完成，请核对输入后重试。' },
+      };
     } catch {
-      return null;
+      return {
+        ok: false,
+        tool: 'arrange_qimen',
+        version: 'unknown',
+        input_normalized: { birth: solarBirth },
+        data: {} as QimenData,
+        error: { code: 'calculation_exception', message: '本次计算未能完成，请核对输入后重试。' },
+      };
     }
   }, [ready, solarBirth]);
-
-  const exportSnapshot = useMemo(() => {
-    if (!ready || !result) return null;
-    try {
-      return calcQimenEnveloped({ birth: solarBirth }).data.export_snapshot;
-    } catch {
-      return null;
-    }
-  }, [ready, solarBirth, result]);
-  const fourLayer = useMemo<LayerReport | null>(() => (
-    exportSnapshot ? toFourLayer(exportSnapshot as ReadingLike) : null
-  ), [exportSnapshot]);
+  const factChecks = useMemo(() => envelope?.ok ? createQimenFactChecks(envelope.data) : [], [envelope]);
+  const presentation = useMemo(() => envelope ? toUserPresentation(envelope, {
+    factChecks,
+    disclaimers: ['奇门遁甲结果仅作传统术数文化学习参考，不作为现实决策依据。'],
+  }) : null, [envelope, factChecks]);
+  const exportPresentation = useMemo(() => presentation?.exportReport ? ({
+    report: presentation.exportReport,
+    notices: presentation.notices,
+    warnings: presentation.warnings,
+    semanticReport: presentation.semanticReport,
+  }) : null, [presentation]);
+  const result = envelope?.ok ? envelope.data as QimenResult : null;
 
   const contextPayload = useMemo(
     () => ({
@@ -103,6 +129,16 @@ export function QimenWorkspace() {
     }),
     [result, solarBirth],
   );
+
+  if (presentation?.state === 'error') {
+    return (
+      <section className="space-y-4">
+        <InterpretationCard title="计算未完成" subtitle="请核对输入">
+          <p className="text-sm text-jade-100/55">{presentation.error?.message}</p>
+        </InterpretationCard>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-4">
@@ -119,7 +155,7 @@ export function QimenWorkspace() {
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="qimen" title="奇门遁甲摘要" payload={contextPayload} />
-            <ExportReportButton module="奇门遁甲命盘" report={exportSnapshot} />
+            {exportPresentation && <ExportReportButton module="奇门遁甲命盘" report={exportPresentation.report} />}
           </div>
         </div>
       </div>
@@ -273,9 +309,9 @@ export function QimenWorkspace() {
           description="点击术语查看奇门遁甲通俗解释。"
         />
       )}
-      {fourLayer && (
+      {presentation?.report && (
         <div className="console-panel mt-4 rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-          <FourLayerReport report={fourLayer} title="奇门遁甲解读" />
+          <FourLayerReport report={presentation.report} title="奇门遁甲解读" />
         </div>
       )}
     </section>
