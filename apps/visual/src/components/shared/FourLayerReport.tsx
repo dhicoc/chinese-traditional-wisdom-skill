@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { LayerReport, SemanticReport, Tone, ActionCategory, Strength } from '@/legacy/reportLayers';
+import { DEFAULT_TRADITIONAL_DISCLAIMER, toSemanticReport, type LayerReport, type SemanticReport, type Tone, type ActionCategory, type Strength } from '@/legacy/reportLayers';
 
 /**
  * FourLayerReport — 报告四层显式分层渲染组件（ROADMAP 功能层增强 Step 2）
@@ -57,7 +57,18 @@ interface FourLayerReportProps {
 export function FourLayerReport({ report, semanticReport, title, notices = [], warnings = [], defaultDetailsOpen = false }: FourLayerReportProps) {
   const [detailsOpen, setDetailsOpen] = useState(defaultDetailsOpen);
   const toneStyle = TONE_STYLE[report.overallTone];
-  const disclaimers = semanticReport?.disclaimers ?? [];
+  const resolvedSemanticReport = semanticReport ?? toSemanticReport({
+    summary: report.tldr,
+    tags: report.tags,
+    sections: [
+      ...report.highlights.map(({ label, value }) => ({ heading: label, body: value })),
+      ...report.details,
+      ...(report.actions.length ? [{ heading: '行动建议', body: report.actions.map((action) => action.text).join('。') }] : []),
+    ],
+  }, {
+    disclaimers: [DEFAULT_TRADITIONAL_DISCLAIMER],
+  });
+  const disclaimers = resolvedSemanticReport.disclaimers;
 
   // actions 按 category 分组
   const actionGroups = new Map<ActionCategory, string[]>();
@@ -80,12 +91,12 @@ export function FourLayerReport({ report, semanticReport, title, notices = [], w
         </div>
       )}
 
-      {semanticReport?.facts.length ? (
+      {resolvedSemanticReport.facts.length ? (
         <div className="rounded-card border border-jade-500/30 bg-jade-500/8 px-3 py-2.5">
           <p className="text-xs font-semibold text-jade-300">结构化事实核对</p>
           <p className="mt-1 text-xs leading-5 text-jade-100/60">以下内容已与本次本地计算结果核对；不包含传统解释、建议或现实效果判断。</p>
           <dl className="mt-2 space-y-1.5 text-xs leading-5 text-jade-100/75">
-            {semanticReport.facts.map((fact) => (
+            {resolvedSemanticReport.facts.map((fact) => (
               <div key={`${fact.tool}-${fact.label}`} className="flex gap-2">
                 <dt className="shrink-0 text-jade-100/50">{fact.label}</dt>
                 <dd>{fact.value}</dd>
@@ -163,7 +174,7 @@ export function FourLayerReport({ report, semanticReport, title, notices = [], w
             onClick={() => setDetailsOpen((v) => !v)}
             className="flex w-full items-center justify-between text-xs font-medium text-jade-100/55 transition hover:text-jade-100/80"
           >
-            <span>{semanticReport ? '查看传统解释' : '查看详细解读'}</span>
+            <span>查看传统解释</span>
             <span>{detailsOpen ? '收起 ▲' : '展开 ▼'}</span>
           </button>
           {detailsOpen && (

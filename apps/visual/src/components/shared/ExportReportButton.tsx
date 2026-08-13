@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import type { SemanticReport } from '@/legacy/reportLayers';
+import { DEFAULT_TRADITIONAL_DISCLAIMER, toSemanticReport, type SemanticReport } from '@/legacy/reportLayers';
 import { dispatchCommandFeedback } from '@/lib/commandIntents';
 import { useBirth } from '@/lib/birthContext';
 
@@ -48,33 +48,31 @@ export function createExportReportHtml({
   warnings?: string[];
   semanticReport?: SemanticReport | null;
 }): string {
-  const sections = report.sections.map((section) => `
-    <section>
-      <h2>${escapeHtml(section.heading)}</h2>
-      <p>${escapeHtml(section.body).replace(/\n/g, '<br>')}</p>
-    </section>`).join('');
-  const factSection = semanticReport?.facts.length ? `
+  const resolvedSemanticReport = semanticReport ?? toSemanticReport(report, {
+    disclaimers: [DEFAULT_TRADITIONAL_DISCLAIMER],
+  });
+  const factSection = resolvedSemanticReport.facts.length ? `
     <section class="facts">
       <h2>结构化事实核对</h2>
       <p class="boundary">以下内容已与本次本地计算结果核对；不包含传统解释、建议或现实效果判断。</p>
-      <dl>${semanticReport.facts.map((fact) => `<div><dt>${escapeHtml(fact.label)}</dt><dd>${escapeHtml(fact.value)}</dd></div>`).join('')}</dl>
+      <dl>${resolvedSemanticReport.facts.map((fact) => `<div><dt>${escapeHtml(fact.label)}</dt><dd>${escapeHtml(fact.value)}</dd></div>`).join('')}</dl>
     </section>` : '';
-  const interpretationSection = semanticReport?.traditionalInterpretations.length ? `
+  const interpretationSection = resolvedSemanticReport.traditionalInterpretations.length ? `
     <section>
       <h2>传统解释</h2>
-      ${semanticReport.traditionalInterpretations.map((section) => `<h3>${escapeHtml(section.heading)}</h3><p>${escapeHtml(section.body).replace(/\n/g, '<br>')}</p>`).join('')}
+      ${resolvedSemanticReport.traditionalInterpretations.map((section) => `<h3>${escapeHtml(section.heading)}</h3><p>${escapeHtml(section.body).replace(/\n/g, '<br>')}</p>`).join('')}
     </section>` : '';
-  const actionSection = semanticReport?.actions.length ? `
+  const actionSection = resolvedSemanticReport.actions.length ? `
     <section>
       <h2>行动建议</h2>
-      <ul>${semanticReport.actions.map((action) => `<li>${escapeHtml(action.text)}</li>`).join('')}</ul>
+      <ul>${resolvedSemanticReport.actions.map((action) => `<li>${escapeHtml(action.text)}</li>`).join('')}</ul>
     </section>` : '';
-  const disclaimerSection = semanticReport?.disclaimers.length ? `
+  const disclaimerSection = resolvedSemanticReport.disclaimers.length ? `
     <aside class="disclaimer">
       <h2>免责声明</h2>
-      <ul>${semanticReport.disclaimers.map((disclaimer) => `<li>${escapeHtml(disclaimer)}</li>`).join('')}</ul>
+      <ul>${resolvedSemanticReport.disclaimers.map((disclaimer) => `<li>${escapeHtml(disclaimer)}</li>`).join('')}</ul>
     </aside>` : '';
-  const content = semanticReport ? `${factSection}${interpretationSection}${actionSection}${disclaimerSection}` : sections;
+  const content = `${factSection}${interpretationSection}${actionSection}${disclaimerSection}`;
   const noticeSection = notices.length ? `
     <aside class="notice">
       <h2>计算状态</h2>

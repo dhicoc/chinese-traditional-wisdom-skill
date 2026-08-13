@@ -84,6 +84,8 @@ export interface SemanticReport {
   disclaimers: string[];
 }
 
+export const DEFAULT_TRADITIONAL_DISCLAIMER = '本报告提供传统文化解释参考，不构成对现实结果、医疗、法律或财务事项的保证或专业建议。';
+
 export interface UserPresentation {
   state: 'success' | 'error';
   report: LayerReport | null;

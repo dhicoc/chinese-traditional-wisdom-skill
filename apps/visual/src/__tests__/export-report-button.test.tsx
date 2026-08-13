@@ -34,7 +34,10 @@ describe('ExportReportButton', () => {
     expect(html).toContain('八字 &lt;报告&gt;');
     expect(html).toContain('日主 &amp; 喜用神');
     expect(html).toContain('结论 &lt;一&gt;');
+    expect(html).toContain('传统解释');
     expect(html).toContain('保留 &lt;标签&gt;<br>并换行');
+    expect(html).toContain('免责声明');
+    expect(html).toContain('本报告提供传统文化解释参考，不构成对现实结果、医疗、法律或财务事项的保证或专业建议。');
     expect(html).toContain('本报告内容仅作传统文化参考。');
   });
 
