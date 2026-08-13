@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 
-const { ziweiEngineMock } = vi.hoisted(() => ({
+const { yunqiEngineMock, ziweiEngineMock } = vi.hoisted(() => ({
+  yunqiEngineMock: vi.fn<() => unknown>(() => {
+    throw new Error('yunqi internal sentinel');
+  }),
   ziweiEngineMock: vi.fn<() => unknown>(() => {
     throw new Error('ziwei internal sentinel');
   }),
@@ -37,6 +40,14 @@ vi.mock('@/engine-api/ziwei', async (importOriginal) => {
   };
 });
 
+vi.mock('@/engine-api/yunqi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/engine-api/yunqi')>();
+  return {
+    ...actual,
+    calcYunqiEnveloped: yunqiEngineMock,
+  };
+});
+
 vi.mock('@/engine-api/folklore', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/engine-api/folklore')>();
   return {
@@ -62,6 +73,7 @@ import { HuangjiWorkspace } from '@/features/huangji/HuangjiWorkspace';
 import { LiurenWorkspace } from '@/features/liuren/LiurenWorkspace';
 import { TaiyiWorkspace } from '@/features/taiyi/TaiyiWorkspace';
 import { XingXiuWorkspace } from '@/features/xingxiu/XingXiuWorkspace';
+import { YunqiWorkspace } from '@/features/yunqi/YunqiWorkspace';
 import { ZiweiWorkspace } from '@/features/ziwei/ZiweiWorkspace';
 
 const SAFE_ERROR_MESSAGE = '本次计算未能完成，请核对输入后重试。';
@@ -76,6 +88,30 @@ function expectSafeErrorState(container: HTMLElement, internalDetail: string, su
 afterEach(() => cleanup());
 
 describe('Workspace 计算错误呈现', () => {
+  it('五运六气直接引擎计算抛异常时不泄露内部错误或展示成功内容', () => {
+    const { container } = render(<YunqiWorkspace />);
+
+    expectSafeErrorState(container, 'yunqi internal sentinel', '岁运 · 司天 · 在泉');
+    expect(screen.queryByText('五运六气解读')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '导出报告' })).not.toBeInTheDocument();
+  });
+
+  it('五运六气直接引擎返回失败 envelope 时只显示受控错误面板', () => {
+    yunqiEngineMock.mockReturnValueOnce({
+      ok: false,
+      tool: 'calc_yunqi',
+      version: 'test',
+      input_normalized: {},
+      data: {},
+      error: { code: 'internal_failure', message: 'yunqi failed envelope sentinel' },
+    });
+    const { container } = render(<YunqiWorkspace />);
+
+    expectSafeErrorState(container, 'yunqi failed envelope sentinel', '岁运 · 司天 · 在泉');
+    expect(screen.queryByText('五运六气解读')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '导出报告' })).not.toBeInTheDocument();
+  });
+
   it('测字异步直接引擎计算抛异常时只显示安全文案', async () => {
     const { container } = render(<CeziWorkspace />);
 

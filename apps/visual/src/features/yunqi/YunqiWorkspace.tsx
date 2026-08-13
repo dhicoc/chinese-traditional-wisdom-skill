@@ -5,12 +5,13 @@ import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { ControlField } from '@/components/shared/ControlField';
 import { YunqiChart } from '@/components/shared/YunqiChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
-import type { YunqiData } from '@/legacy/canvasRenderers';
-import { calculateYunqi, calcYunqiEnveloped } from '@/engine-api/yunqi';
-import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
+import { calcYunqiEnveloped, type YunqiData } from '@/engine-api/yunqi';
+import type { ToolEnvelope } from '@/engine-api/types';
+import { validateCalendarClaims, type CalendarPresentationClaim } from '@/legacy/claimVerification/calendarClaimVerifier';
+import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
-import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
+import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import {
   YEAR_INTENT_EVENT,
   normalizeCommandYear,
@@ -18,15 +19,37 @@ import {
   type YearIntentDetail,
 } from '@/lib/commandIntents';
 
+const SAFE_ERROR_MESSAGE = '本次计算未能完成，请核对输入后重试。';
+
+/** Dashboard 边界：失败信封绝不把引擎内部错误带到用户界面。 */
+function createYunqiFailureEnvelope(year: number): ToolEnvelope<YunqiData> {
+  return {
+    ok: false,
+    tool: 'calc_yunqi',
+    version: 'unknown',
+    input_normalized: { year },
+    data: {} as YunqiData,
+    error: { code: 'calculation_failed', message: SAFE_ERROR_MESSAGE },
+  };
+}
+
+/** 仅输出五运六气白名单事实；每条候选均独立与本次结果核验。 */
+export function createYunqiFactChecks(data: YunqiData): StructuredFactCheck[] {
+  const candidates: Array<{ claim: CalendarPresentationClaim; label: string; value: string }> = [
+    { claim: { tool: 'calc_yunqi', kind: 'yunqiYear', field: 'year', value: data.year }, label: '年份', value: String(data.year) },
+    { claim: { tool: 'calc_yunqi', kind: 'yunqiYear', field: 'tiangan', value: data.tiangan }, label: '天干', value: data.tiangan },
+    { claim: { tool: 'calc_yunqi', kind: 'yunqiYear', field: 'dizhi', value: data.dizhi }, label: '地支', value: data.dizhi },
+    { claim: { tool: 'calc_yunqi', kind: 'yunqiWuyun', field: 'dayun', value: data.wuyun.dayun }, label: '岁运', value: data.wuyun.dayun },
+    { claim: { tool: 'calc_yunqi', kind: 'yunqiLiuqi', field: 'sitian', value: data.liuqi.sitian }, label: '司天', value: data.liuqi.sitian },
+  ];
+  return candidates.map(({ claim, label, value }) => ({
+    fact: { label, value: String(value), tool: 'calc_yunqi' },
+    validation: validateCalendarClaims('yunqi', data, [claim]),
+  }));
+}
+
 export function YunqiWorkspace() {
   const [year, setYear] = useState(() => readPendingCommandYear('yunqi'));
-  const [data, setData] = useState<YunqiData | null>(null);
-
-  
-  useEffect(() => {
-    setData(calculateYunqi({ year, solar: getSolarEntry() }) as unknown as YunqiData);
-  }, [year]);
-
   useEffect(() => {
     function handleYearIntent(event: Event) {
       const detail = (event as CustomEvent<YearIntentDetail>).detail;
@@ -38,18 +61,28 @@ export function YunqiWorkspace() {
     return () => window.removeEventListener(YEAR_INTENT_EVENT, handleYearIntent);
   }, []);
 
-  const ready = !!data;
-  const exportSnapshot = useMemo(() => {
-    if (!year) return null;
+  const envelope = useMemo(() => {
     try {
-      return calcYunqiEnveloped({ year, solar: getSolarEntry(), currentMonth: new Date().getMonth() + 1 }).data.export_snapshot;
+      return calcYunqiEnveloped({ year, solar: getSolarEntry(), currentMonth: new Date().getMonth() + 1 });
     } catch {
-      return null;
+      return createYunqiFailureEnvelope(year);
     }
   }, [year]);
-  const fourLayer = useMemo<LayerReport | null>(() => (
-    exportSnapshot ? toFourLayer(exportSnapshot as ReadingLike) : null
-  ), [exportSnapshot]);
+  const data = envelope.ok ? envelope.data : null;
+  const factChecks = useMemo(
+    () => data ? createYunqiFactChecks(data) : [],
+    [data],
+  );
+  const presentation = useMemo(() => toUserPresentation(envelope, {
+    factChecks,
+    disclaimers: ['五运六气输出仅作传统文化和气候病机理论学习参考，不替代医学诊断。'],
+  }), [envelope, factChecks]);
+  const exportPresentation = useMemo(() => presentation.exportReport ? ({
+    report: presentation.exportReport,
+    notices: presentation.notices,
+    warnings: presentation.warnings,
+    semanticReport: presentation.semanticReport,
+  }) : null, [presentation]);
   const contextPayload = useMemo(
     () => ({
       项目: '五运六气',
@@ -59,6 +92,16 @@ export function YunqiWorkspace() {
     }),
     [year, data],
   );
+
+  if (presentation.state === 'error') {
+    return (
+      <section className="space-y-4">
+        <InterpretationCard title="计算未完成" subtitle="请核对输入">
+          <p className="text-sm text-jade-100/55">{SAFE_ERROR_MESSAGE}</p>
+        </InterpretationCard>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-4">
@@ -72,7 +115,7 @@ export function YunqiWorkspace() {
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="yunqi" title="五运六气摘要" payload={contextPayload} />
-            <ExportReportButton module="五运六气" report={exportSnapshot} />
+            {exportPresentation && <ExportReportButton module="五运六气" presentation={exportPresentation} />}
           </div>
         </div>
       </div>
@@ -119,28 +162,32 @@ export function YunqiWorkspace() {
             </div>
           </div>
           <div className="canvas-stage overflow-x-auto rounded-card border border-jade-500/18 bg-ink-950/92 p-3">
-            {ready && data ? (
+            {data && (
               <ZoomableSvg title="岁运 · 司天 · 在泉">
                 <YunqiChart data={data} />
               </ZoomableSvg>
-            ) : (
-              <LoadingSkeleton label="正在排盘" />
             )}
           </div>
         </section>
       </div>
 
-      {ready && (
+      {data && (
         <TermExplanationPanel
-          ready={ready}
+          ready
           initialTerm="岁运"
           terms={["岁运","司天","在泉","客气","主气","六气","客主加临","厥阴风木","少阴君火","少阳相火","太阴湿土","阳明燥金","太阳寒水","初之气","二之气","三之气","四之气","五之气","六之气","大寒","节气","太过","不及"]}
           description="点击术语查看五运六气通俗解释。"
         />
       )}
-      {fourLayer && (
+      {presentation.report && (
         <div className="console-panel mt-4 rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-          <FourLayerReport report={fourLayer} title="五运六气解读" />
+          <FourLayerReport
+            report={presentation.report}
+            semanticReport={presentation.semanticReport}
+            notices={presentation.notices}
+            warnings={presentation.warnings}
+            title="五运六气解读"
+          />
         </div>
       )}
     </section>

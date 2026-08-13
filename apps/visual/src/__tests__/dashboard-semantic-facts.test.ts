@@ -12,9 +12,11 @@ import {
 } from '@/engine-api/combo';
 import { calcMarriageCombo } from '@/engine-api/marriage';
 import { calcZiweiEnveloped } from '@/engine-api/ziwei';
+import { calcYunqiEnveloped } from '@/engine-api/yunqi';
 import { createCeziFactChecks, sanitizeCeziEnvelope } from '@/features/cezi/CeziWorkspace';
 import { createChenguzFactChecks, sanitizeChenguzEnvelope } from '@/features/chenguz/ChenguzWorkspace';
 import { createComboFactChecks, sanitizeComboEnvelope } from '@/features/combo/ComboWorkspace';
+import { createYunqiFactChecks } from '@/features/yunqi/YunqiWorkspace';
 import { createZiweiFactChecks, sanitizeZiweiEnvelope } from '@/features/ziwei/ZiweiWorkspace';
 import { toUserPresentation, type ReadingLike, type StructuredFactCheck } from '@/legacy/reportLayers';
 
@@ -54,6 +56,31 @@ describe('Dashboard 同源 presentation 的核验事实', () => {
     expect(chenguzFacts.map(({ fact }) => fact.label)).toEqual(['总骨重', '版本', '年支', '农历月']);
     expectPresentationMatchesSnapshot(cezi, ceziFacts);
     expectPresentationMatchesSnapshot(chenguz, chenguzFacts);
+  });
+
+  it('五运六气成功 envelope 只产生经逐条核验的白名单 facts，并与导出快照同源', () => {
+    const yunqi = calcYunqiEnveloped({ year: 2025, currentMonth: 3, solar: SOLAR });
+
+    expect(yunqi.ok).toBe(true);
+    if (!yunqi.ok) throw new Error('expected successful yunqi envelope');
+
+    const facts = createYunqiFactChecks(yunqi.data);
+    expect(facts.map(({ fact }) => fact.label)).toEqual(['年份', '天干', '地支', '岁运', '司天']);
+    expect(facts.map(({ fact }) => fact.value)).toEqual([
+      String(yunqi.data.year),
+      yunqi.data.tiangan,
+      yunqi.data.dizhi,
+      yunqi.data.wuyun.dayun,
+      yunqi.data.liuqi.sitian,
+    ]);
+    expectPresentationMatchesSnapshot(yunqi, facts);
+
+    const invalid: StructuredFactCheck = {
+      fact: { ...facts[0].fact, value: '篡改值' },
+      validation: { valid: false },
+    };
+    const presentation = toUserPresentation(yunqi, { factChecks: [facts[0], invalid], disclaimers: DISCLAIMERS });
+    expect(presentation.semanticReport?.facts).toEqual([facts[0].fact]);
   });
 
   it('五种已支持联合模式的成功 envelope 仅接纳各自有效 facts', async () => {
