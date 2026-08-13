@@ -6,7 +6,6 @@ import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { useBirth } from '@/lib/birthContext';
-import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import {
   calcAnnualFortuneCombo,
   calcDecisionCombo,
@@ -47,39 +46,89 @@ import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLay
 
 type ComboType = 'annual' | 'monthly' | 'decision' | 'space' | 'sanshi' | 'sanshi-classic' | 'wellness' | 'zeri' | 'marriage';
 type SupportedComboData = ComboResult | AnnualFortuneResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult;
+type ComboPresentationData = AnnualFortuneResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult;
+
+const SAFE_ERROR_MESSAGE = '本次计算未能完成，请核对输入后重试。';
+
+/** Dashboard 边界：只净化失败 envelope，成功结果保持引擎原样。 */
+export function sanitizeComboEnvelope<T>(envelope: ToolEnvelope<T>): ToolEnvelope<T> {
+  if (envelope.ok) return envelope;
+  return { ...envelope, error: { code: 'calculation_failed', message: SAFE_ERROR_MESSAGE } };
+}
+
+function createComboFailureEnvelope(comboType: ComboType): ToolEnvelope<ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult> {
+  return sanitizeComboEnvelope({
+    ok: false,
+    tool: 'combo_dashboard',
+    version: 'unknown',
+    input_normalized: { comboType },
+    data: {} as ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult,
+    error: { code: 'calculation_exception', message: SAFE_ERROR_MESSAGE },
+  });
+}
+
+function factChecksFor<T extends ComboPresentationData>(
+  tool: 'combo_annual_fortune' | 'combo_zeri' | 'combo_daily_wellness' | 'combo_monthly_fortune' | 'combo_marriage',
+  data: T,
+  rows: Array<{ claim: ComboPresentationClaim; label: string; value: string }>,
+): StructuredFactCheck[] {
+  return rows.map(({ claim, label, value }) => ({
+    fact: { label, value, tool },
+    // validateComboClaims exposes a broad union; each builder below binds its checked tool and data together.
+    validation: validateComboClaims(tool, data, [claim]),
+  }));
+}
+
+function annualFactChecks(data: AnnualFortuneResult): StructuredFactCheck[] {
+  return factChecksFor('combo_annual_fortune', data, [
+    { claim: { tool: 'combo_annual_fortune', kind: 'annualContext', field: 'targetYear', value: data.context.targetYear }, label: '目标年份', value: String(data.context.targetYear) },
+    { claim: { tool: 'combo_annual_fortune', kind: 'annualContext', field: 'mingGuaTrigram', value: data.context.mingGua.trigram }, label: '命卦', value: data.context.mingGua.trigram },
+    { claim: { tool: 'combo_annual_fortune', kind: 'annualContext', field: 'mingGuaGroup', value: data.context.mingGua.group }, label: '命卦分组', value: data.context.mingGua.group },
+  ]);
+}
+
+function monthlyFactChecks(data: MonthlyFortuneResult): StructuredFactCheck[] {
+  return factChecksFor('combo_monthly_fortune', data, (['year', 'month', 'monthGanZhi', 'jieqi'] as const).map((field) => ({
+    claim: { tool: 'combo_monthly_fortune', kind: 'monthlyContext', field, value: data.context[field] },
+    label: ({ year: '年份', month: '月份', monthGanZhi: '月干支', jieqi: '节气' } as const)[field], value: String(data.context[field]),
+  })));
+}
+
+function wellnessFactChecks(data: DailyWellnessResult): StructuredFactCheck[] {
+  return factChecksFor('combo_daily_wellness', data, (['date', 'jieqi', 'season', 'shichen'] as const).map((field) => ({
+    claim: { tool: 'combo_daily_wellness', kind: 'wellnessContext', field, value: data.context[field] },
+    label: ({ date: '日期', jieqi: '节气', season: '季节', shichen: '时辰' } as const)[field], value: data.context[field],
+  })));
+}
+
+function zeriFactChecks(data: ZeriResult): StructuredFactCheck[] {
+  const rows: Array<{ claim: ComboPresentationClaim; label: string; value: string }> = [
+    { claim: { tool: 'combo_zeri', kind: 'zeriPurpose', value: data.zeriPurpose }, label: '择日用途', value: data.zeriPurpose },
+    ...(['start', 'end', 'scannedDays'] as const).map((field) => ({ claim: { tool: 'combo_zeri' as const, kind: 'zeriRange' as const, field, value: data.range[field] }, label: ({ start: '区间起', end: '区间止', scannedDays: '扫描天数' } as const)[field], value: String(data.range[field]) })),
+  ];
+  if (data.rankedDays[0]) rows.push({ claim: { tool: 'combo_zeri', kind: 'zeriRankedDay', index: 0, field: 'date', value: data.rankedDays[0].date }, label: '首选吉日', value: data.rankedDays[0].date });
+  return factChecksFor('combo_zeri', data, rows);
+}
+
+function marriageFactChecks(data: MarriageResult): StructuredFactCheck[] {
+  return factChecksFor('combo_marriage', data, [
+    { claim: { tool: 'combo_marriage', kind: 'marriageScene', value: data.scene }, label: '关系场景', value: data.scene },
+    { claim: { tool: 'combo_marriage', kind: 'marriagePerson', person: 'personA', field: 'dayGanZhi', value: data.personA.dayGanZhi }, label: '甲方日柱', value: data.personA.dayGanZhi },
+    { claim: { tool: 'combo_marriage', kind: 'marriagePerson', person: 'personB', field: 'dayGanZhi', value: data.personB.dayGanZhi }, label: '乙方日柱', value: data.personB.dayGanZhi },
+    { claim: { tool: 'combo_marriage', kind: 'marriageMingGua', person: 'personA', field: 'group', value: data.personA.mingGua.group }, label: '甲方命卦分组', value: data.personA.mingGua.group },
+    { claim: { tool: 'combo_marriage', kind: 'marriageMingGua', person: 'personB', field: 'group', value: data.personB.mingGua.group }, label: '乙方命卦分组', value: data.personB.mingGua.group },
+  ]);
+}
 
 export function createComboFactChecks(comboType: ComboType, data: SupportedComboData): StructuredFactCheck[] {
-  if (comboType === 'decision' || comboType === 'space' || comboType === 'sanshi' || comboType === 'sanshi-classic') return [];
-  const claimRows: Array<{ tool: 'combo_annual_fortune' | 'combo_zeri' | 'combo_daily_wellness' | 'combo_monthly_fortune' | 'combo_marriage'; claim: ComboPresentationClaim; label: string; value: string }> = [];
-  if (comboType === 'annual') {
-    const annual = data as AnnualFortuneResult;
-    claimRows.push(
-      { tool: 'combo_annual_fortune', claim: { tool: 'combo_annual_fortune', kind: 'annualContext', field: 'targetYear', value: annual.context.targetYear }, label: '目标年份', value: String(annual.context.targetYear) },
-      { tool: 'combo_annual_fortune', claim: { tool: 'combo_annual_fortune', kind: 'annualContext', field: 'mingGuaTrigram', value: annual.context.mingGua.trigram }, label: '命卦', value: annual.context.mingGua.trigram },
-      { tool: 'combo_annual_fortune', claim: { tool: 'combo_annual_fortune', kind: 'annualContext', field: 'mingGuaGroup', value: annual.context.mingGua.group }, label: '命卦分组', value: annual.context.mingGua.group },
-    );
-  } else if (comboType === 'monthly') {
-    const monthly = data as MonthlyFortuneResult;
-    (['year', 'month', 'monthGanZhi', 'jieqi'] as const).forEach((field) => claimRows.push({ tool: 'combo_monthly_fortune', claim: { tool: 'combo_monthly_fortune', kind: 'monthlyContext', field, value: monthly.context[field] }, label: ({ year: '年份', month: '月份', monthGanZhi: '月干支', jieqi: '节气' } as const)[field], value: String(monthly.context[field]) }));
-  } else if (comboType === 'wellness') {
-    const wellness = data as DailyWellnessResult;
-    (['date', 'jieqi', 'season', 'shichen'] as const).forEach((field) => claimRows.push({ tool: 'combo_daily_wellness', claim: { tool: 'combo_daily_wellness', kind: 'wellnessContext', field, value: wellness.context[field] }, label: ({ date: '日期', jieqi: '节气', season: '季节', shichen: '时辰' } as const)[field], value: wellness.context[field] }));
-  } else if (comboType === 'zeri') {
-    const zeri = data as ZeriResult;
-    claimRows.push({ tool: 'combo_zeri', claim: { tool: 'combo_zeri', kind: 'zeriPurpose', value: zeri.zeriPurpose }, label: '择日用途', value: zeri.zeriPurpose });
-    (['start', 'end', 'scannedDays'] as const).forEach((field) => claimRows.push({ tool: 'combo_zeri', claim: { tool: 'combo_zeri', kind: 'zeriRange', field, value: zeri.range[field] }, label: ({ start: '区间起', end: '区间止', scannedDays: '扫描天数' } as const)[field], value: String(zeri.range[field]) }));
-    if (zeri.rankedDays[0]) claimRows.push({ tool: 'combo_zeri', claim: { tool: 'combo_zeri', kind: 'zeriRankedDay', index: 0, field: 'date', value: zeri.rankedDays[0].date }, label: '首选吉日', value: zeri.rankedDays[0].date });
-  } else {
-    const marriage = data as MarriageResult;
-    claimRows.push(
-      { tool: 'combo_marriage', claim: { tool: 'combo_marriage', kind: 'marriageScene', value: marriage.scene }, label: '关系场景', value: marriage.scene },
-      { tool: 'combo_marriage', claim: { tool: 'combo_marriage', kind: 'marriagePerson', person: 'personA', field: 'dayGanZhi', value: marriage.personA.dayGanZhi }, label: '甲方日柱', value: marriage.personA.dayGanZhi },
-      { tool: 'combo_marriage', claim: { tool: 'combo_marriage', kind: 'marriagePerson', person: 'personB', field: 'dayGanZhi', value: marriage.personB.dayGanZhi }, label: '乙方日柱', value: marriage.personB.dayGanZhi },
-      { tool: 'combo_marriage', claim: { tool: 'combo_marriage', kind: 'marriageMingGua', person: 'personA', field: 'group', value: marriage.personA.mingGua.group }, label: '甲方命卦分组', value: marriage.personA.mingGua.group },
-      { tool: 'combo_marriage', claim: { tool: 'combo_marriage', kind: 'marriageMingGua', person: 'personB', field: 'group', value: marriage.personB.mingGua.group }, label: '乙方命卦分组', value: marriage.personB.mingGua.group },
-    );
+  switch (comboType) {
+    case 'annual': return annualFactChecks(data as AnnualFortuneResult);
+    case 'monthly': return monthlyFactChecks(data as MonthlyFortuneResult);
+    case 'wellness': return wellnessFactChecks(data as DailyWellnessResult);
+    case 'zeri': return zeriFactChecks(data as ZeriResult);
+    case 'marriage': return marriageFactChecks(data as MarriageResult);
+    default: return [];
   }
-  return claimRows.map(({ tool, claim, label, value }) => ({ fact: { label, value, tool }, validation: validateComboClaims(tool, data as never, [claim]) }));
 }
 
 const COMBO_OPTIONS: Array<{
@@ -253,9 +302,9 @@ export function ComboWorkspace() {
         } else {
           envelope = calcSpaceTimeCombo({ birth: birthInput, targetYear, solar }) as ToolEnvelope<ComboResult>;
         }
-        if (!cancelled) setResult({ comboType, envelope, loading: false });
+        if (!cancelled) setResult({ comboType, envelope: sanitizeComboEnvelope(envelope), loading: false });
       } catch {
-        if (!cancelled) setResult({ comboType, envelope: null, loading: false });
+        if (!cancelled) setResult({ comboType, envelope: createComboFailureEnvelope(comboType), loading: false });
       }
     })();
     return () => { cancelled = true; };

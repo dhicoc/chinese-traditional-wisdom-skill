@@ -13,6 +13,29 @@ import { ExportReportButton } from '@/components/shared/ExportReportButton';
 
 const SAFE_ERROR_MESSAGE = '本次计算未能完成，请核对输入后重试。';
 
+/** Dashboard 边界：失败信封不透传引擎内部错误。 */
+export function sanitizeChenguzEnvelope(envelope: ToolEnvelope<ChenguzResult>): ToolEnvelope<ChenguzResult> {
+  if (envelope.ok) return envelope;
+  return {
+    ...envelope,
+    error: { code: 'calculation_failed', message: SAFE_ERROR_MESSAGE },
+  };
+}
+
+function createChenguzFailureEnvelope(
+  birth: ToolEnvelope<ChenguzResult>['input_normalized']['birth'],
+  version: ChenguzVersionId,
+): ToolEnvelope<ChenguzResult> {
+  return sanitizeChenguzEnvelope({
+    ok: false,
+    tool: 'calc_chenguz',
+    version: 'unknown',
+    input_normalized: { birth, version },
+    data: {} as ChenguzResult,
+    error: { code: 'calculation_exception', message: SAFE_ERROR_MESSAGE },
+  });
+}
+
 export function createChenguzFactChecks(data: ChenguzResult): StructuredFactCheck[] {
   const claims: Array<{ claim: DailyPresentationClaim; label: string; value: string }> = [
     { claim: { tool: 'calc_chenguz', kind: 'chenguzTotal', field: 'text', value: data.totalText }, label: '总骨重', value: data.totalText },
@@ -31,9 +54,9 @@ export function ChenguzWorkspace() {
   const [versionId, setVersionId] = useState<ChenguzVersionId>(DEFAULT_CHENGUZ_VERSION);
   const envelope = useMemo<ToolEnvelope<ChenguzResult>>(() => {
     try {
-      return calcChenguzEnveloped({ birth: solarBirth, solar: getSolarEntry() ?? null, version: versionId });
+      return sanitizeChenguzEnvelope(calcChenguzEnveloped({ birth: solarBirth, solar: getSolarEntry() ?? null, version: versionId }));
     } catch {
-      return { ok: false, tool: 'calc_chenguz', version: 'unknown', input_normalized: { birth: solarBirth, version: versionId }, data: {} as ChenguzResult, error: { code: 'calculation_exception', message: SAFE_ERROR_MESSAGE } };
+      return createChenguzFailureEnvelope(solarBirth, versionId);
     }
   }, [solarBirth, versionId]);
   const factChecks = useMemo(() => envelope.ok ? createChenguzFactChecks(envelope.data) : [], [envelope]);

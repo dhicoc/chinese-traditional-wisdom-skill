@@ -13,6 +13,26 @@ import { ExportReportButton } from '@/components/shared/ExportReportButton';
 type CeziAspect = '事业' | '感情' | '财利' | '健康' | '综合';
 const SAFE_ERROR_MESSAGE = '本次计算未能完成，请核对输入后重试。';
 
+/** Dashboard 边界：失败信封不透传引擎内部错误。 */
+export function sanitizeCeziEnvelope(envelope: ToolEnvelope<CeziResult>): ToolEnvelope<CeziResult> {
+  if (envelope.ok) return envelope;
+  return {
+    ...envelope,
+    error: { code: 'calculation_failed', message: SAFE_ERROR_MESSAGE },
+  };
+}
+
+function createCeziFailureEnvelope(char: string, aspect: CeziAspect): ToolEnvelope<CeziResult> {
+  return sanitizeCeziEnvelope({
+    ok: false,
+    tool: 'cast_cezi',
+    version: 'unknown',
+    input_normalized: { char, aspect },
+    data: {} as CeziResult,
+    error: { code: 'calculation_exception', message: SAFE_ERROR_MESSAGE },
+  });
+}
+
 export function createCeziFactChecks(data: CeziResult): StructuredFactCheck[] {
   const claims: Array<{ claim: DailyPresentationClaim; label: string; value: string }> = [
     { claim: { tool: 'cast_cezi', kind: 'cezi', field: 'char', value: data.char }, label: '所测字', value: data.char },
@@ -48,12 +68,9 @@ export function CeziWorkspace() {
           birth: useBazi ? { year: solarBirth.year, month: solarBirth.month, day: solarBirth.day, hour: solarBirth.hour, minute: solarBirth.minute, gender: solarBirth.gender } : undefined,
           solar,
         });
-        if (!cancelled) setResult({ envelope });
+        if (!cancelled) setResult({ envelope: sanitizeCeziEnvelope(envelope) });
       } catch {
-        if (!cancelled) setResult({ envelope: {
-          ok: false, tool: 'cast_cezi', version: 'unknown', input_normalized: { char, aspect }, data: {} as CeziResult,
-          error: { code: 'calculation_exception', message: SAFE_ERROR_MESSAGE },
-        } });
+        if (!cancelled) setResult({ envelope: createCeziFailureEnvelope(char, aspect) });
       }
     })();
     return () => { cancelled = true; };

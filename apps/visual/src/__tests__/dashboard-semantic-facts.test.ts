@@ -11,10 +11,12 @@ import {
   calcZeriCombo,
 } from '@/engine-api/combo';
 import { calcMarriageCombo } from '@/engine-api/marriage';
-import { createCeziFactChecks } from '@/features/cezi/CeziWorkspace';
-import { createChenguzFactChecks } from '@/features/chenguz/ChenguzWorkspace';
-import { createComboFactChecks } from '@/features/combo/ComboWorkspace';
+import { createCeziFactChecks, sanitizeCeziEnvelope } from '@/features/cezi/CeziWorkspace';
+import { createChenguzFactChecks, sanitizeChenguzEnvelope } from '@/features/chenguz/ChenguzWorkspace';
+import { createComboFactChecks, sanitizeComboEnvelope } from '@/features/combo/ComboWorkspace';
 import { toUserPresentation, type ReadingLike, type StructuredFactCheck } from '@/legacy/reportLayers';
+
+const SAFE_ERROR_MESSAGE = '本次计算未能完成，请核对输入后重试。';
 
 const BIRTH = { year: 2024, month: 3, day: 15, hour: 9, minute: 0, gender: '男' };
 const SOLAR = null;
@@ -110,5 +112,30 @@ describe('Dashboard 同源 presentation 的核验事实', () => {
 
     expect(presentation.semanticReport?.facts).toEqual([verified.fact]);
     expect(presentation.semanticReport?.facts).not.toContainEqual(tampered.fact);
+  });
+
+  it('三个 Dashboard 适配边界均净化失败 envelope 的内部 message', () => {
+    const internalFailure = {
+      ok: false,
+      tool: 'internal_tool',
+      version: 'internal',
+      input_normalized: {},
+      data: {},
+      error: { code: 'internal_failure', message: 'internal sentinel must not reach DOM' },
+    };
+
+    for (const sanitize of [
+      () => sanitizeCeziEnvelope(internalFailure as Parameters<typeof sanitizeCeziEnvelope>[0]),
+      () => sanitizeChenguzEnvelope(internalFailure as Parameters<typeof sanitizeChenguzEnvelope>[0]),
+      () => sanitizeComboEnvelope(internalFailure),
+    ]) {
+      const presentation = toUserPresentation(sanitize());
+      expect(presentation.state).toBe('error');
+      expect(presentation.error?.message).toBe(SAFE_ERROR_MESSAGE);
+      expect(presentation.error?.message).not.toContain('internal sentinel');
+      expect(presentation.report).toBeNull();
+      expect(presentation.semanticReport).toBeNull();
+      expect(presentation.exportReport).toBeNull();
+    }
   });
 });
