@@ -155,7 +155,7 @@ export function QimenWorkspace() {
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="qimen" title="奇门遁甲摘要" payload={contextPayload} />
-            {exportPresentation && <ExportReportButton module="奇门遁甲命盘" report={exportPresentation.report} />}
+            {exportPresentation && <ExportReportButton module="奇门遁甲命盘" presentation={exportPresentation} />}
           </div>
         </div>
       </div>

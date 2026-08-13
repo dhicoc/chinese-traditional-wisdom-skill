@@ -213,7 +213,7 @@ export function LiuyaoWorkspace() {
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="liuyao" title="六爻占卜摘要" payload={contextPayload} />
-            {exportPresentation && <ExportReportButton module="六爻占卜" report={exportPresentation.report} />}
+            {exportPresentation && <ExportReportButton module="六爻占卜" presentation={exportPresentation} />}
           </div>
         </div>
         <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
