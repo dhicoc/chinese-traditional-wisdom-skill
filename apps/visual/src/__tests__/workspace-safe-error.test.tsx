@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 
+const { ziweiEngineMock } = vi.hoisted(() => ({
+  ziweiEngineMock: vi.fn<() => unknown>(() => {
+    throw new Error('ziwei internal sentinel');
+  }),
+}));
+
 vi.mock('@/lib/birthContext', () => {
   const solarBirth = { year: 1990, month: 6, day: 15, hour: 12, minute: 0, gender: '男' };
   return { useBirth: () => ({ solarBirth }) };
@@ -27,9 +33,7 @@ vi.mock('@/engine-api/ziwei', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/engine-api/ziwei')>();
   return {
     ...actual,
-    calcZiweiEnveloped: () => {
-      throw new Error('ziwei internal sentinel');
-    },
+    calcZiweiEnveloped: ziweiEngineMock,
   };
 });
 
@@ -80,10 +84,29 @@ describe('Workspace 计算错误呈现', () => {
     expect(screen.queryByText('暂无结果')).not.toBeInTheDocument();
   });
 
-  it('紫微直接引擎计算抛异常时只显示安全文案', () => {
+  it('紫微直接引擎计算抛异常时只显示受控错误面板', () => {
     const { container } = render(<ZiweiWorkspace />);
 
     expectSafeErrorState(container, 'ziwei internal sentinel', '命盘解读');
+    expect(screen.queryByText('十二宫命盘')).not.toBeInTheDocument();
+    expect(screen.queryByText(/命宫星曜/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '导出报告' })).not.toBeInTheDocument();
+  });
+
+  it('紫微直接引擎返回失败 envelope 时只显示受控错误面板', () => {
+    ziweiEngineMock.mockReturnValueOnce({
+      ok: false,
+      tool: 'ziwei_chart',
+      version: 'test',
+      input_normalized: {},
+      data: {},
+      error: { code: 'internal_failure', message: 'ziwei failed envelope sentinel' },
+    });
+    const { container } = render(<ZiweiWorkspace />);
+
+    expectSafeErrorState(container, 'ziwei failed envelope sentinel', '命盘解读');
+    expect(screen.queryByText('十二宫命盘')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '导出报告' })).not.toBeInTheDocument();
   });
 
   it('称骨直接引擎计算抛异常时只显示安全文案', () => {

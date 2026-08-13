@@ -229,6 +229,20 @@ export function ZiweiWorkspace() {
     [data.birthInfo, data.mingGua, palaceCount],
   );
 
+  if (presentation.state === 'error') {
+    return (
+      <section className="space-y-4">
+        <div className="rounded-panel border border-ink-700 bg-ink-850/78 p-4 shadow-instrument">
+          <h2 className="font-serif text-2xl font-semibold text-jade-100">紫微斗数</h2>
+        </div>
+        <section className="rounded-panel border border-cinnabar-500/30 bg-cinnabar-500/10 p-4" aria-labelledby="ziwei-error-title">
+          <h3 id="ziwei-error-title" className="text-lg font-semibold text-jade-50">计算未完成</h3>
+          <p className="mt-2 text-sm leading-6 text-jade-100/65">{SAFE_ERROR_MESSAGE}</p>
+        </section>
+      </section>
+    );
+  }
+
   return (
     <section className="space-y-4">
       <div className="rounded-panel border border-ink-700 bg-ink-850/78 p-4 shadow-instrument">
@@ -241,7 +255,7 @@ export function ZiweiWorkspace() {
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="ziwei" title="紫微斗数命盘摘要" payload={contextPayload} />
-            <ExportReportButton module="紫微斗数命盘" presentation={exportPresentation} />
+            {exportPresentation && <ExportReportButton module="紫微斗数命盘" presentation={exportPresentation} />}
           </div>
         </div>
       </div>
@@ -278,11 +292,6 @@ export function ZiweiWorkspace() {
             terms={["紫微","天机","太阳","武曲","天同","廉贞","天府","太阴","贪狼","巨门","天相","天梁","七杀","破军","庙旺","落陷","四化","命宫","福德"]}
             description="点击星曜或术语查看通俗解释。"
           />
-          {presentation.state === 'error' && (
-            <InterpretationCard title="计算未完成" subtitle="请核对输入">
-              <p className="text-sm text-jade-100/55">{presentation.error?.message}</p>
-            </InterpretationCard>
-          )}
           {presentation.report && (
             <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
               <FourLayerReport

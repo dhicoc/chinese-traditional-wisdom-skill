@@ -15,7 +15,7 @@ import { calcZiweiEnveloped } from '@/engine-api/ziwei';
 import { createCeziFactChecks, sanitizeCeziEnvelope } from '@/features/cezi/CeziWorkspace';
 import { createChenguzFactChecks, sanitizeChenguzEnvelope } from '@/features/chenguz/ChenguzWorkspace';
 import { createComboFactChecks, sanitizeComboEnvelope } from '@/features/combo/ComboWorkspace';
-import { createZiweiFactChecks } from '@/features/ziwei/ZiweiWorkspace';
+import { createZiweiFactChecks, sanitizeZiweiEnvelope } from '@/features/ziwei/ZiweiWorkspace';
 import { toUserPresentation, type ReadingLike, type StructuredFactCheck } from '@/legacy/reportLayers';
 
 const SAFE_ERROR_MESSAGE = '本次计算未能完成，请核对输入后重试。';
@@ -111,6 +111,24 @@ describe('Dashboard 同源 presentation 的核验事实', () => {
     const presentation = toUserPresentation(ziwei, { factChecks: [facts[0], invalid], disclaimers: DISCLAIMERS });
     expect(presentation.semanticReport?.facts).toEqual([facts[0].fact]);
     expect(presentation.semanticReport?.facts).not.toContainEqual(invalid.fact);
+  });
+
+  it('紫微失败 presentation 不产生 report、facts 或 exportReport', () => {
+    const failure = sanitizeZiweiEnvelope({
+      ok: false,
+      tool: 'ziwei_chart',
+      version: 'test',
+      input_normalized: {},
+      data: {},
+      error: { code: 'internal_failure', message: 'ziwei internal sentinel' },
+    } as Parameters<typeof sanitizeZiweiEnvelope>[0]);
+
+    const presentation = toUserPresentation(failure, { factChecks: [], disclaimers: DISCLAIMERS });
+    expect(presentation.state).toBe('error');
+    expect(presentation.error?.message).toBe(SAFE_ERROR_MESSAGE);
+    expect(presentation.report).toBeNull();
+    expect(presentation.semanticReport).toBeNull();
+    expect(presentation.exportReport).toBeNull();
   });
 
   it('未支持的联合模式绝不产生 facts', () => {
