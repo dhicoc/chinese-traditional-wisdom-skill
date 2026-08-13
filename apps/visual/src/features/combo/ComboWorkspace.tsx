@@ -47,6 +47,13 @@ import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLay
 type ComboType = 'annual' | 'monthly' | 'decision' | 'space' | 'sanshi' | 'sanshi-classic' | 'wellness' | 'zeri' | 'marriage';
 type SupportedComboData = ComboResult | AnnualFortuneResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult;
 type ComboPresentationData = AnnualFortuneResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult;
+type ComboFactCheckInput =
+  | { comboType: 'annual'; data: AnnualFortuneResult }
+  | { comboType: 'monthly'; data: MonthlyFortuneResult }
+  | { comboType: 'wellness'; data: DailyWellnessResult }
+  | { comboType: 'zeri'; data: ZeriResult }
+  | { comboType: 'marriage'; data: MarriageResult }
+  | { comboType: 'decision' | 'space' | 'sanshi' | 'sanshi-classic'; data: ComboResult };
 
 const SAFE_ERROR_MESSAGE = '本次计算未能完成，请核对输入后重试。';
 
@@ -120,13 +127,13 @@ function marriageFactChecks(data: MarriageResult): StructuredFactCheck[] {
   ]);
 }
 
-export function createComboFactChecks(comboType: ComboType, data: SupportedComboData): StructuredFactCheck[] {
-  switch (comboType) {
-    case 'annual': return annualFactChecks(data as AnnualFortuneResult);
-    case 'monthly': return monthlyFactChecks(data as MonthlyFortuneResult);
-    case 'wellness': return wellnessFactChecks(data as DailyWellnessResult);
-    case 'zeri': return zeriFactChecks(data as ZeriResult);
-    case 'marriage': return marriageFactChecks(data as MarriageResult);
+export function createComboFactChecks(input: ComboFactCheckInput): StructuredFactCheck[] {
+  switch (input.comboType) {
+    case 'annual': return annualFactChecks(input.data);
+    case 'monthly': return monthlyFactChecks(input.data);
+    case 'wellness': return wellnessFactChecks(input.data);
+    case 'zeri': return zeriFactChecks(input.data);
+    case 'marriage': return marriageFactChecks(input.data);
     default: return [];
   }
 }
@@ -314,10 +321,17 @@ export function ComboWorkspace() {
   const data = isCurrentResult && result.envelope?.ok
     ? result.envelope.data as SupportedComboData
     : undefined;
-  const factChecks = useMemo(
-    () => isCurrentResult && result.envelope?.ok && data ? createComboFactChecks(comboType, data) : [],
-    [comboType, data, isCurrentResult, result.envelope],
-  );
+  const factChecks = useMemo(() => {
+    if (!isCurrentResult || !result.envelope?.ok) return [];
+    switch (comboType) {
+      case 'annual': return createComboFactChecks({ comboType, data: result.envelope.data as AnnualFortuneResult });
+      case 'monthly': return createComboFactChecks({ comboType, data: result.envelope.data as MonthlyFortuneResult });
+      case 'wellness': return createComboFactChecks({ comboType, data: result.envelope.data as DailyWellnessResult });
+      case 'zeri': return createComboFactChecks({ comboType, data: result.envelope.data as ZeriResult });
+      case 'marriage': return createComboFactChecks({ comboType, data: result.envelope.data as MarriageResult });
+      default: return createComboFactChecks({ comboType, data: result.envelope.data as ComboResult });
+    }
+  }, [comboType, isCurrentResult, result.envelope]);
   const presentation = useMemo(() => isCurrentResult && result.envelope
     ? toUserPresentation(result.envelope, {
       factChecks,

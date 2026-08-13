@@ -66,17 +66,16 @@ describe('Dashboard 同源 presentation 的核验事实', () => {
       targetYear: 2025,
     });
 
-    const cases = [
-      ['annual', annual],
-      ['monthly', monthly],
-      ['wellness', wellness],
-      ['zeri', zeri],
-      ['marriage', marriage],
-    ] as const;
-    for (const [comboType, envelope] of cases) {
+    for (const [comboType, envelope, factChecks] of [
+      ['annual', annual, () => createComboFactChecks({ comboType: 'annual', data: annual.data })],
+      ['monthly', monthly, () => createComboFactChecks({ comboType: 'monthly', data: monthly.data })],
+      ['wellness', wellness, () => createComboFactChecks({ comboType: 'wellness', data: wellness.data })],
+      ['zeri', zeri, () => createComboFactChecks({ comboType: 'zeri', data: zeri.data })],
+      ['marriage', marriage, () => createComboFactChecks({ comboType: 'marriage', data: marriage.data })],
+    ] as const) {
       expect(envelope.ok).toBe(true);
       if (!envelope.ok) throw new Error(`expected ${comboType} envelope`);
-      expectPresentationMatchesSnapshot(envelope, createComboFactChecks(comboType, envelope.data));
+      expectPresentationMatchesSnapshot(envelope, factChecks());
     }
   });
 
@@ -94,7 +93,7 @@ describe('Dashboard 同源 presentation 的核验事实', () => {
     ] as const) {
       expect(envelope.ok).toBe(true);
       if (!envelope.ok) throw new Error(`expected ${comboType} envelope`);
-      expect(createComboFactChecks(comboType, envelope.data)).toEqual([]);
+      expect(createComboFactChecks({ comboType, data: envelope.data })).toEqual([]);
     }
   });
 
