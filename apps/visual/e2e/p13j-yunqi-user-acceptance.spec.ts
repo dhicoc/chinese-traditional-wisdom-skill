@@ -9,7 +9,7 @@ test.describe('P1.3j 五运六气用户侧验收', () => {
     const workspace = page.locator('[data-testid="workspace-yunqi"]');
 
     await expect(workspace.getByRole('heading', { name: '五运六气', exact: true })).toBeVisible();
-    await expect(workspace.getByText('五运六气输出仅作传统文化和气候病机理论学习参考，不替代医学诊断。')).toBeVisible();
+    await expect(workspace.locator('aside p').filter({ hasText: /^五运六气输出仅作传统文化和气候病机理论学习参考，不替代医学诊断。$/ })).toBeVisible();
 
     const year = workspace.getByLabel('年份');
     await year.fill('2024');

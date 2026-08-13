@@ -11,7 +11,7 @@ test.describe('P1.3v 二十八星宿用户侧验收', () => {
     const birthCard = workspace.getByText('本命星宿', { exact: true }).locator('..');
 
     await expect(workspace.getByRole('heading', { name: '二十八星宿', exact: true })).toBeVisible();
-    await expect(workspace.getByText('当日值宿', { exact: true })).toBeVisible();
+    await expect(workspace.locator('aside > div').first().locator('p').filter({ hasText: /^当日值宿$/ })).toBeVisible();
     await expect(birthCard).toBeVisible();
     await expect(workspace.getByTestId('xingxiu-chart')).toBeVisible();
     await expect(workspace.getByRole('heading', { name: '二十八星宿解读', exact: true })).toBeVisible();

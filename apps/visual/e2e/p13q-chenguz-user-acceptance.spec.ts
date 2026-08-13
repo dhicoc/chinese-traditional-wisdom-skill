@@ -37,7 +37,7 @@ test.describe('P1.3q 袁天罡称骨用户侧验收', () => {
     await birthYear.fill('1990');
     await birthYear.press('Tab');
     await expect(birthYear).toHaveValue('1990');
-    await expect(workspace.getByText('称骨结果仅作传统民俗文化学习参考，不作为现实决策依据。')).toBeVisible();
+    await expect(workspace.locator('.console-panel > p').filter({ hasText: /^称骨结果仅作传统民俗文化学习参考，不作为现实决策依据。$/ })).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 });

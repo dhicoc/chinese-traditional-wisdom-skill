@@ -18,7 +18,7 @@ test.describe('P1.3p 皇极经世用户侧验收', () => {
     const chart = workspace.getByTestId('huangji-gua-circle');
     await expect(chart).toHaveAttribute('aria-label', '皇极经世先天六十四卦圆图');
     const initialChart = await chart.textContent();
-    const acumYear = workspace.getByText('积年', { exact: true }).locator('..');
+    const acumYear = workspace.getByText(/^积年\d+年$/, { exact: true });
     const initialAcumYear = await acumYear.textContent();
     const birthYear = visibleBirthInput(page, 'year');
     await expect(birthYear).toHaveValue('1990');

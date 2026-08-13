@@ -776,13 +776,13 @@ function ZeriDayList({ data }: { data: ZeriResult }) {
       {data.rankedDays.length === 0 ? (
         <p className="text-sm text-jade-100/55">区间内无符合「{data.zeriPurpose}」的吉日。建议放宽区间或调整用途。</p>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2" data-testid="zeri-ranked-days">
           {data.rankedDays.map((d, idx) => (
-            <div key={d.date} className="rounded-card border border-white/10 bg-ink-900/60 px-3 py-2">
+            <div key={d.date} data-testid="zeri-ranked-day" className="rounded-card border border-white/10 bg-ink-900/60 px-3 py-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <span className="grid h-6 w-6 place-items-center rounded-full bg-purple-500/15 text-xs font-semibold text-purple-300">{idx + 1}</span>
-                  <span className="text-sm font-medium text-jade-100">{d.date}</span>
+                  <span data-testid="zeri-ranked-day-date" className="text-sm font-medium text-jade-100">{d.date}</span>
                   <span className="text-xs text-jade-100/45">{d.lunarDate} · {d.dayGanZhi}日</span>
                 </div>
                 <div className="flex items-center gap-2">

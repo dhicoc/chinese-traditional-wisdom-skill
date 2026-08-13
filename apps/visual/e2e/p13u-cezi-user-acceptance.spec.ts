@@ -14,7 +14,7 @@ test.describe('P1.3u 测字用户侧验收', () => {
     await expect(workspace.getByRole('heading', { name: '测字 · 字占', exact: true })).toBeVisible();
     await expect(workspace.getByText('笔画数理', { exact: true })).toBeVisible();
     await expect(workspace.getByText('字义五行', { exact: true })).toBeVisible();
-    await expect(workspace.getByText('字形结构', { exact: true })).toBeVisible();
+    await expect(workspace.locator('.grid.sm\\:grid-cols-3 > div > p').filter({ hasText: /^字形结构$/ })).toBeVisible();
     await expect(workspace.getByText('八字用神补益', { exact: true })).toBeVisible();
     await expect(workspace.getByRole('heading', { name: /测「明」字解读/ })).toBeVisible();
 
@@ -29,7 +29,7 @@ test.describe('P1.3u 测字用户侧验收', () => {
     await expect(baziBoost).not.toBeChecked();
     await expect(workspace.getByText('八字用神补益', { exact: true })).toHaveCount(0);
 
-    await expect(workspace.getByText('测字结果仅作传统民俗文化学习参考，不作为现实决策依据。')).toBeVisible();
+    await expect(workspace.locator('.console-panel > p').filter({ hasText: /^测字结果仅作传统民俗文化学习参考，不作为现实决策依据。$/ })).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 });

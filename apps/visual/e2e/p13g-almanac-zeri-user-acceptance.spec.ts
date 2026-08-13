@@ -43,13 +43,15 @@ test.describe('P1.3g 黄历与综合择日用户侧验收', () => {
     expect(screenedCount).toBeGreaterThanOrEqual(0);
     expect(screenedCount).toBeLessThanOrEqual(3);
 
-    const candidateDates = workspace.getByText(/^2026-08-\d{2}$/);
+    const rankedDays = workspace.getByTestId('zeri-ranked-days');
+    const candidateDates = rankedDays.getByTestId('zeri-ranked-day-date');
+    expect(await rankedDays.getByTestId('zeri-ranked-day').count()).toBe(screenedCount);
     expect(await candidateDates.count()).toBe(screenedCount);
     for (let index = 0; index < await candidateDates.count(); index += 1) {
       const date = await candidateDates.nth(index).textContent();
       expect(date).toBeTruthy();
       expect(date! >= '2026-08-01' && date! <= '2026-08-31').toBe(true);
-      const candidate = candidateDates.nth(index).locator('..').locator('..');
+      const candidate = rankedDays.getByTestId('zeri-ranked-day').nth(index);
       await expect(candidate.getByText(/评分 \d+/)).toBeVisible();
       await expect(candidate.getByText(/^(吉|中|凶)$/)).toBeVisible();
     }
