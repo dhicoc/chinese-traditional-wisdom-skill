@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import type { SemanticReport } from '@/legacy/reportLayers';
 import { dispatchCommandFeedback } from '@/lib/commandIntents';
 import { useBirth } from '@/lib/birthContext';
 
@@ -11,6 +12,7 @@ export interface ExportUserPresentation {
   report: ExportReportSnapshot;
   notices?: string[];
   warnings?: string[];
+  semanticReport?: SemanticReport | null;
 }
 
 interface ExportReportButtonProps {
@@ -36,6 +38,7 @@ export function createExportReportHtml({
   report,
   notices = [],
   warnings = [],
+  semanticReport,
 }: {
   title: string;
   generatedAt: string;
@@ -43,12 +46,35 @@ export function createExportReportHtml({
   report: ExportReportSnapshot;
   notices?: string[];
   warnings?: string[];
+  semanticReport?: SemanticReport | null;
 }): string {
   const sections = report.sections.map((section) => `
     <section>
       <h2>${escapeHtml(section.heading)}</h2>
       <p>${escapeHtml(section.body).replace(/\n/g, '<br>')}</p>
     </section>`).join('');
+  const factSection = semanticReport?.facts.length ? `
+    <section class="facts">
+      <h2>结构化事实核对</h2>
+      <p class="boundary">以下内容已与本次本地计算结果核对；不包含传统解释、建议或现实效果判断。</p>
+      <dl>${semanticReport.facts.map((fact) => `<div><dt>${escapeHtml(fact.label)}</dt><dd>${escapeHtml(fact.value)}</dd></div>`).join('')}</dl>
+    </section>` : '';
+  const interpretationSection = semanticReport?.traditionalInterpretations.length ? `
+    <section>
+      <h2>传统解释</h2>
+      ${semanticReport.traditionalInterpretations.map((section) => `<h3>${escapeHtml(section.heading)}</h3><p>${escapeHtml(section.body).replace(/\n/g, '<br>')}</p>`).join('')}
+    </section>` : '';
+  const actionSection = semanticReport?.actions.length ? `
+    <section>
+      <h2>行动建议</h2>
+      <ul>${semanticReport.actions.map((action) => `<li>${escapeHtml(action.text)}</li>`).join('')}</ul>
+    </section>` : '';
+  const disclaimerSection = semanticReport?.disclaimers.length ? `
+    <aside class="disclaimer">
+      <h2>免责声明</h2>
+      <ul>${semanticReport.disclaimers.map((disclaimer) => `<li>${escapeHtml(disclaimer)}</li>`).join('')}</ul>
+    </aside>` : '';
+  const content = semanticReport ? `${factSection}${interpretationSection}${actionSection}${disclaimerSection}` : sections;
   const noticeSection = notices.length ? `
     <aside class="notice">
       <h2>计算状态</h2>
@@ -80,8 +106,16 @@ export function createExportReportHtml({
     aside { margin: 18px 0; padding: 14px 16px; border: 1px solid #d9d1bd; }
     aside.notice { border-color: #b99b4d; background: #f4edda; }
     aside.warning { border-color: #b86a52; background: #f7e9e2; }
+    aside.disclaimer { border-color: #9a8060; background: #eee5d5; }
     section { padding: 22px 0; border-top: 1px solid #d9d1bd; }
+    section.facts { border-top-color: #92ad9f; }
     h2 { margin: 0 0 10px; color: #3d6053; font-size: 20px; }
+    h3 { margin: 18px 0 4px; color: #51463c; font-size: 16px; }
+    .boundary { color: #5c5348; font-size: 14px; }
+    dl { margin: 14px 0 0; }
+    dl > div { display: grid; grid-template-columns: minmax(7em, 0.35fr) 1fr; gap: 12px; padding: 8px 0; border-top: 1px dashed #d9d1bd; }
+    dt { color: #5c5348; }
+    dd { margin: 0; font-weight: 600; }
     ul { margin: 0; padding-left: 20px; }
     p { margin: 0; white-space: normal; }
     footer { margin-top: 28px; padding-top: 16px; border-top: 1px solid #d9d1bd; color: #6f6659; font-size: 12px; }
@@ -98,7 +132,7 @@ export function createExportReportHtml({
     <div class="summary">${escapeHtml(report.summary).replace(/\n/g, '<br>')}</div>
     ${noticeSection}
     ${warningSection}
-    ${sections}
+    ${content}
     <footer>本报告内容仅作传统文化参考。</footer>
   </main>
 </body>
@@ -128,6 +162,7 @@ export function ExportReportButton({ module, report, presentation }: ExportRepor
         report: presentation?.report ?? report ?? defaultReport(title),
         notices: presentation?.notices,
         warnings: presentation?.warnings,
+        semanticReport: presentation?.semanticReport,
       });
       const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
       const url = URL.createObjectURL(blob);
@@ -150,7 +185,7 @@ export function ExportReportButton({ module, report, presentation }: ExportRepor
     } finally {
       setExporting(false);
     }
-  }, [birth, report, solarBirth.year, title]);
+  }, [birth, presentation, report, solarBirth.year, title]);
 
   return (
     <button

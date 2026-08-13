@@ -66,9 +66,28 @@ export interface LayerReport {
   tags?: string[];
 }
 
+export interface StructuredFact {
+  label: string;
+  value: string;
+  tool: string;
+}
+
+export interface StructuredFactCheck {
+  fact: StructuredFact;
+  validation: { valid: boolean };
+}
+
+export interface SemanticReport {
+  facts: StructuredFact[];
+  traditionalInterpretations: ReadingSection[];
+  actions: Action[];
+  disclaimers: string[];
+}
+
 export interface UserPresentation {
   state: 'success' | 'error';
   report: LayerReport | null;
+  semanticReport: SemanticReport | null;
   exportReport: ReadingLike | null;
   notices: string[];
   warnings: string[];
@@ -185,6 +204,27 @@ export function toFourLayer(reading: ReadingLike): LayerReport {
   };
 }
 
+export function toSemanticReport(
+  reading: ReadingLike,
+  options: {
+    factChecks?: StructuredFactCheck[];
+    disclaimers?: string[];
+  } = {},
+): SemanticReport {
+  const layered = toFourLayer(reading);
+  return {
+    facts: (options.factChecks ?? [])
+      .filter(({ validation }) => validation.valid)
+      .map(({ fact }) => fact),
+    traditionalInterpretations: [
+      ...layered.highlights.map(({ label, value }) => ({ heading: label, body: value })),
+      ...layered.details,
+    ],
+    actions: layered.actions,
+    disclaimers: uniqueText(options.disclaimers ?? []),
+  };
+}
+
 type EnvelopeData = {
   export_snapshot?: ReadingLike;
   timeSource?: { notice?: unknown };
@@ -205,7 +245,13 @@ function uniqueText(values: unknown[]): string[] {
  * 将 ToolEnvelope 收束为用户可见呈现模型。
  * 正文只取 export_snapshot；计算状态与 warnings 单独保留；内部 evidence、result_meta 与 sourceNotes 不进入导出内容。
  */
-export function toUserPresentation(envelope: EnvelopeLike): UserPresentation {
+export function toUserPresentation(
+  envelope: EnvelopeLike,
+  semanticOptions: {
+    factChecks?: StructuredFactCheck[];
+    disclaimers?: string[];
+  } = {},
+): UserPresentation {
   if (!envelope.ok) {
     const message = typeof envelope.error?.message === 'string' && envelope.error.message.trim()
       ? envelope.error.message.trim()
@@ -213,6 +259,7 @@ export function toUserPresentation(envelope: EnvelopeLike): UserPresentation {
     return {
       state: 'error',
       report: null,
+      semanticReport: null,
       exportReport: null,
       notices: [],
       warnings: [],
@@ -228,6 +275,7 @@ export function toUserPresentation(envelope: EnvelopeLike): UserPresentation {
   return {
     state: 'success',
     report: snapshot ? toFourLayer(snapshot) : null,
+    semanticReport: snapshot ? toSemanticReport(snapshot, semanticOptions) : null,
     exportReport: snapshot ? { summary: snapshot.summary, sections: snapshot.sections } : null,
     notices: uniqueText([timeSourceNotice]),
     warnings: uniqueText(Array.isArray(envelope.warnings) ? envelope.warnings : []),

@@ -38,6 +38,33 @@ describe('ExportReportButton', () => {
     expect(html).toContain('本报告内容仅作传统文化参考。');
   });
 
+  it('以显式语义区块直观导出，并仅显示通过校验的事实', () => {
+    const html = createExportReportHtml({
+      title: '测试报告',
+      generatedAt: '2026/8/7 12:00:00',
+      birthSummary: '1990年6月15日 12时',
+      report: { summary: '摘要', sections: [{ heading: '不应平铺', body: '旧章节内容' }] },
+      semanticReport: {
+        facts: [{ label: '日主 <核对>', value: '辛 & 金', tool: 'bazi_calculate' }],
+        traditionalInterpretations: [{ heading: '命局观察', body: '保留 <传统解释>' }],
+        actions: [{ text: '保持 <规律> 作息', category: '生活调整' }],
+        disclaimers: ['不构成 <医疗> 建议。'],
+      },
+    });
+
+    expect(html).toContain('结构化事实核对');
+    expect(html).toContain('传统解释');
+    expect(html).toContain('行动建议');
+    expect(html).toContain('免责声明');
+    expect(html).toContain('日主 &lt;核对&gt;');
+    expect(html).toContain('辛 &amp; 金');
+    expect(html).toContain('保留 &lt;传统解释&gt;');
+    expect(html).toContain('保持 &lt;规律&gt; 作息');
+    expect(html).toContain('不构成 &lt;医疗&gt; 建议。');
+    expect(html).not.toContain('不应平铺');
+    expect(html).not.toContain('旧章节内容');
+  });
+
   it('以 HTML Blob 和 .html 文件名下载传入的结构化报告', async () => {
     let downloadedBlob: Blob | undefined;
     let downloadName = '';

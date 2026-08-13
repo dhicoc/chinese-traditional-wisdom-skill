@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { toFourLayer, toFocusedReport, toUserPresentation, detectQuestionDomain, type ReadingLike } from '@/legacy/reportLayers';
+import { toFourLayer, toFocusedReport, toSemanticReport, toUserPresentation, detectQuestionDomain, type ReadingLike } from '@/legacy/reportLayers';
 import { calcBaziEnveloped } from '@/legacy/baziEngine';
 import { calcLiuyaoEnveloped } from '@/legacy/liuyaoEngine';
 import { calcYunqiEnveloped } from '@/legacy/yunqiEngine';
@@ -138,6 +138,39 @@ describe('toFourLayer 向后兼容', () => {
   });
 });
 
+describe('toSemanticReport 共享语义边界', () => {
+  const reading: ReadingLike = {
+    summary: '传统文化参考摘要',
+    sections: [
+      { heading: '日主强弱', body: '此处属于传统解释。' },
+      { heading: '四柱', body: '此处也属于传统解释。' },
+      { heading: '行动建议', body: '保持规律作息。' },
+    ],
+  };
+
+  it('未提供显式核对项时不把阅读内容标为已核对事实', () => {
+    const report = toSemanticReport(reading, { disclaimers: ['仅作参考', '仅作参考', ''] });
+
+    expect(report.facts).toEqual([]);
+    expect(report.traditionalInterpretations.map((section) => section.heading)).toEqual(['日主强弱', '四柱']);
+    expect(report.traditionalInterpretations[0].body).toContain('此处属于传统解释');
+    expect(report.actions).toEqual([{ text: '保持规律作息', category: '养生' }]);
+    expect(report.disclaimers).toEqual(['仅作参考']);
+  });
+
+  it('只纳入显式且通过校验的结构化事实', () => {
+    const report = toSemanticReport(reading, {
+      factChecks: [
+        { fact: { label: '日主', value: '辛', tool: 'bazi_calculate' }, validation: { valid: true } },
+        { fact: { label: '日主强弱', value: '身强', tool: 'bazi_calculate' }, validation: { valid: false } },
+      ],
+    });
+
+    expect(report.facts).toEqual([{ label: '日主', value: '辛', tool: 'bazi_calculate' }]);
+    expect(report.traditionalInterpretations.some((section) => section.heading === '日主强弱')).toBe(true);
+  });
+});
+
 describe('toUserPresentation 用户呈现适配', () => {
   it('保留时间状态与去重 warnings，正文只来自 export_snapshot', () => {
     const presentation = toUserPresentation({
@@ -162,6 +195,25 @@ describe('toUserPresentation 用户呈现适配', () => {
       sections: [{ heading: '结论', body: '用户可见内容' }],
     });
     expect(presentation.exportReport).not.toHaveProperty('sourceNotes');
+    expect(presentation.semanticReport?.facts).toEqual([]);
+  });
+
+  it('将成功的显式核对项与免责声明加入共享语义模型', () => {
+    const presentation = toUserPresentation({
+      ok: true,
+      data: { export_snapshot: { summary: '摘要', sections: [{ heading: '四柱', body: '传统解释' }] } },
+    }, {
+      factChecks: [{
+        fact: { label: '日主', value: '辛', tool: 'bazi_calculate' },
+        validation: { valid: true },
+      }],
+      disclaimers: ['仅作传统文化参考。'],
+    });
+
+    expect(presentation.semanticReport).toEqual(expect.objectContaining({
+      facts: [{ label: '日主', value: '辛', tool: 'bazi_calculate' }],
+      disclaimers: ['仅作传统文化参考。'],
+    }));
   });
 
   it('失败信封映射为用户可读错误，不尝试渲染正文', () => {

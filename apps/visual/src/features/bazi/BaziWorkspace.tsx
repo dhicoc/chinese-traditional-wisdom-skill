@@ -9,10 +9,11 @@ import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
-import { buildBaziDynamicLayer, calculateBazi as calculateBaziPure, calcBaziEnveloped, calcXiYong } from '@/engine-api/bazi';
+import { buildBaziDynamicLayer, calculateBazi as calculateBaziPure, calcBaziEnveloped, calcXiYong, type BaziData } from '@/engine-api/bazi';
 import type { AdvancedBaziAnalysis } from '@/legacy/advancedBazi';
 import type { TrineSource } from '@/legacy/shensha';
-import { toUserPresentation } from '@/legacy/reportLayers';
+import { validateBaziClaims, type BaziPresentationClaim } from '@/legacy/claimVerification/baziClaimVerifier';
+import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { type BaziPillars, type WuxingStats } from '@/legacy/canvasRenderers';
 import type { ShenShaItem } from '@/legacy/shensha';
@@ -105,6 +106,23 @@ function shiftTransitDate(transitDate: string, days: number) {
   return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`;
 }
 
+function createBaziFactChecks(data: BaziData): StructuredFactCheck[] {
+  const claims: Array<{ claim: BaziPresentationClaim; label: string; value: string }> = [
+    { claim: { kind: 'dayMaster', value: data.dayMaster }, label: '日主', value: data.dayMaster },
+    { claim: { kind: 'elementCount', element: '木', value: data.elements.木 }, label: '木五行数量', value: String(data.elements.木) },
+    { claim: { kind: 'elementCount', element: '火', value: data.elements.火 }, label: '火五行数量', value: String(data.elements.火) },
+    { claim: { kind: 'elementCount', element: '土', value: data.elements.土 }, label: '土五行数量', value: String(data.elements.土) },
+    { claim: { kind: 'elementCount', element: '金', value: data.elements.金 }, label: '金五行数量', value: String(data.elements.金) },
+    { claim: { kind: 'elementCount', element: '水', value: data.elements.水 }, label: '水五行数量', value: String(data.elements.水) },
+    { claim: { kind: 'strength', value: data.advancedAnalysis.support.strength }, label: '日主强弱', value: data.advancedAnalysis.support.strength },
+  ];
+
+  return claims.map(({ claim, label, value }) => ({
+    fact: { label, value, tool: 'bazi_calculate' },
+    validation: validateBaziClaims(data, [claim]),
+  }));
+}
+
 export function BaziWorkspace() {
   const { birth, baziTimeStatus } = useBirth();
   const solarBirth = baziTimeStatus.status === 'true-solar-verified'
@@ -132,7 +150,19 @@ export function BaziWorkspace() {
   const selectedShenShaItems = selectedShenShaPillar
     ? shenSha.filter((item) => item.pillar === selectedShenShaPillar)
     : [];
-  const presentation = useMemo(() => envelope ? toUserPresentation(envelope) : null, [envelope]);
+  const factChecks = useMemo(
+    () => envelope?.ok ? createBaziFactChecks(envelope.data) : [],
+    [envelope],
+  );
+  const presentation = useMemo(
+    () => envelope
+      ? toUserPresentation(envelope, {
+        factChecks,
+        disclaimers: ['本报告提供结构化计算与传统文化解释参考，不构成对现实结果、医疗、法律或财务事项的保证或专业建议。'],
+      })
+      : null,
+    [envelope, factChecks],
+  );
   const exportPresentation = useMemo(() => {
     if (!presentation?.exportReport) return null;
     const timeNotice = baziTimeStatus.status === 'true-solar-verified'
@@ -144,6 +174,7 @@ export function BaziWorkspace() {
       report: presentation.exportReport,
       notices: [...presentation.notices, timeNotice],
       warnings: presentation.warnings,
+      semanticReport: presentation.semanticReport,
     };
   }, [baziTimeStatus.status, presentation]);
   const pillarRows = [
@@ -581,6 +612,7 @@ export function BaziWorkspace() {
           <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument xl:col-span-7">
             <FourLayerReport
               report={presentation.report}
+              semanticReport={presentation.semanticReport}
               title="命盘解读"
               notices={presentation.notices}
               warnings={presentation.warnings}
