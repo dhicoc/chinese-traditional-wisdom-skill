@@ -21,16 +21,28 @@ import {
 
 const SAFE_ERROR_MESSAGE = '本次计算未能完成，请核对输入后重试。';
 
-/** Dashboard 边界：失败信封绝不把引擎内部错误带到用户界面。 */
-function createYunqiFailureEnvelope(year: number): ToolEnvelope<YunqiData> {
+/** Dashboard 边界：失败信封绝不把引擎内部错误或任何结果数据带到用户界面。 */
+export function sanitizeYunqiEnvelope(envelope: ToolEnvelope<YunqiData>): ToolEnvelope<YunqiData> {
+  if (envelope.ok) return envelope;
   return {
+    ok: false,
+    tool: 'calc_yunqi',
+    version: 'unknown',
+    input_normalized: {},
+    data: null as unknown as YunqiData,
+    error: { code: 'calculation_failed', message: SAFE_ERROR_MESSAGE },
+  };
+}
+
+function createYunqiFailureEnvelope(year: number): ToolEnvelope<YunqiData> {
+  return sanitizeYunqiEnvelope({
     ok: false,
     tool: 'calc_yunqi',
     version: 'unknown',
     input_normalized: { year },
     data: {} as YunqiData,
-    error: { code: 'calculation_failed', message: SAFE_ERROR_MESSAGE },
-  };
+    error: { code: 'calculation_exception', message: SAFE_ERROR_MESSAGE },
+  });
 }
 
 /** 仅输出五运六气白名单事实；每条候选均独立与本次结果核验。 */
@@ -63,7 +75,11 @@ export function YunqiWorkspace() {
 
   const envelope = useMemo(() => {
     try {
-      return calcYunqiEnveloped({ year, solar: getSolarEntry(), currentMonth: new Date().getMonth() + 1 });
+      return sanitizeYunqiEnvelope(calcYunqiEnveloped({
+        year,
+        solar: getSolarEntry(),
+        currentMonth: new Date().getMonth() + 1,
+      }));
     } catch {
       return createYunqiFailureEnvelope(year);
     }
@@ -97,7 +113,7 @@ export function YunqiWorkspace() {
     return (
       <section className="space-y-4">
         <InterpretationCard title="计算未完成" subtitle="请核对输入">
-          <p className="text-sm text-jade-100/55">{SAFE_ERROR_MESSAGE}</p>
+          <p className="text-sm text-jade-100/55">{presentation.error?.message}</p>
         </InterpretationCard>
       </section>
     );
