@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 const INTERNAL_EVIDENCE_SENTINEL = 'QIMEN_LIUYAO_INTERNAL_EVIDENCE_SENTINEL';
 const EXPORT_NOTICE = 'QIMEN_LIUYAO_EXPORT_NOTICE';
@@ -7,6 +7,8 @@ const EXPORT_WARNING = 'QIMEN_LIUYAO_EXPORT_WARNING';
 const engineState = vi.hoisted(() => ({
   qimenEnvelope: null as unknown,
   liuyaoEnvelope: null as unknown,
+  qimenStableEnvelope: null as unknown,
+  liuyaoStableEnvelope: null as unknown,
 }));
 const solarBirth = { year: 1990, month: 6, day: 15, hour: 12, minute: 0, gender: '男' };
 const birth = { year: 1990, month: 6, day: 15, hour: 12, gender: '男', isLunar: false };
@@ -38,12 +40,12 @@ vi.mock('@/engine-api/divination', async (importOriginal) => {
   return {
     ...actual,
     calcQimenEnveloped: (input: Parameters<typeof actual.calcQimenEnveloped>[0]) => {
-      const result = withExportMarkers(actual.calcQimenEnveloped(input));
+      const result = engineState.qimenStableEnvelope ??= withExportMarkers(actual.calcQimenEnveloped(input));
       engineState.qimenEnvelope = result;
       return result;
     },
     calcLiuyaoEnveloped: (input: Parameters<typeof actual.calcLiuyaoEnveloped>[0]) => {
-      const result = withExportMarkers(actual.calcLiuyaoEnveloped(input));
+      const result = engineState.liuyaoStableEnvelope ??= withExportMarkers(actual.calcLiuyaoEnveloped(input));
       engineState.liuyaoEnvelope = result;
       return result;
     },
@@ -92,6 +94,14 @@ function expectSnapshotInHtml(html: string | undefined, envelope: ExportEnvelope
   expect(html).not.toContain(INTERNAL_EVIDENCE_SENTINEL);
 }
 
+function expectSemanticPresentationOnPage(verifiedFact: { label: string; value: string } | undefined) {
+  expect(verifiedFact).toBeDefined();
+  const factsPanel = screen.getByText('结构化事实核对').parentElement;
+  expect(factsPanel).not.toBeNull();
+  expect(within(factsPanel!).getByText(verifiedFact?.label ?? '')).toBeInTheDocument();
+  expect(within(factsPanel!).getByText(verifiedFact?.value ?? '')).toBeInTheDocument();
+}
+
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
@@ -99,6 +109,8 @@ afterEach(() => {
   restoreUrlMethod('revokeObjectURL', originalRevokeObjectURL);
   engineState.qimenEnvelope = null;
   engineState.liuyaoEnvelope = null;
+  engineState.qimenStableEnvelope = null;
+  engineState.liuyaoStableEnvelope = null;
 });
 
 describe('奇门与六爻 Workspace 导出呈现', () => {
@@ -107,12 +119,12 @@ describe('奇门与六爻 Workspace 导出呈现', () => {
 
     await screen.findByRole('button', { name: '导出报告' });
     await waitFor(() => expect(engineState.qimenEnvelope).not.toBeNull());
+    const envelope = engineState.qimenStableEnvelope as ExportEnvelope & { data: Parameters<typeof createQimenFactChecks>[0] };
+    const verifiedFact = createQimenFactChecks(envelope.data).find(({ validation }) => validation.valid)?.fact;
+    expectSemanticPresentationOnPage(verifiedFact);
     const html = await downloadHtml();
-    const envelope = engineState.qimenEnvelope as ExportEnvelope & { data: Parameters<typeof createQimenFactChecks>[0] };
 
     expectSnapshotInHtml(html, envelope);
-    const verifiedFact = createQimenFactChecks(envelope.data).find(({ validation }) => validation.valid)?.fact;
-    expect(verifiedFact).toBeDefined();
     expect(html).toContain(verifiedFact?.label);
     expect(html).toContain(verifiedFact?.value);
   });
@@ -122,12 +134,12 @@ describe('奇门与六爻 Workspace 导出呈现', () => {
 
     await screen.findByRole('button', { name: '导出报告' });
     await waitFor(() => expect(engineState.liuyaoEnvelope).not.toBeNull());
+    const envelope = engineState.liuyaoStableEnvelope as ExportEnvelope & { data: Parameters<typeof createLiuyaoFactChecks>[0] };
+    const verifiedFact = createLiuyaoFactChecks(envelope.data).find(({ validation }) => validation.valid)?.fact;
+    expectSemanticPresentationOnPage(verifiedFact);
     const html = await downloadHtml();
-    const envelope = engineState.liuyaoEnvelope as ExportEnvelope & { data: Parameters<typeof createLiuyaoFactChecks>[0] };
 
     expectSnapshotInHtml(html, envelope);
-    const verifiedFact = createLiuyaoFactChecks(envelope.data).find(({ validation }) => validation.valid)?.fact;
-    expect(verifiedFact).toBeDefined();
     expect(html).toContain(verifiedFact?.label);
     expect(html).toContain(verifiedFact?.value);
   });

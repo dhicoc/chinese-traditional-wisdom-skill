@@ -316,7 +316,13 @@ export function LiuyaoWorkspace() {
           />
           {presentation?.report && (
             <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-              <FourLayerReport report={presentation.report} title="六爻解读" />
+              <FourLayerReport
+                report={presentation.report}
+                semanticReport={presentation.semanticReport}
+                notices={presentation.notices}
+                warnings={presentation.warnings}
+                title="六爻解读"
+              />
             </div>
           )}
         </aside>
