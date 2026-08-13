@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { createExportReportHtml, ExportReportButton } from '@/components/shared/ExportReportButton';
+import { createExportReportHtml, ExportReportButton, type ExportUserPresentation } from '@/components/shared/ExportReportButton';
 
 vi.mock('@/lib/birthContext', () => ({
   useBirth: () => ({
@@ -66,6 +66,29 @@ describe('ExportReportButton', () => {
     expect(html).toContain('不构成 &lt;医疗&gt; 建议。');
     expect(html).not.toContain('不应平铺');
     expect(html).not.toContain('旧章节内容');
+  });
+
+  it('从有效 presentation 的语义报告导出已核对事实，不暴露 evidence', () => {
+    const presentation: ExportUserPresentation = {
+      report: { summary: '摘要', sections: [] },
+      semanticReport: {
+        facts: [{ label: '值宿', value: '角', tool: 'xingxiu_daily' }],
+        traditionalInterpretations: [],
+        actions: [],
+        disclaimers: [],
+      },
+    };
+    const html = createExportReportHtml({
+      title: '星宿报告',
+      generatedAt: '2026/8/7 12:00:00',
+      birthSummary: '1990年6月15日 12时',
+      ...presentation,
+    });
+
+    expect(html).toContain('结构化事实核对');
+    expect(html).toContain('值宿');
+    expect(html).toContain('角');
+    expect(html).not.toContain('evidence');
   });
 
   it('以 HTML Blob 和 .html 文件名下载传入的结构化报告', async () => {

@@ -145,6 +145,29 @@ describe('FourLayerReport 渲染', () => {
     expect(screen.getByText('查看传统解释')).toBeInTheDocument();
   });
 
+  it('用显式语义报告渲染已核对事实与传统解释边界', () => {
+    const report: LayerReport = {
+      tldr: 't', overallTone: '中', highlights: [], details: [{ heading: '四柱', body: '传统解释' }], actions: [],
+    };
+    render(
+      <FourLayerReport
+        report={report}
+        semanticReport={{
+          facts: [{ label: '日干支', value: '甲子', tool: 'taiyi_calculate' }],
+          traditionalInterpretations: [{ heading: '四柱', body: '传统解释' }],
+          actions: [],
+          disclaimers: ['仅作传统文化参考。'],
+        }}
+      />,
+    );
+
+    expect(screen.getByText('结构化事实核对')).toBeInTheDocument();
+    expect(screen.getByText('日干支')).toBeInTheDocument();
+    expect(screen.getByText('甲子')).toBeInTheDocument();
+    expect(screen.getByText('查看传统解释')).toBeInTheDocument();
+    expect(screen.getAllByText((_, element) => element?.textContent === '· 仅作传统文化参考。').length).toBeGreaterThan(0);
+  });
+
   it('没有显式核对事实时不显示已核对事实区', () => {
     const report: LayerReport = { tldr: 't', overallTone: '中', highlights: [], details: [], actions: [] };
     render(<FourLayerReport report={report} semanticReport={{ facts: [], traditionalInterpretations: [], actions: [], disclaimers: [] }} />);
