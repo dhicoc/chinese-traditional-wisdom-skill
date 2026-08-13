@@ -38,7 +38,13 @@ describe('组合年度运势 claim 校验', () => {
 
     expect(result.valid).toBe(false);
     expect(result.violations).toEqual([
-      expect.objectContaining({ tool: 'combo_monthly_fortune', kind: 'monthlyMode', expected: undefined }),
+      expect.objectContaining({
+        tool: 'combo_annual_fortune',
+        claimTool: 'combo_monthly_fortune',
+        kind: 'monthlyMode',
+        code: 'tool-mismatch',
+        expected: undefined,
+      }),
     ]);
   });
 });

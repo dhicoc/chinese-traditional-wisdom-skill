@@ -4,6 +4,12 @@ import type { LiuyaoData } from '../liuyaoEngine';
 import type { MeihuaData } from '../meihuaEngine';
 import type { QimenData } from '../qimenEngine';
 import type { TaiyiData } from '../taiyiEngine';
+import {
+  claimToolMismatch,
+  createClaimViolation,
+  type ClaimValidation,
+  type ClaimViolation,
+} from './claimContract';
 
 export type DivinationPresentationTool = 'cast_liuyao' | 'cast_meihua' | 'arrange_qimen' | 'liuren_calculate' | 'taiyi_calculate' | 'huangji_calculate';
 
@@ -38,19 +44,12 @@ export type DivinationPresentationClaim =
   | { tool: 'huangji_calculate'; kind: 'gua'; layer: 'zheng' | 'yun' | 'shi' | 'xun' | 'year' | 'month' | 'day' | 'hour' | 'minute'; value: string }
   | { tool: 'huangji_calculate'; kind: 'movingLine'; layer: 'yun' | 'shi' | 'xun'; value: number };
 
-export interface DivinationClaimViolation {
-  index: number;
-  tool: DivinationPresentationClaim['tool'];
-  kind: DivinationPresentationClaim['kind'];
-  message: string;
-  expected?: string | number | null;
-  actual: string | number | null;
-}
+export type DivinationClaimViolation = ClaimViolation<
+  DivinationPresentationClaim['kind'],
+  string | number | null
+>;
 
-export interface DivinationClaimValidation {
-  valid: boolean;
-  violations: DivinationClaimViolation[];
-}
+export type DivinationClaimValidation = ClaimValidation<DivinationClaimViolation>;
 
 export function validateDivinationClaims(
   tool: DivinationPresentationTool,
@@ -60,16 +59,29 @@ export function validateDivinationClaims(
   const violations: DivinationClaimViolation[] = [];
 
   claims.forEach((claim, index) => {
-    const expected = claim.tool === tool ? getExpectedValue(data, claim) : undefined;
-    if (claim.value !== expected) {
-      violations.push({
+    if (claimToolMismatch(claim, tool)) {
+      violations.push(createClaimViolation({
         index,
-        tool: claim.tool,
+        tool,
+        claimTool: claim.tool,
         kind: claim.kind,
-        message: claim.tool === tool ? `${claim.kind} 与本次${tool}盘面结果不一致。` : `该凭证不属于 ${claim.tool}，不能校验此断言。`,
+        message: '',
+        actual: claim.value,
+      }));
+      return;
+    }
+
+    const expected = getExpectedValue(data, claim);
+    if (claim.value !== expected) {
+      violations.push(createClaimViolation({
+        index,
+        tool,
+        claimTool: claim.tool,
+        kind: claim.kind,
+        message: `${claim.kind} 与本次${tool}盘面结果不一致。`,
         expected,
         actual: claim.value,
-      });
+      }));
     }
   });
 

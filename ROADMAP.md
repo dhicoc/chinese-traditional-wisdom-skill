@@ -24,7 +24,7 @@ Dashboard 是独立的浏览器端入口，按页面直接调用纯 TypeScript �
 
 - 32 个本地工具通过 `apps/visual/scripts/run-engine.ts` 和 `src/legacy/directRunner.ts` 调用。
 - 除 `resolve_true_solar_time` 返回 `TrueSolarTimeResolution` 外，CLI 核心结果统一为 `ToolEnvelope`，并标识 `local-exact`、`local-approx`、民俗体验与降级状态。
-- 八字、紫微、八宅、飞星、历法、占测、日用与联合分析均有无状态 `validate*Claims(data, claims)` 校验入口。
+- 八字、紫微、八宅、飞星、历法、占测、日用与联合分析均有无状态 `validate*Claims(data, claims)` 校验入口；所有校验器共享 violation 契约，并统一区分值不一致、选择器不存在与跨工具凭证。
 - CLI 工具表、Runner 分发、success fixture、真太阳时民用降级、P9 风水/历法口径与 6 个风水映射表已接入契约检查；Dashboard 交互与报告隐私仍由对应测试覆盖。
 - CI 覆盖类型检查、单元测试、烟测、文档/数据契约和生产构建；跨浏览器 E2E 是发布前的完整验证层。
 
@@ -55,7 +55,7 @@ Dashboard 是独立的浏览器端入口，按页面直接调用纯 TypeScript �
 
 ### 可交付项
 
-1. 统一所有 `validate*Claims(data, claims)` 的输入、violation 与跨工具拒绝语义。
+1. 已统一所有 `validate*Claims(data, claims)` 的 violation 与跨工具拒绝语义：共享 `value-mismatch`、`selector-not-found`、`tool-mismatch` 错误代码，并兼容既有单领域 claim 输入。
 2. 为每个校验器覆盖有效 claims、篡改 claims 和跨工具 claims 三类回归测试。
 3. 让报告与 Dashboard 明确分开“结构化事实核对”“传统解释”“行动建议”“免责声明”。
 4. 维护古籍条目的稳定引用 ID，使文化背景、规则出处和本次引擎结果可追溯但不混淆。

@@ -4,6 +4,12 @@ import type { CeziResult } from '../ceziEngine';
 import type { ChenguzResult } from '../chenguzEngine';
 import type { RhythmResult } from '../rhythmEngine';
 import type { AssessResult } from '../constitutionAssessEngine';
+import {
+  claimToolMismatch,
+  createClaimViolation,
+  type ClaimValidation,
+  type ClaimViolation,
+} from './claimContract';
 
 export type DailyPresentationTool = 'analyze_name' | 'calc_xiyong' | 'get_constitution_tendency' | 'dream_interpret' | 'cast_cezi' | 'calc_chenguz' | 'get_daily_rhythm' | 'assess_constitution';
 
@@ -33,19 +39,11 @@ export type DailyPresentationClaim =
   | { tool: 'assess_constitution'; kind: 'constitution'; field: 'dominantType'; value: string }
   | { tool: 'assess_constitution'; kind: 'constitutionScore'; type: string; value: number };
 
-export interface DailyClaimViolation {
-  index: number;
-  tool: DailyPresentationClaim['tool'];
-  kind: DailyPresentationClaim['kind'];
-  message: string;
-  expected?: string | number | boolean | string[] | null;
-  actual: string | number | boolean | string[] | null;
-}
+type DailyClaimValue = string | number | boolean | string[] | null;
 
-export interface DailyClaimValidation {
-  valid: boolean;
-  violations: DailyClaimViolation[];
-}
+export type DailyClaimViolation = ClaimViolation<DailyPresentationClaim['kind'], DailyClaimValue>;
+
+export type DailyClaimValidation = ClaimValidation<DailyClaimViolation>;
 
 export function validateDailyClaims(
   tool: DailyPresentationTool,
@@ -55,16 +53,31 @@ export function validateDailyClaims(
   const violations: DailyClaimViolation[] = [];
 
   claims.forEach((claim, index) => {
-    const expected = claim.tool === tool ? getExpectedValue(data, claim) : undefined;
-    if (!valuesEqual(claim.value, expected)) {
-      violations.push({
+    if (claimToolMismatch(claim, tool)) {
+      violations.push(createClaimViolation<DailyPresentationClaim['kind'], DailyClaimValue>({
         index,
-        tool: claim.tool,
+        tool,
+        claimTool: claim.tool,
         kind: claim.kind,
-        message: claim.tool === tool ? `${claim.kind} 与本次${tool}基础结果不一致。` : `该凭证不属于 ${claim.tool}，不能校验此断言。`,
+        message: '',
+        actual: claim.value,
+      }));
+      return;
+    }
+
+    const expected = getExpectedValue(data, claim);
+    if (!valuesEqual(claim.value, expected)) {
+      violations.push(createClaimViolation<DailyPresentationClaim['kind'], DailyClaimValue>({
+        index,
+        tool,
+        claimTool: claim.tool,
+        kind: claim.kind,
+        message: expected === undefined
+          ? `${claim.kind} 在本次${tool}基础结果中不存在。`
+          : `${claim.kind} 与本次${tool}基础结果不一致。`,
         expected,
         actual: claim.value,
-      });
+      }));
     }
   });
 

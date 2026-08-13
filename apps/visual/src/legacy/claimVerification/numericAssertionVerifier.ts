@@ -1,21 +1,20 @@
-export interface NumericAssertionClaim {
-  tool?: string;
+import {
+  claimToolMismatch,
+  createClaimViolation,
+  type ClaimValidation,
+  type ClaimViolation,
+} from './claimContract';
+
+export type NumericAssertionClaim = {
   path: string;
   value: number;
-}
+} & { tool?: string };
 
-export interface NumericAssertionViolation {
-  index: number;
+export type NumericAssertionViolation = ClaimViolation<'numericAssertion', number> & {
   path: string;
-  message: string;
-  expected?: number;
-  actual: number;
-}
+};
 
-export interface NumericAssertionValidation {
-  valid: boolean;
-  violations: NumericAssertionViolation[];
-}
+export type NumericAssertionValidation = ClaimValidation<NumericAssertionViolation>;
 
 export function validateNumericAssertionClaims(
   tool: string,
@@ -25,16 +24,38 @@ export function validateNumericAssertionClaims(
   const violations: NumericAssertionViolation[] = [];
 
   claims.forEach((claim, index) => {
-    const expected = claim.tool === undefined || claim.tool === tool ? getNumericValue(result, claim.path) : undefined;
+    const toolMismatch = claimToolMismatch({ ...claim, kind: 'numericAssertion' }, tool);
+    if (toolMismatch) {
+      const violation = createClaimViolation({
+        index,
+        tool,
+        claimTool: claim.tool,
+        kind: 'numericAssertion',
+        message: '',
+        expected: undefined,
+        actual: claim.value,
+      });
+      violations.push({
+        ...violation,
+        path: claim.path,
+        message: `该凭证属于 ${claim.tool}，不能校验 ${tool} 的数值断言。`,
+      });
+      return;
+    }
+
+    const expected = getNumericValue(result, claim.path);
     if (claim.value !== expected) {
       violations.push({
-        index,
+        ...createClaimViolation({
+          index,
+          tool,
+          claimTool: claim.tool,
+          kind: 'numericAssertion',
+          message: `路径 ${claim.path} 的数值与本次 ${tool} 结果不一致，或该路径不是有限数值。`,
+          expected,
+          actual: claim.value,
+        }),
         path: claim.path,
-        message: claim.tool !== undefined && claim.tool !== tool
-          ? `该凭证属于 ${claim.tool}，不能校验 ${tool} 的数值断言。`
-          : `路径 ${claim.path} 的数值与本次 ${tool} 结果不一致，或该路径不是有限数值。`,
-        expected,
-        actual: claim.value,
       });
     }
   });

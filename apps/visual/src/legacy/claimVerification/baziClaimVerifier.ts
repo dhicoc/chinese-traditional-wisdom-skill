@@ -1,6 +1,14 @@
 import type { BaziData } from '../baziEngine';
+import {
+  claimToolMismatch,
+  createClaimViolation,
+  type ClaimValidation,
+  type ClaimViolation,
+} from './claimContract';
 
-export type BaziPresentationClaim =
+const BAZI_TOOL = 'bazi_calculate';
+
+type BaziClaim =
   | { kind: 'pillar'; pillar: 'year' | 'month' | 'day' | 'hour'; value: string }
   | { kind: 'dayMaster'; value: string }
   | { kind: 'elementCount'; element: '木' | '火' | '土' | '金' | '水'; value: number }
@@ -14,35 +22,40 @@ export type BaziPresentationClaim =
   | { kind: 'transitPillar'; layer: 'yearly' | 'monthly' | 'daily'; field: 'ganZhi' | 'stemShiShen' | 'stemWuxing'; value: string }
   | { kind: 'transitRelation'; layer: 'yearly' | 'monthly' | 'daily'; reference: 'natal' | 'decadal' | 'minor'; referenceKey?: 'year' | 'month' | 'day' | 'hour'; value: string };
 
-export interface BaziClaimViolation {
-  index: number;
-  kind: BaziPresentationClaim['kind'];
-  message: string;
-  expected?: string | number;
-  actual: string | number;
-}
+export type BaziPresentationClaim = BaziClaim & { tool?: string };
 
-export interface BaziClaimValidation {
-  valid: boolean;
-  violations: BaziClaimViolation[];
-}
+export type BaziClaimViolation = ClaimViolation<BaziPresentationClaim['kind'], string | number>;
+
+export type BaziClaimValidation = ClaimValidation<BaziClaimViolation>;
 
 export function validateBaziClaims(data: BaziData, claims: BaziPresentationClaim[]): BaziClaimValidation {
   const violations: BaziClaimViolation[] = [];
 
   claims.forEach((claim, index) => {
+    if (claimToolMismatch(claim, BAZI_TOOL)) {
+      violations.push(createClaimViolation({
+        index,
+        tool: BAZI_TOOL,
+        claimTool: claim.tool,
+        kind: claim.kind,
+        message: '',
+        actual: claim.value,
+      }));
+      return;
+    }
+
     if (claim.kind === 'pillar') {
       const pillar = data.pillars[claim.pillar];
       const expected = `${pillar.stem}${pillar.branch}`;
       if (claim.value !== expected) {
-        violations.push({ index, kind: claim.kind, message: `${claim.pillar} 柱与本次排盘不一致。`, expected, actual: claim.value });
+        violations.push(createClaimViolation({ index, tool: BAZI_TOOL, claimTool: claim.tool, kind: claim.kind, message: `${claim.pillar} 柱与本次排盘不一致。`, expected, actual: claim.value }));
       }
       return;
     }
 
     if (claim.kind === 'dayMaster') {
       if (claim.value !== data.dayMaster) {
-        violations.push({ index, kind: claim.kind, message: '日主与本次排盘不一致。', expected: data.dayMaster, actual: claim.value });
+        violations.push(createClaimViolation({ index, tool: BAZI_TOOL, claimTool: claim.tool, kind: claim.kind, message: '日主与本次排盘不一致。', expected: data.dayMaster, actual: claim.value }));
       }
       return;
     }
@@ -50,7 +63,7 @@ export function validateBaziClaims(data: BaziData, claims: BaziPresentationClaim
     if (claim.kind === 'elementCount') {
       const expected = data.elements[claim.element];
       if (claim.value !== expected) {
-        violations.push({ index, kind: claim.kind, message: `${claim.element} 五行计数与本次排盘不一致。`, expected, actual: claim.value });
+        violations.push(createClaimViolation({ index, tool: BAZI_TOOL, claimTool: claim.tool, kind: claim.kind, message: `${claim.element} 五行计数与本次排盘不一致。`, expected, actual: claim.value }));
       }
       return;
     }
@@ -58,7 +71,7 @@ export function validateBaziClaims(data: BaziData, claims: BaziPresentationClaim
     if (claim.kind === 'strength') {
       const expected = data.advancedAnalysis.support.strength;
       if (claim.value !== expected) {
-        violations.push({ index, kind: claim.kind, message: '日主强弱与本次排盘不一致。', expected, actual: claim.value });
+        violations.push(createClaimViolation({ index, tool: BAZI_TOOL, claimTool: claim.tool, kind: claim.kind, message: '日主强弱与本次排盘不一致。', expected, actual: claim.value }));
       }
       return;
     }
@@ -67,7 +80,7 @@ export function validateBaziClaims(data: BaziData, claims: BaziPresentationClaim
       const luck = data.luck.find((item) => item.ageStart === claim.ageStart);
       const expected = luck ? `${luck.stem}${luck.branch}` : undefined;
       if (claim.value !== expected) {
-        violations.push({ index, kind: claim.kind, message: `${claim.ageStart} 岁起的大运与本次排盘不一致。`, expected, actual: claim.value });
+        violations.push(createClaimViolation({ index, tool: BAZI_TOOL, claimTool: claim.tool, kind: claim.kind, message: `${claim.ageStart} 岁起的大运与本次排盘不一致。`, expected, actual: claim.value }));
       }
       return;
     }
@@ -76,7 +89,7 @@ export function validateBaziClaims(data: BaziData, claims: BaziPresentationClaim
     if (claim.kind === 'transitTargetDate') {
       const expected = transit?.targetDate;
       if (claim.value !== expected) {
-        violations.push({ index, kind: claim.kind, message: '动态层目标日期与本次排盘不一致。', expected, actual: claim.value });
+        violations.push(createClaimViolation({ index, tool: BAZI_TOOL, claimTool: claim.tool, kind: claim.kind, message: '动态层目标日期与本次排盘不一致。', expected, actual: claim.value }));
       }
       return;
     }
@@ -84,7 +97,7 @@ export function validateBaziClaims(data: BaziData, claims: BaziPresentationClaim
     if (claim.kind === 'transitNominalAge') {
       const expected = transit?.nominalAge;
       if (claim.value !== expected) {
-        violations.push({ index, kind: claim.kind, message: '动态层虚岁与本次排盘不一致。', expected, actual: claim.value });
+        violations.push(createClaimViolation({ index, tool: BAZI_TOOL, claimTool: claim.tool, kind: claim.kind, message: '动态层虚岁与本次排盘不一致。', expected, actual: claim.value }));
       }
       return;
     }
@@ -96,7 +109,7 @@ export function validateBaziClaims(data: BaziData, claims: BaziPresentationClaim
           ? `${transit.decadal.current.stem}${transit.decadal.current.branch}`
           : undefined;
       if (claim.value !== expected) {
-        violations.push({ index, kind: claim.kind, message: `动态层十年大运${claim.field}与本次排盘不一致。`, expected, actual: claim.value });
+        violations.push(createClaimViolation({ index, tool: BAZI_TOOL, claimTool: claim.tool, kind: claim.kind, message: `动态层十年大运${claim.field}与本次排盘不一致。`, expected, actual: claim.value }));
       }
       return;
     }
@@ -106,7 +119,7 @@ export function validateBaziClaims(data: BaziData, claims: BaziPresentationClaim
         ? transit ? `${transit.minor.stem}${transit.minor.branch}` : undefined
         : transit?.minor[claim.field];
       if (claim.value !== expected) {
-        violations.push({ index, kind: claim.kind, message: `动态层小运${claim.field}与本次排盘不一致。`, expected, actual: claim.value });
+        violations.push(createClaimViolation({ index, tool: BAZI_TOOL, claimTool: claim.tool, kind: claim.kind, message: `动态层小运${claim.field}与本次排盘不一致。`, expected, actual: claim.value }));
       }
       return;
     }
@@ -117,7 +130,7 @@ export function validateBaziClaims(data: BaziData, claims: BaziPresentationClaim
         ? pillar ? `${pillar.stem}${pillar.branch}` : undefined
         : pillar?.[claim.field];
       if (claim.value !== expected) {
-        violations.push({ index, kind: claim.kind, message: `动态层${claim.layer}${claim.field}与本次排盘不一致。`, expected, actual: claim.value });
+        violations.push(createClaimViolation({ index, tool: BAZI_TOOL, claimTool: claim.tool, kind: claim.kind, message: `动态层${claim.layer}${claim.field}与本次排盘不一致。`, expected, actual: claim.value }));
       }
       return;
     }
@@ -128,15 +141,15 @@ export function validateBaziClaims(data: BaziData, claims: BaziPresentationClaim
         item.referenceKey === claim.referenceKey && item.relations.includes(claim.value as never),
       ) ? claim.value : undefined;
       if (claim.value !== expected) {
-        violations.push({ index, kind: claim.kind, message: '动态层关系选择器与本次排盘不一致。', expected, actual: claim.value });
+        violations.push(createClaimViolation({ index, tool: BAZI_TOOL, claimTool: claim.tool, kind: claim.kind, message: '动态层关系选择器与本次排盘不一致。', expected, actual: claim.value }));
       }
       return;
     }
 
     const shenShaNames = new Set(data.shenSha.map((item) => item.name));
-    const expected = shenShaNames.has(claim.value) || (claim.value === '无' && data.shenSha.length === 0);
-    if (!expected) {
-      violations.push({ index, kind: claim.kind, message: `神煞“${claim.value}”未出现在本次排盘。`, actual: claim.value });
+    const exists = shenShaNames.has(claim.value) || (claim.value === '无' && data.shenSha.length === 0);
+    if (!exists) {
+      violations.push(createClaimViolation({ index, tool: BAZI_TOOL, claimTool: claim.tool, kind: claim.kind, message: `神煞“${claim.value}”未出现在本次排盘。`, expected: undefined, actual: claim.value }));
     }
   });
 

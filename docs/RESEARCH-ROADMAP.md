@@ -55,7 +55,7 @@ Dashboard 按页面直接调用纯 TypeScript 引擎，不经过 `run-engine.ts`
 
 ### 工作包
 
-1. 统一 `claimVerification/` 内 `validate*Claims` 的类型、violation 表达和跨工具拒绝模式。
+1. 已统一 `claimVerification/` 内 `validate*Claims` 的 violation 表达和跨工具拒绝模式：共享目标工具、凭证来源和三类稳定错误代码，并保持既有调用兼容。
 2. 对每个 verifier 维护三组测试：正确 claims、篡改值、跨工具 claims。
 3. 仅为柱、宫位、星曜、日期、枚举、数值、映射、排序等稳定字段增加 claims；不为综合结论添加伪校验。
 4. 维持年度组合的窄范围原则：如 `combo_annual_fortune` 只校验 `targetYear` 与命卦 context，不校验 tone、建议或综合结论。

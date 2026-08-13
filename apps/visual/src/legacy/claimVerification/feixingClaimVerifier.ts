@@ -1,37 +1,57 @@
 import type { FeixingResult } from '../feixingEngine';
+import {
+  claimToolMismatch,
+  createClaimViolation,
+  type ClaimValidation,
+  type ClaimViolation,
+  type ToolScopedClaim,
+} from './claimContract';
 
-export type FeixingPresentationClaim =
+const FEIXING_TOOL = 'calc_feixing';
+
+export type FeixingPresentationClaim = (
   | { kind: 'year'; value: number }
   | { kind: 'yuanYun'; field: 'num' | 'name' | 'wangStar' | 'shengStar' | 'tuiStar'; value: number | string }
   | { kind: 'center'; field: 'centerStar' | 'starName' | 'wuxing' | 'luck'; value: number | string }
-  | { kind: 'palace'; palace: string; field: 'starNum' | 'starName' | 'luck'; value: number | string };
+  | { kind: 'palace'; palace: string; field: 'starNum' | 'starName' | 'luck'; value: number | string }
+) &
+  ToolScopedClaim & { tool?: string };
 
-export interface FeixingClaimViolation {
-  index: number;
-  kind: FeixingPresentationClaim['kind'];
-  message: string;
-  expected?: string | number;
-  actual: string | number;
-}
+export type FeixingClaimViolation = ClaimViolation<FeixingPresentationClaim['kind'], string | number>;
 
-export interface FeixingClaimValidation {
-  valid: boolean;
-  violations: FeixingClaimViolation[];
-}
+export type FeixingClaimValidation = ClaimValidation<FeixingClaimViolation>;
 
 export function validateFeixingClaims(data: FeixingResult, claims: FeixingPresentationClaim[]): FeixingClaimValidation {
   const violations: FeixingClaimViolation[] = [];
 
   claims.forEach((claim, index) => {
+    if (claimToolMismatch(claim, FEIXING_TOOL)) {
+      violations.push(
+        createClaimViolation({
+          index,
+          tool: FEIXING_TOOL,
+          claimTool: claim.tool,
+          kind: claim.kind,
+          message: getViolationMessage(claim),
+          actual: claim.value,
+        }),
+      );
+      return;
+    }
+
     const expected = getExpectedValue(data, claim);
     if (claim.value !== expected) {
-      violations.push({
-        index,
-        kind: claim.kind,
-        message: getViolationMessage(claim),
-        expected,
-        actual: claim.value,
-      });
+      violations.push(
+        createClaimViolation({
+          index,
+          tool: FEIXING_TOOL,
+          claimTool: claim.tool,
+          kind: claim.kind,
+          message: getViolationMessage(claim),
+          expected,
+          actual: claim.value,
+        }),
+      );
     }
   });
 

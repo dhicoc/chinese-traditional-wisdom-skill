@@ -1,5 +1,11 @@
 import type { AnnualFortuneResult, DailyWellnessResult, MonthlyFortuneResult, ZeriResult } from '../comboEngine';
 import type { MarriageResult } from '../marriageCombo';
+import {
+  claimToolMismatch,
+  createClaimViolation,
+  type ClaimValidation,
+  type ClaimViolation,
+} from './claimContract';
 
 export type ComboPresentationTool = 'combo_annual_fortune' | 'combo_zeri' | 'combo_daily_wellness' | 'combo_monthly_fortune' | 'combo_marriage';
 
@@ -30,19 +36,12 @@ export type ComboPresentationClaim =
   | { tool: string; kind: 'marriageChongHe'; index: number; field: 'pillar' | 'aGanZhi' | 'bGanZhi'; value: string }
   | { tool: string; kind: 'marriageChongHeRelation'; index: number; field: ChongHeRelationField; value: boolean };
 
-export interface ComboClaimViolation {
-  index: number;
-  tool: string;
-  kind: ComboPresentationClaim['kind'];
-  message: string;
-  expected?: string | number | boolean;
-  actual: string | number | boolean;
-}
+export type ComboClaimViolation = ClaimViolation<
+  ComboPresentationClaim['kind'],
+  string | number | boolean
+>;
 
-export interface ComboClaimValidation {
-  valid: boolean;
-  violations: ComboClaimViolation[];
-}
+export type ComboClaimValidation = ClaimValidation<ComboClaimViolation>;
 
 type ComboPresentationData = AnnualFortuneResult | ZeriResult | DailyWellnessResult | MonthlyFortuneResult | MarriageResult;
 
@@ -54,18 +53,29 @@ export function validateComboClaims(
   const violations: ComboClaimViolation[] = [];
 
   claims.forEach((claim, index) => {
-    const expected = claim.tool === tool ? getExpectedValue(tool, data, claim) : undefined;
-    if (claim.value !== expected) {
-      violations.push({
+    if (claimToolMismatch(claim, tool)) {
+      violations.push(createClaimViolation({
         index,
-        tool: claim.tool,
+        tool,
+        claimTool: claim.tool,
         kind: claim.kind,
-        message: claim.tool === tool
-          ? `${claim.kind} 与本次${tool}传统规则输出不一致。`
-          : `该凭证不属于 ${claim.tool}，不能校验此断言。`,
+        message: `${claim.kind} 与本次${tool}传统规则输出不一致。`,
+        actual: claim.value,
+      }));
+      return;
+    }
+
+    const expected = getExpectedValue(tool, data, claim);
+    if (expected === undefined || claim.value !== expected) {
+      violations.push(createClaimViolation({
+        index,
+        tool,
+        claimTool: claim.tool,
+        kind: claim.kind,
+        message: `${claim.kind} 与本次${tool}传统规则输出不一致。`,
         expected,
         actual: claim.value,
-      });
+      }));
     }
   });
 

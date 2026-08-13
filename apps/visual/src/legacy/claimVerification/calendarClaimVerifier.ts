@@ -1,10 +1,16 @@
 import type { AlmanacData } from '../almanacData';
 import type { XingXiuData } from '../xingxiuEngine';
 import type { YunqiData } from '../yunqiEngine';
+import {
+  claimToolMismatch,
+  createClaimViolation,
+  type ClaimValidation,
+  type ClaimViolation,
+} from './claimContract';
 
 export type CalendarPresentationKind = 'yunqi' | 'xingxiu' | 'almanac';
 
-export type CalendarPresentationClaim =
+export type CalendarPresentationClaim = (
   | { kind: 'yunqiYear'; field: 'year'; value: number }
   | { kind: 'yunqiYear'; field: 'tiangan' | 'dizhi'; value: string }
   | { kind: 'yunqiWuyun'; field: 'dayun'; value: string }
@@ -12,20 +18,18 @@ export type CalendarPresentationClaim =
   | { kind: 'yunqiStep'; step: string; field: 'qi' | 'start' | 'end'; value: string }
   | { kind: 'xingxiu'; field: 'queryDate' | 'zhiXiu' | 'zhiXiuFull' | 'xiang' | 'wuxing' | 'yao' | 'animal'; value: string }
   | { kind: 'almanac'; field: 'solarDate' | 'lunarDate' | 'yearGanZhi' | 'monthGanZhi' | 'dayGanZhi' | 'zodiac' | 'jieQi' | 'dayNaYin' | 'dayXiu' | 'dayTianShen' | 'dayTianShenType' | 'chong' | 'sha' | 'liuYao' | 'dayNineStar'; value: string }
-  | { kind: 'almanacHour'; label: string; field: 'ganZhi' | 'tianShen' | 'tianShenType' | 'luck'; value: string };
+  | { kind: 'almanacHour'; label: string; field: 'ganZhi' | 'tianShen' | 'tianShenType' | 'luck'; value: string }
+) & { tool?: string };
 
-export interface CalendarClaimViolation {
-  index: number;
-  kind: CalendarPresentationClaim['kind'];
-  message: string;
-  expected?: string | number;
-  actual: string | number;
-}
+export type CalendarClaimViolation = ClaimViolation<CalendarPresentationClaim['kind'], string | number>;
 
-export interface CalendarClaimValidation {
-  valid: boolean;
-  violations: CalendarClaimViolation[];
-}
+export type CalendarClaimValidation = ClaimValidation<CalendarClaimViolation>;
+
+const RESULT_TO_TOOL: Record<CalendarPresentationKind, string> = {
+  yunqi: 'calc_yunqi',
+  xingxiu: 'xingxiu_daily',
+  almanac: 'get_almanac',
+};
 
 export function validateCalendarClaims(
   resultKind: CalendarPresentationKind,
@@ -33,17 +37,32 @@ export function validateCalendarClaims(
   claims: CalendarPresentationClaim[],
 ): CalendarClaimValidation {
   const violations: CalendarClaimViolation[] = [];
+  const tool = RESULT_TO_TOOL[resultKind];
 
   claims.forEach((claim, index) => {
+    if (claimToolMismatch(claim, tool)) {
+      violations.push(createClaimViolation({
+        index,
+        tool,
+        claimTool: claim.tool,
+        kind: claim.kind,
+        message: getViolationMessage(claim),
+        actual: claim.value,
+      }));
+      return;
+    }
+
     const expected = getExpectedValue(resultKind, data, claim);
     if (claim.value !== expected) {
-      violations.push({
+      violations.push(createClaimViolation({
         index,
+        tool,
+        claimTool: claim.tool,
         kind: claim.kind,
         message: getViolationMessage(claim),
         expected,
         actual: claim.value,
-      });
+      }));
     }
   });
 
