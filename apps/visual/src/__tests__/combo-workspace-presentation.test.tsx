@@ -1,24 +1,47 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
+const INTERNAL_EVIDENCE_SENTINEL = 'INTERNAL_EVIDENCE_SENTINEL';
+const EXPORT_NOTICE = 'COMBO_EXPORT_NOTICE';
+const EXPORT_WARNING = 'COMBO_EXPORT_WARNING';
 const engineState = vi.hoisted(() => ({
   wellnessFailure: false,
   marriageThrows: false,
-  exportPresentation: null as unknown,
   lastSuccessEnvelope: null as unknown,
 }));
 const solarBirth = { year: 1990, month: 6, day: 15, hour: 12, minute: 0, gender: '男' };
+const birth = { year: 1990, month: 6, day: 15, hour: 12, gender: '男', isLunar: false };
+const originalCreateObjectURL = Object.getOwnPropertyDescriptor(URL, 'createObjectURL');
+const originalRevokeObjectURL = Object.getOwnPropertyDescriptor(URL, 'revokeObjectURL');
 
 vi.mock('@/lib/birthContext', () => ({
-  useBirth: () => ({ solarBirth }),
+  useBirth: () => ({ birth, solarBirth }),
 }));
 
+vi.mock('@/lib/commandIntents', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/commandIntents')>();
+  return { ...actual, dispatchCommandFeedback: vi.fn() };
+});
 vi.mock('@/engine-api/calendar', () => ({ getSolarEntry: () => null }));
 
 vi.mock('@/engine-api/combo', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/engine-api/combo')>();
+  const withExportMarkers = <T extends { ok: boolean; data: object }>(result: T) => ({
+    ...result,
+    data: {
+      ...result.data,
+      timeSource: { notice: EXPORT_NOTICE },
+      evidence: INTERNAL_EVIDENCE_SENTINEL,
+    },
+    warnings: [EXPORT_WARNING],
+  });
   return {
     ...actual,
+    calcAnnualFortuneCombo: (input: Parameters<typeof actual.calcAnnualFortuneCombo>[0]) => {
+      const result = withExportMarkers(actual.calcAnnualFortuneCombo(input));
+      engineState.lastSuccessEnvelope = result;
+      return result;
+    },
     calcDailyWellnessCombo: (input: Parameters<typeof actual.calcDailyWellnessCombo>[0]) => {
       if (engineState.wellnessFailure) {
         return {
@@ -48,46 +71,61 @@ vi.mock('@/engine-api/marriage', async (importOriginal) => {
   };
 });
 
-vi.mock('@/components/shared/ExportReportButton', () => ({
-  ExportReportButton: ({ presentation }: { presentation: unknown }) => {
-    engineState.exportPresentation = presentation;
-    return <button type="button">导出报告</button>;
-  },
-}));
-
 import { ComboWorkspace } from '@/features/combo/ComboWorkspace';
 
 const SAFE_ERROR_MESSAGE = '本次计算未能完成，请核对输入后重试。';
 
+function restoreUrlMethod(name: 'createObjectURL' | 'revokeObjectURL', descriptor: PropertyDescriptor | undefined) {
+  if (descriptor) Object.defineProperty(URL, name, descriptor);
+  else Reflect.deleteProperty(URL, name);
+}
+
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
+  restoreUrlMethod('createObjectURL', originalCreateObjectURL);
+  restoreUrlMethod('revokeObjectURL', originalRevokeObjectURL);
   engineState.wellnessFailure = false;
   engineState.marriageThrows = false;
-  engineState.exportPresentation = null;
   engineState.lastSuccessEnvelope = null;
 });
 
 describe('ComboWorkspace presentation 边界', () => {
-  it('成功的 direct-engine 结果向导出组件传递同源 report、semanticReport、notices 和 warnings', async () => {
-    render(<ComboWorkspace />);
-
-    await waitFor(() => expect(engineState.exportPresentation).not.toBeNull());
-    const presentation = engineState.exportPresentation as {
-      report: { summary: string; sections: Array<{ heading: string; body: string }> };
-      semanticReport: { facts: Array<{ label: string }> };
-      notices: string[];
-      warnings: string[];
-    };
-    expect(presentation.report).toBeTruthy();
-    expect(presentation.semanticReport).toBeTruthy();
-    expect(presentation.notices).toBeInstanceOf(Array);
-    expect(presentation.warnings).toBeInstanceOf(Array);
-    const envelope = engineState.lastSuccessEnvelope as { ok: true; data: { export_snapshot: { summary: string; sections: Array<{ heading: string; body: string }> } } };
-    expect(presentation.semanticReport.facts.map(({ label }) => label)).toEqual(['日期', '节气', '季节', '时辰']);
-    expect(presentation.report).toEqual({
-      summary: envelope.data.export_snapshot.summary,
-      sections: envelope.data.export_snapshot.sections,
+  it('导出年度联合分析的真实 HTML，保留用户可见报告语义且不泄露内部 evidence', async () => {
+    let downloadedBlob: Blob | undefined;
+    const createObjectUrl = vi.fn((blob: Blob) => {
+      downloadedBlob = blob;
+      return 'blob:combo-report';
     });
+    const revokeObjectUrl = vi.fn();
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: createObjectUrl });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: revokeObjectUrl });
+    const anchorClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+
+    render(<ComboWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: /年度综合运势/ }));
+
+    await screen.findByRole('button', { name: '导出报告' });
+    await waitFor(() => expect(engineState.lastSuccessEnvelope).not.toBeNull());
+    fireEvent.click(screen.getByRole('button', { name: '导出报告' }));
+
+    await waitFor(() => expect(anchorClick).toHaveBeenCalledOnce());
+    expect(createObjectUrl).toHaveBeenCalledOnce();
+    expect(revokeObjectUrl).toHaveBeenCalledWith('blob:combo-report');
+    const html = await downloadedBlob?.text();
+    const envelope = engineState.lastSuccessEnvelope as {
+      data: { export_snapshot: { summary: string; sections: Array<{ heading: string; body: string }> } };
+    };
+
+    expect(html).toContain(envelope.data.export_snapshot.summary);
+    expect(html).toContain(envelope.data.export_snapshot.sections[0]?.heading);
+    expect(html).toContain(envelope.data.export_snapshot.sections[0]?.body);
+    // 年度结果的已校验事实由 annualFactChecks 绑定到 combo_annual_fortune；导出 HTML 应至少保留其 label/value。
+    expect(html).toContain('目标年份');
+    expect(html).toContain(String(solarBirth.year));
+    expect(html).toContain('COMBO_EXPORT_NOTICE');
+    expect(html).toContain('COMBO_EXPORT_WARNING');
+    expect(html).not.toContain(INTERNAL_EVIDENCE_SENTINEL);
   });
 
   it('引擎返回失败 envelope 时只呈现固定安全文案', async () => {
@@ -96,6 +134,7 @@ describe('ComboWorkspace presentation 边界', () => {
 
     expect(await screen.findByText(SAFE_ERROR_MESSAGE)).toBeInTheDocument();
     expect(container.textContent).not.toContain('combo internal sentinel');
+    expect(container.textContent).not.toContain(INTERNAL_EVIDENCE_SENTINEL);
     expect(screen.queryByText('暂无结果')).not.toBeInTheDocument();
   });
 
@@ -106,6 +145,7 @@ describe('ComboWorkspace presentation 边界', () => {
 
     expect(await screen.findByText(SAFE_ERROR_MESSAGE)).toBeInTheDocument();
     expect(container.textContent).not.toContain('marriage internal sentinel');
+    expect(container.textContent).not.toContain(INTERNAL_EVIDENCE_SENTINEL);
     expect(screen.queryByText('暂无结果')).not.toBeInTheDocument();
   });
 });

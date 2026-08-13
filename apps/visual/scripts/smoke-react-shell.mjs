@@ -124,28 +124,12 @@ check(
   countOccurrences(comboWorkspace, '<ExportReportButton') === 1,
   '联合分析结果区应仅保留一个报告导出按钮',
 );
-const exportPresentationDefinition = /const exportPresentation = useMemo\(\(\) => presentation\?\.exportReport \? \(\{([\s\S]*?)\}\) : null, \[presentation\]\);/.exec(comboWorkspace);
 check(
-  exportPresentationDefinition !== null,
-  '联合分析应定义由当前 presentation 派生的 exportPresentation',
-);
-if (exportPresentationDefinition) {
-  const exportPresentationFields = exportPresentationDefinition[1];
-  check(
-    exportPresentationFields.includes('report: presentation.exportReport')
-      && exportPresentationFields.includes('semanticReport: presentation.semanticReport')
-      && exportPresentationFields.includes('notices: presentation.notices')
-      && exportPresentationFields.includes('warnings: presentation.warnings'),
-    '联合分析 exportPresentation 应复用同一 presentation 的报告、语义报告、提示与警告',
-  );
-}
-const comboExportButton = /<ExportReportButton\s+([^>]*?)\/>/.exec(comboWorkspace)?.[1] ?? '';
-check(
-  comboExportButton.includes('presentation={exportPresentation}'),
+  comboWorkspace.includes('presentation={exportPresentation}'),
   '联合分析报告导出应传入当前 exportPresentation',
 );
 check(
-  !comboExportButton.includes('report='),
+  !comboWorkspace.includes('report={result.envelope?.data.export_snapshot ?? null}'),
   '联合分析报告导出不应直接传入 raw export_snapshot',
 );
 
