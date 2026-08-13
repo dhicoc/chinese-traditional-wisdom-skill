@@ -56,7 +56,7 @@ export function TaiyiWorkspace() {
           data: {} as TaiyiData,
           error: {
             code: 'calculation_exception',
-            message: error instanceof Error && error.message ? error.message : '本次计算未能完成，请核对输入后重试。',
+            message: '本次计算未能完成，请核对输入后重试。',
           },
         },
         loading: false,

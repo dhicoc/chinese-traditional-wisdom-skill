@@ -74,7 +74,7 @@ export function LiurenWorkspace() {
           data: {} as DaliurenData,
           error: {
             code: 'calculation_exception',
-            message: error instanceof Error && error.message ? error.message : '本次计算未能完成，请核对输入后重试。',
+            message: '本次计算未能完成，请核对输入后重试。',
           },
         },
         loading: false,
