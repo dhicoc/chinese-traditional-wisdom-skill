@@ -26,20 +26,6 @@ vi.mock('@/lib/commandIntents', async (importOriginal) => {
 
 vi.mock('@/engine-api/calendar', () => ({ getSolarEntry: () => null }));
 
-vi.mock('@/components/shared/FourLayerReport', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/components/shared/FourLayerReport')>();
-  return {
-    ...actual,
-    FourLayerReport: (props: Parameters<typeof actual.FourLayerReport>[0]) => (
-      <>
-        <actual.FourLayerReport {...props} />
-        <output>{props.notices?.join('')}</output>
-        <output>{props.warnings?.join('')}</output>
-      </>
-    ),
-  };
-});
-
 vi.mock('@/engine-api/divination', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/engine-api/divination')>();
   const withExportMarkers = <T extends { data: object }>(result: T) => ({
@@ -111,11 +97,15 @@ function expectSnapshotInHtml(html: string | undefined, envelope: ExportEnvelope
 function expectSemanticPresentationOnPage(verifiedFact: { label: string; value: string } | undefined) {
   expect(verifiedFact).toBeDefined();
   const factsPanel = screen.getByText('结构化事实核对').parentElement;
+  const noticesPanel = screen.getByText('计算状态').parentElement;
+  const warningsPanel = screen.getByText('使用限制与注意事项').parentElement;
   expect(factsPanel).not.toBeNull();
+  expect(noticesPanel).not.toBeNull();
+  expect(warningsPanel).not.toBeNull();
   expect(within(factsPanel!).getByText(verifiedFact?.label ?? '')).toBeInTheDocument();
   expect(within(factsPanel!).getByText(verifiedFact?.value ?? '')).toBeInTheDocument();
-  expect(screen.getByText(EXPORT_NOTICE)).toBeInTheDocument();
-  expect(screen.getByText(EXPORT_WARNING)).toBeInTheDocument();
+  expect(within(noticesPanel!).getByText((_, element) => element?.tagName === 'LI' && element.textContent?.includes(EXPORT_NOTICE) === true)).toBeInTheDocument();
+  expect(within(warningsPanel!).getByText((_, element) => element?.tagName === 'LI' && element.textContent?.includes(EXPORT_WARNING) === true)).toBeInTheDocument();
 }
 
 function expectExportMarkersOnEnvelope(envelope: unknown) {
