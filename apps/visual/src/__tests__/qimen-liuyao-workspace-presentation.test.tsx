@@ -26,6 +26,20 @@ vi.mock('@/lib/commandIntents', async (importOriginal) => {
 
 vi.mock('@/engine-api/calendar', () => ({ getSolarEntry: () => null }));
 
+vi.mock('@/components/shared/FourLayerReport', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/components/shared/FourLayerReport')>();
+  return {
+    ...actual,
+    FourLayerReport: (props: Parameters<typeof actual.FourLayerReport>[0]) => (
+      <>
+        <actual.FourLayerReport {...props} />
+        <output>{props.notices?.join('')}</output>
+        <output>{props.warnings?.join('')}</output>
+      </>
+    ),
+  };
+});
+
 vi.mock('@/engine-api/divination', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/engine-api/divination')>();
   const withExportMarkers = <T extends { data: object }>(result: T) => ({
@@ -100,6 +114,15 @@ function expectSemanticPresentationOnPage(verifiedFact: { label: string; value: 
   expect(factsPanel).not.toBeNull();
   expect(within(factsPanel!).getByText(verifiedFact?.label ?? '')).toBeInTheDocument();
   expect(within(factsPanel!).getByText(verifiedFact?.value ?? '')).toBeInTheDocument();
+  expect(screen.getByText(EXPORT_NOTICE)).toBeInTheDocument();
+  expect(screen.getByText(EXPORT_WARNING)).toBeInTheDocument();
+}
+
+function expectExportMarkersOnEnvelope(envelope: unknown) {
+  expect(envelope).toMatchObject({
+    data: { timeSource: { notice: EXPORT_NOTICE } },
+    warnings: [EXPORT_WARNING],
+  });
 }
 
 afterEach(() => {
@@ -120,6 +143,7 @@ describe('奇门与六爻 Workspace 导出呈现', () => {
     await screen.findByRole('button', { name: '导出报告' });
     await waitFor(() => expect(engineState.qimenEnvelope).not.toBeNull());
     const envelope = engineState.qimenStableEnvelope as ExportEnvelope & { data: Parameters<typeof createQimenFactChecks>[0] };
+    expectExportMarkersOnEnvelope(envelope);
     const verifiedFact = createQimenFactChecks(envelope.data).find(({ validation }) => validation.valid)?.fact;
     expectSemanticPresentationOnPage(verifiedFact);
     const html = await downloadHtml();
@@ -135,6 +159,7 @@ describe('奇门与六爻 Workspace 导出呈现', () => {
     await screen.findByRole('button', { name: '导出报告' });
     await waitFor(() => expect(engineState.liuyaoEnvelope).not.toBeNull());
     const envelope = engineState.liuyaoStableEnvelope as ExportEnvelope & { data: Parameters<typeof createLiuyaoFactChecks>[0] };
+    expectExportMarkersOnEnvelope(envelope);
     const verifiedFact = createLiuyaoFactChecks(envelope.data).find(({ validation }) => validation.valid)?.fact;
     expectSemanticPresentationOnPage(verifiedFact);
     const html = await downloadHtml();
