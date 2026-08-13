@@ -18,6 +18,7 @@ import {
   calcMonthlyFortuneCombo,
   DALIUREN_SCHOOLS,
   type ComboResult,
+  type AnnualFortuneResult,
   type DailyWellnessResult,
   type DaliurenSchool,
   type ZeriResult,
@@ -27,6 +28,8 @@ import {
 import { calcMarriageCombo, type MarriageResult, type MarriageScene } from '@/engine-api/marriage';
 import type { ToolEnvelope } from '@/engine-api/types';
 import { QUESTIONNAIRE } from '@/legacy/constitutionQuestionnaire';
+import { validateComboClaims, type ComboPresentationClaim } from '@/legacy/claimVerification/comboClaimVerifier';
+import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 
 /**
  * 联合分析工作区（ROADMAP 功能层增强 Step 1 的 Dashboard 入口）。
@@ -43,6 +46,41 @@ import { QUESTIONNAIRE } from '@/legacy/constitutionQuestionnaire';
  */
 
 type ComboType = 'annual' | 'monthly' | 'decision' | 'space' | 'sanshi' | 'sanshi-classic' | 'wellness' | 'zeri' | 'marriage';
+type SupportedComboData = ComboResult | AnnualFortuneResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult;
+
+export function createComboFactChecks(comboType: ComboType, data: SupportedComboData): StructuredFactCheck[] {
+  if (comboType === 'decision' || comboType === 'space' || comboType === 'sanshi' || comboType === 'sanshi-classic') return [];
+  const claimRows: Array<{ tool: 'combo_annual_fortune' | 'combo_zeri' | 'combo_daily_wellness' | 'combo_monthly_fortune' | 'combo_marriage'; claim: ComboPresentationClaim; label: string; value: string }> = [];
+  if (comboType === 'annual') {
+    const annual = data as AnnualFortuneResult;
+    claimRows.push(
+      { tool: 'combo_annual_fortune', claim: { tool: 'combo_annual_fortune', kind: 'annualContext', field: 'targetYear', value: annual.context.targetYear }, label: '目标年份', value: String(annual.context.targetYear) },
+      { tool: 'combo_annual_fortune', claim: { tool: 'combo_annual_fortune', kind: 'annualContext', field: 'mingGuaTrigram', value: annual.context.mingGua.trigram }, label: '命卦', value: annual.context.mingGua.trigram },
+      { tool: 'combo_annual_fortune', claim: { tool: 'combo_annual_fortune', kind: 'annualContext', field: 'mingGuaGroup', value: annual.context.mingGua.group }, label: '命卦分组', value: annual.context.mingGua.group },
+    );
+  } else if (comboType === 'monthly') {
+    const monthly = data as MonthlyFortuneResult;
+    (['year', 'month', 'monthGanZhi', 'jieqi'] as const).forEach((field) => claimRows.push({ tool: 'combo_monthly_fortune', claim: { tool: 'combo_monthly_fortune', kind: 'monthlyContext', field, value: monthly.context[field] }, label: ({ year: '年份', month: '月份', monthGanZhi: '月干支', jieqi: '节气' } as const)[field], value: String(monthly.context[field]) }));
+  } else if (comboType === 'wellness') {
+    const wellness = data as DailyWellnessResult;
+    (['date', 'jieqi', 'season', 'shichen'] as const).forEach((field) => claimRows.push({ tool: 'combo_daily_wellness', claim: { tool: 'combo_daily_wellness', kind: 'wellnessContext', field, value: wellness.context[field] }, label: ({ date: '日期', jieqi: '节气', season: '季节', shichen: '时辰' } as const)[field], value: wellness.context[field] }));
+  } else if (comboType === 'zeri') {
+    const zeri = data as ZeriResult;
+    claimRows.push({ tool: 'combo_zeri', claim: { tool: 'combo_zeri', kind: 'zeriPurpose', value: zeri.zeriPurpose }, label: '择日用途', value: zeri.zeriPurpose });
+    (['start', 'end', 'scannedDays'] as const).forEach((field) => claimRows.push({ tool: 'combo_zeri', claim: { tool: 'combo_zeri', kind: 'zeriRange', field, value: zeri.range[field] }, label: ({ start: '区间起', end: '区间止', scannedDays: '扫描天数' } as const)[field], value: String(zeri.range[field]) }));
+    if (zeri.rankedDays[0]) claimRows.push({ tool: 'combo_zeri', claim: { tool: 'combo_zeri', kind: 'zeriRankedDay', index: 0, field: 'date', value: zeri.rankedDays[0].date }, label: '首选吉日', value: zeri.rankedDays[0].date });
+  } else {
+    const marriage = data as MarriageResult;
+    claimRows.push(
+      { tool: 'combo_marriage', claim: { tool: 'combo_marriage', kind: 'marriageScene', value: marriage.scene }, label: '关系场景', value: marriage.scene },
+      { tool: 'combo_marriage', claim: { tool: 'combo_marriage', kind: 'marriagePerson', person: 'personA', field: 'dayGanZhi', value: marriage.personA.dayGanZhi }, label: '甲方日柱', value: marriage.personA.dayGanZhi },
+      { tool: 'combo_marriage', claim: { tool: 'combo_marriage', kind: 'marriagePerson', person: 'personB', field: 'dayGanZhi', value: marriage.personB.dayGanZhi }, label: '乙方日柱', value: marriage.personB.dayGanZhi },
+      { tool: 'combo_marriage', claim: { tool: 'combo_marriage', kind: 'marriageMingGua', person: 'personA', field: 'group', value: marriage.personA.mingGua.group }, label: '甲方命卦分组', value: marriage.personA.mingGua.group },
+      { tool: 'combo_marriage', claim: { tool: 'combo_marriage', kind: 'marriageMingGua', person: 'personB', field: 'group', value: marriage.personB.mingGua.group }, label: '乙方命卦分组', value: marriage.personB.mingGua.group },
+    );
+  }
+  return claimRows.map(({ tool, claim, label, value }) => ({ fact: { label, value, tool }, validation: validateComboClaims(tool, data as never, [claim]) }));
+}
 
 const COMBO_OPTIONS: Array<{
   key: ComboType;
@@ -224,14 +262,25 @@ export function ComboWorkspace() {
   }, [comboType, solarBirth, question, targetYear, targetMonth, liurenSchool, constitution, zeriPurpose, zeriStart, zeriEnd, zeriTopN, partnerYear, partnerMonth, partnerDay, partnerHour, partnerGender, partnerSurname, partnerGivenName, mySurname, myGivenName, marriageScene]);
 
   const isCurrentResult = result.comboType === comboType;
-  const fourLayer = useMemo<LayerReport | null>(() => {
-    if (!isCurrentResult || !result.envelope) return null;
-    return toFourLayer(result.envelope.data.export_snapshot as ReadingLike);
-  }, [isCurrentResult, result.envelope]);
-
-  const data = isCurrentResult
-    ? result.envelope?.data as (ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult) | undefined
+  const data = isCurrentResult && result.envelope?.ok
+    ? result.envelope.data as SupportedComboData
     : undefined;
+  const factChecks = useMemo(
+    () => isCurrentResult && result.envelope?.ok && data ? createComboFactChecks(comboType, data) : [],
+    [comboType, data, isCurrentResult, result.envelope],
+  );
+  const presentation = useMemo(() => isCurrentResult && result.envelope
+    ? toUserPresentation(result.envelope, {
+      factChecks,
+      disclaimers: ['联合分析结果仅作传统文化学习参考，不作为现实决策依据。'],
+    })
+    : null, [factChecks, isCurrentResult, result.envelope]);
+  const exportPresentation = useMemo(() => presentation?.exportReport ? ({
+    report: presentation.exportReport,
+    notices: presentation.notices,
+    warnings: presentation.warnings,
+    semanticReport: presentation.semanticReport,
+  }) : null, [presentation]);
   const birthSummary = `${solarBirth.year}-${String(solarBirth.month).padStart(2, '0')}-${String(solarBirth.day).padStart(2, '0')} ${String(solarBirth.hour).padStart(2, '0')}:00 ${solarBirth.gender}`;
 
   return (
@@ -510,12 +559,17 @@ export function ComboWorkspace() {
 
       {/* 结果区 */}
       {result.loading && <LoadingSkeleton label="联合分析计算中" />}
-      {!result.loading && !data && (
+      {!result.loading && presentation?.state === 'error' && (
+        <InterpretationCard title="计算未完成" subtitle="请核对输入">
+          <p className="text-sm text-jade-100/55">{presentation.error?.message}</p>
+        </InterpretationCard>
+      )}
+      {!result.loading && !presentation && !data && (
         <InterpretationCard title="暂无结果" subtitle="请确认生辰后重试">
           <p className="text-sm text-jade-100/55">联合分析需要完整生辰信息，请在顶部「全局生辰」面板填写。</p>
         </InterpretationCard>
       )}
-      {!result.loading && data && fourLayer && (
+      {!result.loading && data && presentation?.report && (
         <div className="space-y-4 ct-animate-fade-in">
           {/* 子系统卡片（wellness/monthly 无一致性检验，走维度展示；zeri 走吉日列表） */}
           {comboType === 'zeri' ? (
@@ -584,11 +638,11 @@ export function ComboWorkspace() {
           )}
 
           <div className="console-panel rounded-panel border border-purple-500/16 bg-ink-950/90 p-4 shadow-instrument">
-            <FourLayerReport report={fourLayer} title={`${data.comboName}解读`} />
+            <FourLayerReport report={presentation.report} semanticReport={presentation.semanticReport} notices={presentation.notices} warnings={presentation.warnings} title={`${data.comboName}解读`} />
           </div>
 
           <div className="flex justify-end gap-2">
-            <ExportReportButton module={data.comboName} report={result.envelope?.data.export_snapshot ?? null} />
+            <ExportReportButton module={data.comboName} presentation={exportPresentation} />
             <CopyContextButton
               commandScope="combo"
               title="联合分析摘要"

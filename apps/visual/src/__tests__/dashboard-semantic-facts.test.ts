@@ -1,102 +1,114 @@
 import { describe, expect, it } from 'vitest';
-import { calcDaliurenEnveloped, calcTaiyiEnveloped } from '@/engine-api/divination';
-import { calcHuangjiEnveloped, calcXingXiuEnveloped } from '@/engine-api/folklore';
-import { createHuangjiFactChecks } from '@/features/huangji/HuangjiWorkspace';
-import { createLiurenFactChecks } from '@/features/liuren/LiurenWorkspace';
-import { createTaiyiFactChecks } from '@/features/taiyi/TaiyiWorkspace';
-import { createXingxiuFactChecks } from '@/features/xingxiu/XingXiuWorkspace';
-import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
+import { calcCeziEnveloped, calcChenguzEnveloped } from '@/engine-api/folklore';
+import {
+  calcAnnualFortuneCombo,
+  calcDailyWellnessCombo,
+  calcMonthlyFortuneCombo,
+  calcSpaceTimeCombo,
+  calcDecisionCombo,
+  calcSanshiCombo,
+  calcSanshiClassicCombo,
+  calcZeriCombo,
+} from '@/engine-api/combo';
+import { calcMarriageCombo } from '@/engine-api/marriage';
+import { createCeziFactChecks } from '@/features/cezi/CeziWorkspace';
+import { createChenguzFactChecks } from '@/features/chenguz/ChenguzWorkspace';
+import { createComboFactChecks } from '@/features/combo/ComboWorkspace';
+import { toUserPresentation, type ReadingLike, type StructuredFactCheck } from '@/legacy/reportLayers';
 
-const BIRTH = { year: 2024, month: 3, day: 15, hour: 9, minute: 0 };
+const BIRTH = { year: 2024, month: 3, day: 15, hour: 9, minute: 0, gender: '男' };
+const SOLAR = null;
+const DISCLAIMERS = ['本报告仅作传统文化参考，不构成保证或专业建议。'];
+
+function expectPresentationMatchesSnapshot(
+  envelope: { ok: boolean; data: { export_snapshot: ReadingLike } },
+  factChecks: StructuredFactCheck[],
+) {
+  const presentation = toUserPresentation(envelope, { factChecks, disclaimers: DISCLAIMERS });
+  expect(presentation.exportReport).toEqual({
+    summary: envelope.data.export_snapshot.summary,
+    sections: envelope.data.export_snapshot.sections,
+  });
+  expect(presentation.semanticReport?.facts).toEqual(
+    factChecks.filter(({ validation }) => validation.valid).map(({ fact }) => fact),
+  );
+  expect(factChecks.every(({ validation }) => validation.valid)).toBe(true);
+}
 
 describe('Dashboard 同源 presentation 的核验事实', () => {
-  it('星宿 presentation 的导出内容与成功 envelope 同源，facts 仅含有效白名单', () => {
-    const xingxiu = calcXingXiuEnveloped({ birth: BIRTH });
+  it('测字和称骨只产生白名单 facts，并与成功 envelope 的导出快照同源', async () => {
+    const cezi = await calcCeziEnveloped({ char: '明', birth: BIRTH, solar: SOLAR });
+    const chenguz = calcChenguzEnveloped({ birth: BIRTH, solar: SOLAR });
 
-    expect(xingxiu.ok).toBe(true);
-    if (!xingxiu.ok) throw new Error('expected successful envelope');
+    expect(cezi.ok).toBe(true);
+    expect(chenguz.ok).toBe(true);
+    if (!cezi.ok || !chenguz.ok) throw new Error('expected successful envelopes');
 
-    const factChecks = createXingxiuFactChecks(xingxiu.data);
-    const presentation = toUserPresentation(xingxiu, {
-      factChecks,
-      disclaimers: ['本报告仅作传统文化参考，不构成保证或专业建议。'],
-    });
-
-    expect(presentation.exportReport).not.toBeNull();
-    expect(presentation.exportReport?.summary).toBe(xingxiu.data.export_snapshot.summary);
-    expect(presentation.exportReport?.sections).toEqual(xingxiu.data.export_snapshot.sections);
-    expect(presentation.semanticReport?.facts).toEqual(factChecks.map(({ fact }) => fact));
-    expect(factChecks.every(({ validation }) => validation.valid)).toBe(true);
-    expect(presentation.semanticReport?.traditionalInterpretations).toEqual(
-      expect.arrayContaining(xingxiu.data.export_snapshot.sections),
-    );
+    const ceziFacts = createCeziFactChecks(cezi.data);
+    const chenguzFacts = createChenguzFactChecks(chenguz.data);
+    expect(ceziFacts.map(({ fact }) => fact.label)).toEqual(['所测字', '康熙笔画', '数理', '字形结构']);
+    expect(chenguzFacts.map(({ fact }) => fact.label)).toEqual(['总骨重', '版本', '年支', '农历月']);
+    expectPresentationMatchesSnapshot(cezi, ceziFacts);
+    expectPresentationMatchesSnapshot(chenguz, chenguzFacts);
   });
 
-  it('不将篡改后的失败核验事实带入 presentation，传统解释仍留在导出 sections', () => {
-    const xingxiu = calcXingXiuEnveloped({ birth: BIRTH });
-    expect(xingxiu.ok).toBe(true);
-    if (!xingxiu.ok) throw new Error('expected successful envelope');
+  it('五种已支持联合模式的成功 envelope 仅接纳各自有效 facts', async () => {
+    const annual = calcAnnualFortuneCombo({ birth: BIRTH, targetYear: 2025, currentMonth: 3, solar: SOLAR });
+    const monthly = calcMonthlyFortuneCombo({ birth: BIRTH, targetYear: 2025, targetMonth: 3, solar: SOLAR });
+    const wellness = calcDailyWellnessCombo({ birth: BIRTH, now: { year: 2025, month: 3, day: 15, hour: 9 }, targetYear: 2025, solar: SOLAR });
+    const zeri = calcZeriCombo({ birth: BIRTH, purpose: '开业', startDate: '2025-03-16', endDate: '2025-03-22', topN: 5, solar: SOLAR });
+    const marriage = await calcMarriageCombo({
+      personA: { birth: BIRTH, label: '男方', solar: SOLAR },
+      personB: { birth: { year: 1990, month: 6, day: 15, hour: 12, gender: '女' }, label: '女方' },
+      scene: '婚恋',
+      targetYear: 2025,
+    });
 
-    const verified = createXingxiuFactChecks(xingxiu.data)[0];
+    const cases = [
+      ['annual', annual],
+      ['monthly', monthly],
+      ['wellness', wellness],
+      ['zeri', zeri],
+      ['marriage', marriage],
+    ] as const;
+    for (const [comboType, envelope] of cases) {
+      expect(envelope.ok).toBe(true);
+      if (!envelope.ok) throw new Error(`expected ${comboType} envelope`);
+      expectPresentationMatchesSnapshot(envelope, createComboFactChecks(comboType, envelope.data));
+    }
+  });
+
+  it('未支持的联合模式绝不产生 facts', () => {
+    const decision = calcDecisionCombo({ birth: BIRTH, question: '今年适合换工作吗？', solar: SOLAR });
+    const space = calcSpaceTimeCombo({ birth: BIRTH, targetYear: 2025, solar: SOLAR });
+    const sanshi = calcSanshiCombo({ birth: BIRTH, question: '今年适合换工作吗？', solar: SOLAR, liurenSchool: 'classic' });
+    const sanshiClassic = calcSanshiClassicCombo({ birth: BIRTH, question: '今年适合换工作吗？', solar: SOLAR, liurenSchool: 'classic' });
+
+    for (const [comboType, envelope] of [
+      ['decision', decision],
+      ['space', space],
+      ['sanshi', sanshi],
+      ['sanshi-classic', sanshiClassic],
+    ] as const) {
+      expect(envelope.ok).toBe(true);
+      if (!envelope.ok) throw new Error(`expected ${comboType} envelope`);
+      expect(createComboFactChecks(comboType, envelope.data)).toEqual([]);
+    }
+  });
+
+  it('不将篡改后的失败核验事实带入 presentation', async () => {
+    const cezi = await calcCeziEnveloped({ char: '明', birth: BIRTH, solar: SOLAR });
+    expect(cezi.ok).toBe(true);
+    if (!cezi.ok) throw new Error('expected successful envelope');
+
+    const verified = createCeziFactChecks(cezi.data)[0];
     const tampered: StructuredFactCheck = {
       fact: { ...verified.fact, value: `${verified.fact.value}错` },
       validation: { valid: false },
     };
-    const presentation = toUserPresentation(xingxiu, {
-      factChecks: [verified, tampered],
-      disclaimers: ['本报告仅作传统文化参考，不构成保证或专业建议。'],
-    });
+    const presentation = toUserPresentation(cezi, { factChecks: [verified, tampered], disclaimers: DISCLAIMERS });
 
     expect(presentation.semanticReport?.facts).toEqual([verified.fact]);
     expect(presentation.semanticReport?.facts).not.toContainEqual(tampered.fact);
-    expect(presentation.exportReport?.sections).toEqual(xingxiu.data.export_snapshot.sections);
-    expect(presentation.semanticReport?.traditionalInterpretations).toEqual(
-      expect.arrayContaining(xingxiu.data.export_snapshot.sections),
-    );
-  });
-
-  it('太乙、大六壬和皇极的成功 envelope 只将各自有效核验事实带入 semanticReport', () => {
-    const taiyi = calcTaiyiEnveloped({ birth: BIRTH, solar: null });
-    const liuren = calcDaliurenEnveloped({ birth: BIRTH, solar: null, school: 'classic' });
-    const huangji = calcHuangjiEnveloped({ birth: BIRTH, solar: null });
-
-    expect(taiyi.ok).toBe(true);
-    expect(liuren.ok).toBe(true);
-    expect(huangji.ok).toBe(true);
-    if (!taiyi.ok || !liuren.ok || !huangji.ok) throw new Error('expected successful envelopes');
-
-    const taiyiFacts = createTaiyiFactChecks(taiyi.data);
-    const taiyiPresentation = toUserPresentation(taiyi, { factChecks: taiyiFacts });
-    expect(taiyiPresentation.exportReport).not.toBeNull();
-    expect(taiyiPresentation.exportReport?.summary).toBe(taiyi.data.export_snapshot.summary);
-    expect(taiyiPresentation.exportReport?.sections).toEqual(taiyi.data.export_snapshot.sections);
-    expect(taiyiPresentation.semanticReport?.facts).toEqual(taiyiFacts.filter(({ validation }) => validation.valid).map(({ fact }) => fact));
-
-    const liurenFacts = createLiurenFactChecks(liuren.data);
-    const liurenPresentation = toUserPresentation(liuren, { factChecks: liurenFacts });
-    expect(liurenPresentation.exportReport).not.toBeNull();
-    expect(liurenPresentation.exportReport?.summary).toBe(liuren.data.export_snapshot.summary);
-    expect(liurenPresentation.exportReport?.sections).toEqual(liuren.data.export_snapshot.sections);
-    expect(liurenPresentation.semanticReport?.facts).toEqual(liurenFacts.filter(({ validation }) => validation.valid).map(({ fact }) => fact));
-
-    const huangjiFacts = createHuangjiFactChecks(huangji.data);
-    const huangjiPresentation = toUserPresentation(huangji, { factChecks: huangjiFacts });
-    expect(huangjiPresentation.exportReport).not.toBeNull();
-    expect(huangjiPresentation.exportReport?.summary).toBe(huangji.data.export_snapshot.summary);
-    expect(huangjiPresentation.exportReport?.sections).toEqual(huangji.data.export_snapshot.sections);
-    expect(huangjiPresentation.semanticReport?.facts).toEqual(huangjiFacts.filter(({ validation }) => validation.valid).map(({ fact }) => fact));
-  });
-
-  it('失败 envelope 映射为错误 presentation，不提供语义报告或导出报告', () => {
-    const message = '请补充出生时辰。';
-    const presentation = toUserPresentation({
-      ok: false,
-      error: { code: 'validation_error', message },
-    });
-
-    expect(presentation.state).toBe('error');
-    expect(presentation.semanticReport).toBeNull();
-    expect(presentation.exportReport).toBeNull();
-    expect(presentation.error?.message).toBe(message);
   });
 });

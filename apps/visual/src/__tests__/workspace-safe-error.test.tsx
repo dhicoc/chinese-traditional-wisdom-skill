@@ -1,11 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 
-vi.mock('@/lib/birthContext', () => ({
-  useBirth: () => ({
-    solarBirth: { year: 1990, month: 6, day: 15, hour: 12, minute: 0, gender: '男' },
-  }),
-}));
+vi.mock('@/lib/birthContext', () => {
+  const solarBirth = { year: 1990, month: 6, day: 15, hour: 12, minute: 0, gender: '男' };
+  return { useBirth: () => ({ solarBirth }) };
+});
 
 vi.mock('@/engine-api/calendar', () => ({
   getSolarEntry: () => null,
@@ -34,9 +33,17 @@ vi.mock('@/engine-api/folklore', async (importOriginal) => {
     calcHuangjiEnveloped: () => {
       throw new Error('huangji internal detail');
     },
+    calcCeziEnveloped: () => {
+      throw new Error('cezi internal sentinel');
+    },
+    calcChenguzEnveloped: () => {
+      throw new Error('chenguz internal sentinel');
+    },
   };
 });
 
+import { CeziWorkspace } from '@/features/cezi/CeziWorkspace';
+import { ChenguzWorkspace } from '@/features/chenguz/ChenguzWorkspace';
 import { HuangjiWorkspace } from '@/features/huangji/HuangjiWorkspace';
 import { LiurenWorkspace } from '@/features/liuren/LiurenWorkspace';
 import { TaiyiWorkspace } from '@/features/taiyi/TaiyiWorkspace';
@@ -54,6 +61,20 @@ function expectSafeErrorState(container: HTMLElement, internalDetail: string, su
 afterEach(() => cleanup());
 
 describe('Workspace 计算错误呈现', () => {
+  it('测字异步直接引擎计算抛异常时只显示安全文案', async () => {
+    const { container } = render(<CeziWorkspace />);
+
+    expect(await screen.findByText(SAFE_ERROR_MESSAGE)).toBeInTheDocument();
+    expect(container.textContent).not.toContain('cezi internal sentinel');
+    expect(screen.queryByText('暂无结果')).not.toBeInTheDocument();
+  });
+
+  it('称骨直接引擎计算抛异常时只显示安全文案', () => {
+    const { container } = render(<ChenguzWorkspace />);
+
+    expectSafeErrorState(container, 'chenguz internal sentinel', '称骨');
+  });
+
   it('星宿直接引擎计算抛异常时只显示安全文案', () => {
     const { container } = render(<XingXiuWorkspace />);
 
