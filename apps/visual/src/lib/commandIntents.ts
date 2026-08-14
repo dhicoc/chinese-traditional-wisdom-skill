@@ -19,7 +19,7 @@ export const COMMAND_FEEDBACK_EVENT = 'ctw:command-feedback';
 
 export type YearIntentTarget = 'feixing' | 'yunqi';
 export type LiuyaoCommandMethod = 'coin' | 'time' | 'manual';
-export type MeihuaRelation = '生' | '克' | '比和';
+export type MeihuaCommandMethod = 'time' | 'number' | 'yarrow';
 
 export interface CopyContextIntentDetail {
   scope: string;
@@ -60,10 +60,9 @@ export interface LiuyaoIntentDetail {
 }
 
 export interface MeihuaIntentDetail {
-  upper?: string;
-  lower?: string;
-  movingLine?: number;
-  relation?: MeihuaRelation;
+  method?: MeihuaCommandMethod;
+  numberA?: number;
+  numberB?: number;
   raw: string;
 }
 
@@ -204,22 +203,21 @@ export function parseMeihuaCommand(query: string): MeihuaIntentDetail | null {
   if (!/梅花|meihua/.test(lower)) return null;
 
   const detail: MeihuaIntentDetail = { raw };
-  const tokens = raw.split(/\s+/);
-  const trigrams: string[] = [];
-  tokens.forEach((token) => {
-    const matched = TRIGRAM_ALIASES[token] ?? TRIGRAM_ALIASES[token.toLowerCase()];
-    if (matched) trigrams.push(matched);
-  });
-  if (trigrams[0]) detail.upper = trigrams[0];
-  if (trigrams[1]) detail.lower = trigrams[1];
-
-  const movingMatch = raw.match(/(?:^|\D)([1-6])(?:\D|$)/);
-  if (movingMatch) detail.movingLine = Number.parseInt(movingMatch[1], 10);
-
-  if (raw.includes('比和')) detail.relation = '比和';
-  else if (raw.includes('生')) detail.relation = '生';
-  else if (raw.includes('克')) detail.relation = '克';
-
+  if (/揲蓍|蓍草|yarrow/.test(lower)) {
+    detail.method = 'yarrow';
+    return detail;
+  }
+  if (/数字|number/.test(lower)) {
+    const values = raw.match(/-?\d+(?:\.\d+)?/g)?.map(Number).filter(Number.isFinite) ?? [];
+    if (values.length >= 2) {
+      detail.method = 'number';
+      detail.numberA = values[0];
+      detail.numberB = values[1];
+      return detail;
+    }
+    return detail;
+  }
+  detail.method = 'time';
   return detail;
 }
 

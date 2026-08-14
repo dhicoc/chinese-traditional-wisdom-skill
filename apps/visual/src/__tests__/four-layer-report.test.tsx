@@ -123,19 +123,22 @@ describe('FourLayerReport 渲染', () => {
     expect(screen.getAllByRole('listitem')[1].textContent).toContain('流派口径可能存在差异');
   });
 
-  it('以与导出报告相同字段和顺序显示限制与注意事项', () => {
+  it('以与导出报告相同字段和顺序显示本次分析口径', () => {
     const report: LayerReport = { tldr: 't', overallTone: '中', highlights: [], details: [], actions: [] };
     const reportMetadata = createReportMetadata({
       inputSummary: '本次按出生资料排盘；报告不保留完整出生资料。',
+      reportVersion: '1.0',
+      capabilityMode: '按出生资料排盘',
       timeBasis: 'civil-unverified',
     });
     const { container } = render(<FourLayerReport report={report} reportMetadata={reportMetadata} />);
 
-    expect(screen.getByText('限制与注意事项')).toBeInTheDocument();
+    expect(screen.getByText('本次分析口径')).toBeInTheDocument();
+    expect(screen.getByText('按出生资料排盘')).toBeInTheDocument();
     expect(screen.getByText('民用时间（未完成真太阳时复核）')).toBeInTheDocument();
     expect(container.textContent).not.toContain('BaziLunarAdapter');
     expect(container.textContent).not.toContain('local-exact');
-    expect([...container.querySelectorAll('dt')].map((element) => element.textContent)).toEqual(['本次分析说明', '时间口径']);
+    expect([...container.querySelectorAll('dt')].map((element) => element.textContent)).toEqual(['本次分析说明', '报告版本', '结果状态', '时间口径']);
   });
 
   it('用显式语义报告渲染已核对事实与传统解释边界', () => {

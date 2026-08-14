@@ -68,6 +68,8 @@ function EntryCard({
           <p className="mt-1.5 text-xs leading-5 text-jade-100/55">{entry.summary}</p>
           <div className="mt-2 rounded border border-jade-500/15 bg-jade-500/[0.035] px-2 py-1.5 text-[10px] leading-4 text-jade-100/45">
             <p>本次分析说明：{entry.inputSummary}</p>
+            <p>报告版本：{entry.reportVersion}</p>
+            <p>结果状态：{entry.capabilityMode}</p>
           </div>
           {entry.tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1.5">

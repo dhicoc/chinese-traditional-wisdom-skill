@@ -18,6 +18,15 @@ export type {
   LiuyaoResult,
 } from '@/legacy/liuyaoEngine';
 
+export { calculateMeihua, calcMeihuaEnveloped } from '@/legacy/meihuaEngine';
+
+export type {
+  MeihuaBirth,
+  MeihuaData,
+  MeihuaInput,
+  MeihuaResult,
+} from '@/legacy/meihuaEngine';
+
 export {
   calculateDaliuren,
   calcDaliurenEnveloped,

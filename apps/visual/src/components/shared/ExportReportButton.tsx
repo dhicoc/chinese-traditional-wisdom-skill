@@ -88,7 +88,7 @@ export function createExportReportHtml({
     </aside>` : '';
   const metadataSection = reportMetadata ? `
     <section class="report-metadata">
-      <h2>限制与注意事项</h2>
+      <h2>本次分析口径</h2>
       <dl>${getReportMetadataItems(reportMetadata).map(({ label, value }) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('')}</dl>
     </section>` : '';
 

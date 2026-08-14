@@ -76,7 +76,7 @@ Dashboard 按页面直接调用纯 TypeScript 引擎，不经过 `run-engine.ts`
 
 1. 固化 `resolve_true_solar_time` 的输入 fixture，包括经度、IANA 时区、UTC 偏移、夏令时与 `utcOffsetEvidence`。
 2. 覆盖跨日期、时辰边界、子初边界和民用时间 fallback。
-3. 维持 `timeBasis='true-solar-verified'` 必须传入 `trueSolarBirth` 或 `trueSolarResolution` 且与出生字段一致的运行时边界。
+3. 维持 `timeBasis='true-solar-verified'` 必须在 `trueSolarResolution` 中传入完整、可重新计算且与出生字段一致的 `TrueSolarTimeResolution` 运行时边界；不得接受裸 `trueSolarBirth` 或简化结果。
 4. 维持 `timeBasis='civil-unverified'` 必须显式 `civilFallbackConfirmed=true` 的知情降级。
 
 ### 完成定义

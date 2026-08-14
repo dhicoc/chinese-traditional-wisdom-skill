@@ -349,9 +349,9 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
         dynamicItems.push({
           id: 'quick-meihua-' + trimmed,
           label: '梅花易数快速排盘',
-          hint: '切换到梅花易数并应用上下卦 / 动爻 / 体用关系',
+          hint: '切换到梅花易数并应用时间、数字或揲蓍起卦方式',
           group: '占卜',
-          keywords: [trimmed, meihuaIntent.upper ?? '', meihuaIntent.lower ?? '', '梅花', 'meihua', '易数'],
+          keywords: [trimmed, meihuaIntent.method ?? '', String(meihuaIntent.numberA ?? ''), String(meihuaIntent.numberB ?? ''), '梅花', 'meihua', '易数'],
           action: () => {
             onSelectModule('meihua');
             window.setTimeout(() => dispatchMeihuaIntent(meihuaIntent), 0);

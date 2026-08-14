@@ -58,19 +58,43 @@ function trueSolarBirth(birth: ParsedBirth): SolarBirth {
   return { ...birth, gender, minute: birth.minute ?? 0, useExactCalendar: true };
 }
 
+function sameValue(left: unknown, right: unknown): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function verifiedTrueSolarResolution(value: unknown): TrueSolarTimeResolution {
+  const resolution = value as TrueSolarTimeResolution | undefined;
+  if (!resolution?.civilBirth || !resolution.trueSolarBirth || !resolution.location) {
+    throw new Error('timeBasis=true-solar-verified 必须提供完整 trueSolarResolution。');
+  }
+  const recomputed = resolveTrueSolarTime(resolution.civilBirth, resolution.location);
+  const keys: Array<keyof TrueSolarTimeResolution> = [
+    'trueSolarBirth',
+    'longitudeCorrectionMinutes',
+    'equationOfTimeMinutes',
+    'trueSolarCorrectionMinutes',
+    'crossedDate',
+    'crossedShichen',
+    'crossedZiChu',
+    'evidence',
+  ];
+  if (!keys.every((key) => sameValue(resolution[key], recomputed[key]))) {
+    throw new Error('trueSolarResolution 与本地真太阳时复算结果不一致。');
+  }
+  return recomputed;
+}
+
 function timeSource(birth: ParsedBirth, context: TimeSourceContext) {
   if (context.timeBasis === 'civil-unverified') {
     if (context.civilFallbackConfirmed !== true) throw new Error('timeBasis=civil-unverified 必须显式传 civilFallbackConfirmed=true。');
     return { timeBasis: 'civil-unverified', verification: null, notice: '未完成真太阳时复核' };
   }
   if (context.timeBasis === 'true-solar-verified') {
-    const resolution = context.trueSolarResolution as TrueSolarTimeResolution | undefined;
-    const resolvedBirth = resolution?.trueSolarBirth ?? context.trueSolarBirth;
-    if (!resolvedBirth) throw new Error('timeBasis=true-solar-verified 必须提供 trueSolarResolution 或 trueSolarBirth。');
+    const resolution = verifiedTrueSolarResolution(context.trueSolarResolution);
     for (const key of TIME_SOURCE_BIRTH_KEYS) {
-      if ((birth[key] ?? 0) !== (resolvedBirth[key] ?? 0)) throw new Error(`trueSolarBirth 与 birth.${key} 不一致。`);
+      if ((birth[key] ?? 0) !== (resolution.trueSolarBirth[key] ?? 0)) throw new Error(`trueSolarBirth 与 birth.${key} 不一致。`);
     }
-    return { timeBasis: 'true-solar-verified', verification: resolution ?? { trueSolarBirth: resolvedBirth } };
+    return { timeBasis: 'true-solar-verified', verification: resolution };
   }
   throw new Error('涉及八字的工具必须声明 timeBasis。');
 }

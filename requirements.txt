@@ -1,12 +1,13 @@
-# Chinese Traditional Wisdom AI Agent Workflow - Python Dependencies
-# Install: pip install -r requirements.txt
+# Python offline cross-check dependencies
+# Install only when maintaining or comparing legacy Python helpers:
+# pip install -r requirements.txt
+#
+# These packages are not required to install, publish, or run the Dashboard or CLI.
+# The authoritative runtime path is the local TypeScript engine under apps/visual.
+# Python helpers may be used only for offline cross-checking and never as user-facing
+# calculation sources.
 
-# Core calculation
-lunar-python>=1.0.11          # Precise lunar/solar term calculation (used by bazi, yunqi)
-
-# Optional engines (install when needed)
-iztro-py>=0.1.0               # 紫微斗数 engine (PyPI)
-ichingshifa>=0.1.0            # 六爻 engine (PyPI)
-
-# Utilities
-requests>=2.28.0              # HTTP requests (for yunqi API)
+lunar-python==1.4.8
+iztro-py==0.1.0
+ichingshifa==0.1.0
+requests==2.32.3

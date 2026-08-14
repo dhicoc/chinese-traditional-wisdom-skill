@@ -188,9 +188,11 @@ describe('ExportReportButton', () => {
     expect(html).toContain('本次计算结果');
   });
 
-  it('以与 Dashboard 相同的字段和顺序导出限制与注意事项', () => {
+  it('以与 Dashboard 相同的字段和顺序导出本次分析口径', () => {
     const reportMetadata = createReportMetadata({
       inputSummary: '本次按出生资料排盘；报告不保留完整出生资料。',
+      reportVersion: '1.0',
+      capabilityMode: '按出生资料排盘',
       timeBasis: 'civil-unverified',
     });
     const html = createExportReportHtml({
@@ -200,9 +202,12 @@ describe('ExportReportButton', () => {
       reportMetadata,
     });
 
-    const labels = ['本次分析说明', '时间口径'];
-    expect(html).toContain('限制与注意事项');
+    const labels = ['本次分析说明', '报告版本', '结果状态', '时间口径'];
+    expect(html).toContain('本次分析口径');
     expect(html.indexOf(labels[0])).toBeLessThan(html.indexOf(labels[1]));
+    expect(html.indexOf(labels[1])).toBeLessThan(html.indexOf(labels[2]));
+    expect(html.indexOf(labels[2])).toBeLessThan(html.indexOf(labels[3]));
+    expect(html).toContain('按出生资料排盘');
     expect(html).toContain('民用时间（未完成真太阳时复核）');
     expect(html).not.toContain('BaziLunarAdapter');
     expect(html).not.toContain('local-exact');

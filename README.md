@@ -97,11 +97,11 @@ Dashboard 还提供：全局生辰资料管理、真太阳时核验/民用时间
 
 ```bash
 cd apps/visual
-pnpm install
+pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-打开本地地址后，选择相应页面并填写必要信息。Dashboard 使用本地 TypeScript 引擎计算；结果中的 `local-exact`、`local-approx`、民俗体验、演示或降级状态会说明其计算口径与可用性。
+项目使用 Node `24.12.x`、pnpm `10.26.1` 与 `pnpm-lock.yaml` 固定依赖版本；不要生成或提交 `package-lock.json`。打开本地地址后，选择相应页面并填写必要信息。Dashboard 使用本地 TypeScript 引擎计算；结果中的 `local-exact`、`local-approx`、民俗体验、演示或降级状态会说明其计算口径与可用性。
 
 ### 方式二：通过 AI Agent 使用 Skill
 
@@ -164,7 +164,7 @@ AI Agent 的完整调用约定见 [README_AI.md](README_AI.md)。
 
 ```bash
 cd apps/visual
-pnpm install
+pnpm install --frozen-lockfile
 pnpm engine <tool> <input-json-file>
 ```
 

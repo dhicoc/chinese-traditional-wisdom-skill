@@ -1,6 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { readFileSync } from 'fs';
-
 const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
 
 /**
@@ -22,6 +20,26 @@ async function waitForStore(page: import('@playwright/test').Page): Promise<void
     () => typeof (window as unknown as { HistoryStore?: { add?: unknown } }).HistoryStore?.add === 'function',
     { timeout: 12000 },
   );
+}
+
+async function exportReportHtml(page: import('@playwright/test').Page): Promise<string> {
+  await page.evaluate(() => {
+    const original = URL.createObjectURL;
+    (window as unknown as { exportedReportBlob?: Blob }).exportedReportBlob = undefined;
+    URL.createObjectURL = (blob) => {
+      (window as unknown as { exportedReportBlob?: Blob }).exportedReportBlob = blob;
+      return original.call(URL, blob);
+    };
+  });
+  await page.getByRole('button', { name: /全局生辰/ }).click();
+  const exportButton = page.locator('[data-testid="workspace-bazi"]').getByRole('button', { name: '导出报告', exact: true });
+  await exportButton.evaluate((element) => {
+    window.scrollTo({ top: window.scrollY + element.getBoundingClientRect().top - 220 });
+  });
+  await expect(exportButton).toBeInViewport();
+  await exportButton.click();
+  await page.waitForFunction(() => Boolean((window as unknown as { exportedReportBlob?: Blob }).exportedReportBlob));
+  return page.evaluate(async () => (window as unknown as { exportedReportBlob: Blob }).exportedReportBlob.text());
 }
 
 /** 检查字符串是否含完整出生日期（yyyy-mm-dd 或 yyyy年mm月dd日） */
@@ -163,8 +181,7 @@ test.describe('Privacy - Favorites Store', () => {
 });
 
 test.describe('Privacy - Report Export', () => {
-  test('报告导出为 HTML，不嵌入结构化出生资料字段', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name === 'Mobile Chrome', 'Pixel 5 模拟上下文不会派发 Blob 下载事件；桌面 Chromium、WebKit 与组件测试覆盖导出内容。');
+  test('报告导出为 HTML，不嵌入结构化出生资料字段', async ({ page }) => {
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
     await page.getByRole('tab', { name: '八字命盘' }).click();
@@ -173,22 +190,14 @@ test.describe('Privacy - Report Export', () => {
 
     const exportButton = workspace.getByRole('button', { name: '导出报告', exact: true });
     await expect(exportButton).toBeVisible();
-    const [download] = await Promise.all([
-      page.waitForEvent('download', { timeout: 10000 }),
-      exportButton.click(),
-    ]);
-    expect(download.suggestedFilename()).toMatch(/\.html$/);
-    const path = await download.path();
-    expect(path).toBeTruthy();
-    const raw = readFileSync(path!, 'utf-8');
+    const raw = await exportReportHtml(page);
 
     expect(raw).toContain('<!doctype html>');
     expect(raw).toContain('<main>');
     expect(raw).not.toMatch(/"(?:birth|solarBirth|fullName|birthPlace|solarDate|lunarDate|queryDate)"\s*:/i);
   });
 
-  test('报告不包含姓名或出生地点字段', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name === 'Mobile Chrome', 'Pixel 5 模拟上下文不会派发 Blob 下载事件；桌面 Chromium、WebKit 与组件测试覆盖导出内容。');
+  test('报告不包含姓名或出生地点字段', async ({ page }) => {
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
     await page.getByRole('tab', { name: '八字命盘' }).click();
@@ -197,13 +206,7 @@ test.describe('Privacy - Report Export', () => {
 
     const exportButton = workspace.getByRole('button', { name: '导出报告', exact: true });
     await expect(exportButton).toBeVisible();
-    const [download] = await Promise.all([
-      page.waitForEvent('download', { timeout: 10000 }),
-      exportButton.click(),
-    ]);
-    const path = await download.path();
-    expect(path).toBeTruthy();
-    const raw = readFileSync(path!, 'utf-8');
+    const raw = await exportReportHtml(page);
 
     expect(raw).not.toMatch(/"(?:fullName|birthPlace|location)"\s*:/i);
   });

@@ -1,9 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import { runLocalTool } from '@/legacy/directRunner';
+import { resolveTrueSolarTime, type TrueSolarTimeResolution } from '@/engine-api/trueSolarTime';
 import { LocalToolError } from '@/legacy/localToolErrors';
 import { parseLocalToolCall, parseLocalToolInput } from '@/legacy/toolContracts';
 
-const BIRTH = { year: 1990, month: 6, day: 15, hour: 12, gender: '男' };
+const BIRTH = { year: 1990, month: 6, day: 15, hour: 12, gender: '男' } as const;
+
+function createTrueSolarResolution(): TrueSolarTimeResolution {
+  return resolveTrueSolarTime(
+    { ...BIRTH, minute: 0, useExactCalendar: true },
+    {
+      displayName: '北京市，中国',
+      longitude: 116.4074,
+      ianaTimeZone: 'Asia/Shanghai',
+      utcOffsetMinutes: 480,
+      utcOffsetEvidence: 'IANA 时区历史规则核验：当地 UTC+08:00',
+    },
+  );
+}
 
 describe('runLocalTool', () => {
   it('requires confirmed civil fallback and returns Bazi timeSource context directly', async () => {
@@ -21,6 +35,31 @@ describe('runLocalTool', () => {
     const result = envelope as Exclude<typeof envelope, { status: 'resolved' }>;
     expect(result.ok).toBe(true);
     expect((result.data as { timeSource: { timeBasis: string } }).timeSource.timeBasis).toBe('civil-unverified');
+  });
+
+  it('rejects unverifiable true-solar contexts and accepts a locally resolved context', async () => {
+    const trueSolarResolution = createTrueSolarResolution();
+    const { trueSolarBirth } = trueSolarResolution;
+
+    await expect(runLocalTool('bazi_calculate', {
+      birth: trueSolarBirth,
+      timeBasis: 'true-solar-verified',
+      trueSolarBirth,
+    })).rejects.toThrow('完整 trueSolarResolution');
+
+    await expect(runLocalTool('bazi_calculate', {
+      birth: trueSolarBirth,
+      timeBasis: 'true-solar-verified',
+      trueSolarResolution: { trueSolarBirth },
+    })).rejects.toThrow('真太阳时结果');
+
+    await expect(runLocalTool('bazi_calculate', {
+      birth: trueSolarBirth,
+      timeBasis: 'true-solar-verified',
+      trueSolarResolution,
+    })).resolves.toMatchObject({
+      data: { timeSource: { timeBasis: 'true-solar-verified' } },
+    });
   });
 
   it('parses bazi transitDate, strips unknown fields, and passes it to the envelope', async () => {
@@ -336,52 +375,48 @@ describe('runLocalTool', () => {
     }
   });
 
-  it('strips unknown fields from verified true-solar time context', async () => {
+  it('strips unknown fields from a complete verified true-solar time context', async () => {
+    const resolution = createTrueSolarResolution();
     const baziTimeContext = {
       timeBasis: 'true-solar-verified',
-      trueSolarResolution: {
-        trueSolarBirth: BIRTH,
-        unexpectedResolution: 'sentinel',
-      },
+      trueSolarResolution: { ...resolution, unexpectedResolution: 'sentinel' },
       unexpectedContext: 'sentinel',
     };
     const input = parseLocalToolInput('calc_chenguz', {
-      birth: BIRTH,
+      birth: resolution.trueSolarBirth,
       baziTimeContext,
     });
     expect(input).toMatchObject({
       baziTimeContext: {
         timeBasis: 'true-solar-verified',
-        trueSolarResolution: { trueSolarBirth: BIRTH },
+        trueSolarResolution: { trueSolarBirth: resolution.trueSolarBirth },
       },
     });
     expect((input as { baziTimeContext: unknown }).baziTimeContext).not.toHaveProperty('unexpectedContext');
     expect((input as { baziTimeContext: { trueSolarResolution: unknown } }).baziTimeContext.trueSolarResolution).not.toHaveProperty('unexpectedResolution');
 
     const envelope = await runLocalTool('calc_chenguz', {
-      birth: BIRTH,
+      birth: resolution.trueSolarBirth,
       baziTimeContext,
     });
     expect((envelope as { data: { timeSource: { verification: unknown } } }).data.timeSource.verification).toMatchObject({
-      trueSolarBirth: BIRTH,
+      trueSolarBirth: resolution.trueSolarBirth,
     });
     expect((envelope as { data: { timeSource: { verification: unknown } } }).data.timeSource.verification).not.toHaveProperty('unexpectedResolution');
   });
 
-  it('strips unknown fields from bazi direct true-solar inputs', async () => {
-    const trueSolarResolution = {
-      trueSolarBirth: BIRTH,
-      unexpectedResolution: 'sentinel',
-    };
+  it('strips unknown fields from complete bazi true-solar inputs', async () => {
+    const resolution = createTrueSolarResolution();
+    const trueSolarResolution = { ...resolution, unexpectedResolution: 'sentinel' };
     const input = parseLocalToolInput('bazi_calculate', {
-      birth: BIRTH,
+      birth: resolution.trueSolarBirth,
       timeBasis: 'true-solar-verified',
       trueSolarResolution,
     });
     expect((input as { trueSolarResolution: unknown }).trueSolarResolution).not.toHaveProperty('unexpectedResolution');
 
     const envelope = await runLocalTool('bazi_calculate', {
-      birth: BIRTH,
+      birth: resolution.trueSolarBirth,
       timeBasis: 'true-solar-verified',
       trueSolarResolution,
     });

@@ -28,6 +28,7 @@ import {
 import {
   calcDaliurenEnveloped,
   calcLiuyaoEnveloped,
+  calcMeihuaEnveloped,
   calcQimenEnveloped,
   calcTaiyiEnveloped,
   DALIUREN_SCHOOLS as DALIUREN_SCHOOLS_DIVINATION,
@@ -81,6 +82,7 @@ import {
   DALIUREN_SCHOOLS as DALIUREN_SCHOOLS_LEGACY,
 } from '@/legacy/daliurenEngine';
 import { calcLiuyaoEnveloped as calcLiuyaoEnvelopedLegacy } from '@/legacy/liuyaoEngine';
+import { calcMeihuaEnveloped as calcMeihuaEnvelopedLegacy } from '@/legacy/meihuaEngine';
 import { calcMarriageCombo as calcMarriageComboLegacy } from '@/legacy/marriageCombo';
 import { calcMenZhuZao as calcMenZhuZaoLegacy } from '@/legacy/menZhuZaoEngine';
 import { calcQimenEnveloped as calcQimenEnvelopedLegacy } from '@/legacy/qimenEngine';
@@ -174,6 +176,7 @@ describe('engine-api', () => {
   it('公开三式与六爻 API 仅转发既有纯引擎函数和选项', () => {
     expect(calcQimenEnveloped).toBe(calcQimenEnvelopedLegacy);
     expect(calcLiuyaoEnveloped).toBe(calcLiuyaoEnvelopedLegacy);
+    expect(calcMeihuaEnveloped).toBe(calcMeihuaEnvelopedLegacy);
     expect(calcDaliurenEnveloped).toBe(calcDaliurenEnvelopedLegacy);
     expect(DALIUREN_SCHOOLS_DIVINATION).toBe(DALIUREN_SCHOOLS_LEGACY);
     expect(calcTaiyiEnveloped).toBe(calcTaiyiEnvelopedLegacy);

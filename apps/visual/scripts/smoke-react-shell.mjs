@@ -160,8 +160,12 @@ if (exists(meihuaPath)) {
     'MeihuaWorkspace 不应再调用 renderLegacyMeihua（已由 MeihuaChart 替换）',
   );
   check(meihuaWorkspace.includes('MEIHUA_INTENT_EVENT'), 'MeihuaWorkspace 应监听梅花快捷命令 intent');
-  check(meihuaWorkspace.includes('setUpper'), 'MeihuaWorkspace 应可通过快捷命令更新上卦');
-  check(meihuaWorkspace.includes('setLower'), 'MeihuaWorkspace 应可通过快捷命令更新下卦');
+  check(meihuaWorkspace.includes('setMethod'), 'MeihuaWorkspace 应可通过快捷命令更新起卦方式');
+  check(
+    meihuaWorkspace.includes('setNumberA') && meihuaWorkspace.includes('setNumberB'),
+    'MeihuaWorkspace 应可通过快捷命令更新数字起卦输入',
+  );
+  check(meihuaWorkspace.includes('calcMeihuaEnveloped'), 'MeihuaWorkspace 应通过公开计算入口生成卦象');
 }
 
 // ── 3c. #liuyao 有 canvas 并接真实纳甲引擎 ────────────────

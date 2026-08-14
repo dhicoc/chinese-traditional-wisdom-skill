@@ -145,22 +145,18 @@ describe('divination and reader command parsers', () => {
     });
   });
 
-  it('parses Meihua trigram quick commands', () => {
-    const parsed = parseMeihuaCommand('梅花 乾 坤 3 克');
+  it('parses engine-compatible Meihua number commands', () => {
+    const parsed = parseMeihuaCommand('梅花 数字 3 5');
     expect(parsed).toMatchObject({
-      upper: '乾',
-      lower: '坤',
-      movingLine: 3,
-      relation: '克',
+      method: 'number',
+      numberA: 3,
+      numberB: 5,
     });
   });
 
-  it('parses pinyin Meihua trigram quick commands', () => {
-    const parsed = parseMeihuaCommand('meihua qian kun 3');
-    expect(parsed).toMatchObject({
-      upper: '乾',
-      lower: '坤',
-      movingLine: 3,
+  it('parses Meihua yarrow commands', () => {
+    expect(parseMeihuaCommand('meihua yarrow')).toMatchObject({
+      method: 'yarrow',
     });
   });
 

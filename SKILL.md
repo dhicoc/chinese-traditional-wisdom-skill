@@ -10,7 +10,7 @@ description: 中国传统文化整体智慧咨询系统。遇到人生困惑、�
 > **硬规则：模型不得自行推演、排盘、校时、算数、补全干支或把参考文本伪装为本次计算。**
 
 1. 将本文件所在目录记为 `<SKILL_ROOT>`，读取 `RULES.md` 与 `tool-index.md`。
-2. 确认 `apps/visual/scripts/run-engine.ts` 存在；需要执行时在 `apps/visual` 运行 `pnpm install`。
+2. 确认 `apps/visual/scripts/run-engine.ts` 存在；需要执行时使用 Node `24.12.x` 与 pnpm `10.26.1`，在 `apps/visual` 运行 `pnpm install --frozen-lockfile`。
 3. 选择本地工具后，准备 JSON 输入文件并执行：
 
 ```bash

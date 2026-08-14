@@ -8,21 +8,22 @@ afterEach(() => {
 });
 
 describe('HistoryWorkspace', () => {
-  it('仅展示面向用户的分析说明，不展示版本或内部模式', () => {
+  it('展示分析说明、报告版本和用户可读结果状态，不展示内部模式值', () => {
     HistoryStore.add({
       module: 'bazi',
       title: '八字命盘',
       summary: '已生成八字命盘参考。',
-      mode: 'command',
+      mode: 'local-exact',
       reportVersion: '1.0',
-      capabilityMode: '命令入口（command）',
+      capabilityMode: '按出生资料排盘',
       inputSummary: '已完成分析；不记录原始输入。',
     });
 
     render(<HistoryWorkspace />);
 
     expect(screen.getByText('本次分析说明：已完成分析；不记录原始输入。')).toBeInTheDocument();
-    expect(screen.queryByText('报告版本：1.0')).not.toBeInTheDocument();
-    expect(screen.queryByText('能力模式：命令入口（command）')).not.toBeInTheDocument();
+    expect(screen.getByText('报告版本：1.0')).toBeInTheDocument();
+    expect(screen.getByText('结果状态：按出生资料排盘')).toBeInTheDocument();
+    expect(screen.queryByText('能力模式：local-exact')).not.toBeInTheDocument();
   });
 });

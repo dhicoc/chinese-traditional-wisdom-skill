@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { DEFAULT_BIRTH, type BirthData, type SolarBirth, toSolarBirth } from '@/legacy/birthBridge';
-import type { TrueSolarTimeResolution } from '@/engine-api/trueSolarTime';
+import { resolveTrueSolarTime, type TrueSolarTimeResolution } from '@/engine-api/trueSolarTime';
 import {
   BIRTH_INTENT_EVENT,
   CIVIL_TIME_FALLBACK_INTENT_EVENT,
@@ -36,6 +36,29 @@ interface BirthContextValue {
 }
 
 const BirthContext = createContext<BirthContextValue | null>(null);
+
+function matchesTrueSolarResolution(resolution: TrueSolarTimeResolution): boolean {
+  const recomputed = resolveTrueSolarTime(resolution.civilBirth, resolution.location);
+  return JSON.stringify({
+    trueSolarBirth: resolution.trueSolarBirth,
+    longitudeCorrectionMinutes: resolution.longitudeCorrectionMinutes,
+    equationOfTimeMinutes: resolution.equationOfTimeMinutes,
+    trueSolarCorrectionMinutes: resolution.trueSolarCorrectionMinutes,
+    crossedDate: resolution.crossedDate,
+    crossedShichen: resolution.crossedShichen,
+    crossedZiChu: resolution.crossedZiChu,
+    evidence: resolution.evidence,
+  }) === JSON.stringify({
+    trueSolarBirth: recomputed.trueSolarBirth,
+    longitudeCorrectionMinutes: recomputed.longitudeCorrectionMinutes,
+    equationOfTimeMinutes: recomputed.equationOfTimeMinutes,
+    trueSolarCorrectionMinutes: recomputed.trueSolarCorrectionMinutes,
+    crossedDate: recomputed.crossedDate,
+    crossedShichen: recomputed.crossedShichen,
+    crossedZiChu: recomputed.crossedZiChu,
+    evidence: recomputed.evidence,
+  });
+}
 
 /* ── Provider ────────────────────────────────────────── */
 
@@ -83,6 +106,7 @@ export function BirthProvider({ children }: { children: ReactNode }) {
         || currentCivilBirth.hour !== resolvedCivilBirth.hour
         || currentCivilBirth.minute !== resolvedCivilBirth.minute
         || currentCivilBirth.gender !== resolvedCivilBirth.gender
+        || !matchesTrueSolarResolution(detail.resolution)
       ) return;
       setTrueSolarResolution(detail.resolution);
       setCivilFallbackConfirmed(false);

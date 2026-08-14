@@ -70,10 +70,10 @@ describe('agentRouter routeQuery', () => {
     expect(route?.liuyao).toMatchObject({ method: 'coin', question: '今日财运' });
   });
 
-  it('routes meihua explicit command and keeps meihua detail', () => {
-    const route = routeQuery('梅花 乾 坤 3 克');
+  it('routes meihua explicit command with engine-compatible detail', () => {
+    const route = routeQuery('梅花 数字 3 5');
     expect(route?.module).toBe('meihua');
-    expect(route?.meihua).toMatchObject({ upper: '乾', lower: '坤' });
+    expect(route?.meihua).toMatchObject({ method: 'number', numberA: 3, numberB: 5 });
   });
 
   it('routes reader explicit command and keeps reader detail', () => {

@@ -80,7 +80,7 @@ export function AgentConfirmPanel({ route, onConfirm, onCancel }: AgentConfirmPa
               <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-100/45">附加操作</p>
               <ul className="mt-1 space-y-1 text-xs text-jade-100/70">
                 {route.liuyao && <li>六爻起卦：{route.liuyao.method ?? 'coin'}{route.liuyao.question ? ' · ' + route.liuyao.question : ''}</li>}
-                {route.meihua && <li>梅花排盘：{route.meihua.upper ?? '?'}/{route.meihua.lower ?? '?'}{route.meihua.movingLine ? ' · 动' + route.meihua.movingLine : ''}</li>}
+                {route.meihua && <li>梅花排盘：{route.meihua.method === 'number' ? `数字 ${route.meihua.numberA ?? '?'}/${route.meihua.numberB ?? '?'}` : route.meihua.method === 'yarrow' ? '揲蓍法' : '时间起卦'}</li>}
                 {route.reader && <li>古籍搜索：{route.reader.term}</li>}
               </ul>
             </div>

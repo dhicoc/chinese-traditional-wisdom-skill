@@ -7,7 +7,7 @@
 ```text
 1. 由本文件路径确定 <SKILL_ROOT>。
 2. 确认存在 SKILL.md、RULES.md、tool-index.md、bootstrap/、apps/visual/。
-3. 需要运行引擎时，在 apps/visual 安装依赖：pnpm install。
+3. 需要运行引擎时，使用 Node `24.12.x` 与 pnpm `10.26.1`，在 apps/visual 安装锁定依赖：pnpm install --frozen-lockfile。
 4. 读取用户问题，按三层路由选择工具；缺少必填输入时先追问。
 5. 不得因为引擎未运行而改用模型记忆自行排盘、校时、算数或判断规则。
 ```

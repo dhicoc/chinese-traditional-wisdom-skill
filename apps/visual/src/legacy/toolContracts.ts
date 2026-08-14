@@ -1,9 +1,10 @@
 import type { BaziBirth } from './baziEngine';
+import type { SolarBirth } from './birthBridge';
 import type { BazhaiInput } from './bazhaiEngine';
 import type { FeixingInput } from './feixingEngine';
 import { asLocalToolError, LocalToolError } from './localToolErrors';
 import { isLocalToolName, LOCAL_TOOL_NAMES, type LocalToolName } from './localToolRegistry';
-import type { VerifiedBirthLocation } from './trueSolarTime';
+import type { TrueSolarTimeResolution, VerifiedBirthLocation } from './trueSolarTime';
 import type { ZiweiInput } from './ziweiEngine';
 
 export interface TrueSolarTimeToolInput {
@@ -15,8 +16,7 @@ export interface BaziToolInput {
   birth: BaziBirth;
   timeBasis: 'true-solar-verified' | 'civil-unverified';
   civilFallbackConfirmed?: boolean;
-  trueSolarBirth?: BaziBirth;
-  trueSolarResolution?: { trueSolarBirth: BaziBirth };
+  trueSolarResolution?: TrueSolarTimeResolution;
   shenShaTrineSource?: 'year' | 'day';
   transitDate?: string;
 }
@@ -345,6 +345,54 @@ function huangjiBirth(value: unknown): HuangjiToolInput['birth'] {
   return { year: birthYear, month, day, hour, minute };
 }
 
+function solarBirth(value: BaziBirth): SolarBirth {
+  return {
+    year: value.year,
+    month: value.month,
+    day: value.day,
+    hour: value.hour,
+    minute: value.minute ?? 0,
+    gender: value.gender === '女' ? '女' : '男',
+    useExactCalendar: value.useExactCalendar !== false,
+  };
+}
+
+function parseTrueSolarResolution(value: unknown, label: string): TrueSolarTimeResolution {
+  const resolution = object(value, label);
+  if (resolution.status !== 'resolved' || resolution.source !== 'agent-verified') {
+    throw new Error(`${label}必须是已核验的真太阳时结果。`);
+  }
+  const location = object(resolution.location, `${label}.location`);
+  const longitude = finiteNumber(location.longitude, `${label}.location.longitude`);
+  if (longitude < -180 || longitude > 180) throw new Error(`${label}.location.longitude 必须是 -180 至 180 的数字。`);
+  const ianaTimeZone = nonEmptyString(location.ianaTimeZone, `${label}.location.ianaTimeZone`);
+  if (!ianaTimeZone.includes('/')) throw new Error(`${label}.location.ianaTimeZone 必须是 IANA 时区。`);
+  const civilBirth = birth(resolution.civilBirth, `${label}.civilBirth`);
+  const trueSolarBirth = birth(resolution.trueSolarBirth, `${label}.trueSolarBirth`);
+  return {
+    status: 'resolved',
+    source: 'agent-verified',
+    civilBirth: solarBirth(civilBirth),
+    trueSolarBirth: solarBirth(trueSolarBirth),
+    location: {
+      displayName: nonEmptyString(location.displayName, `${label}.location.displayName`),
+      longitude,
+      ianaTimeZone,
+      utcOffsetMinutes: integer(location.utcOffsetMinutes, `${label}.location.utcOffsetMinutes`, -840, 840),
+      utcOffsetEvidence: nonEmptyString(location.utcOffsetEvidence, `${label}.location.utcOffsetEvidence`),
+    },
+    longitudeCorrectionMinutes: finiteNumber(resolution.longitudeCorrectionMinutes, `${label}.longitudeCorrectionMinutes`),
+    equationOfTimeMinutes: finiteNumber(resolution.equationOfTimeMinutes, `${label}.equationOfTimeMinutes`),
+    trueSolarCorrectionMinutes: finiteNumber(resolution.trueSolarCorrectionMinutes, `${label}.trueSolarCorrectionMinutes`),
+    crossedDate: resolution.crossedDate === true,
+    crossedShichen: resolution.crossedShichen === true,
+    crossedZiChu: resolution.crossedZiChu === true,
+    evidence: Array.isArray(resolution.evidence) && resolution.evidence.every((item) => typeof item === 'string')
+      ? resolution.evidence
+      : (() => { throw new Error(`${label}.evidence 必须是字符串数组。`); })(),
+  };
+}
+
 function baziTimeContext(value: unknown): Input {
   const context = object(value, 'baziTimeContext');
   if (context.timeBasis !== 'true-solar-verified' && context.timeBasis !== 'civil-unverified') {
@@ -357,25 +405,19 @@ function baziTimeContext(value: unknown): Input {
     return { timeBasis: context.timeBasis, civilFallbackConfirmed: true };
   }
 
-  const trueSolarBirth = context.trueSolarBirth === undefined
-    ? undefined
-    : birth(context.trueSolarBirth, 'baziTimeContext.trueSolarBirth');
-  const resolution = context.trueSolarResolution === undefined
-    ? undefined
-    : object(context.trueSolarResolution, 'baziTimeContext.trueSolarResolution');
-  const trueSolarResolution = resolution === undefined
-    ? undefined
-    : {
-      trueSolarBirth: birth(
-        resolution.trueSolarBirth,
-        'baziTimeContext.trueSolarResolution.trueSolarBirth',
-      ),
-    };
+  if (context.trueSolarBirth !== undefined) {
+    throw new Error('baziTimeContext.timeBasis=true-solar-verified 必须提供完整 trueSolarResolution。');
+  }
+  if (context.trueSolarResolution === undefined) {
+    throw new Error('baziTimeContext.timeBasis=true-solar-verified 必须提供完整 trueSolarResolution。');
+  }
 
   return {
     timeBasis: context.timeBasis,
-    ...(trueSolarBirth === undefined ? {} : { trueSolarBirth }),
-    ...(trueSolarResolution === undefined ? {} : { trueSolarResolution }),
+    trueSolarResolution: parseTrueSolarResolution(
+      context.trueSolarResolution,
+      'baziTimeContext.trueSolarResolution',
+    ),
   };
 }
 
@@ -422,21 +464,20 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
       if (timeBasis === 'civil-unverified' && input.civilFallbackConfirmed !== true) {
         throw new Error('timeBasis=civil-unverified 必须显式传 civilFallbackConfirmed=true。');
       }
-      const trueSolarBirth = input.trueSolarBirth === undefined
+      if (timeBasis === 'true-solar-verified' && input.trueSolarBirth !== undefined) {
+        throw new Error('timeBasis=true-solar-verified 必须提供完整 trueSolarResolution。');
+      }
+      if (timeBasis === 'true-solar-verified' && input.trueSolarResolution === undefined) {
+        throw new Error('timeBasis=true-solar-verified 必须提供完整 trueSolarResolution。');
+      }
+      const trueSolarResolution = input.trueSolarResolution === undefined
         ? undefined
-        : birth(input.trueSolarBirth, 'trueSolarBirth');
-      const resolution = input.trueSolarResolution === undefined
-        ? undefined
-        : object(input.trueSolarResolution, 'trueSolarResolution');
-      const trueSolarResolution = resolution === undefined
-        ? undefined
-        : { trueSolarBirth: birth(resolution.trueSolarBirth, 'trueSolarResolution.trueSolarBirth') };
+        : parseTrueSolarResolution(input.trueSolarResolution, 'trueSolarResolution');
       const transitDate = input.transitDate === undefined ? undefined : dateString(input.transitDate, 'transitDate');
       return {
         birth: birth(input.birth, 'birth'),
         timeBasis,
         civilFallbackConfirmed: input.civilFallbackConfirmed as boolean | undefined,
-        trueSolarBirth,
         trueSolarResolution,
         shenShaTrineSource: input.shenShaTrineSource as 'year' | 'day' | undefined,
         transitDate,

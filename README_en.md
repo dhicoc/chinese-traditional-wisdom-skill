@@ -91,11 +91,11 @@ Best for browsing charts, adjusting inputs, and viewing results visually.
 
 ```bash
 cd apps/visual
-pnpm install
+pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open the local URL, select a page, and provide the required information. The Dashboard uses local TypeScript engines. Labels such as `local-exact`, `local-approx`, folk experience, demo, or fallback disclose the calculation mode and availability.
+The project pins dependencies through Node `24.12.x`, pnpm `10.26.1`, and `pnpm-lock.yaml`; do not generate or commit `package-lock.json`. Open the local URL, select a page, and provide the required information. The Dashboard uses local TypeScript engines. Labels such as `local-exact`, `local-approx`, folk experience, demo, or fallback disclose the calculation mode and availability.
 
 ### Option 2: Use Through an AI Agent
 
@@ -158,7 +158,7 @@ Developers and CLI-capable Agents can invoke local tools directly:
 
 ```bash
 cd apps/visual
-pnpm install
+pnpm install --frozen-lockfile
 pnpm engine <tool> <input-json-file>
 ```
 

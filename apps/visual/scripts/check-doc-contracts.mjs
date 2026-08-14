@@ -34,6 +34,8 @@ const requiredFiles = [
   "EVOLUTION.md",
   "ROADMAP.md",
   "docs/RESEARCH-ROADMAP.md",
+  "docs/RULE-CHANGELOG.md",
+  "requirements.txt",
   "apps/visual/package.json",
   "apps/visual/scripts/run-engine.ts",
   "apps/visual/src/legacy/directRunner.ts",
@@ -71,6 +73,10 @@ const docs = Object.fromEntries([
 const readmeEnglish = read("README_en.md");
 const runner = read("apps/visual/scripts/run-engine.ts");
 const packageJson = read("apps/visual/package.json");
+const packageLockPath = path.join(root, "apps/visual/package-lock.json");
+const releaseVerification = read("docs/RELEASE-VERIFICATION.md");
+const ruleChangelog = read("docs/RULE-CHANGELOG.md");
+const pythonRequirements = read("requirements.txt");
 const directRunner = read("apps/visual/src/legacy/directRunner.ts");
 const localToolRegistry = read("apps/visual/src/legacy/localToolRegistry.ts");
 const trueSolarTime = read("apps/visual/src/legacy/trueSolarTime.ts");
@@ -110,6 +116,24 @@ check(!/\bMCP\b|mcp-server|setup-mcp|stdio|JSON-RPC|MCP SDK|presentationToken|nu
 check(runner.includes("runLocalTool"), "run-engine.ts 未调用本地 direct runner");
 check(runner.includes("pnpm engine <tool> <input-json-file>"), "run-engine.ts 缺少 CLI 用法");
 check(packageJson.includes('"engine": "tsx scripts/run-engine.ts"'), "apps/visual/package.json 缺少 engine script");
+check(packageJson.includes('"packageManager": "pnpm@10.26.1"'), "apps/visual/package.json 必须固定 pnpm 10.26.1。");
+check(packageJson.includes('"node": ">=24.12.0 <25"'), "apps/visual/package.json 必须声明 Node 24.12.x 运行范围。");
+check(!packageJson.includes('"latest"'), "apps/visual/package.json 不得使用 latest 依赖范围。");
+check(!fs.existsSync(packageLockPath), "apps/visual 不得维护非权威的 package-lock.json。");
+check(releaseVerification.includes("pnpm install --frozen-lockfile"), "RELEASE-VERIFICATION.md 必须使用冻结 pnpm 安装。");
+for (const qualityGate of [
+  "check-doc-contracts.mjs",
+  "check-knowledge-references.mjs",
+  "check-mapping-schema.mjs",
+  "check-react-migration.mjs",
+  "check-search-index.mjs",
+]) {
+  check(releaseVerification.includes(qualityGate), `RELEASE-VERIFICATION.md 缺少阶段 E 质量门: ${qualityGate}`);
+}
+check(pythonRequirements.includes("not required to install, publish, or run the Dashboard or CLI"),
+  "requirements.txt 必须声明 Python 依赖仅用于离线交叉校验。");
+check(ruleChangelog.includes("## 变更条目格式") && ruleChangelog.includes("兼容性影响") && ruleChangelog.includes("回归证据"),
+  "RULE-CHANGELOG.md 必须记录来源、兼容性影响与回归证据。");
 check(directRunner.includes("runLocalTool"), "directRunner.ts 缺少 runLocalTool");
 
 const localToolNames = extractMatches(

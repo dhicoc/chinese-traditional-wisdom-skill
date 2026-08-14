@@ -6,12 +6,14 @@
 
 ## 1. 安装与最小可运行检查
 
-在仓库根目录进入可视化应用并安装锁定依赖：
+在仓库根目录进入可视化应用。项目固定使用 Node `24.12.x`、pnpm `10.26.1` 与 `pnpm-lock.yaml`；请先启用匹配的 Corepack/pnpm，再以冻结模式安装，避免安装过程重解依赖：
 
 ```bash
 cd apps/visual
-pnpm install
+pnpm install --frozen-lockfile
 ```
+
+`package-lock.json` 不是本项目的锁文件，不应重新生成或提交。根目录的 `requirements.txt` 仅供维护遗留 Python 辅助脚本时离线交叉校验；它不属于 Dashboard 或 CLI 的发布必需依赖。
 
 用标准 fixture 验证本地 CLI 可读取 stdin、调用引擎并输出 JSON：
 
@@ -34,16 +36,24 @@ pnpm engine resolve_true_solar_time src/__fixtures__/local-tools/resolve_true_so
 ```bash
 pnpm typecheck
 pnpm test:unit
-pnpm test
+node scripts/smoke-react-shell.mjs
 node scripts/check-doc-contracts.mjs
+node scripts/check-knowledge-references.mjs
+node scripts/check-mapping-schema.mjs
+node scripts/check-react-migration.mjs
+node scripts/check-search-index.mjs
 pnpm build
 pnpm test:e2e
 ```
 
 - `pnpm typecheck`：检查 TypeScript 项目引用与类型。
 - `pnpm test:unit`：运行 Vitest 引擎、契约与回归测试。
-- `pnpm test`：运行 React Shell smoke 检查。
-- `node scripts/check-doc-contracts.mjs`：核对 32 个 CLI 工具、`LOCAL_TOOL_NAMES`、success fixture、Runner 与公开文档契约。
+- `node scripts/smoke-react-shell.mjs`：运行 React Shell smoke 检查。
+- `node scripts/check-doc-contracts.mjs`：核对 32 个 CLI 工具、`LOCAL_TOOL_NAMES`、success fixture、Runner、分发约束与公开文档契约。
+- `node scripts/check-knowledge-references.mjs`：核对知识引用 ID 与引用边界。
+- `node scripts/check-mapping-schema.mjs`：核对风水映射表的来源、版本、结构与覆盖范围。
+- `node scripts/check-react-migration.mjs`：核对浏览器端没有绕过公开引擎边界。
+- `node scripts/check-search-index.mjs`：核对知识搜索索引与源文件一致。
 - `pnpm build`：执行 TypeScript 构建、Vite 打包与验证页生成。
 - `pnpm test:e2e`：启动本地 Vite 服务，并验证 Chromium、WebKit、Mobile Chrome 与 Mobile Safari。
 
@@ -95,7 +105,7 @@ pnpm exec playwright show-trace <trace.zip>
 
 ### CLI 无法运行或 fixture 失败
 
-1. 确认当前目录是 `apps/visual`，并已执行 `pnpm install`。
+1. 确认当前目录是 `apps/visual`，且已在 Node `24.12.x`、pnpm `10.26.1` 下执行 `pnpm install --frozen-lockfile`。
 2. 使用 `tool-index.md` 中对应工具的 `.success.json` fixture 重现；不要用包含真实个人资料的输入提交问题。
 3. 确认工具名位于 `LOCAL_TOOL_NAMES`，且 fixture 与 `tool-index.md` 的表格行一致。
 4. 区分输出类型：普通工具读取 `ToolEnvelope.data`；`resolve_true_solar_time` 读取 `TrueSolarTimeResolution`，不应访问 `ToolEnvelope.data`。

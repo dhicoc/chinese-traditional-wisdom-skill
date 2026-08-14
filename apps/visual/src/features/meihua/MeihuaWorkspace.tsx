@@ -1,110 +1,100 @@
 import { useEffect, useMemo, useState } from 'react';
+import { getSolarEntry } from '@/engine-api/calendar';
+import { calcMeihuaEnveloped, type MeihuaData, type MeihuaInput } from '@/engine-api/divination';
 import { ControlField } from '@/components/shared/ControlField';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
+import { FourLayerReport } from '@/components/shared/FourLayerReport';
+import { InterpretationCard } from '@/components/shared/InterpretationCard';
+import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { MeihuaChart } from '@/components/shared/MeihuaChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
-import { MEIHUA_TRIGRAMS, type MeihuaData } from '@/legacy/canvasRenderers';
-import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
+import { toUserPresentation } from '@/legacy/reportLayers';
+import type { ToolEnvelope } from '@/engine-api/types';
+import { useBirth } from '@/lib/birthContext';
 import { MEIHUA_INTENT_EVENT, type MeihuaIntentDetail } from '@/lib/commandIntents';
 
-const NAME_MAP: Record<string, string> = {
-  乾: '天',
-  兑: '泽',
-  离: '火',
-  震: '雷',
-  巽: '风',
-  坎: '水',
-  艮: '山',
-  坤: '地',
-};
+type CastMethod = 'time' | 'number' | 'yarrow';
 
-const RELATION_OPTIONS = ['生', '克', '比和'] as const;
+const METHOD_OPTIONS: Array<{ value: CastMethod; label: string; hint: string }> = [
+  { value: 'time', label: '时间起卦', hint: '按生辰的历法时间取数' },
+  { value: 'number', label: '数字起卦', hint: '输入两个数字定上下卦与动爻' },
+  { value: 'yarrow', label: '揲蓍法', hint: '按生辰生成确定性蓍草起卦结果' },
+];
 
-function trigramDisplay(name: string) {
-  const found = MEIHUA_TRIGRAMS.find((item) => item.value === name);
-  return {
-    name,
-    symbol: found?.symbol ?? '',
-    nature: found?.nature ?? '',
-  };
+function parseNumber(value: string): number | undefined {
+  if (!value.trim()) return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 export function MeihuaWorkspace() {
-  const [upper, setUpper] = useState('坤');
-  const [lower, setLower] = useState('乾');
-  const [movingLine, setMovingLine] = useState(3);
-  const [relation, setRelation] = useState<(typeof RELATION_OPTIONS)[number]>('生');
+  const { solarBirth } = useBirth();
+  const [method, setMethod] = useState<CastMethod>('time');
+  const [numberA, setNumberA] = useState('3');
+  const [numberB, setNumberB] = useState('5');
 
   useEffect(() => {
     function handleMeihuaIntent(event: Event) {
       const detail = (event as CustomEvent<MeihuaIntentDetail>).detail;
       if (!detail) return;
-
-      if (detail.upper && MEIHUA_TRIGRAMS.some((item) => item.value === detail.upper)) {
-        setUpper(detail.upper);
-      }
-      if (detail.lower && MEIHUA_TRIGRAMS.some((item) => item.value === detail.lower)) {
-        setLower(detail.lower);
-      }
-      if (typeof detail.movingLine === 'number') {
-        setMovingLine(Math.min(6, Math.max(1, Math.trunc(detail.movingLine))));
-      }
-      if (detail.relation && (RELATION_OPTIONS as readonly string[]).includes(detail.relation)) {
-        setRelation(detail.relation);
-      }
+      if (detail.method) setMethod(detail.method);
+      if (typeof detail.numberA === 'number') setNumberA(String(detail.numberA));
+      if (typeof detail.numberB === 'number') setNumberB(String(detail.numberB));
     }
 
     window.addEventListener(MEIHUA_INTENT_EVENT, handleMeihuaIntent);
     return () => window.removeEventListener(MEIHUA_INTENT_EVENT, handleMeihuaIntent);
   }, []);
 
-  const data = useMemo<MeihuaData>(
-    () => ({
-      upperTrigram: trigramDisplay(upper),
-      lowerTrigram: trigramDisplay(lower),
-      changingLine: movingLine,
-      mutualUpper: trigramDisplay('兑'),
-      mutualLower: trigramDisplay('震'),
-      bodyTrigram: lower,
-      useTrigram: upper,
-      bodyUseRelation: relation,
-      fortuneLevel: relation === '生' ? '大吉' : relation === '克' ? '大凶' : '平顺',
-      fortuneDetail: relation === '生' ? '用生体，事可成' : relation === '克' ? '用克体，受阻' : '比和，平顺',
-      strategy: relation === '生' ? '进——有利可图，宜主动出击' : relation === '克' ? '守——受制之象，宜静观待变' : '顺——和顺之象，稳步推进',
-      bodyGuaDe: '顺（柔顺承载）',
-      useGuaDe: '健（刚健不息）',
-      cuoTrigram: { upper: '坤', lower: '乾', name: '地天' },
-      zongTrigram: { upper: '乾', lower: '坤', name: '天地' },
-      hexagramName: `${NAME_MAP[upper]}${NAME_MAP[lower]}`,
-      changingHexagramName: `${NAME_MAP[upper]}${NAME_MAP[lower]}（变）`,
-    }),
-    [upper, lower, movingLine, relation],
-  );
+  const input = useMemo<MeihuaInput>(() => {
+    const next: MeihuaInput = { birth: solarBirth, method };
+    if (method === 'number') {
+      const first = parseNumber(numberA);
+      const second = parseNumber(numberB);
+      if (first !== undefined) next.numberA = first;
+      if (second !== undefined) next.numberB = second;
+    }
+    return next;
+  }, [solarBirth, method, numberA, numberB]);
 
-  const contextPayload = useMemo(
-    () => ({
-      项目: '梅花易数',
-      卦象: data,
-    }),
-    [data],
-  );
+  const envelope = useMemo<ToolEnvelope<MeihuaData> | null>(() => {
+    try {
+      return calcMeihuaEnveloped(input, getSolarEntry() as never);
+    } catch {
+      return null;
+    }
+  }, [input]);
 
-  const ready = true;
-  const exportReport = useMemo(() => ({
-    summary: `${data.hexagramName}之卦，体用关系为${data.bodyUseRelation}。`,
-    sections: [
-      { heading: '卦象', body: `本卦：${data.hexagramName}（上${data.upperTrigram.name}下${data.lowerTrigram.name}）\n互卦：${data.mutualUpper?.name ?? '—'}${data.mutualLower?.name ?? ''}\n变卦：${data.changingHexagramName}\n动爻：第${data.changingLine}爻` },
-      { heading: '体用关系', body: `体卦：${data.bodyTrigram} · 用卦：${data.useTrigram}\n关系：${data.bodyUseRelation}\n判断：${data.fortuneLevel}\n${data.fortuneDetail}` },
-      { heading: '参考建议', body: data.strategy ?? '顺势而为，审慎参看。' },
-      { heading: '卦德旁参', body: `体卦：${data.bodyGuaDe ?? '—'}\n用卦：${data.useGuaDe ?? '—'}\n错卦：${data.cuoTrigram?.name ?? '—'}\n综卦：${data.zongTrigram?.name ?? '—'}` },
-    ],
-  }), [data]);
+  const presentation = useMemo(() => envelope ? toUserPresentation(envelope, {
+    disclaimers: ['梅花易数为传统文化观察参考，不作为现实决策依据。'],
+  }) : null, [envelope]);
   const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
     moduleId: 'meihua',
-    inputSummary: '已生成梅花易数卦象参考；报告不保留具体卦象参数、出生资料、原始问题或其他原始输入。',
+    inputSummary: '本次已按所选起卦方式完成梅花易数参考；报告不保留具体数字或出生资料。',
   }), []);
+  const exportPresentation = useMemo(() => presentation?.exportReport ? ({
+    report: presentation.exportReport,
+    notices: presentation.notices,
+    warnings: presentation.warnings,
+    semanticReport: presentation.semanticReport,
+    reportMetadata,
+  }) : null, [presentation, reportMetadata]);
+  const data = envelope?.ok ? envelope.data : null;
+
+  const contextPayload = useMemo(() => ({
+    项目: '梅花易数',
+    起卦方式: data?.sourceMethod,
+    本卦: data?.hexagramName,
+    变卦: data?.changingHexagramName,
+    动爻: data?.changingLine,
+    体用关系: data?.bodyUseRelation,
+  }), [data]);
+
+  if (presentation?.state === 'error' || !data) {
+    return <section className="space-y-4"><LoadingSkeleton label="正在排盘" /></section>;
+  }
 
   return (
     <section className="space-y-4">
@@ -113,12 +103,12 @@ export function MeihuaWorkspace() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">梅花易数</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              选择上下卦、动爻和体用关系，查看本卦、互卦、变卦与体用生克。
+              以时间、数字或揲蓍法起卦，呈现本卦、互卦、变卦与体用关系。
             </p>
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="meihua" title="梅花易数摘要" payload={contextPayload} />
-            <ExportReportButton module="梅花易数" report={exportReport} reportMetadata={reportMetadata} />
+            {exportPresentation && <ExportReportButton module="梅花易数" presentation={exportPresentation} />}
           </div>
         </div>
         <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
@@ -128,123 +118,50 @@ export function MeihuaWorkspace() {
 
       <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
         <aside className="space-y-4 rounded-panel border border-ink-700 bg-black/24 p-4">
-          <ControlField label="上卦">
+          <ControlField label="起卦方式">
             <select
-              value={upper}
-              onChange={(event) => setUpper(event.target.value)}
+              aria-label="起卦方式"
+              value={method}
+              onChange={(event) => setMethod(event.target.value as CastMethod)}
               className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
             >
-              {MEIHUA_TRIGRAMS.map((item) => (
-                <option key={item.value} value={item.value}>{item.label}</option>
-              ))}
+              {METHOD_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label} — {option.hint}</option>)}
             </select>
           </ControlField>
 
-          <ControlField label="下卦">
-            <select
-              value={lower}
-              onChange={(event) => setLower(event.target.value)}
-              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
-            >
-              {MEIHUA_TRIGRAMS.map((item) => (
-                <option key={item.value} value={item.value}>{item.label}</option>
-              ))}
-            </select>
-          </ControlField>
+          {method === 'number' && (
+            <>
+              <ControlField label="数字一">
+                <input aria-label="数字一" value={numberA} onChange={(event) => setNumberA(event.target.value)} inputMode="numeric" className="w-full rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45" />
+              </ControlField>
+              <ControlField label="数字二">
+                <input aria-label="数字二" value={numberB} onChange={(event) => setNumberB(event.target.value)} inputMode="numeric" className="w-full rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45" />
+              </ControlField>
+            </>
+          )}
 
-          <ControlField label="动爻">
-            <select
-              value={movingLine}
-              onChange={(event) => setMovingLine(Number.parseInt(event.target.value, 10) || 3)}
-              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
-            >
-              {[1, 2, 3, 4, 5, 6].map((value) => (
-                <option key={value} value={value}>{value}</option>
-              ))}
-            </select>
-          </ControlField>
+          <InterpretationCard title="卦象概要" badge={data.sourceMethod} items={[
+            { label: '本卦', value: data.hexagramName },
+            { label: '变卦', value: data.changingHexagramName },
+            { label: '动爻', value: `第${data.changingLine}爻` },
+            { label: '体卦', value: data.bodyTrigram },
+            { label: '用卦', value: data.useTrigram },
+            { label: '体用', value: data.bodyUseRelation },
+          ]} />
 
-          <ControlField label="体用关系">
-            <select
-              value={relation}
-              onChange={(event) => setRelation(event.target.value as (typeof RELATION_OPTIONS)[number])}
-              className="w-full min-w-0 box-border rounded-card border border-white/10 bg-ink-900 px-3 py-2 text-sm text-jade-100 outline-none transition focus:border-jade-500/45"
-            >
-              {RELATION_OPTIONS.map((value) => (
-                <option key={value} value={value}>{value}</option>
-              ))}
-            </select>
-          </ControlField>
+          {presentation && presentation.report && (
+            <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
+              <FourLayerReport report={presentation.report} semanticReport={presentation.semanticReport} notices={presentation.notices} warnings={presentation.warnings} reportMetadata={reportMetadata} title="梅花易数解读" />
+            </div>
+          )}
         </aside>
 
         <section className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">
-          <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-jade-50">本卦 · 互卦 · 变卦</h3>
-              <p className="mt-1 text-sm leading-6 text-jade-100/55">
-                本卦·互卦·变卦：上下卦爻象、动爻标记、体用生克关系。
-              </p>
-            </div>
+          <h3 className="text-lg font-semibold text-jade-50">本卦 · 互卦 · 变卦</h3>
+          <p className="mt-1 text-sm leading-6 text-jade-100/55">卦象按所选起卦方式计算。</p>
+          <div className="canvas-stage mt-4 overflow-x-auto rounded-card border border-jade-500/18 bg-ink-950/92 p-3">
+            <ZoomableSvg title="梅花易数 本卦·互卦·变卦"><MeihuaChart data={data} /></ZoomableSvg>
           </div>
-          <div className="canvas-stage overflow-x-auto rounded-card border border-jade-500/18 bg-ink-950/92 p-3">
-            {ready ? (
-              <ZoomableSvg title="梅花易数 本卦·互卦·变卦">
-                <MeihuaChart data={data} />
-              </ZoomableSvg>
-            ) : (
-              <LoadingSkeleton label="正在排盘" />
-            )}
-          </div>
-
-          {/* 梅花增强：吉凶分级 + 策略 + 卦德 + 错卦综卦 */}
-          {data.fortuneLevel && (
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <div className={`rounded-card border p-3 ${
-                data.fortuneLevel === '大吉' ? 'border-jade-500/30 bg-jade-500/8' :
-                data.fortuneLevel === '大凶' ? 'border-cinnabar-500/30 bg-cinnabar-500/8' :
-                'border-white/8 bg-white/[0.02]'
-              }`}>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-jade-100/70">吉凶判断</span>
-                  <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
-                    data.fortuneLevel === '大吉' ? 'border-jade-500/40 text-jade-300' :
-                    data.fortuneLevel === '大凶' ? 'border-cinnabar-500/40 text-cinnabar-300' :
-                    data.fortuneLevel === '可成' ? 'border-jade-500/30 text-jade-400' :
-                    data.fortuneLevel === '不利' ? 'border-gold-500/30 text-gold-400' :
-                    'border-white/10 text-jade-100/55'
-                  }`}>{data.fortuneLevel}</span>
-                </div>
-                {data.fortuneDetail && <p className="mt-1.5 text-xs leading-5 text-jade-100/55">{data.fortuneDetail}</p>}
-                {data.strategy && (
-                  <p className="mt-1.5 text-xs leading-5 text-jade-400">
-                    策略：{data.strategy}
-                  </p>
-                )}
-              </div>
-
-              <div className="rounded-card border border-white/8 bg-white/[0.02] p-3">
-                <span className="text-sm font-semibold text-jade-100/70">卦德</span>
-                <div className="mt-1.5 space-y-1 text-xs">
-                  {data.bodyGuaDe && <div><span className="text-jade-400">体卦</span><span className="ml-2 text-jade-100/55">{data.bodyGuaDe}</span></div>}
-                  {data.useGuaDe && <div><span className="text-jade-400">用卦</span><span className="ml-2 text-jade-100/55">{data.useGuaDe}</span></div>}
-                </div>
-                {data.cuoTrigram?.name && (
-                  <div className="mt-2 border-t border-white/5 pt-1.5 text-xs">
-                    <span className="text-jade-100/45">错卦：</span>
-                    <span className="text-jade-100/70">{data.cuoTrigram.name}</span>
-                    <span className="ml-1 text-[10px] text-jade-100/35">（阴阳互换，事物的对立面）</span>
-                  </div>
-                )}
-                {data.zongTrigram?.name && (
-                  <div className="mt-0.5 text-xs">
-                    <span className="text-jade-100/45">综卦：</span>
-                    <span className="text-jade-100/70">{data.zongTrigram.name}</span>
-                    <span className="ml-1 text-[10px] text-jade-100/35">（上下颠倒，另一角度）</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </section>
       </div>
     </section>

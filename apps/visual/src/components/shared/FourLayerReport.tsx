@@ -87,7 +87,7 @@ export function FourLayerReport({ report, semanticReport, title, notices = [], w
 
       {reportMetadata && (
         <div className="rounded-card border border-jade-500/30 bg-jade-500/8 px-3 py-2.5">
-          <p className="text-xs font-semibold text-jade-300">限制与注意事项</p>
+          <p className="text-xs font-semibold text-jade-300">本次分析口径</p>
           <dl className="mt-2 space-y-1.5 text-xs leading-5 text-jade-100/75">
             {getReportMetadataItems(reportMetadata).map(({ label, value }) => (
               <div key={label} className="flex gap-2">

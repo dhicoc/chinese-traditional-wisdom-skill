@@ -1,3 +1,4 @@
+import { resolveTrueSolarTime } from '@/engine-api/trueSolarTime';
 import { LOCAL_TOOL_NAMES, type LocalToolName } from '@/legacy/toolContracts';
 
 export type LocalToolFixtureCase = {
@@ -27,11 +28,33 @@ export const NESTED_WHITELIST_CASES: readonly NestedWhitelistCase[] = [
     tool: 'bazi_calculate',
     inject: (input, sentinel) => {
       const birth = input.birth as Record<string, unknown>;
-      birth.unexpectedBirth = sentinel;
+      const resolution = resolveTrueSolarTime(
+        {
+          year: birth.year as number,
+          month: birth.month as number,
+          day: birth.day as number,
+          hour: birth.hour as number,
+          minute: birth.minute as number,
+          gender: birth.gender as '男' | '女',
+          useExactCalendar: true,
+        },
+        {
+          displayName: '北京市，中国',
+          longitude: 116.4074,
+          ianaTimeZone: 'Asia/Shanghai',
+          utcOffsetMinutes: 480,
+          utcOffsetEvidence: 'IANA 时区历史规则核验：当地 UTC+08:00',
+        },
+      );
+      input.birth = { ...resolution.trueSolarBirth, unexpectedBirth: sentinel };
       input.transitDate = '2025-07-15';
       input.unexpectedTransit = sentinel;
       input.timeBasis = 'true-solar-verified';
-      input.trueSolarResolution = { trueSolarBirth: { ...birth, unexpectedTrueSolarBirth: sentinel }, unexpectedResolution: sentinel };
+      input.trueSolarResolution = {
+        ...resolution,
+        trueSolarBirth: { ...resolution.trueSolarBirth, unexpectedTrueSolarBirth: sentinel },
+        unexpectedResolution: sentinel,
+      };
     },
   },
   {

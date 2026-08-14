@@ -28,27 +28,23 @@ test.describe('P1.3i 六爻与梅花用户侧验收', () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test('梅花按上下卦、动爻与体用关系更新图表和参考策略', async ({ page }) => {
+  test('梅花按数字起卦生成卦象与参考策略', async ({ page }) => {
     await openWorkspace(page, '梅花易数', 'meihua');
     const workspace = page.locator('[data-testid="workspace-meihua"]');
 
     await expect(workspace.getByRole('heading', { name: '梅花易数', exact: true })).toBeVisible();
     await expect(workspace.getByText('梅花易数为传统文化观察参考，非绝对预测或现实决策依据。')).toBeVisible();
 
-    await workspace.getByLabel('上卦').selectOption('离');
-    await workspace.getByLabel('下卦').selectOption('坎');
-    await workspace.getByLabel('动爻').selectOption('2');
-    await workspace.getByLabel('体用关系').selectOption('克');
+    await workspace.getByLabel('起卦方式').selectOption('number');
+    await workspace.getByLabel('数字一').fill('3');
+    await workspace.getByLabel('数字二').fill('5');
 
     await expect(workspace.getByTestId('meihua-chart')).toBeVisible();
-    await expect(workspace.getByText('火水', { exact: true })).toBeVisible();
-    await expect(workspace.getByText('动爻: 2爻', { exact: true })).toBeVisible();
-    await expect(workspace.getByText('大凶', { exact: true })).toBeVisible();
-    await expect(workspace.getByText('用克体，受阻')).toBeVisible();
-    await expect(workspace.getByText('策略：守——受制之象，宜静观待变')).toBeVisible();
-    await expect(workspace.getByText('卦德', { exact: true })).toBeVisible();
-    await expect(workspace.getByText('错卦：')).toBeVisible();
-    await expect(workspace.getByText('综卦：')).toBeVisible();
+    await expect(workspace.getByText('数字起卦', { exact: true }).first()).toBeVisible();
+    await expect(workspace.getByText('火地', { exact: true }).first()).toBeVisible();
+    await expect(workspace.getByText('第2爻', { exact: true }).first()).toBeVisible();
+    await expect(workspace.getByText('体生用', { exact: true }).first()).toBeVisible();
+    await expect(workspace.getByText('本卦 · 互卦 · 变卦', { exact: true })).toBeVisible();
 
     await expectNoHorizontalOverflow(page);
   });
