@@ -9,11 +9,13 @@ import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { MeihuaChart } from '@/components/shared/MeihuaChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
+import { validateDivinationClaims, type DivinationPresentationClaim } from '@/legacy/claimVerification/divinationClaimVerifier';
 import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
-import { toUserPresentation } from '@/legacy/reportLayers';
+import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import type { ToolEnvelope } from '@/engine-api/types';
 import { useBirth } from '@/lib/birthContext';
-import { MEIHUA_INTENT_EVENT, type MeihuaIntentDetail } from '@/lib/commandIntents';
+import type { ModuleId } from '@/lib/modules';
+import { dispatchReaderSearchIntent, MEIHUA_INTENT_EVENT, type MeihuaIntentDetail } from '@/lib/commandIntents';
 
 type CastMethod = 'time' | 'number' | 'yarrow';
 
@@ -29,7 +31,19 @@ function parseNumber(value: string): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-export function MeihuaWorkspace() {
+export function createMeihuaFactChecks(data: MeihuaData): StructuredFactCheck[] {
+  const claims: Array<{ claim: DivinationPresentationClaim; label: string; value: string }> = [
+    { claim: { tool: 'cast_meihua', kind: 'hexagram', field: 'classicalName', value: data.classicalHexagramName }, label: '本卦', value: data.classicalHexagramName },
+    { claim: { tool: 'cast_meihua', kind: 'hexagram', field: 'changedClassicalName', value: data.changingClassicalHexagramName }, label: '变卦', value: data.changingClassicalHexagramName },
+    { claim: { tool: 'cast_meihua', kind: 'yao', field: 'changingLine', value: data.changingLine }, label: '动爻', value: `第${data.changingLine}爻` },
+  ];
+  return claims.map(({ claim, label, value }) => ({
+    fact: { label, value, tool: 'cast_meihua' },
+    validation: validateDivinationClaims('cast_meihua', data, [claim]),
+  }));
+}
+
+export function MeihuaWorkspace({ onSelectModule }: { onSelectModule?: (id: ModuleId) => void }) {
   const { solarBirth } = useBirth();
   const [method, setMethod] = useState<CastMethod>('time');
   const [numberA, setNumberA] = useState('3');
@@ -67,9 +81,11 @@ export function MeihuaWorkspace() {
     }
   }, [input]);
 
+  const factChecks = useMemo(() => envelope?.ok ? createMeihuaFactChecks(envelope.data) : [], [envelope]);
   const presentation = useMemo(() => envelope ? toUserPresentation(envelope, {
+    factChecks,
     disclaimers: ['梅花易数为传统文化观察参考，不作为现实决策依据。'],
-  }) : null, [envelope]);
+  }) : null, [envelope, factChecks]);
   const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
     moduleId: 'meihua',
     inputSummary: '本次已按所选起卦方式完成梅花易数参考；报告不保留具体数字或出生资料。',
@@ -86,11 +102,27 @@ export function MeihuaWorkspace() {
   const contextPayload = useMemo(() => ({
     项目: '梅花易数',
     起卦方式: data?.sourceMethod,
-    本卦: data?.hexagramName,
-    变卦: data?.changingHexagramName,
+    本卦: data?.classicalHexagramName,
+    变卦: data?.changingClassicalHexagramName,
     动爻: data?.changingLine,
     体用关系: data?.bodyUseRelation,
   }), [data]);
+
+  function openClassicalReading() {
+    if (!envelope?.ok || !data) return;
+    onSelectModule?.('reader');
+    window.setTimeout(() => dispatchReaderSearchIntent({
+      term: data.classicalHexagramName,
+      iching: {
+        hexagramName: data.classicalHexagramName,
+        hexagramNumber: data.hexagramNumber,
+        changingHexagramName: data.changingClassicalHexagramName,
+        changingHexagramNumber: data.changingHexagramNumber,
+        changingLines: [data.changingLine],
+      },
+      raw: '本次梅花易数起卦结果',
+    }), 0);
+  }
 
   if (presentation?.state === 'error' || !data) {
     return <section className="space-y-4"><LoadingSkeleton label="正在排盘" /></section>;
@@ -141,13 +173,17 @@ export function MeihuaWorkspace() {
           )}
 
           <InterpretationCard title="卦象概要" badge={data.sourceMethod} items={[
-            { label: '本卦', value: data.hexagramName },
-            { label: '变卦', value: data.changingHexagramName },
+            { label: '本卦', value: data.classicalHexagramName },
+            { label: '变卦', value: data.changingClassicalHexagramName },
             { label: '动爻', value: `第${data.changingLine}爻` },
             { label: '体卦', value: data.bodyTrigram },
             { label: '用卦', value: data.useTrigram },
             { label: '体用', value: data.bodyUseRelation },
           ]} />
+
+          <button type="button" onClick={openClassicalReading} className="w-full rounded-card border border-jade-500/35 bg-jade-500/10 px-4 py-2.5 text-sm font-medium text-jade-100 transition hover:border-jade-500/60 hover:bg-jade-500/16">
+            阅读本次关联《周易》原文
+          </button>
 
           {presentation && presentation.report && (
             <div className="console-panel rounded-panel border border-jade-500/16 bg-ink-950/90 p-4 shadow-instrument">

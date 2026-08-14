@@ -69,6 +69,13 @@ export interface MeihuaIntentDetail {
 export interface ReaderSearchIntentDetail {
   term: string;
   citationId?: string;
+  iching?: {
+    hexagramName: string;
+    hexagramNumber: number;
+    changingHexagramName?: string;
+    changingHexagramNumber?: number;
+    changingLines: number[];
+  };
   raw: string;
 }
 

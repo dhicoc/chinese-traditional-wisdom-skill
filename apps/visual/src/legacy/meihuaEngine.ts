@@ -14,7 +14,7 @@
  */
 
 import type { ToolEnvelope, ExportSnapshot } from './baseTypes';
-import { getHexagramText } from './ichingTexts';
+import { getHexagramText, resolveHexagram } from './ichingTexts';
 
 // ── 八卦基础 ──────────────────────────────────────────────
 
@@ -205,7 +205,11 @@ export interface MeihuaResult {
   cuoTrigram: { upper: string; lower: string; name: string };
   zongTrigram: { upper: string; lower: string; name: string };
   hexagramName: string;
+  hexagramNumber: number;
+  classicalHexagramName: string;
   changingHexagramName: string;
+  changingHexagramNumber: number;
+  changingClassicalHexagramName: string;
   sourceMethod: string;
   numbers: { year: number; month: number; day: number; hourNumber: number; source: string };
   engineName: string;
@@ -241,6 +245,9 @@ function buildMeihuaResult(
   const useTrigram = movingLine <= 3 ? lower : upper;
   const hexagramName = MEIHUA_NATURE[upper].nature + MEIHUA_NATURE[lower].nature;
   const changedHexagramName = MEIHUA_NATURE[changedUpper].nature + MEIHUA_NATURE[changedLower].nature;
+  const canonicalHexagram = resolveHexagram(upper, lower);
+  const changedCanonicalHexagram = resolveHexagram(changedUpper, changedLower);
+  if (!canonicalHexagram || !changedCanonicalHexagram) throw new Error('未能识别六十四卦。');
   const relation = getBodyUseRelation(bodyTrigram, useTrigram);
   const fortune = MEIHUA_FORTUNE_LEVEL[relation] || { level: '—', detail: '' };
   const strategy = MEIHUA_STRATEGY[relation] || '';
@@ -264,7 +271,11 @@ function buildMeihuaResult(
     cuoTrigram: { upper: cuoUpper, lower: cuoLower, name: MEIHUA_NATURE[cuoUpper].nature + MEIHUA_NATURE[cuoLower].nature },
     zongTrigram: { upper: zong.upper, lower: zong.lower, name: MEIHUA_NATURE[zong.upper].nature + MEIHUA_NATURE[zong.lower].nature },
     hexagramName,
+    hexagramNumber: canonicalHexagram.number,
+    classicalHexagramName: canonicalHexagram.name,
     changingHexagramName: changedHexagramName,
+    changingHexagramNumber: changedCanonicalHexagram.number,
+    changingClassicalHexagramName: changedCanonicalHexagram.name,
     sourceMethod: sourceLabel,
     numbers,
     engineName: 'LocalMeihuaTimeAdapter',
@@ -297,7 +308,6 @@ export function calculateMeihua(input: MeihuaInput, solar?: SolarLike | null): M
     const numbers = { year: 0, month: 0, day: 0, hourNumber: 0, source: '揲蓍法：大衍五十策三变一爻' };
     let s = Math.abs(seed) % 233280;
     const rng = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
-    const trigramOrder = ['乾', '兑', '离', '震', '巽', '坎', '艮', '坤'];
     const lines: number[] = []; // 每爻 6/7/8/9
     for (let yao = 0; yao < 6; yao++) {
       let sticks = 49;
@@ -317,14 +327,12 @@ export function calculateMeihua(input: MeihuaInput, solar?: SolarLike | null): M
     const upperLines = lines.slice(3).map(v => v === 7 || v === 9);
     const changingIdx = lines.findIndex(v => v === 6 || v === 9); // 第一个动爻
     const movingLine = changingIdx >= 0 ? changingIdx + 1 : 1;
-    // 八卦序：乾1兑2离3震4巽5坎6艮7坤8
-    const lowerBits = lowerLines.map(b => b ? '1' : '0').join('');
-    const upperBits = upperLines.map(b => b ? '1' : '0').join('');
-    const lowerIdx = parseInt(lowerBits, 2) || 8; // 000=坤=8
-    const upperIdx = parseInt(upperBits, 2) || 8;
+    const trigramFromYangLines = (yangLines: boolean[]) => trigramFromLines(yangLines.map((yang) => !yang));
+    const lower = trigramFromYangLines(lowerLines);
+    const upper = trigramFromYangLines(upperLines);
     return buildMeihuaResult(
-      upperIdx === 0 ? 7 : upperIdx - 1,
-      lowerIdx === 0 ? 7 : lowerIdx - 1,
+      MEIHUA_TRIGRAMS.indexOf(upper) + 1,
+      MEIHUA_TRIGRAMS.indexOf(lower) + 1,
       movingLine, birth, '揲蓍法', numbers, 'local',
     );
   }
@@ -359,11 +367,10 @@ export function calcMeihuaEnveloped(input: MeihuaInput, solar?: SolarLike | null
   const result = calculateMeihua(input, solar);
   const upper = result.upperTrigram;
   const lower = result.lowerTrigram;
-  // 查古典文本
-  const classicalText = getHexagramText(result.hexagramName);
+  const classicalText = getHexagramText(result.classicalHexagramName);
   const sections: Array<{ heading: string; body: string }> = [
-    { heading: '本卦', body: `上卦${upper.name}(${upper.nature}/${upper.element})、下卦${lower.name}(${lower.nature}/${lower.element})，成卦${result.hexagramName}。` },
-    { heading: '动爻与变卦', body: `${result.changingLine}爻动，变卦${result.changingHexagramName}。动爻在上卦则下卦为体、上卦为用；动爻在下卦则上卦为体、下卦为用。` },
+    { heading: '本卦', body: `上卦${upper.name}(${upper.nature}/${upper.element})、下卦${lower.name}(${lower.nature}/${lower.element})，成卦${result.classicalHexagramName}。` },
+    { heading: '动爻与变卦', body: `${result.changingLine}爻动，变卦${result.changingClassicalHexagramName}。动爻在上卦则下卦为体、上卦为用；动爻在下卦则上卦为体、下卦为用。` },
     { heading: '体用生克', body: `体卦${result.bodyTrigram}（${result.bodyGuaDe}），用卦${result.useTrigram}（${result.useGuaDe}），关系${result.bodyUseRelation}。${result.fortuneDetail}` },
     { heading: '策略指导', body: result.strategy || '—' },
     { heading: '互卦/错综', body: `互卦${result.mutualUpper.name}${result.mutualLower.name}（中间过程）；错卦${result.cuoTrigram.name}、综卦${result.zongTrigram.name}（反观参考）。` },

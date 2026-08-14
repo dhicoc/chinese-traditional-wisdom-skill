@@ -16,6 +16,8 @@ describe('calculateMeihua 纯 TS 计算', () => {
     expect(r.upperTrigram.name).toBe('离');
     expect(r.lowerTrigram.name).toBe('坤');
     expect(r.changingLine).toBe(2);
+    expect(r.classicalHexagramName).toBe('晋');
+    expect(r.hexagramNumber).toBe(35);
     expect(r.sourceMethod).toBe('数字起卦');
     expect(r.mode).toBe('local'); // 数字起卦不依赖 solar
   });
@@ -89,7 +91,7 @@ describe('calcMeihuaEnveloped envelope 适配', () => {
     const data = env.data as { hexagramName: string; export_snapshot: { summary: string; sections: Array<{ heading: string }> } };
     expect(data.hexagramName).toBeTruthy();
     expect(data.export_snapshot.summary).toContain('爻动');
-    expect(data.export_snapshot.sections.length).toBeGreaterThanOrEqual(5);
+    expect(data.export_snapshot.sections.length).toBeGreaterThanOrEqual(8);
     expect(env.warnings?.length).toBeGreaterThanOrEqual(1); // confidenceNote
   });
 

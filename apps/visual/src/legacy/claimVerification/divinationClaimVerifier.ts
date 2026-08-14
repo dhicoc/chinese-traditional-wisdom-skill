@@ -19,7 +19,8 @@ export type DivinationPresentationClaim =
   | { tool: 'cast_liuyao'; kind: 'hexagram'; field: 'name' | 'changedName' | 'palace' | 'palaceElement' | 'dayGanZhi' | 'monthGanZhi'; value: string }
   | { tool: 'cast_liuyao'; kind: 'yao'; field: 'shiYao' | 'yingYao'; value: number }
   | { tool: 'cast_liuyao'; kind: 'yao'; field: 'changingYao'; value: string }
-  | { tool: 'cast_meihua'; kind: 'hexagram'; field: 'name' | 'changedName' | 'bodyTrigram' | 'useTrigram' | 'bodyUseRelation'; value: string }
+  | { tool: 'cast_meihua'; kind: 'hexagram'; field: 'name' | 'changedName' | 'classicalName' | 'changedClassicalName' | 'bodyTrigram' | 'useTrigram' | 'bodyUseRelation'; value: string }
+  | { tool: 'cast_meihua'; kind: 'hexagram'; field: 'number' | 'changedNumber'; value: number }
   | { tool: 'cast_meihua'; kind: 'yao'; field: 'changingLine'; value: number }
   | { tool: 'cast_meihua'; kind: 'trigram'; position: 'upper' | 'lower'; field: 'name' | 'nature' | 'element'; value: string }
   | { tool: 'arrange_qimen'; kind: 'basic'; field: 'dun' | 'ju' | 'yuan' | 'season' | 'monthElement'; value: string }
@@ -105,6 +106,10 @@ function getExpectedValue(data: DivinationData, claim: DivinationPresentationCla
       if (claim.kind === 'hexagram') {
         if (claim.field === 'name') return result.hexagramName;
         if (claim.field === 'changedName') return result.changingHexagramName;
+        if (claim.field === 'classicalName') return result.classicalHexagramName;
+        if (claim.field === 'changedClassicalName') return result.changingClassicalHexagramName;
+        if (claim.field === 'number') return result.hexagramNumber;
+        if (claim.field === 'changedNumber') return result.changingHexagramNumber;
         return result[claim.field];
       }
       if (claim.kind === 'yao') return result.changingLine;

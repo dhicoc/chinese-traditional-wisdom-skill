@@ -11,13 +11,15 @@ import type { LiuyaoData } from '@/legacy/canvasRenderers';
 import type { LiuyaoLine } from '@/legacy/divinationTypes';
 import { calcLiuyaoEnveloped, type LiuyaoData as EngineLiuyaoData, type LiuyaoInput } from '@/engine-api/divination';
 import { validateDivinationClaims, type DivinationPresentationClaim } from '@/legacy/claimVerification/divinationClaimVerifier';
+import { getCanonicalHexagram } from '@/legacy/ichingTexts';
 import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
 import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import type { ToolEnvelope } from '@/engine-api/types';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
 import { useBirth } from '@/lib/birthContext';
-import { LIUYAO_INTENT_EVENT, type LiuyaoIntentDetail } from '@/lib/commandIntents';
+import type { ModuleId } from '@/lib/modules';
+import { dispatchReaderSearchIntent, LIUYAO_INTENT_EVENT, type LiuyaoIntentDetail } from '@/lib/commandIntents';
 
 type CastMethod = 'coin' | 'time' | 'manual' | 'yarrow';
 
@@ -94,7 +96,7 @@ export function createLiuyaoFactChecks(data: EngineLiuyaoData): StructuredFactCh
   }));
 }
 
-export function LiuyaoWorkspace() {
+export function LiuyaoWorkspace({ onSelectModule }: { onSelectModule?: (id: ModuleId) => void }) {
   const { solarBirth } = useBirth();
   const [method, setMethod] = useState<CastMethod>('coin');
   const [question, setQuestion] = useState('');
@@ -175,6 +177,26 @@ export function LiuyaoWorkspace() {
 
   const isReal = envelope?.ok ?? false;
   const palaceSummary = result?.palace ? `${result.palace} · 五行${result.palaceElement ?? '?'}` : '—';
+
+  function openClassicalReading() {
+    if (!envelope?.ok) return;
+    const data = envelope.data;
+    const hexagram = getCanonicalHexagram(data.hexagramNumber);
+    const changingHexagram = getCanonicalHexagram(data.changingHexagramNumber);
+    if (!hexagram || !changingHexagram) return;
+    onSelectModule?.('reader');
+    window.setTimeout(() => dispatchReaderSearchIntent({
+      term: hexagram.name,
+      iching: {
+        hexagramName: hexagram.name,
+        hexagramNumber: hexagram.number,
+        changingHexagramName: changingHexagram.name,
+        changingHexagramNumber: changingHexagram.number,
+        changingLines: data.changingYao,
+      },
+      raw: '本次六爻起卦结果',
+    }), 0);
+  }
 
   const contextPayload = useMemo(
     () => ({
@@ -293,6 +315,12 @@ export function LiuyaoWorkspace() {
               ...(result.shenYao ? [{ label: '身爻', value: `第${result.shenYao}爻` }] : []),
             ]}
           />
+
+          {envelope?.ok && (
+            <button type="button" onClick={openClassicalReading} className="w-full rounded-card border border-jade-500/35 bg-jade-500/10 px-4 py-2.5 text-sm font-medium text-jade-100 transition hover:border-jade-500/60 hover:bg-jade-500/16">
+              阅读本次关联《周易》原文
+            </button>
+          )}
 
           {/* 伏神 */}
           {result.hiddenStars && result.hiddenStars.length > 0 && (

@@ -16,6 +16,10 @@ const { calcMeihuaEnveloped } = vi.hoisted(() => ({
     bodyTrigram: '离',
     useTrigram: '坤',
     bodyUseRelation: '体生用',
+    hexagramNumber: 35,
+    classicalHexagramName: '晋',
+    changingHexagramNumber: 56,
+    changingClassicalHexagramName: '旅',
     fortuneLevel: '不利',
     fortuneDetail: '引擎结果',
     strategy: '引擎策略',
@@ -67,5 +71,14 @@ describe('MeihuaWorkspace', () => {
     );
     expect(screen.getAllByText('数字3/5').length).toBeGreaterThan(0);
     expect(screen.getByText('引擎导出摘要')).toBeInTheDocument();
+  });
+
+  it('仅以同次成功引擎结果打开关联周易原文', () => {
+    const onSelectModule = vi.fn();
+    render(<MeihuaWorkspace onSelectModule={onSelectModule} />);
+
+    fireEvent.click(screen.getByRole('button', { name: '阅读本次关联《周易》原文' }));
+
+    expect(onSelectModule).toHaveBeenCalledWith('reader');
   });
 });

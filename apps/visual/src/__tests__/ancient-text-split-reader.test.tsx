@@ -59,4 +59,27 @@ describe('AncientTextSplitReader', () => {
     expect(screen.queryByText(createKnowledgeCitationId('03-yang-house/八宅明镜.md'))).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '古籍原文' })).toBeInTheDocument();
   });
+
+  it('按本次起卦结果展示周易本卦动爻与变卦原文', () => {
+    dispatchReaderSearchIntent({
+      term: '晋',
+      iching: {
+        hexagramName: '晋',
+        hexagramNumber: 35,
+        changingHexagramName: '旅',
+        changingHexagramNumber: 56,
+        changingLines: [2],
+      },
+      raw: '本次起卦结果',
+    });
+
+    render(<AncientTextSplitReader />);
+
+    expect(screen.getByRole('heading', { name: '本次起卦关联原文' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '本卦 · 晋' })).toBeInTheDocument();
+    expect(screen.getByText('第2爻爻辞')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '变卦 · 旅' })).toBeInTheDocument();
+    expect(document.body.textContent).not.toContain('kb://');
+    expect(document.body.textContent).not.toContain('.json');
+  });
 });
