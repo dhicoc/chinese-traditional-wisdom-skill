@@ -71,17 +71,31 @@ const successCases: SuccessCase[] = [
   {
     tool: 'bazi_calculate',
     name: 'bazi_calculate.transit.success.json',
-    assert: (result) => expect(result).toMatchObject({ ok: true, input_normalized: { transitDate: '2025-07-15' }, data: { transit: { targetDate: '2025-07-15', available: true, minor: { nominalAge: 36 } } } }),
+    assert: (result) => expect(result).toMatchObject({
+      ok: true,
+      input_normalized: { transitDate: '2025-07-15' },
+      data: { transit: { targetDate: '2025-07-15', available: true, minor: { nominalAge: 36 } } },
+      result_meta: { calculationConfig: { shenShaTrineSource: 'year', dynamicLayer: { enabled: true, targetDate: '2025-07-15', minorFortuneAgeBasis: 'nominal-age' } } },
+    }),
   },
   {
     tool: 'bazi_calculate',
     name: 'bazi_calculate.transit.boundary.json',
-    assert: (result) => expect(result).toMatchObject({ ok: true, input_normalized: { transitDate: '2026-02-04' }, data: { transit: { targetDate: '2026-02-04', available: true } } }),
+    assert: (result) => expect(result).toMatchObject({
+      ok: true,
+      input_normalized: { transitDate: '2026-02-04' },
+      data: { transit: { targetDate: '2026-02-04', available: true } },
+      result_meta: { calculationConfig: { shenShaTrineSource: 'day', dynamicLayer: { enabled: true, targetDate: '2026-02-04', minorFortuneAgeBasis: 'nominal-age' } } },
+    }),
   },
   {
     tool: 'ziwei_chart',
     name: 'ziwei_chart.success.json',
-    assert: (result) => expect(result).toMatchObject({ ok: true, data: { mode: 'local-exact', birthInfo: { gender: '男' } } }),
+    assert: (result) => expect(result).toMatchObject({
+      ok: true,
+      data: { mode: 'local-exact', birthInfo: { gender: '男' } },
+      result_meta: { calculationConfig: { transit: { year: 2025, month: 7, day: 15 }, hourRule: '23:00-23:59=>early-zi', palaceNameNormalization: '仆役→交友', enabledDynamicLayers: ['decadal', 'yearly', 'monthly', 'age'] } },
+    }),
   },
   {
     tool: 'ziwei_chart',
