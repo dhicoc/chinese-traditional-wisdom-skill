@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { HistoryStore, HISTORY_SCHEMA_VERSION } from '@/legacy/historyStore';
 
 const HISTORY_KEY = 'FORTUNE_HISTORY';
@@ -82,5 +82,38 @@ describe('HistoryStore', () => {
     });
     expect([entry.title, entry.summary, ...entry.tags].join('\n')).not.toMatch(/王五|上海市|浦东新区|1990[/-]06[/-]15/);
     expect(favorite).toEqual(entry);
+  });
+
+  it('按版本迁移 v1 条目的报告元信息', () => {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify([{
+      id: 'v1-entry',
+      module: 'bazi',
+      title: '八字命盘',
+      summary: '已保存摘要。',
+      tags: [],
+      mode: 'local-exact',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      favorite: false,
+      schemaVersion: 1,
+      reportVersion: '0.9',
+      inputSummary: '旧版安全摘要',
+    }]));
+
+    expect(HistoryStore.list()).toMatchObject([{
+      id: 'v1-entry',
+      schemaVersion: HISTORY_SCHEMA_VERSION,
+      reportVersion: '0.9',
+      capabilityMode: 'local-exact',
+      inputSummary: '旧版安全摘要',
+    }]);
+  });
+
+  it('读取 localStorage 受限时安全返回空历史', () => {
+    const getItem = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new DOMException('Blocked', 'SecurityError');
+    });
+
+    expect(HistoryStore.list()).toEqual([]);
+    getItem.mockRestore();
   });
 });

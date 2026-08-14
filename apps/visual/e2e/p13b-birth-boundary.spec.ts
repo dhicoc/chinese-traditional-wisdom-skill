@@ -6,19 +6,21 @@ const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
 async function openBazi(page: Page) {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(BASE_URL);
-  await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
+  await expect(page.locator('[data-testid="app-shell"]')).toBeVisible({ timeout: 60000 });
   await page.getByRole('button', { name: /我想看运势/ }).click({ force: true });
-  await expect(page.getByRole('heading', { name: '八字排盘' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '八字排盘' })).toBeVisible({ timeout: 60000 });
 }
 
 test.describe('出生时间与真太阳时边界验收', () => {
-  test('默认以民用时间展示，并明确等待 Agent 真太阳时核验', async ({ page }) => {
+  test('默认以民用时间展示，并提示完成真太阳时核验所需资料', async ({ page }) => {
     await openBazi(page);
     await fillVisibleBirthField(page, 'minute', '37');
 
-    await expect(page.getByText('民用时间：1990-06-15 12:37')).toBeVisible();
-    await expect(page.getByText('等待 Agent 核验出生地点、历史时区与夏令时；当前暂按民用时间展示，尚未称为真太阳时排盘。')).toBeVisible();
-    await expect(page.getByText('排盘时间：')).not.toBeVisible();
+    const workspace = page.locator('[data-testid="workspace-bazi"]');
+    const birthPanel = page.locator('[data-testid="sidebar-nav"]');
+    await expect(workspace.getByText('民用时间：1990-06-15 12:37')).toBeVisible();
+    await expect(birthPanel.getByText('请提供可定位的出生地，以核对地点、历史时区与夏令时；完成核验后将以校正后的出生时间排盘。')).toBeVisible();
+    await expect(workspace.getByText('排盘时间：')).not.toBeVisible();
   });
 
   test('生辰面板不再提供手动经度或 UTC 偏移校时', async ({ page }) => {

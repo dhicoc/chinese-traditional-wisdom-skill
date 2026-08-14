@@ -156,9 +156,7 @@ export function LiuyaoWorkspace() {
   }) : null, [envelope, factChecks]);
   const reportMetadata = useMemo(() => envelope ? createWorkspaceReportMetadata({
     moduleId: 'liuyao',
-    tool: envelope.tool,
-    version: envelope.version,
-    inputSummary: '已按所选起卦方式完成本地起卦；报告不记录占问原文。',
+    inputSummary: '本次已按所选起卦方式完成起卦参考；报告不记录占问原文。',
   }) : null, [envelope]);
   const exportPresentation = useMemo(() => presentation?.exportReport && reportMetadata ? ({
     report: presentation.exportReport,
@@ -175,7 +173,7 @@ export function LiuyaoWorkspace() {
     return { ...result, lines, isOriginal: false, hexagramName: result.changingHexagramName ?? result.hexagramName };
   }, [result]);
 
-  const isReal = result?.mode === 'local-exact' || result?.engineName === 'LocalLiuyaoNajiaAdapter';
+  const isReal = envelope?.ok ?? false;
   const palaceSummary = result?.palace ? `${result.palace} · 五行${result.palaceElement ?? '?'}` : '—';
 
   const contextPayload = useMemo(

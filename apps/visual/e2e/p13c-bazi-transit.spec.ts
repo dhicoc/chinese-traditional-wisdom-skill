@@ -22,6 +22,14 @@ test.describe('P1.3c 八字动态层联动', () => {
     await expect(workspace.getByText('动态层均按目标日期计算；本命盘保持不变。小运按虚岁定位。')).toBeVisible();
     await expect(workspace.getByText('传统文化参考：上述关系不推导事业、婚恋、健康或财富等现实结论。')).toBeVisible();
 
+    const timeline = workspace.getByRole('list', { name: '大运时间轴' });
+    await expect(timeline).toBeVisible();
+    const alternateLuck = timeline.locator('button:not([disabled]):not([aria-pressed="true"])').first();
+    await alternateLuck.click();
+    await expect(dateInput).not.toHaveValue('2025-07-15');
+    await expect(workspace.getByLabel('目标年份')).toHaveValue(/\d{4}/);
+    await dateInput.fill('2025-07-15');
+
     const natalDayPillar = await workspace.locator('table').getByRole('row').nth(2).locator('td').nth(2).textContent();
 
     const nextDay = workspace.getByRole('button', { name: '后一日' });

@@ -53,8 +53,6 @@ export function DreamWorkspace() {
   );
   const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
     moduleId: 'dream',
-    tool: 'dream_dictionary',
-    version: '1.0.0',
     inputSummary: '已按梦象分类检索民俗文化参考；不记录梦境原文或个人叙述。',
   }), []);
 

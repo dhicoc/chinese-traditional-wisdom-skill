@@ -28,7 +28,7 @@ test.describe('P1.3f 紫微斗数用户侧验收', () => {
     await workspace.getByLabel('目标年份').fill('2025');
     await workspace.getByLabel('月份').fill('7');
 
-    await expect(workspace.getByText('动态层以 2025-07-15 为查询锚点')).toBeVisible();
+    await expect(workspace.getByText('动态层以 2025-07-15 为查询日期', { exact: false })).toBeVisible();
     await expect(workspace.getByRole('heading', { name: '大限 · 流年' })).toBeVisible();
     await expect(workspace.getByText('己卯', { exact: true })).toBeVisible();
     await expect(workspace.getByText('乙巳 · 命宫落交友巳', { exact: true })).toBeVisible();

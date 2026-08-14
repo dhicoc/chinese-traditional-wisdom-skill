@@ -167,12 +167,30 @@ describe('ExportReportButton', () => {
     expect(html).toContain('流派口径可能存在差异');
   });
 
-  it('以与 Dashboard 相同的字段和顺序导出报告信息', () => {
+  it('导出报告会收束内部 warning，且不显示实现标识', () => {
+    const html = createExportReportHtml({
+      title: '测试报告',
+      generatedAt: '2026/8/7 12:00:00',
+      report: { summary: '摘要', sections: [] },
+      warnings: [
+        '已通过 lunar-javascript/Solar 全局对象读取节气干支；大运按节气余气精确起运。',
+        'engineName: internal-engine，来源 private.ts。',
+      ],
+    });
+
+    expect(html).toContain('本次推算已按传统历法口径处理，结果仅作传统文化参考。');
+    expect(html).not.toContain('lunar-javascript');
+    expect(html).not.toContain('Solar');
+    expect(html).not.toContain('engineName');
+    expect(html).not.toContain('internal-engine');
+    expect(html).not.toContain('private.ts');
+    expect(html).not.toContain('本地计算结果');
+    expect(html).toContain('本次计算结果');
+  });
+
+  it('以与 Dashboard 相同的字段和顺序导出限制与注意事项', () => {
     const reportMetadata = createReportMetadata({
-      tool: 'BaziLunarAdapter',
-      version: '0.3.0',
-      capability: { mode: 'local-exact', modeLabel: '按出生资料排盘' },
-      inputSummary: '1990年出生，男，公历',
+      inputSummary: '本次按出生资料排盘；报告不保留完整出生资料。',
       timeBasis: 'civil-unverified',
     });
     const html = createExportReportHtml({
@@ -182,13 +200,13 @@ describe('ExportReportButton', () => {
       reportMetadata,
     });
 
-    const labels = ['报告版本', '工具版本', '能力模式', '输入摘要', '时间口径'];
-    expect(html).toContain('报告信息');
-    for (let index = 1; index < labels.length; index += 1) {
-      expect(html.indexOf(labels[index - 1])).toBeLessThan(html.indexOf(labels[index]));
-    }
-    expect(html).toContain('BaziLunarAdapter@0.3.0');
+    const labels = ['本次分析说明', '时间口径'];
+    expect(html).toContain('限制与注意事项');
+    expect(html.indexOf(labels[0])).toBeLessThan(html.indexOf(labels[1]));
     expect(html).toContain('民用时间（未完成真太阳时复核）');
+    expect(html).not.toContain('BaziLunarAdapter');
+    expect(html).not.toContain('local-exact');
+    expect(html).not.toContain('@0.3.0');
   });
 
   it('未传入报告时不读取页面文本或导出内部说明', async () => {

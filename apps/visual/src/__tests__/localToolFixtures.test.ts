@@ -184,7 +184,7 @@ const successCases: SuccessCase[] = [
   {
     tool: 'calc_yunqi',
     name: 'calc_yunqi.boundary.json',
-    assert: (result) => expect(result).toMatchObject({ ok: true, data: { year: 2023, yearBoundary: expect.stringContaining('2023年运气'), liuqi: { current_step: { step: '初之气' } } } }),
+    assert: (result) => expect(result).toMatchObject({ ok: true, data: { year: 2023, yearBoundary: expect.stringContaining('2023年运气'), liuqi: { current_step: { step: '终之气' } } } }),
   },
   {
     tool: 'calc_chenguz',

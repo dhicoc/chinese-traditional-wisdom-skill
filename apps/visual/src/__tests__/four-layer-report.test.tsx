@@ -123,23 +123,19 @@ describe('FourLayerReport 渲染', () => {
     expect(screen.getAllByRole('listitem')[1].textContent).toContain('流派口径可能存在差异');
   });
 
-  it('以与导出报告相同字段和顺序显示报告信息', () => {
+  it('以与导出报告相同字段和顺序显示限制与注意事项', () => {
     const report: LayerReport = { tldr: 't', overallTone: '中', highlights: [], details: [], actions: [] };
     const reportMetadata = createReportMetadata({
-      tool: 'BaziLunarAdapter',
-      version: '0.3.0',
-      capability: { mode: 'local-exact', modeLabel: '按出生资料排盘' },
-      inputSummary: '已提供出生资料用于本地排盘。',
+      inputSummary: '本次按出生资料排盘；报告不保留完整出生资料。',
       timeBasis: 'civil-unverified',
     });
     const { container } = render(<FourLayerReport report={report} reportMetadata={reportMetadata} />);
 
-    const labels = ['报告版本', '工具版本', '能力模式', '输入摘要', '时间口径'];
-    expect(screen.getByText('报告信息')).toBeInTheDocument();
-    expect(screen.getAllByText('1.0').length).toBeGreaterThan(0);
-    expect(screen.getByText('BaziLunarAdapter@0.3.0')).toBeInTheDocument();
+    expect(screen.getByText('限制与注意事项')).toBeInTheDocument();
     expect(screen.getByText('民用时间（未完成真太阳时复核）')).toBeInTheDocument();
-    expect([...container.querySelectorAll('dt')].map((element) => element.textContent)).toEqual(labels);
+    expect(container.textContent).not.toContain('BaziLunarAdapter');
+    expect(container.textContent).not.toContain('local-exact');
+    expect([...container.querySelectorAll('dt')].map((element) => element.textContent)).toEqual(['本次分析说明', '时间口径']);
   });
 
   it('用显式语义报告渲染已核对事实与传统解释边界', () => {
@@ -161,7 +157,7 @@ describe('FourLayerReport 渲染', () => {
     expect(screen.getByText('结构化事实核对')).toBeInTheDocument();
     expect(screen.getByText('日干支')).toBeInTheDocument();
     expect(screen.getByText('甲子')).toBeInTheDocument();
-    expect(screen.getByText('以下内容已与本次本地计算结果核对；不包含传统解释、建议或现实效果判断。')).toBeInTheDocument();
+    expect(screen.getByText('以下内容已与本次推算结果核对；不包含传统解释、建议或现实效果判断。')).toBeInTheDocument();
     expect(screen.getByText('免责声明')).toBeInTheDocument();
     expect(screen.getByText('查看传统解释')).toBeInTheDocument();
     expect(screen.getAllByText((_, element) => element?.textContent === '· 仅作传统文化参考。').length).toBeGreaterThan(0);

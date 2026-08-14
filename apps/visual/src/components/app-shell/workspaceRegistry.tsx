@@ -27,7 +27,6 @@ export const WORKSPACE_COMPONENTS: Partial<Record<ModuleId, WorkspaceComponent>>
   feixing: lazy(() => import('@/features/feixing/FeixingWorkspace').then((m) => ({ default: m.FeixingWorkspace }))),
   bazhai: lazy(() => import('@/features/bazhai/BazhaiWorkspace').then((m) => ({ default: m.BazhaiWorkspace }))),
   fengshui: lazy(() => import('@/features/fengshui/FengshuiWorkspace').then((m) => ({ default: m.FengshuiWorkspace }))),
-  testing: lazy(() => import('@/features/testing/TestRunnerConsole').then((m) => ({ default: m.TestRunnerConsole }))),
   reader: lazy(() => import('@/features/knowledge/AncientTextSplitReader').then((m) => ({ default: m.AncientTextSplitReader }))),
   history: lazy(() => import('@/features/history/HistoryPanel').then((m) => ({ default: m.HistoryWorkspace }))),
   // 日用工具扩展 (v0.4)

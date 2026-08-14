@@ -12,9 +12,16 @@ Thumbs.db
 # Node
 node_modules/
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
 
 # Vite / TypeScript build artifacts
 dist/
+coverage/
+.vite/
+.cache/
 *.tsbuildinfo
 vite.config.d.ts
 vite.config.js
@@ -30,20 +37,28 @@ venv/
 .env
 .env.local
 
-# WorkBuddy agent state (local only, not project code)
+# Local agent state (not project code)
+.agents/
+.claude/
+.codex/
+.gstack/
+.inscode/
+.qwen/
 .workbuddy/
+.worktrees/
+.playwright-mcp/
+.impeccable.md
 
-# Local UI dev artifacts / logs / screenshots / test reports
+# Local UI dev artifacts / screenshots / test reports
 *.png
 apps/visual/_final-*.png
 apps/visual/playwright-report*/
 apps/visual/test-results*/
 apps/visual/pw_*.log
-artifacts/tmp/
-.playwright-mcp/
-prototype/
 apps/visual/.playwright-cli/
-.qwen/
+artifacts/tmp/
+prototype/
 
-.gstack/
-.worktrees/
+# Local conversation exports and attachments
+attachments/
+qwen-code-export-*.md

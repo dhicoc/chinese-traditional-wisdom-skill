@@ -14,4 +14,18 @@ describe('八字术语说明', () => {
     expect(hasTermExplanation(term)).toBe(true);
     expect(explainTerm(term)).not.toBe('暂无该术语的解释');
   });
+
+  it('太一天符说明其天符与岁会同时成立的传统运气格局', () => {
+    const explanation = explainTerm('太一天符');
+
+    expect(hasTermExplanation('太一天符')).toBe(true);
+    expect(explanation).toContain('《素问·六微旨大论》');
+    expect(explanation).toContain('天符岁会');
+    expect(explanation).toContain('天符与岁会同时成立');
+    expect(explanation).toContain('传统文化与气候病机理论学习参考');
+    expect(explanation).toContain('不构成医学诊断或治疗建议');
+    expect(explanation).not.toContain('太乙天符');
+    expect(explanation).not.toContain('贵人');
+    expect(explanation).not.toContain('属于医学诊断');
+  });
 });

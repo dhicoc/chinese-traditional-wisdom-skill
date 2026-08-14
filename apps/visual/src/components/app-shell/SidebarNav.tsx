@@ -31,13 +31,13 @@ export function SidebarNav(_props: SidebarNavProps) {
       <div className="mt-auto shrink-0 pt-3">
         <div className="rounded-card border border-jade-500/12 bg-black/20 p-2.5">
           <div className="flex items-center justify-between text-[11px] text-jade-100/55">
-            <span>本地坛场</span>
+            <span>隐私保护</span>
             <span className="flex items-center gap-1 text-jade-400">
               <span className="h-1.5 w-1.5 rounded-full bg-jade-400" />
-              已就绪
+              已启用
             </span>
           </div>
-          <p className="mt-1.5 text-[11px] leading-5 text-jade-100/35">不上传完整生辰，所有排盘在本地完成。</p>
+          <p className="mt-1.5 text-[11px] leading-5 text-jade-100/35">不上传完整生辰资料，分析过程仅在您的设备中完成。</p>
         </div>
       </div>
     </aside>

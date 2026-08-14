@@ -69,9 +69,7 @@ export function NamewuxingWorkspace() {
   );
   const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
     moduleId: 'namewuxing',
-    tool: 'name_wuxing',
-    version: '1.0.0',
-    inputSummary: `已完成输入文字的本地五行与笔画结构分析；八字加权：${useBaziBoost ? '已启用' : '未启用'}；报告不记录姓名原文。`,
+    inputSummary: `已完成输入文字的五行与笔画结构分析；八字加权：${useBaziBoost ? '已启用' : '未启用'}；报告不记录姓名原文。`,
   }), [useBaziBoost]);
 
   return (

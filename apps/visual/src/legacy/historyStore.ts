@@ -45,7 +45,31 @@ function redactSensitiveText(value: string): string {
     .replace(/(?:[\u4e00-\u9fff]{2,}(?:省|自治区|特别行政区))?[\u4e00-\u9fff]{2,}市[\u4e00-\u9fff]{2,}(?:区|县|镇|乡|街道)/g, '地点已脱敏');
 }
 
-function sanitize(entry: Partial<HistoryEntry>): HistoryEntry {
+function migrateHistoryEntry(entry: Partial<HistoryEntry>): Partial<HistoryEntry> {
+  const schemaVersion = typeof entry.schemaVersion === 'number' && Number.isInteger(entry.schemaVersion)
+    ? entry.schemaVersion
+    : 0;
+  if (schemaVersion <= 0) {
+    return {
+      ...entry,
+      schemaVersion: 1,
+      reportVersion: entry.reportVersion || 'unknown',
+      capabilityMode: entry.capabilityMode || entry.mode || 'unknown',
+      inputSummary: entry.inputSummary || '未提供',
+    };
+  }
+  if (schemaVersion === 1) {
+    return {
+      ...entry,
+      schemaVersion: HISTORY_SCHEMA_VERSION,
+      capabilityMode: entry.capabilityMode || entry.mode || 'unknown',
+      inputSummary: entry.inputSummary || '未提供',
+    };
+  }
+  return entry;
+}
+
+function sanitizeHistoryEntry(entry: Partial<HistoryEntry>): HistoryEntry {
   const mode = String(entry.mode || 'unknown').slice(0, 20);
   return {
     id: entry.id || generateId(),
@@ -73,8 +97,14 @@ function setEntries(key: string, entries: HistoryEntry[]): void {
 
 function getEntries(key: string): HistoryEntry[] {
   if (typeof localStorage === 'undefined') return [];
-  const original = safeParse(localStorage.getItem(key));
-  const sanitized = original.map(sanitize);
+  let original: Partial<HistoryEntry>[];
+  try {
+    original = safeParse(localStorage.getItem(key));
+  } catch {
+    return [];
+  }
+  const migrated = original.map(migrateHistoryEntry);
+  const sanitized = migrated.map(sanitizeHistoryEntry);
   if (JSON.stringify(original) !== JSON.stringify(sanitized)) setEntries(key, sanitized);
   return sanitized;
 }
@@ -84,7 +114,7 @@ function getHistory(): HistoryEntry[] {
 }
 
 function setHistory(entries: HistoryEntry[]): void {
-  setEntries(HISTORY_KEY, entries.map(sanitize));
+  setEntries(HISTORY_KEY, entries.map(sanitizeHistoryEntry));
 }
 
 function getFavorites(): HistoryEntry[] {
@@ -92,7 +122,7 @@ function getFavorites(): HistoryEntry[] {
 }
 
 function setFavorites(entries: HistoryEntry[]): void {
-  setEntries(FAVORITES_KEY, entries.map(sanitize));
+  setEntries(FAVORITES_KEY, entries.map(sanitizeHistoryEntry));
 }
 
 function syncFavorites(history: HistoryEntry[]): void {
@@ -103,7 +133,7 @@ function syncFavorites(history: HistoryEntry[]): void {
 export const HistoryStore = {
   add(entry: Partial<HistoryEntry>): HistoryEntry | null {
     if (!entry?.module) return null;
-    const clean = sanitize(entry);
+    const clean = sanitizeHistoryEntry(entry);
     let history = getHistory();
     const existingIdx = history.findIndex((item) => item.module === clean.module && item.title === clean.title);
     if (existingIdx >= 0) {

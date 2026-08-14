@@ -63,7 +63,7 @@ export function ChenguzWorkspace() {
   }, [solarBirth, versionId]);
   const factChecks = useMemo(() => envelope.ok ? createChenguzFactChecks(envelope.data) : [], [envelope]);
   const presentation = useMemo(() => toUserPresentation(envelope, { factChecks, disclaimers: ['称骨结果仅作传统民俗文化学习参考，不作为现实决策依据。'] }), [envelope, factChecks]);
-  const reportMetadata = useMemo(() => createWorkspaceReportMetadata({ moduleId: 'chenguz', tool: envelope.tool, version: envelope.version, inputSummary: '已按选定民间版本完成本地称骨计算；不保留出生资料。' }), [envelope.tool, envelope.version]);
+  const reportMetadata = useMemo(() => createWorkspaceReportMetadata({ moduleId: 'chenguz', inputSummary: '本次按选定民间版本完成称骨参考；报告不保留出生资料。' }), []);
   const exportPresentation = useMemo(() => presentation.exportReport ? ({
     report: createChenguzExportReport({ source: presentation.exportReport }),
     notices: presentation.notices,

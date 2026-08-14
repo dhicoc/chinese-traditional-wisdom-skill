@@ -92,9 +92,7 @@ export function BazhaiWorkspace() {
   }), [combo, compatibility, facing, flowYear, gender, houseGua, menZhuZao, personalDirs, sectorAnalysis, summary, taisui, year]);
   const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
     moduleId: 'bazhai',
-    tool: 'bazhai_dayou_nian',
-    version: '1.0.0',
-    inputSummary: '已生成本地八宅方位参考；报告不保留具体年份、出生资料、房屋坐向或其他原始输入。',
+    inputSummary: '已生成八宅方位参考；报告不保留具体年份、出生资料、房屋坐向或其他原始输入。',
   }), []);
 
   return (

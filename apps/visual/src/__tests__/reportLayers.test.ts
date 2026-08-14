@@ -96,12 +96,12 @@ describe('toFourLayer 六爻归类', () => {
 });
 
 describe('toFourLayer 五运六气归类', () => {
-  it('岁运/司天在泉归 details，疾病倾向归 details', () => {
+  it('岁运/司天在泉归 details，气候与调养观察归 details', () => {
     const env = calcYunqiEnveloped({ year: 2024, currentMonth: 6 });
     const report = toFourLayer(snapshotOf(env));
     expect(report.details.some((d) => d.heading === '岁运')).toBe(true);
     expect(report.details.some((d) => d.heading === '司天在泉')).toBe(true);
-    expect(report.details.some((d) => d.heading === '疾病倾向')).toBe(true);
+    expect(report.details.some((d) => d.heading === '气候与调养观察')).toBe(true);
   });
 });
 
@@ -196,6 +196,24 @@ describe('toUserPresentation 用户呈现适配', () => {
     });
     expect(presentation.exportReport).not.toHaveProperty('sourceNotes');
     expect(presentation.semanticReport?.facts).toEqual([]);
+  });
+
+  it('将内部实现 warning 收束为用户可读的传统历法说明', () => {
+    const presentation = toUserPresentation({
+      ok: true,
+      data: { export_snapshot: { summary: '摘要', sections: [] } },
+      warnings: [
+        '已通过 lunar-javascript/Solar 全局对象读取节气干支；大运按节气余气精确起运。',
+        'engineName: internal-engine，source: private.ts。',
+      ],
+    });
+
+    expect(presentation.warnings).toEqual(['本次推算已按传统历法口径处理，结果仅作传统文化参考。']);
+    expect(presentation.warnings.join(' ')).not.toContain('lunar-javascript');
+    expect(presentation.warnings.join(' ')).not.toContain('Solar');
+    expect(presentation.warnings.join(' ')).not.toContain('engineName');
+    expect(presentation.warnings.join(' ')).not.toContain('source');
+    expect(presentation.warnings.join(' ')).not.toContain('private.ts');
   });
 
   it('将成功的显式核对项与免责声明加入共享语义模型', () => {

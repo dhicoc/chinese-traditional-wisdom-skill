@@ -85,9 +85,7 @@ export function ConstitutionWorkspace() {
   const exportReport = useMemo(createConstitutionExportReport, []);
   const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
     moduleId: 'tizhi',
-    tool: 'constitution_questionnaire',
-    version: '1.0.0',
-    inputSummary: '已完成本地体质倾向评分；报告不包含问卷答案、症状或其他健康数据。',
+    inputSummary: '已完成体质倾向评分；报告不包含问卷答案、症状或其他健康数据。',
   }), []);
 
   // 问卷答题

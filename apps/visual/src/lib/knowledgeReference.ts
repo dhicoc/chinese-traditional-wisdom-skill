@@ -176,7 +176,7 @@ function queryFlyingStars(term: string, hits: KnowledgeReferenceHit[]): void {
       category: SOURCE_LABELS['yearly-flying-stars.json'],
       field: 'nine_stars',
       summary: star.name + '属' + star.wuxing + '，吉凶：' + star.luck + '。' + star.meaning,
-      details: [star.disease ? '关联提示：' + star.disease : '无特别病象字段。', star.cure_if_bad ? '传统化解：' + star.cure_if_bad : '未配置化解字段。'],
+      details: [star.disease ? '关联提示：' + star.disease : '暂无特别关联提示。', star.cure_if_bad ? '传统化解：' + star.cure_if_bad : '暂无传统化解说明。'],
     }));
   });
 
@@ -189,7 +189,7 @@ function queryFlyingStars(term: string, hits: KnowledgeReferenceHit[]): void {
       category: SOURCE_LABELS['yearly-flying-stars.json'],
       field: 'yearly_flying_stars.' + key,
       summary: stringify(value).slice(0, 120),
-      details: ['匹配字段：' + key],
+      details: ['与该关键词相关的流年飞星说明。'],
     }));
   });
 }

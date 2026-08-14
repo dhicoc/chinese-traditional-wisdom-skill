@@ -243,6 +243,15 @@ function uniqueText(values: unknown[]): string[] {
   return [...new Set(values.filter((value): value is string => typeof value === 'string' && value.trim().length > 0).map((value) => value.trim()))];
 }
 
+const INTERNAL_WARNING_PATTERN = /lunar-javascript|solar\b|6tail|adapter|engine|\b(?:source|tool|version|mode|provider|evidence|result_meta|timeSource|engineName)\b|本地(?:表|简化|快速)|全局对象|字段|文件名|\.tsx?\b|\.json\b/i;
+const GENERIC_CALENDAR_NOTICE = '本次推算已按传统历法口径处理，结果仅作传统文化参考。';
+
+export function toUserWarnings(values: unknown[]): string[] {
+  return uniqueText(values).map((warning) => (
+    INTERNAL_WARNING_PATTERN.test(warning) ? GENERIC_CALENDAR_NOTICE : warning
+  )).filter((warning, index, warnings) => warnings.indexOf(warning) === index);
+}
+
 /**
  * 将 ToolEnvelope 收束为用户可见呈现模型。
  * 正文只取 export_snapshot；计算状态与 warnings 单独保留；内部 evidence、result_meta 与 sourceNotes 不进入导出内容。
@@ -280,7 +289,7 @@ export function toUserPresentation(
     semanticReport: snapshot ? toSemanticReport(snapshot, semanticOptions) : null,
     exportReport: snapshot ? { summary: snapshot.summary, sections: snapshot.sections } : null,
     notices: uniqueText([timeSourceNotice]),
-    warnings: uniqueText(Array.isArray(envelope.warnings) ? envelope.warnings : []),
+    warnings: toUserWarnings(Array.isArray(envelope.warnings) ? envelope.warnings : []),
   };
 }
 

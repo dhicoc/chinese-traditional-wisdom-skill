@@ -83,7 +83,7 @@ export function CeziWorkspace() {
     factChecks,
     disclaimers: ['测字结果仅作传统民俗文化学习参考，不作为现实决策依据。'],
   }) : null, [result.envelope, factChecks]);
-  const reportMetadata = useMemo(() => result.envelope ? createWorkspaceReportMetadata({ moduleId: 'cezi', tool: result.envelope.tool, version: result.envelope.version, inputSummary: '已对输入单字按所选方向完成本地字占；报告不记录输入文字、原始问题或出生资料。' }) : null, [result.envelope]);
+  const reportMetadata = useMemo(() => result.envelope ? createWorkspaceReportMetadata({ moduleId: 'cezi', inputSummary: '本次已按所选方向完成字占参考；报告不记录输入文字、原始问题或出生资料。' }) : null, [result.envelope]);
   const exportPresentation = useMemo(() => presentation?.exportReport ? ({
     report: createCeziExportReport({ source: presentation.exportReport }),
     notices: presentation.notices,

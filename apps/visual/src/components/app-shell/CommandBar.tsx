@@ -82,12 +82,10 @@ function CommandPalette({
         recordCommandHistory({
           module: item.module,
           title: item.label,
-          summary: '已通过命令入口打开对应本地工作区。',
-          tags: [item.module, item.group === '导航' ? '导航' : '命令'],
+          summary: '已打开对应工具。',
+          tags: [item.group === '导航' ? '导航' : '工具'],
           mode: item.group === '导航' ? 'navigation' : 'command',
-          reportVersion: '1.0',
-          capabilityMode: '命令入口（command）',
-          inputSummary: '已执行本地命令；不记录原始输入。',
+          inputSummary: '已打开对应工具；不记录原始输入。',
         });
       }
       dispatchCommandFeedback(buildCommandFeedback(item));
@@ -377,17 +375,16 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
         });
       }
 
-      // 智能路由（agent 层）：无显式命令时，用自然语言路由到模块（年份命令不拦截）
       if (!hasExplicitCommand) {
         const route = routeQuery(trimmed);
         if (route) {
           const targetModule = getModuleById(route.module);
           dynamicItems.push({
             id: 'agent-route-' + trimmed,
-            label: '智能路由：' + targetModule.title,
+            label: '建议打开：' + targetModule.title,
             hint: route.reason + (route.question ? ' · ' + route.question : ''),
-            group: '智能',
-            keywords: [trimmed, route.module, targetModule.title, targetModule.shortTitle, 'agent', '智能', '路由'],
+            group: '建议',
+            keywords: [trimmed, route.module, targetModule.title, targetModule.shortTitle, '建议', '打开'],
             action: () => setPendingRoute(route),
             module: route.module,
           });
@@ -473,16 +470,14 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
             if (route.reader) window.setTimeout(() => dispatchReaderSearchIntent(route.reader!), 0);
             recordCommandHistory({
               module: route.module,
-              title: '智能路由：' + getModuleById(route.module).title,
-              summary: '已通过智能路由打开对应本地工作区。',
-              tags: [route.module, 'agent', '智能路由'],
+              title: '已打开：' + getModuleById(route.module).title,
+              summary: '已根据输入打开对应工具。',
+              tags: ['工具'],
               mode: 'agent',
-              reportVersion: '1.0',
-              capabilityMode: '智能路由（agent）',
-              inputSummary: '已执行智能路由；不记录原始问题或输入资料。',
+              inputSummary: '已根据输入打开对应工具；不记录原始问题或输入资料。',
             });
             dispatchCommandFeedback({
-              title: '已执行：智能路由 → ' + getModuleById(route.module).title,
+              title: '已打开：' + getModuleById(route.module).title,
               description: route.reason + (route.question ? ' · ' + route.question : ''),
               tone: 'success',
             });

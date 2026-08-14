@@ -130,9 +130,7 @@ export function FeixingWorkspace() {
   }), [gridRemedies, mingGuaResult, summary, usageSummary, year, yuanYun]);
   const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
     moduleId: 'feixing',
-    tool: 'annual_flying_stars',
-    version: '1.0.0',
-    inputSummary: '已生成本地流年飞星方位参考；报告不保留具体年份、出生资料或其他原始输入。',
+    inputSummary: '已生成流年飞星方位参考；报告不保留具体年份、出生资料或其他原始输入。',
   }), []);
 
   return (

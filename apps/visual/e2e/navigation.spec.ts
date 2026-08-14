@@ -117,12 +117,12 @@ test.describe('CommandBar Navigation', () => {
     await expect(page.locator('[data-testid="command-feedback"]')).toContainText('已执行：更新全局生辰');
   });
 
-  test('should agent-route a natural-language question to the right module', async ({ page }) => {
+  test('should suggest the right tool for a natural-language question', async ({ page }) => {
     await page.click('[data-testid="command-bar"]');
     await page.fill('[data-testid="command-input"]', '要不要换工作');
 
-    await expect(page.locator('[data-testid="command-result"]:has-text("智能路由")')).toBeVisible();
-    await page.click('[data-testid="command-result"]:has-text("智能路由")');
+    await expect(page.locator('[data-testid="command-result"]:has-text("建议打开")')).toBeVisible();
+    await page.click('[data-testid="command-result"]:has-text("建议打开")');
 
     // 确认面板出现，展示六爻目标
     await expect(page.locator('[data-testid="agent-confirm-panel"]')).toBeVisible();
@@ -134,10 +134,10 @@ test.describe('CommandBar Navigation', () => {
     await expect(page.locator('[data-testid="command-feedback"]')).toContainText('六爻占卜');
   });
 
-  test('should agent-route birth + wealth question to bazi and update birth', async ({ page }) => {
+  test('should suggest Bazi for a birth and wealth question, then update birth', async ({ page }) => {
     await page.click('[data-testid="command-bar"]');
     await page.fill('[data-testid="command-input"]', '1990-06-15 12 男 今年财运');
-    await page.click('[data-testid="command-result"]:has-text("智能路由")');
+    await page.click('[data-testid="command-result"]:has-text("建议打开")');
 
     // 确认面板应展示生辰预填
     await expect(page.locator('[data-testid="agent-confirm-birth"]')).toContainText('1990-06-15');
@@ -148,10 +148,10 @@ test.describe('CommandBar Navigation', () => {
     await expect(page.locator('button:visible').filter({ hasText: '全局生辰' })).toContainText('1990-06-15');
   });
 
-  test('should cancel agent confirm without navigating', async ({ page }) => {
+  test('should cancel a tool suggestion without navigating', async ({ page }) => {
     await page.click('[data-testid="command-bar"]');
     await page.fill('[data-testid="command-input"]', '要不要换工作');
-    await page.click('[data-testid="command-result"]:has-text("智能路由")');
+    await page.click('[data-testid="command-result"]:has-text("建议打开")');
     await expect(page.locator('[data-testid="agent-confirm-panel"]')).toBeVisible();
     await page.click('[data-testid="agent-confirm-cancel"]');
     await expect(page.locator('[data-testid="agent-confirm-panel"]')).toHaveCount(0);

@@ -99,9 +99,7 @@ export function LiurenWorkspace() {
   );
   const reportMetadata = useMemo(() => result.envelope ? createWorkspaceReportMetadata({
     moduleId: 'liuren',
-    tool: result.envelope.tool,
-    version: result.envelope.version,
-    inputSummary: '已按本地历法与所选课式完成大六壬排课。',
+    inputSummary: '已按传统历法与所选课式完成大六壬排课。',
   }) : null, [result.envelope]);
   const exportPresentation = useMemo(() => presentation?.exportReport && reportMetadata ? ({
     report: presentation.exportReport,

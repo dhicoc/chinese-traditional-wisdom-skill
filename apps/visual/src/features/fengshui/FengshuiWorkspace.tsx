@@ -139,9 +139,7 @@ export function FengshuiWorkspace() {
   }), [bazhaiGrid, directionSummary, facing, feixingGrid, mingGuaDirs, year, yuanYun]);
   const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
     moduleId: 'fengshui',
-    tool: 'fengshui_compass',
-    version: '1.0.0',
-    inputSummary: '已生成本地罗盘方位参考；报告不保留具体年份、房屋坐向、出生资料、住址或其他原始输入。',
+    inputSummary: '已生成罗盘方位参考；报告不保留具体年份、房屋坐向、出生资料、住址或其他原始输入。',
   }), []);
 
   return (

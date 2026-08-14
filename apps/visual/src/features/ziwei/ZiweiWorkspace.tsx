@@ -210,10 +210,8 @@ export function ZiweiWorkspace() {
   }), [envelope, factChecks]);
   const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
     moduleId: 'ziwei',
-    tool: envelope.tool,
-    version: envelope.version,
-    inputSummary: '已使用本地命盘计算；包含本命盘与所选流年流月视图。',
-  }), [envelope.tool, envelope.version]);
+    inputSummary: '本次包含本命盘及所选年份、月份的动态参考；报告不保留完整出生资料。',
+  }), []);
   const exportPresentation = useMemo(() => presentation.exportReport ? ({
     report: presentation.exportReport,
     notices: presentation.notices,
@@ -326,7 +324,7 @@ export function ZiweiWorkspace() {
           <section className="mb-4 rounded-card border border-jade-500/20 bg-jade-500/10 px-3 py-2.5" aria-labelledby="ziwei-method-title">
             <h4 id="ziwei-method-title" className="text-xs font-semibold text-jade-100/80">排盘口径</h4>
             <p className="mt-1 text-xs leading-5 text-jade-100/60">
-              本命盘按公历出生日期与时辰换算，使用 {data.version || '本地引擎'} 排盘；动态层以 {transitDate} 为查询锚点，当前支持大限、流年、流月与小限。流日、流时及三方四正尚未启用。
+              本命盘按公历出生日期与时辰换算；动态层以 {transitDate} 为查询日期，当前可查看大限、流年、流月与小限。流日、流时及三方四正暂未提供。
             </p>
           </section>
           <div className="canvas-stage overflow-x-auto rounded-card border border-jade-500/18 bg-ink-950/92 p-3">

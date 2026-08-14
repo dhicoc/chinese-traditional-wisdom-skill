@@ -41,7 +41,7 @@ export function AgentConfirmPanel({ route, onConfirm, onCancel }: AgentConfirmPa
         <div className="flex items-center justify-between border-b border-white/8 px-4 py-3">
           <div className="flex items-center gap-2">
             <span className="font-mono text-sm text-jade-400">✦</span>
-            <h2 className="text-sm font-semibold text-jade-50">智能路由确认</h2>
+            <h2 className="text-sm font-semibold text-jade-50">工具建议确认</h2>
           </div>
           <button
             type="button"

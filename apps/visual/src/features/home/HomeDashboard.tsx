@@ -21,8 +21,8 @@ const FALLBACK_PILLARS: BaziPillars = {
   gender: '男',
 };
 
-/** 用纯 TS 八字引擎算四柱；失败时回退占位四柱（仅展示，不宣称真实）。 */
-function resolvePillars(solarBirth: SolarBirth, ready: boolean): { pillars: BaziPillars; engineName?: string } {
+/** 根据出生资料取得四柱；失败时仅显示占位内容，不作为结果说明。 */
+function resolvePillars(solarBirth: SolarBirth, ready: boolean): { pillars: BaziPillars } {
   if (!ready) return { pillars: { ...FALLBACK_PILLARS, gender: solarBirth.gender } };
   try {
     const pure = calculateBaziPure({ birth: solarBirth, solar: getSolarEntry() });
@@ -34,9 +34,9 @@ function resolvePillars(solarBirth: SolarBirth, ready: boolean): { pillars: Bazi
       dayMaster: pure.dayMaster,
       gender: pure.gender,
     };
-    return { pillars, engineName: pure.engineName };
+    return { pillars };
   } catch {
-    return { pillars: { ...FALLBACK_PILLARS, gender: solarBirth.gender }, engineName: 'fallback-demo' };
+    return { pillars: { ...FALLBACK_PILLARS, gender: solarBirth.gender } };
   }
 }
 

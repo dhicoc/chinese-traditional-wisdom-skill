@@ -224,12 +224,12 @@ export function BirthPanel() {
             <p className="text-xs font-medium text-jade-100/70">八字真太阳时</p>
             {baziTimeStatus.status === 'true-solar-verified' && (
               <p className="mt-2 text-[11px] leading-5 text-jade-300/80">
-                已核验真太阳时：Agent 已通过本地直调返回校正结果。排盘使用校正后的出生时间。
+                已完成真太阳时核验，排盘采用校正后的出生时间。
               </p>
             )}
             {baziTimeStatus.status === 'awaiting-agent-verification' && (
               <p className="mt-2 text-[11px] leading-5 text-jade-100/45">
-                请在对话中提供可定位的出生地。AI Agent 会核验地点、历史时区与夏令时，再直接调用本地引擎计算真太阳时；校正后的出生时间才会用于八字排盘。
+                请提供可定位的出生地，以核对地点、历史时区与夏令时；完成核验后将以校正后的出生时间排盘。
               </p>
             )}
             {baziTimeStatus.status === 'civil-unverified' && (

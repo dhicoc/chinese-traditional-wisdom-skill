@@ -87,9 +87,7 @@ export function HuangjiWorkspace() {
   );
   const reportMetadata = useMemo(() => result.envelope ? createWorkspaceReportMetadata({
     moduleId: 'huangji',
-    tool: result.envelope.tool,
-    version: result.envelope.version,
-    inputSummary: '已按本地历法完成元会运世周期与九卦配置计算。',
+    inputSummary: '已按传统历法完成元会运世周期与九卦配置计算。',
   }) : null, [result.envelope]);
   const exportPresentation = useMemo(() => presentation?.exportReport && reportMetadata ? ({
     report: presentation.exportReport,

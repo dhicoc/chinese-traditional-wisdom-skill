@@ -103,9 +103,7 @@ export function MeihuaWorkspace() {
   }), [data]);
   const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
     moduleId: 'meihua',
-    tool: 'meihua_yishu',
-    version: '1.0.0',
-    inputSummary: '已生成本地梅花易数卦象参考；报告不保留具体卦象参数、出生资料、原始问题或其他原始输入。',
+    inputSummary: '已生成梅花易数卦象参考；报告不保留具体卦象参数、出生资料、原始问题或其他原始输入。',
   }), []);
 
   return (

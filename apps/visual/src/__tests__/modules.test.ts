@@ -42,7 +42,7 @@ describe('Modules Registry', () => {
       'home', 'bazi', 'ziwei', 'liuyao', 'meihua', 'qimen',
       'fengshui', 'feixing', 'bazhai', 'yunqi', 'tizhi',
       'almanac', 'namewuxing', 'dream', 'rhythm',
-      'testing', 'reader', 'history', 'combo', 'liuren', 'xingxiu', 'taiyi', 'huangji', 'cezi', 'chenguz'
+      'reader', 'history', 'combo', 'liuren', 'xingxiu', 'taiyi', 'huangji', 'cezi', 'chenguz'
     ];
     const ids = MODULES.map(m => m.id);
     ids.forEach(id => {
@@ -123,6 +123,15 @@ describe('Sidebar birth panel layout', () => {
   });
 });
 
+describe('Dashboard development workspace boundary', () => {
+  it('should not expose the test runner as a user workspace', () => {
+    const registrySource = readSource('components/app-shell/workspaceRegistry.tsx');
+
+    expect(MODULES.map((module) => module.id)).not.toContain('testing');
+    expect(registrySource).not.toContain('TestRunnerConsole');
+  });
+});
+
 describe('Bazi true solar time runtime boundary', () => {
   it('should only let an agent-verified true solar result change the Bazi input time', () => {
     const contextSource = readSource('lib/birthContext.tsx');
@@ -136,8 +145,8 @@ describe('Bazi true solar time runtime boundary', () => {
     expect(workspaceSource).toContain("baziTimeStatus.status === 'true-solar-verified'");
     expect(workspaceSource).toContain('baziTimeStatus.resolution.trueSolarBirth');
     expect(workspaceSource).not.toContain('地方平太阳时');
-    expect(panelSource).toContain('AI Agent 会核验地点、历史时区与夏令时，再直接调用本地引擎计算真太阳时');
-    expect(panelSource).toContain('校正后的出生时间才会用于八字排盘');
+    expect(panelSource).toContain('请提供可定位的出生地，以核对地点、历史时区与夏令时');
+    expect(panelSource).toContain('完成核验后将以校正后的出生时间排盘');
     expect(panelSource).not.toContain('经度（东正西负）');
     expect(panelSource).not.toContain('实际 UTC 偏移（分钟）');
   });

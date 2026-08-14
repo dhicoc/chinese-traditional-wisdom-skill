@@ -108,6 +108,9 @@ describe('ComboWorkspace presentation 边界', () => {
 
     await screen.findByRole('button', { name: '导出报告' });
     await waitFor(() => expect(engineState.lastSuccessEnvelope).not.toBeNull());
+    expect(screen.getByText('本次参考范围')).toBeInTheDocument();
+    expect(screen.getByText('仅说明本次参考所采用的方法及已知注意事项，不展示个人资料。')).toBeInTheDocument();
+    expect(screen.queryByText(INTERNAL_EVIDENCE_SENTINEL)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '导出报告' }));
 
     await waitFor(() => expect(anchorClick).toHaveBeenCalledOnce());
@@ -120,9 +123,10 @@ describe('ComboWorkspace presentation 边界', () => {
 
     expect(html).toContain('已完成年度综合运势联合分析，仅作传统文化参考。');
     expect(html).toContain('本报告仅确认已运行所选联合分析方案，不包含占问原文、出生资料、姓名、性别、体质或健康信息。');
-    expect(html).toContain('报告信息');
-    expect(html).toContain('综合参考（local-exact）');
-    expect(html).toContain('已运行所选联合分析方案；报告仅保留分析类型与本地计算状态。');
+    expect(html).toContain('限制与注意事项');
+    expect(html).toContain('本次采用所选联合分析方案；报告仅保留分析类型，不保留个人资料。');
+    expect(html).not.toContain('local-exact');
+    expect(html).not.toContain('combo_annual_fortune');
     const downloadedText = new DOMParser()
       .parseFromString(html?.replace(/<br>/g, '\n') ?? '', 'text/html')
       .body.textContent;

@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { readFileSync } from 'fs';
 import { openWorkspace } from './p13-helpers';
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://127.0.0.1:5174';
@@ -28,25 +27,32 @@ test.describe('P1.3e 用户侧报告与隐私验收', () => {
   test.setTimeout(90000);
 
   test('报告清楚标识计算边界，且不导出完整出生日期与时辰', async ({ page }) => {
-    await openWorkspace(page, '八字命盘', 'bazi');
+    const workspace = await openWorkspace(page, '八字命盘', 'bazi');
 
-    const [download] = await Promise.all([
-      page.waitForEvent('download'),
-      page.getByRole('button', { name: '导出报告' }).click(),
-    ]);
-    const path = await download.path();
-    expect(path).toBeTruthy();
-    const report = readFileSync(path!, 'utf-8');
+    await page.evaluate(() => {
+      const originalCreateObjectURL = URL.createObjectURL;
+      URL.createObjectURL = (blob) => {
+        void blob.text().then((html) => window.sessionStorage.setItem('exported-report-html', html));
+        return originalCreateObjectURL(blob);
+      };
+    });
+    await workspace.getByRole('button', { name: '导出报告' }).click({ force: true });
+    await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem('exported-report-html'))).not.toBeNull();
+    const report = await page.evaluate(() => window.sessionStorage.getItem('exported-report-html') ?? '');
 
     expect(report).toContain('传统文化参考');
     expect(report).toContain('计算状态');
     expect(report).toContain('使用限制与注意事项');
     expect(report).toContain('本报告内容仅作传统文化参考。');
-    expect(report).toContain('输入摘要');
-    expect(report).toContain('已提供出生资料用于本地排盘');
+    expect(report).toContain('限制与注意事项');
+    expect(report).toContain('本次分析说明');
+    expect(report).toContain('本次按出生资料排盘');
     expect(report).not.toContain('1990年出生');
     expect(report).not.toContain('1990年6月15日');
     expect(report).not.toContain('12时');
+    expect(report).not.toContain('lunar-javascript');
+    expect(report).not.toContain('Solar 全局对象');
+    expect(report).toContain('本次推算已按传统历法口径处理，结果仅作传统文化参考。');
   });
 
   test('本地历史显示脱敏摘要，收藏在清空历史后仍被保留', async ({ page }) => {

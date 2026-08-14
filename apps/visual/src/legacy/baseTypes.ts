@@ -116,21 +116,34 @@ export interface BaziPillars {
 
 export interface YunqiData {
   year: number;
+  targetDate?: string;
   tiangan: string;
   dizhi: string;
   wuyun: {
     dayun: string;
-    zhuyun: string[];
-    keyun: string[];
+    zhuyun: Array<{ element: string; taiShao: '太' | '少' }>;
+    keyun: Array<{ element: string; taiShao: '太' | '少' }>;
   };
   liuqi: {
     sitian: string;
     zaiquan: string;
-    zhuke: Array<{ step: string; qi: string; start: string; end: string; zhuqi?: string }>;
+    zhuke: Array<{ step: string; qi: string; start: string; end: string; startDate: string; endDate: string; zhuqi: string }>;
     current_step?: unknown;
     kezhujialin?: string;
   };
+  observation?: string;
   disease_tendency?: string;
+  patterns?: {
+    tianfu: boolean;
+    suihui: boolean;
+    taiyiTianfu: boolean;
+    tongTianfu: boolean;
+    tongSuihui: boolean;
+    pingqi: boolean;
+    qihua: string | null;
+    jianhua: string | null;
+    zhengdui: { qi: string; type: '正化' | '对化' };
+  };
   engineName?: string;
   mode?: string;
   confidenceNote?: string;

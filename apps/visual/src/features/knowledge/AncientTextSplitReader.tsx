@@ -7,11 +7,7 @@ import {
 } from '@/lib/commandIntents';
 import { createKnowledgeCitationId, findKnowledgeBaseEntry } from '@/legacy/searchEngine';
 
-// 构建时导入古籍原文和映射 JSON（Vite ?raw）
 import bazhaiText from '@kb/fengshui/03-yang-house/八宅明镜.md?raw';
-import eightMansionsJson from '@kb/fengshui/mappings/eight-mansions.json?raw';
-import lifeTrigramJson from '@kb/fengshui/mappings/life-trigram.json?raw';
-import twentyFourMountainsJson from '@kb/fengshui/mappings/twenty-four-mountains.json?raw';
 
 /* ── 文本对 ───────────────────────────────────────────── */
 
@@ -21,7 +17,6 @@ interface TextPair {
   description: string;
   source: string;
   mappingName: string;
-  mappingJson: string;
 }
 
 const BAZHAI_CITATION_ID = createKnowledgeCitationId('03-yang-house/八宅明镜.md');
@@ -30,26 +25,23 @@ const TEXT_PAIRS: TextPair[] = [
   {
     id: 'bazhai-mansion',
     title: '八宅明镜 ↔ 八宅大游年映射',
-    description: '清代箬冠道人《八宅明镜》原文与 eight-mansions.json 映射表对照。',
+    description: '清代箬冠道人《八宅明镜》原文与八宅大游年相关说明对照。',
     source: bazhaiText,
-    mappingName: 'eight-mansions.json',
-    mappingJson: eightMansionsJson,
+    mappingName: '八宅大游年说明',
   },
   {
     id: 'bazhai-life-trigram',
     title: '八宅明镜 ↔ 命卦映射',
-    description: '《八宅明镜》论男女生命部分与 life-trigram.json 命卦计算表对照。',
+    description: '《八宅明镜》论男女生命部分与命卦相关说明对照。',
     source: bazhaiText,
-    mappingName: 'life-trigram.json',
-    mappingJson: lifeTrigramJson,
+    mappingName: '命卦说明',
   },
   {
     id: 'bazhai-24mountains',
     title: '八宅明镜 ↔ 二十四山映射',
-    description: '《八宅明镜》后天八卦方位部分与 twenty-four-mountains.json 对照。',
+    description: '《八宅明镜》后天八卦方位部分与二十四山相关说明对照。',
     source: bazhaiText,
-    mappingName: 'twenty-four-mountains.json',
-    mappingJson: twentyFourMountainsJson,
+    mappingName: '二十四山说明',
   },
 ];
 
@@ -72,17 +64,6 @@ function renderMarkdownLite(text: string): string {
     .replace(/\n\n/g, '</p><p class="text-jade-100/70 leading-7 my-1">')
     .replace(/^/, '<p class="text-jade-100/70 leading-7 my-1">')
     .replace(/$/, '</p>');
-}
-
-/* ── JSON 高亮 ───────────────────────────────────────── */
-
-function highlightJson(json: string): string {
-  const escaped = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  return escaped
-    .replace(/"([^"]+)"(\s*:)/g, '<span class="text-jade-500">"$1"</span>$2')
-    .replace(/:\s*"([^"]+)"/g, ': <span class="text-amber-400">"$1"</span>')
-    .replace(/:\s*(\d+)/g, ': <span class="text-purple-400">$1</span>')
-    .replace(/\b(true|false|null)\b/g, '<span class="text-purple-400">$1</span>');
 }
 
 /* ── 主组件 ───────────────────────────────────────────── */
@@ -123,13 +104,10 @@ export function AncientTextSplitReader() {
     );
   }, [selected, searchTerm]);
 
-  const highlightedJson = useMemo(() => highlightJson(selected.mappingJson), [selected]);
-
   const contextPayload = useMemo(
     () => ({
       项目: '古籍阅读',
       当前内容: selectedBook?.title ?? selected.title,
-      引用ID: selectedCitationId,
       搜索关键词: searchTerm || '未填写',
     }),
     [selected, selectedBook, selectedCitationId, searchTerm],
@@ -146,7 +124,7 @@ export function AncientTextSplitReader() {
             </p>
             <div className="mt-3 rounded-card border border-white/10 bg-black/20 p-3 text-xs leading-5 text-jade-100/55">
               <p>当前古籍：{selectedBook?.title ?? '未识别的古籍条目'}</p>
-              <code className="mt-1 block break-all font-mono text-jade-300">{selectedCitationId}</code>
+              <p className="mt-1 text-jade-300">已关联古籍引用。</p>
               {!hasEmbeddedText && (
                 <p className="mt-2 text-amber-200">该古籍已建立稳定引用，但正文尚未内嵌到阅读器。</p>
               )}
@@ -219,15 +197,15 @@ export function AncientTextSplitReader() {
               <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
                 <h3 className="font-serif text-sm font-semibold text-jade-100/70">相关说明</h3>
               </div>
-              <pre className="max-h-[60vh] max-w-full overflow-auto rounded-card border border-white/8 bg-black/30 p-3 text-xs leading-5">
-                <code dangerouslySetInnerHTML={{ __html: highlightedJson }} />
-              </pre>
+              <p className="rounded-card border border-white/8 bg-black/30 p-3 text-sm leading-7 text-jade-100/65">
+                本页将《八宅明镜》原文与{selected.mappingName}并列阅读，便于对照理解传统术语与方位关系。
+              </p>
             </div>
           </div>
         </>
       ) : (
         <div className="rounded-panel border border-amber-300/20 bg-amber-500/5 p-4 text-sm leading-7 text-jade-100/65">
-          当前引用对应的古籍正文尚未收录到本地阅读器；可保留引用 ID 以便后续补充原文时追溯。
+          当前古籍正文尚未收录到阅读器；相关引用已保留，待后续补充原文。
         </div>
       )}
     </section>

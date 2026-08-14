@@ -81,9 +81,7 @@ export function XingXiuWorkspace() {
   );
   const reportMetadata = useMemo(() => result.envelope ? createWorkspaceReportMetadata({
     moduleId: 'xingxiu',
-    tool: result.envelope.tool,
-    version: result.envelope.version,
-    inputSummary: '已按所选星宿计算方式生成本地值宿与日用参考；不保留出生资料或精确日期。',
+    inputSummary: '已按所选星宿计算方式生成值宿与日用参考；不保留出生资料或精确日期。',
   }) : null, [result.envelope]);
   const exportPresentation = useMemo(() => presentation?.exportReport ? ({
     report: presentation.exportReport,
@@ -135,7 +133,7 @@ export function XingXiuWorkspace() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">二十八星宿</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              中国古代天文学二十八宿体系：按四象分组，每日值宿轮转，主吉凶宜忌与择日参考。
+              本页同时呈现两项独立结果：本命星宿按出生日期排定；当日值宿按当前查询日期计算，用作日用宜忌参考，二者不互相替代。
             </p>
             <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
               二十八星宿结果仅作传统文化学习参考，不作为现实决策依据。
@@ -171,6 +169,7 @@ export function XingXiuWorkspace() {
         <aside className="space-y-4">
           <div className="rounded-card border border-gold-500/25 bg-gold-500/8 p-4 text-center">
             <p className="text-xs text-gold-400/60">当日值宿</p>
+            <p className="mt-1 text-[11px] leading-5 text-jade-100/45">查询日期：{data.queryDate} · 用于日用宜忌参考。</p>
             <p className="mt-2 font-serif text-3xl text-gold-200">{data.zhiXiuFull}</p>
             <p className="mt-1 text-sm" style={{ color: XIANG_COLOR[data.xiang] ?? 'var(--chart-text-faint)' }}>{data.xiang}</p>
             <p className="mt-2 text-xs text-jade-100/55">{data.wuxing}宿 · 七曜{data.yao} · 禽星{data.animal}</p>
@@ -181,6 +180,7 @@ export function XingXiuWorkspace() {
           </div>
           <div className="rounded-card border border-purple-500/25 bg-purple-500/8 p-4 text-center">
             <p className="text-xs text-purple-400/60">本命星宿</p>
+            <p className="mt-1 text-[11px] leading-5 text-jade-100/45">按出生日期排定，用于本命星宿参考。</p>
             <p className="mt-2 font-serif text-2xl text-purple-200">{data.benMingXiuFull}</p>
             <p className="mt-1 text-sm" style={{ color: XIANG_COLOR[data.benMingXiang] ?? 'var(--chart-text-faint)' }}>{data.benMingXiang}</p>
             <p className="mt-2 text-xs text-jade-100/45">{data.benMingSymbol}</p>

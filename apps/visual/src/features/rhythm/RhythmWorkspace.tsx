@@ -48,8 +48,6 @@ export function RhythmWorkspace() {
   }, [currentShiChen, jieqi, selectedShiChen]);
   const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
     moduleId: 'rhythm',
-    tool: 'daily_rhythm',
-    version: '1.0.0',
     inputSummary: '已生成通用节气与时辰节律参考；报告不保留具体日期、健康数据或其他个人输入。',
   }), []);
 

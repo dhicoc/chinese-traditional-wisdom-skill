@@ -81,9 +81,7 @@ export function TaiyiWorkspace() {
   );
   const reportMetadata = useMemo(() => result.envelope ? createWorkspaceReportMetadata({
     moduleId: 'taiyi',
-    tool: result.envelope.tool,
-    version: result.envelope.version,
-    inputSummary: '已按所选计式与积年法完成本地太乙起局。',
+    inputSummary: '已按所选计式与积年法完成太乙起局。',
   }) : null, [result.envelope]);
   const exportPresentation = useMemo(() => presentation?.exportReport && reportMetadata ? ({
     report: presentation.exportReport,

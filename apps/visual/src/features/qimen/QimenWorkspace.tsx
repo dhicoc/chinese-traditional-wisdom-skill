@@ -111,9 +111,7 @@ export function QimenWorkspace() {
   }) : null, [envelope, factChecks]);
   const reportMetadata = useMemo(() => envelope ? createWorkspaceReportMetadata({
     moduleId: 'qimen',
-    tool: envelope.tool,
-    version: envelope.version,
-    inputSummary: '时家奇门排盘；已提供出生资料用于本地计算。',
+    inputSummary: '本次按出生资料排出时家奇门盘；报告不保留完整出生资料。',
   }) : null, [envelope]);
   const exportPresentation = useMemo(() => presentation?.exportReport && reportMetadata ? ({
     report: presentation.exportReport,

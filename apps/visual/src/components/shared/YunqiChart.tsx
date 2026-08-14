@@ -1,29 +1,19 @@
-import { useMemo } from 'react';
 import type { YunqiData } from '@/legacy/canvasRenderers';
-
-/**
- * YunqiChart — 五运六气 SVG 综合图（Phase 10 图表替换）
- *
- * 替代五运六气工作区的 legacy Canvas `yunqiRender`。包含标题栏、干支大字、
- * 岁运胶囊、司天/在泉、客气六步时间线、病势倾向、五行图例。
- * 病势倾向按「，」断点换行，根治 legacy Canvas 文字溢出问题。
- */
 
 interface YunqiChartProps {
   data: YunqiData;
   size?: number;
 }
 
-// 六气 → 颜色（对齐 legacy health.js QI_COLORS / QI_COLORS_LIGHT）
 const QI_COLORS: Record<string, string> = {
   厥阴风木: 'var(--wz-wood)',
   少阴君火: 'var(--wz-fire)',
   少阳相火: 'var(--c-cinnabar-deep)',
   太阴湿土: 'var(--wz-earth)',
-  阳明燥金: 'var(--chart-text-faint)',
+  阳明燥金: 'var(--wz-metal)',
   太阳寒水: 'var(--wz-water)',
 };
-const QI_COLORS_LIGHT: Record<string, string> = {
+const QI_LIGHT: Record<string, string> = {
   厥阴风木: 'rgb(var(--wood) / 0.12)',
   少阴君火: 'rgb(var(--cinnabar) / 0.10)',
   少阳相火: 'rgb(var(--cinnabar-700) / 0.10)',
@@ -31,240 +21,87 @@ const QI_COLORS_LIGHT: Record<string, string> = {
   阳明燥金: 'rgb(var(--metal) / 0.14)',
   太阳寒水: 'rgb(var(--water) / 0.12)',
 };
+const WX_COLORS: Record<string, string> = { 金: 'var(--wz-metal)', 木: 'var(--wz-wood)', 水: 'var(--wz-water)', 火: 'var(--wz-fire)', 土: 'var(--wz-earth)' };
 
-// 六气 → 五行归类（图例）
-const QI_WUXING_MAP: Record<string, string> = {
-  厥阴风木: '木',
-  少阴君火: '火',
-  少阳相火: '火',
-  太阴湿土: '土',
-  阳明燥金: '金',
-  太阳寒水: '水',
-};
-
-// 五行图例顺序与配色（对齐 legacy QI_WUXING_ORDER / QI_WUXING_COLORS）
-const QI_WUXING_ORDER = ['风', '寒', '暑', '湿', '燥', '火'];
-const QI_WUXING_COLORS: Record<string, string> = {
-  风: 'var(--wz-wood)',
-  寒: 'var(--wz-water)',
-  暑: 'var(--wz-fire)',
-  湿: 'var(--wz-earth)',
-  燥: 'var(--chart-text-faint)',
-  火: 'var(--c-cinnabar-deep)',
-};
-
-/** 从岁运名提取五行（如 "水运太过" → "水"） */
-function extractWuxing(dayun: string): string {
-  const chars = ['金', '木', '水', '火', '土'];
-  for (const c of chars) {
-    if (dayun.indexOf(c) !== -1) return c;
-  }
-  return '土';
+function displayPatterns(data: YunqiData): string[] {
+  const patterns = data.patterns;
+  if (!patterns) return [];
+  return [
+    patterns.tianfu && '天符',
+    patterns.suihui && '岁会',
+    patterns.taiyiTianfu && '太一天符',
+    patterns.tongTianfu && '同天符',
+    patterns.tongSuihui && '同岁会',
+    patterns.pingqi && '平气',
+    patterns.qihua && `齐化${patterns.qihua}`,
+    patterns.jianhua && `兼化${patterns.jianhua}`,
+    `${patterns.zhengdui.qi}${patterns.zhengdui.type}`,
+  ].filter(Boolean) as string[];
 }
 
-const WX_COLOR: Record<string, string> = { 金: 'var(--wz-metal)', 木: 'var(--wz-wood)', 水: 'var(--wz-water)', 火: 'var(--wz-fire)', 土: 'var(--wz-earth)' };
-const WX_COLOR_LIGHT: Record<string, string> = { 金: 'rgb(var(--metal) / 0.14)', 木: 'rgb(var(--wood) / 0.12)', 水: 'rgb(var(--water) / 0.12)', 火: 'rgb(var(--cinnabar) / 0.10)', 土: 'rgb(var(--earth) / 0.12)' };
-
-/** 病势倾向按「，」断点换行，每行不超过 maxChars 字符 */
-function wrapTendency(text: string, maxChars: number): string[] {
-  const segs = text.split('，');
-  const lines: string[] = [];
-  let cur = '';
-  for (const seg of segs) {
-    const candidate = cur ? cur + '，' + seg : seg;
-    if (candidate.length <= maxChars || !cur) {
-      cur = candidate;
-    } else {
-      lines.push(cur);
-      cur = seg;
-    }
-  }
-  if (cur) lines.push(cur);
-  return lines;
+function transportText(steps: YunqiData['wuyun']['zhuyun']): string {
+  return steps.map(({ element, taiShao }) => `${element}${taiShao}`).join('　');
 }
 
-export function YunqiChart({ data, size = 550 }: YunqiChartProps) {
+export function YunqiChart({ data, size = 620 }: YunqiChartProps) {
   const W = size;
-
-  const year = data.year;
-  const tiangan = data.tiangan;
-  const dizhi = data.dizhi;
-  const wuyun = data.wuyun;
-  const liuqi = data.liuqi;
-  const diseaseTendency = data.disease_tendency || '';
-
-  const yearChars = tiangan + dizhi;
-  const dayunWx = extractWuxing(wuyun.dayun);
-  const wxColor = WX_COLOR[dayunWx] ?? 'var(--chart-text-faint)';
-  const wxLight = WX_COLOR_LIGHT[dayunWx] ?? 'var(--chart-inset)';
-
-  const steps = liuqi.zhuke || [];
-  const segGap = 4;
-  const segTotalW = W - 40;
-  const segCount = steps.length || 1;
-  const segW = (segTotalW - (segCount - 1) * segGap) / segCount;
-  const segX0 = 20;
-  const segY = 258;
-  const segH = 115;
-
-  // 病势倾向换行（先算，供 legendY/H 动态布局）
-  const tendencyLines = useMemo(() => (diseaseTendency ? wrapTendency(diseaseTendency, 14) : []), [diseaseTendency]);
-  const tendY = 388;
-  const tendLineH = 14;
-  const tendH = tendencyLines.length > 0 ? tendencyLines.length * tendLineH + 10 : 0;
-
-  // 图例置于病势倾向之下，避免与病势框/客气六步重叠
-  const legendY = tendY + (tendencyLines.length > 0 ? tendH + 22 : 22);
-  const H = legendY + 22;
-  const legendSpacing = 62;
-  const legendCount = QI_WUXING_ORDER.length;
-  const legendTotalW = legendCount * legendSpacing;
-  const legendStartX = (W - legendTotalW) / 2 + legendSpacing / 2;
+  const H = 510;
+  const yearChars = `${data.tiangan}${data.dizhi}`;
+  const currentStep = data.liuqi.current_step as { step?: string } | undefined;
+  const patterns = displayPatterns(data);
+  const steps = data.liuqi.zhuke;
+  const gap = 5;
+  const x0 = 20;
+  const totalWidth = W - x0 * 2;
+  const stepWidth = (totalWidth - gap * (steps.length - 1)) / Math.max(steps.length, 1);
 
   return (
-    <svg
-      data-testid="yunqi-chart"
-      viewBox={`0 0 ${W} ${H}`}
-      className="mx-auto block h-auto w-full max-w-[580px]"
-      role="img"
-      aria-label={`五运六气 ${year}年 ${yearChars}`}
-    >
-      {/* 背景 */}
+    <svg data-testid="yunqi-chart" viewBox={`0 0 ${W} ${H}`} className="mx-auto block h-auto w-full max-w-[680px]" role="img" aria-label={`五运六气 ${data.year}年 ${yearChars}，查询日期${data.targetDate ?? ''}`}>
       <defs>
         <linearGradient id="yunqi-bg" x1="0" y1="0" x2="0" y2={H}>
           <stop offset="0" stopColor="var(--chart-surface)" />
-          <stop offset="0.5" stopColor="var(--chart-inset)" />
-          <stop offset="1" stopColor="var(--chart-surface)" />
+          <stop offset="1" stopColor="var(--chart-inset)" />
         </linearGradient>
       </defs>
-      <rect x={3} y={3} width={W - 6} height={H - 6} rx={10} fill="url(#yunqi-bg)" stroke="var(--chart-line-strong)" strokeWidth={1} />
-
-      {/* 标题栏 */}
+      <rect x={3} y={3} width={W - 6} height={H - 6} rx={10} fill="url(#yunqi-bg)" stroke="var(--chart-line-strong)" />
       <rect x={3} y={3} width={W - 6} height={34} rx={10} fill="var(--chart-deep)" />
-      <text x={W / 2} y={20} textAnchor="middle" dominantBaseline="middle" fill="var(--c-gold)" style={{ fontSize: 15, fontWeight: 700 }}>
-        五运六气 · {year}年
-      </text>
+      <text x={W / 2} y={20} textAnchor="middle" dominantBaseline="middle" fill="var(--c-gold)" style={{ fontSize: 15, fontWeight: 700 }}>五运六气 · {data.year}年 · {data.targetDate}</text>
 
-      {/* 干支大字 */}
-      <text x={W / 2} y={70} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text)" style={{ fontSize: 42, fontWeight: 700, fontFamily: '"Noto Serif SC","SimSun",serif' }}>
-        {yearChars}
-      </text>
+      <text x={W / 2} y={72} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text)" style={{ fontSize: 40, fontWeight: 700, fontFamily: '"Noto Serif SC",serif' }}>{yearChars}</text>
+      <text x={W / 2} y={104} textAnchor="middle" dominantBaseline="middle" fill="var(--c-gold)" style={{ fontSize: 14, fontWeight: 700 }}>{data.wuyun.dayun}</text>
+      <text x={W / 2} y={126} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 10 }}>主运　{transportText(data.wuyun.zhuyun)}</text>
+      <text x={W / 2} y={143} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 10 }}>客运　{transportText(data.wuyun.keyun)}</text>
 
-      {/* 岁运胶囊 */}
-      <rect x={(W - 210) / 2} y={90} width={210} height={30} rx={15} fill={wxLight} stroke={wxColor} strokeWidth={1.5} />
-      <text x={W / 2} y={105} textAnchor="middle" dominantBaseline="middle" fill={wxColor} style={{ fontSize: 13, fontWeight: 700 }}>
-        {yearChars}　{wuyun.dayun}
-      </text>
+      <line x1={30} y1={158} x2={W - 30} y2={158} stroke="var(--chart-line-strong)" strokeDasharray="3 3" />
+      <rect x={W / 2 - 182} y={172} width={175} height={28} rx={6} fill="var(--chart-deep)" stroke="var(--wz-fire)" />
+      <text x={W / 2 - 95} y={186} textAnchor="middle" dominantBaseline="middle" fill="var(--wz-fire)" style={{ fontSize: 12, fontWeight: 700 }}>司天　{data.liuqi.sitian}</text>
+      <rect x={W / 2 + 7} y={172} width={175} height={28} rx={6} fill="var(--chart-deep)" stroke="var(--wz-earth)" />
+      <text x={W / 2 + 95} y={186} textAnchor="middle" dominantBaseline="middle" fill="var(--wz-earth)" style={{ fontSize: 12, fontWeight: 700 }}>在泉　{data.liuqi.zaiquan}</text>
 
-      {/* 分隔虚线 1 */}
-      <line x1={30} y1={126} x2={W - 30} y2={126} stroke="var(--chart-line-strong)" strokeWidth={0.5} strokeDasharray="3 3" />
-      <text x={W / 2} y={138} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 10 }}>
-        司天 · 在泉
-      </text>
-
-      {/* 司天 */}
-      <rect x={W / 2 - 90} y={150} width={180} height={28} rx={6} fill="var(--chart-deep)" stroke="var(--wz-fire)" strokeWidth={1.5} />
-      <text x={W / 2} y={164} textAnchor="middle" dominantBaseline="middle" fill="var(--wz-fire)" style={{ fontSize: 12, fontWeight: 700 }}>
-        司天　{liuqi.sitian}
-      </text>
-      {/* 箭头 */}
-      <line x1={W / 2} y1={180} x2={W / 2} y2={196} stroke="var(--wz-fire)" strokeWidth={1.5} markerEnd="url(#yunqi-arrow)" />
-      {/* 在泉 */}
-      <rect x={W / 2 - 90} y={198} width={180} height={28} rx={6} fill="var(--chart-deep)" stroke="var(--wz-earth)" strokeWidth={1.5} />
-      <text x={W / 2} y={212} textAnchor="middle" dominantBaseline="middle" fill="var(--wz-earth)" style={{ fontSize: 12, fontWeight: 700 }}>
-        在泉　{liuqi.zaiquan}
-      </text>
-
-      {/* 分隔虚线 2 */}
-      <line x1={30} y1={234} x2={W - 30} y2={234} stroke="var(--chart-line-strong)" strokeWidth={0.5} strokeDasharray="3 3" />
-      <text x={W / 2} y={246} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 10 }}>
-        客气六步
-      </text>
-
-      {/* 客气六步时间线 */}
-      {steps.map((step, i) => {
-        const sX = segX0 + i * (segW + segGap);
-        const qiName = step.qi;
-        const fullColor = QI_COLORS[qiName] ?? 'var(--chart-text-faint)';
-        const lightColor = QI_COLORS_LIGHT[qiName] ?? 'var(--chart-inset)';
-        const wxLabel = QI_WUXING_MAP[qiName] ?? '';
+      <text x={W / 2} y={220} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 11 }}>客气六步 · 查询日期所在步位以金边标出</text>
+      {steps.map((step, index) => {
+        const x = x0 + index * (stepWidth + gap);
+        const color = QI_COLORS[step.qi] ?? 'var(--chart-text-faint)';
+        const active = step.step === currentStep?.step;
         return (
-          <g key={i}>
-            <rect x={sX} y={segY} width={segW} height={segH} rx={6} fill={lightColor} stroke={fullColor} strokeWidth={1.5} />
-            {/* 顶部彩条 */}
-            <rect x={sX + 1} y={segY + 1} width={segW - 2} height={6} rx={3} fill={fullColor} />
-            {/* 六气名 */}
-            <text x={sX + segW / 2} y={segY + 32} textAnchor="middle" dominantBaseline="middle" fill={fullColor} style={{ fontSize: 11, fontWeight: 700 }}>
-              {qiName}
-            </text>
-            {/* 五行标 */}
-            {wxLabel && (
-              <text x={sX + segW / 2} y={segY + 48} textAnchor="middle" dominantBaseline="middle" fill={fullColor} style={{ fontSize: 8 }}>
-                [{wxLabel}]
-              </text>
-            )}
-            {/* 步名 */}
-            <text x={sX + segW / 2} y={segY + 64} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-mid)" style={{ fontSize: 10 }}>
-              {step.step}
-            </text>
-            {/* 节气范围 */}
-            <text x={sX + segW / 2} y={segY + 80} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 8 }}>
-              {step.start}→{step.end}
-            </text>
-            {/* 底部圆点 */}
-            <circle cx={sX + segW / 2} cy={segY + segH - 12} r={3} fill={fullColor} />
+          <g key={step.step}>
+            <rect x={x} y={235} width={stepWidth} height={136} rx={6} fill={QI_LIGHT[step.qi] ?? 'var(--chart-inset)'} stroke={active ? 'var(--c-gold)' : color} strokeWidth={active ? 2.5 : 1.2} />
+            <rect x={x + 1} y={236} width={stepWidth - 2} height={6} rx={3} fill={color} />
+            {active && <text x={x + stepWidth / 2} y={255} textAnchor="middle" dominantBaseline="middle" fill="var(--c-gold)" style={{ fontSize: 8, fontWeight: 700 }}>当前所处</text>}
+            <text x={x + stepWidth / 2} y={active ? 274 : 260} textAnchor="middle" dominantBaseline="middle" fill={color} style={{ fontSize: 11, fontWeight: 700 }}>{step.qi}</text>
+            <text x={x + stepWidth / 2} y={294} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-mid)" style={{ fontSize: 10 }}>{step.step}</text>
+            <text x={x + stepWidth / 2} y={313} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 8 }}>{step.startDate}</text>
+            <text x={x + stepWidth / 2} y={329} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 8 }}>至 {step.endDate} 前</text>
+            <text x={x + stepWidth / 2} y={351} textAnchor="middle" dominantBaseline="middle" fill={color} style={{ fontSize: 9 }}>主气 {step.zhuqi}</text>
           </g>
         );
       })}
 
-      {/* 病势倾向 */}
-      {tendencyLines.length > 0 && (
-        <g>
-          <rect
-            x={(W - Math.min(W - 40, 200)) / 2}
-            y={tendY}
-            width={Math.min(W - 40, 200)}
-            height={tendencyLines.length * tendLineH + 10}
-            rx={11}
-            fill="var(--chart-deep)"
-            stroke="var(--wz-earth)"
-            strokeWidth={1}
-          />
-          {tendencyLines.map((line, li) => (
-            <text
-              key={li}
-              x={W / 2}
-              y={tendY + 10 + li * tendLineH}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fill="var(--chart-text)"
-              style={{ fontSize: 10, fontWeight: 700 }}
-            >
-              {li === 0 ? `病势倾向  ${line}` : line}
-            </text>
-          ))}
-        </g>
-      )}
-
-      {/* 图例 */}
-      {QI_WUXING_ORDER.map((label, li) => {
-        const lx = legendStartX + li * legendSpacing;
-        const lColor = QI_WUXING_COLORS[label];
-        return (
-          <g key={label}>
-            <circle cx={lx - 14} cy={legendY} r={4} fill={lColor} />
-            <text x={lx} y={legendY} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 9 }}>
-              {label}
-            </text>
-          </g>
-        );
-      })}
-
-      <defs>
-        <marker id="yunqi-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="userSpaceOnUse">
-          <path d="M0,0 L8,4 L0,8 Z" fill="var(--wz-fire)" />
-        </marker>
-      </defs>
+      <text x={W / 2} y={401} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 11 }}>传统运气格局</text>
+      {patterns.length ? <text x={W / 2} y={421} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text)" style={{ fontSize: 11, fontWeight: 700 }}>{patterns.join('　')}</text> : <text x={W / 2} y={421} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text)" style={{ fontSize: 11, fontWeight: 700 }}>未见特别格局标识</text>}
+      <rect x={30} y={440} width={W - 60} height={38} rx={7} fill="var(--chart-deep)" stroke="var(--chart-line-strong)" />
+      <text x={W / 2} y={459} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 10 }}>{data.observation}</text>
+      <text x={W / 2} y={493} textAnchor="middle" dominantBaseline="middle" fill="var(--chart-text-faint)" style={{ fontSize: 9 }}>五行：{Object.entries(WX_COLORS).map(([element]) => element).join('　')}</text>
     </svg>
   );
 }

@@ -278,33 +278,7 @@ if (exists(fengshuiPath)) {
   );
 }
 
-// ── 3f. #testing 迁移（测试控制台，Phase 9 第一版） ──────
-const testingPath = path.join(srcRoot, 'features/testing/TestRunnerConsole.tsx');
-check(exists(testingPath), 'TestRunnerConsole.tsx 应位于 features/testing/ 目录');
-if (exists(testingPath)) {
-  const testingWorkspace = read(testingPath);
-  // 测试控制台不使用 CanvasPanel
-  const testingCanvasCount = countOccurrences(testingWorkspace, '<CanvasPanel');
-  check(testingCanvasCount === 0, `#testing 不应使用 CanvasPanel，实际出现 ${testingCanvasCount} 次`);
-  check(
-    testingWorkspace.includes('TEST_SUITES'),
-    'TestRunnerConsole 应引用 TEST_SUITES 测试套件注册表',
-  );
-  check(
-    testingWorkspace.includes('test-runner.html'),
-    'TestRunnerConsole 应提供跳转旧 test-runner.html 的链接',
-  );
-  check(
-    testingWorkspace.includes('verify.html'),
-    'TestRunnerConsole 应提供跳转 verify.html 的链接',
-  );
-  check(
-    testingWorkspace.includes('collectEnvInfo') || testingWorkspace.includes('EnvInfo'),
-    'TestRunnerConsole 应包含环境诊断信息',
-  );
-}
-
-// ── 3g. testRegistry 测试套件注册表 ──────────────────────
+// ── 3f. testRegistry 测试套件注册表 ──────────────────────
 const testRegistryPath = path.join(srcRoot, 'legacy/testRegistry.ts');
 check(exists(testRegistryPath), 'testRegistry.ts 应位于 legacy/ 目录');
 if (exists(testRegistryPath)) {
@@ -331,19 +305,19 @@ if (exists(readerPath)) {
   );
   check(
     readerWorkspace.includes('?raw'),
-    'AncientTextSplitReader 应通过 Vite ?raw 导入古籍原文和映射 JSON',
+    'AncientTextSplitReader 应通过 Vite ?raw 导入古籍原文',
   );
   check(
     readerWorkspace.includes('八宅明镜'),
     'AncientTextSplitReader 应包含八宅明镜古籍',
   );
   check(
-    readerWorkspace.includes('eight-mansions.json'),
-    'AncientTextSplitReader 应包含八宅映射 JSON',
+    !readerWorkspace.includes('mappingJson') && !readerWorkspace.includes('eight-mansions.json'),
+    'AncientTextSplitReader 不应加载或展示内部映射字段与文件名',
   );
   check(
-    readerWorkspace.includes('highlightJson') || readerWorkspace.includes('renderMarkdownLite'),
-    'AncientTextSplitReader 应实现 Markdown 渲染和 JSON 高亮',
+    readerWorkspace.includes('renderMarkdownLite') && !readerWorkspace.includes('highlightJson'),
+    'AncientTextSplitReader 应仅渲染古籍原文，不展示原始映射数据',
   );
   check(readerWorkspace.includes('READER_SEARCH_INTENT_EVENT'), 'AncientTextSplitReader 应监听古籍搜索 intent');
   check(readerWorkspace.includes('setSearchTerm'), 'AncientTextSplitReader 应可通过快捷命令更新搜索词');
@@ -467,7 +441,7 @@ check(workspaceRegistry.includes("m.MeihuaWorkspace"), 'workspaceRegistry 应注
 check(workspaceRegistry.includes("m.LiuyaoWorkspace"), 'workspaceRegistry 应注册 liuyao 工作区');
 check(workspaceRegistry.includes("m.ZiweiWorkspace"), 'workspaceRegistry 应注册 ziwei 工作区');
 check(workspaceRegistry.includes("m.FengshuiWorkspace"), 'workspaceRegistry 应注册 fengshui 工作区');
-check(workspaceRegistry.includes("m.TestRunnerConsole"), 'workspaceRegistry 应注册 testing 工作区');
+check(!workspaceRegistry.includes("TestRunnerConsole"), 'workspaceRegistry 不应注册内部测试控制台');
 check(workspaceRegistry.includes("m.AncientTextSplitReader"), 'workspaceRegistry 应注册 reader 工作区');
 check(workspaceRegistry.includes("m.BaziWorkspace"), 'workspaceRegistry 应注册 bazi 工作区');
 check(workspaceRegistry.includes("m.YunqiWorkspace"), 'workspaceRegistry 应注册 yunqi 工作区');
@@ -582,11 +556,11 @@ if (exists(agentRouterPath)) {
   check(agentRouter.includes('紫微'), 'agentRouter 应覆盖紫微斗数锚点');
 }
 
-check(commandBar.includes('routeQuery'), 'CommandBar 应接入 agent 路由层');
-check(commandBar.includes('agent-route-'), 'CommandBar 应提供智能路由动态项');
-check(commandBar.includes('智能路由'), 'CommandBar 智能路由项应可识别');
-check(commandBar.includes('pendingRoute'), 'CommandBar 应维护待确认路由状态');
-check(commandBar.includes('AgentConfirmPanel'), 'CommandBar 应挂载 AgentConfirmPanel 确认面板');
+check(commandBar.includes('routeQuery'), 'CommandBar 应接入工具建议路由');
+check(commandBar.includes('agent-route-'), 'CommandBar 应提供工具建议动态项');
+check(commandBar.includes('建议打开'), 'CommandBar 工具建议项应可识别');
+check(commandBar.includes('pendingRoute'), 'CommandBar 应维护待确认工具建议');
+check(commandBar.includes('AgentConfirmPanel'), 'CommandBar 应挂载工具建议确认面板');
 
 const agentConfirmPath = path.join(srcRoot, 'components/app-shell/AgentConfirmPanel.tsx');
 check(exists(agentConfirmPath), 'AgentConfirmPanel.tsx 应位于 app-shell 目录');

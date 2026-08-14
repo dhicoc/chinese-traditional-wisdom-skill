@@ -39,7 +39,7 @@ function getModeInfo(mode: string | undefined, ready: boolean | undefined): Mode
     case 'folk-experience':
       return { label: '民俗参考', color: 'text-jade-100/55 border-white/10 bg-white/[0.03]', icon: '民俗' };
     default:
-      return { label: mode || '未知', color: 'text-jade-100/55 border-white/10 bg-white/[0.03]', icon: '?' };
+      return { label: '状态暂不可识别', color: 'text-jade-100/55 border-white/10 bg-white/[0.03]', icon: '?' };
   }
 }
 

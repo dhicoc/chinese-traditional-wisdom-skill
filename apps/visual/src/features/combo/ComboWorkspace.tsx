@@ -23,6 +23,7 @@ import {
   type ZeriResult,
   type ZeriPurpose,
   type MonthlyFortuneResult,
+  type SubsystemResult,
 } from '@/engine-api/combo';
 import { calcMarriageCombo, type MarriageResult, type MarriageScene } from '@/engine-api/marriage';
 import type { ToolEnvelope } from '@/engine-api/types';
@@ -74,6 +75,28 @@ function createComboFailureEnvelope(comboType: ComboType): ToolEnvelope<ComboRes
     data: {} as ComboResult | DailyWellnessResult | ZeriResult | MonthlyFortuneResult | MarriageResult,
     error: { code: 'calculation_exception', message: SAFE_ERROR_MESSAGE },
   });
+}
+
+function ResultSources({ subsystems }: { subsystems: SubsystemResult[] }) {
+  if (subsystems.length === 0) return null;
+
+  return (
+    <InterpretationCard title="本次参考范围" subtitle="参与的传统方法与注意事项">
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {subsystems.map((subsystem) => {
+          const warnings = subsystem.envelope.warnings ?? [];
+          return (
+            <section key={subsystem.name} className="rounded-card border border-jade-500/20 bg-jade-500/5 px-3 py-2" aria-label={`${subsystem.name}参考范围`}>
+              <p className="text-xs font-medium text-jade-300">{subsystem.name}</p>
+              <p className="mt-1 text-[11px] leading-4 text-jade-100/55">本次参考已纳入该传统方法。</p>
+              {warnings.length > 0 && <p className="mt-1 text-[11px] leading-4 text-gold-300/80">注意：{warnings.join('；')}</p>}
+            </section>
+          );
+        })}
+      </div>
+      <p className="mt-3 text-xs leading-5 text-jade-100/45">仅说明本次参考所采用的方法及已知注意事项，不展示个人资料。</p>
+    </InterpretationCard>
+  );
 }
 
 function factChecksFor<T extends ComboPresentationData>(
@@ -342,9 +365,7 @@ export function ComboWorkspace() {
     : null, [factChecks, isCurrentResult, result.envelope]);
   const reportMetadata = useMemo(() => result.envelope ? createWorkspaceReportMetadata({
     moduleId: 'combo',
-    tool: result.envelope.tool,
-    version: result.envelope.version,
-    inputSummary: '已运行所选联合分析方案；报告仅保留分析类型与本地计算状态。',
+    inputSummary: '本次采用所选联合分析方案；报告仅保留分析类型，不保留个人资料。',
   }) : null, [result.envelope]);
   const exportPresentation = useMemo(() => presentation?.exportReport && data && result.comboType ? ({
     report: createComboExportReport({
@@ -710,6 +731,10 @@ export function ComboWorkspace() {
                 </div>
               )}
             </InterpretationCard>
+          )}
+
+          {comboType !== 'wellness' && comboType !== 'monthly' && comboType !== 'zeri' && comboType !== 'marriage' && (
+            <ResultSources subsystems={(data as ComboResult).subsystems ?? []} />
           )}
 
           <div className="console-panel rounded-panel border border-purple-500/16 bg-ink-950/90 p-4 shadow-instrument">

@@ -26,8 +26,6 @@ export function AlmanacWorkspace() {
   const xiongHours = useMemo(() => almanac?.hours.filter((h) => h.luck === '凶') ?? [], [almanac]);
   const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
     moduleId: 'almanac',
-    tool: 'daily_almanac',
-    version: '1.0.0',
     inputSummary: '已生成所选日期的黄历与日用民俗参考；报告不保留具体日期。',
   }), []);
   const exportReport = useMemo(() => {

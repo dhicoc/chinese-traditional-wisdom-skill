@@ -39,6 +39,13 @@ const WUXING_COLORS: Record<keyof WuxingStats, string> = {
   水: 'var(--wz-water)',
 };
 
+const PILLAR_LABEL: Record<string, string> = {
+  year: '年',
+  month: '月',
+  day: '日',
+  hour: '时',
+};
+
 interface BaziResult {
   pillars?: unknown;
   elements?: Partial<WuxingStats>;
@@ -107,6 +114,10 @@ function shiftTransitDate(transitDate: string, days: number) {
   return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`;
 }
 
+function selectDecadalStart(transitDate: string, startYear?: number) {
+  return startYear ? updateTransitYear(transitDate, String(startYear)) : transitDate;
+}
+
 function createBaziFactChecks(data: BaziData): StructuredFactCheck[] {
   const claims: Array<{ claim: BaziPresentationClaim; label: string; value: string }> = [
     { claim: { kind: 'dayMaster', value: data.dayMaster }, label: '日主', value: data.dayMaster },
@@ -166,9 +177,7 @@ export function BaziWorkspace() {
   );
   const reportMetadata = useMemo(() => envelope ? createWorkspaceReportMetadata({
     moduleId: 'bazi',
-    tool: envelope.tool,
-    version: envelope.version,
-    inputSummary: `已提供出生资料用于本地排盘；神煞查法：按${trineSource === 'year' ? '年支' : '日支'}。`,
+    inputSummary: `本次按出生资料排盘；神煞查法：按${trineSource === 'year' ? '年支' : '日支'}。`,
     timeBasis: baziTimeStatus.status === 'true-solar-verified'
       ? 'true-solar-verified'
       : 'civil-unverified',
@@ -209,7 +218,7 @@ export function BaziWorkspace() {
         ? '已核验真太阳时'
         : baziTimeStatus.status === 'civil-unverified'
           ? '民用时间（未完成真太阳时复核）'
-          : '民用时间（等待 Agent 真太阳时核验）',
+          : '民用时间（尚未完成真太阳时核验）',
       四柱: pillars,
       五行: wuxing,
     }),
@@ -243,7 +252,7 @@ export function BaziWorkspace() {
             )}
             {baziTimeStatus.status === 'awaiting-agent-verification' && (
               <p className="mt-1 text-xs text-gold-300/80">
-                等待 Agent 核验出生地点、历史时区与夏令时；当前暂按民用时间展示，尚未称为真太阳时排盘。
+                尚未完成真太阳时核验；当前按民用时间展示，尚未采用真太阳时排盘。
               </p>
             )}
             {baziTimeStatus.status === 'civil-unverified' && (
@@ -427,7 +436,7 @@ export function BaziWorkspace() {
                 <section className="rounded-card border border-gold-300/20 bg-gold-300/10 px-3 py-2.5">
                   <p className="text-xs font-semibold text-jade-100/70">当前小运</p>
                   <p className="mt-1 text-sm text-jade-50">虚岁{transit.minor.nominalAge} · {transit.minor.stem}{transit.minor.branch}</p>
-                  <p className="mt-1 text-xs text-jade-100/55">{transit.minor.stemShiShen} · 五行{transit.minor.stemWuxing} · {transit.minor.source === 'lunar-exact' ? '历法精确序列' : '本地规则推算'}</p>
+                  <p className="mt-1 text-xs text-jade-100/55">{transit.minor.stemShiShen} · 五行{transit.minor.stemWuxing} · 依传统历法口径推算</p>
                 </section>
                 <section className="rounded-card border border-cinnabar-500/20 bg-cinnabar-500/10 px-3 py-2.5">
                   <p className="text-xs font-semibold text-jade-100/70">流年</p>
@@ -435,21 +444,41 @@ export function BaziWorkspace() {
                   <p className="mt-1 text-xs text-jade-100/55">流年天干{transit.yearly.stem}为{transit.yearly.stemShiShen} · 五行{transit.yearly.stemWuxing}</p>
                 </section>
               </div>
-              <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-                {transit.decadal.all.map((luck) => {
-                  const isCurrent = transit.decadal.current?.ageStart === luck.ageStart;
-                  return (
-                    <section
-                      key={`${luck.ageStart}-${luck.stem}${luck.branch}`}
-                      className={`rounded-card border px-3 py-2.5 ${isCurrent ? 'border-jade-500/55 bg-jade-500/15' : 'border-white/8 bg-white/[0.025]'}`}
-                    >
-                      <p className="text-xs font-semibold text-jade-100/70">{luck.ageStart}岁起</p>
-                      <p className="mt-1 text-lg text-jade-50">{luck.stem}{luck.branch}</p>
-                      <p className="mt-1 text-xs text-jade-100/55">{luck.stemWuxing}{luck.startYear && luck.endYear ? ` · ${luck.startYear}–${luck.endYear}` : ''}</p>
-                    </section>
-                  );
-                })}
-              </div>
+              <section className="mt-3" aria-labelledby="bazi-luck-timeline-title">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h4 id="bazi-luck-timeline-title" className="text-sm font-semibold text-jade-100">大运时间轴</h4>
+                    <p className="mt-1 text-xs leading-5 text-jade-100/45">点击任一运段可将目标日期跳转至该段起始年；当前段由目标日期自动高亮。</p>
+                  </div>
+                  <span className="text-xs text-jade-100/45">{transit.decadal.direction}</span>
+                </div>
+                <div className="mt-2 flex gap-2 overflow-x-auto pb-1" role="list" aria-label="大运时间轴">
+                  {transit.decadal.all.map((luck) => {
+                    const isCurrent = transit.decadal.current?.ageStart === luck.ageStart;
+                    const label = `${luck.ageStart}岁起 ${luck.stem}${luck.branch}${luck.startYear && luck.endYear ? ` ${luck.startYear}至${luck.endYear}` : ''}`;
+                    return (
+                      <button
+                        key={`${luck.ageStart}-${luck.stem}${luck.branch}`}
+                        type="button"
+                        role="listitem"
+                        aria-pressed={isCurrent}
+                        aria-label={`选择大运：${label}`}
+                        disabled={!luck.startYear}
+                        onClick={() => setTransitDate((current) => selectDecadalStart(current, luck.startYear))}
+                        className={`min-w-36 shrink-0 rounded-card border px-3 py-2.5 text-left transition-colors ${
+                          isCurrent
+                            ? 'border-jade-500/55 bg-jade-500/15 text-jade-50'
+                            : 'border-white/8 bg-white/[0.025] text-jade-100/75 hover:border-jade-500/35 hover:bg-jade-500/5'
+                        } disabled:cursor-not-allowed disabled:opacity-50`}
+                      >
+                        <p className="text-xs font-semibold">{luck.ageStart}岁起</p>
+                        <p className="mt-1 text-lg">{luck.stem}{luck.branch}</p>
+                        <p className="mt-1 text-xs text-jade-100/55">{luck.stemWuxing}{luck.startYear && luck.endYear ? ` · ${luck.startYear}–${luck.endYear}` : ''}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
               <section className="mt-3 rounded-card border border-white/8 bg-white/[0.025] px-3 py-2.5">
                 <p className="text-xs font-semibold text-jade-100/70">流年关系</p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -459,7 +488,7 @@ export function BaziWorkspace() {
                     ['小运', transit.relations.yearly.minor],
                   ] as const).flatMap(([reference, matches]) => matches.map((item) => (
                     <span key={`${reference}-${item.referenceKey ?? item.referenceGanZhi}`} className="rounded-full border border-cinnabar-500/25 bg-cinnabar-500/10 px-2 py-0.5 text-xs text-cinnabar-400">
-                      {reference}{item.referenceKey ? `${item.referenceKey}柱` : item.referenceGanZhi} · {item.relations.join('、')}
+                      {reference}{item.referenceKey ? `${PILLAR_LABEL[item.referenceKey] ?? item.referenceKey}柱` : item.referenceGanZhi} · {item.relations.join('、')}
                     </span>
                   )))}
                   {[...transit.relations.yearly.natal, ...transit.relations.yearly.decadal, ...transit.relations.yearly.minor].length === 0 && (
@@ -545,7 +574,7 @@ export function BaziWorkspace() {
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {relationGroups.flatMap(([reference, matches]) => matches.map((item) => (
                           <span key={`${label}-${reference}-${item.referenceKey ?? item.referenceGanZhi}`} className="rounded-full border border-cinnabar-500/25 bg-cinnabar-500/10 px-2 py-0.5 text-xs text-cinnabar-400">
-                            {reference}{item.referenceKey ? `${item.referenceKey}柱` : item.referenceGanZhi} · {item.relations.join('、')}
+                            {reference}{item.referenceKey ? `${PILLAR_LABEL[item.referenceKey] ?? item.referenceKey}柱` : item.referenceGanZhi} · {item.relations.join('、')}
                           </span>
                         )))}
                         {relationGroups.every(([, matches]) => matches.length === 0) && (

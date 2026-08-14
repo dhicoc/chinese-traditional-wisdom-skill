@@ -1,300 +1,112 @@
-/**
- * yunqiEngine — 五运六气纯 TS 推算引擎（C 类迁移第二步）
- *
- * 从 visual/js/engines/yunqi-engine.js 移植为纯 TS。原引擎本是纯查表 + 干支计算，
- * 无外部依赖，仅因挂在 window.YunqiEngine 被 `if (typeof window === "undefined") return`
- * 挡住。剥离后可在 Node 环境直接 import。
- *
- * engine-adapters.js 的 yunqi adapter 额外做了「大寒定年」（依赖 window.Solar），
- * 这里用参数化 Solar 入口处理（与 almanacData/meihuaEngine 同模式）：
- * 传入 solar 时按大寒边界修正运气年份（local-exact），未传时按公历年近似（local-approx）。
- *
- * 输出结构与旧 YunqiEngine.calculate 完全一致，YunqiData/baseTypes 可直接消费。
- * 旧 JS 保留作 EngineAdapterRegistry fallback，零回归。
- */
-
 import type { ToolEnvelope, ExportSnapshot } from './baseTypes';
 
 const TG = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
 const DZ = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+const WUXING = ['木', '火', '土', '金', '水'] as const;
+const STEP_NAMES = ['初之气', '二之气', '三之气', '四之气', '五之气', '终之气'] as const;
+const STEP_TERMS = [['大寒', '春分'], ['春分', '小满'], ['小满', '大暑'], ['大暑', '秋分'], ['秋分', '小雪'], ['小雪', '大寒']] as const;
 
-/** 岁运表：甲己土 / 乙庚金 / 丙辛水 / 丁壬木 / 戊癸火（太过/不及按阳干阴干） */
-const WUYUN_TABLE: Record<string, string> = {
-  甲: '土运太过', 乙: '金运不及', 丙: '水运太过', 丁: '木运不及', 戊: '火运太过',
-  己: '土运不及', 庚: '金运太过', 辛: '水运不及', 壬: '木运太过', 癸: '火运不及',
+const WUYUN_TABLE: Record<string, { element: string; taiShao: '太' | '少' }> = {
+  甲: { element: '土', taiShao: '太' }, 乙: { element: '金', taiShao: '少' },
+  丙: { element: '水', taiShao: '太' }, 丁: { element: '木', taiShao: '少' },
+  戊: { element: '火', taiShao: '太' }, 己: { element: '土', taiShao: '少' },
+  庚: { element: '金', taiShao: '太' }, 辛: { element: '水', taiShao: '少' },
+  壬: { element: '木', taiShao: '太' }, 癸: { element: '火', taiShao: '少' },
 };
-
-/** 司天表（按地支） */
-const SITIAN_TABLE: Record<string, string> = {
-  子: '少阴君火', 午: '少阴君火',
-  丑: '太阴湿土', 未: '太阴湿土',
-  寅: '少阳相火', 申: '少阳相火',
-  卯: '阳明燥金', 酉: '阳明燥金',
-  辰: '太阳寒水', 戌: '太阳寒水',
-  巳: '厥阴风木', 亥: '厥阴风木',
-};
-
-/** 在泉表（司天→在泉，阴阳相对） */
-const ZAIQUAN_TABLE: Record<string, string> = {
-  少阴君火: '阳明燥金', 太阴湿土: '太阳寒水', 少阳相火: '厥阴风木',
-  阳明燥金: '少阴君火', 太阳寒水: '太阴湿土', 厥阴风木: '少阳相火',
-};
-
-/** 六客气步序 */
+const SITIAN_TABLE: Record<string, string> = { 子: '少阴君火', 午: '少阴君火', 丑: '太阴湿土', 未: '太阴湿土', 寅: '少阳相火', 申: '少阳相火', 卯: '阳明燥金', 酉: '阳明燥金', 辰: '太阳寒水', 戌: '太阳寒水', 巳: '厥阴风木', 亥: '厥阴风木' };
+const ZAIQUAN_TABLE: Record<string, string> = { 少阴君火: '阳明燥金', 太阴湿土: '太阳寒水', 少阳相火: '厥阴风木', 阳明燥金: '少阴君火', 太阳寒水: '太阴湿土', 厥阴风木: '少阳相火' };
 const LIUQI_ORDER = ['厥阴风木', '少阴君火', '太阴湿土', '少阳相火', '阳明燥金', '太阳寒水'];
-
-/** 疾病倾向 */
-const DISEASE_MAP: Record<string, string> = {
-  土运太过: '脾湿、腹泻、四肢沉重',
-  土运不及: '消化不良、胃胀、肌肉酸痛',
-  金运太过: '皮肤干燥、咳嗽、便秘',
-  金运不及: '免疫力下降、气喘、皮肤过敏',
-  水运太过: '水肿、肾虚、腰膝酸软、畏寒',
-  水运不及: '尿频、耳鸣、骨质疏松',
-  木运太过: '肝火旺、头痛、眼疾、易怒',
-  木运不及: '疲劳、抑郁、筋骨不利',
-  火运太过: '心火旺、失眠、高血压、口腔溃疡',
-  火运不及: '心悸、怕冷、循环不良',
-  少阴君火: '心脑血管疾病、热证',
-  太阴湿土: '脾胃失调、水肿、湿证',
-  少阳相火: '肝胆热证、炎症、上火',
-  阳明燥金: '肺燥、便秘、皮肤干燥',
-  太阳寒水: '风寒感冒、关节痛、寒证',
-  厥阴风木: '肝风、头痛、过敏、眩晕',
-};
-
-// ── lunar-javascript Solar 入口类型（大寒定年用，参数化）──
-
-interface LunarLike {
-  getJieQiTable?: () => Record<string, { getYear?: () => number; getMonth?: () => number; getDay?: () => number } | string>;
-}
-interface SolarLike {
-  fromYmd?(y: number, mo: number, d: number): { getLunar(): LunarLike };
-  fromYmdHms?(y: number, mo: number, d: number, h: number, mi: number, s: number): { getLunar(): LunarLike };
-}
-
-/** 从岁运串提取五行 */
-function extractWuxing(dayun: string): string {
-  const chars = ['金', '木', '水', '火', '土'];
-  for (const c of chars) {
-    if (dayun.indexOf(c) !== -1) return c;
-  }
-  return '土';
-}
-
-/** 主气六步（固定：初之气厥阴→六之气太阳） */
 const ZHUQI_ORDER = ['厥阴风木', '少阴君火', '少阳相火', '太阴湿土', '阳明燥金', '太阳寒水'];
+const LIUQI_WUXING: Record<string, string> = { 厥阴风木: '木', 少阴君火: '火', 少阳相火: '火', 太阴湿土: '土', 阳明燥金: '金', 太阳寒水: '水' };
+const DIZHI_WUXING: Record<string, string> = { 子: '水', 丑: '土', 寅: '木', 卯: '木', 辰: '土', 巳: '火', 午: '火', 未: '土', 申: '金', 酉: '金', 戌: '土', 亥: '水' };
+const FALLBACK_TERMS: Record<string, [number, number]> = { 大寒: [1, 20], 春分: [3, 20], 小满: [5, 21], 大暑: [7, 23], 秋分: [9, 23], 小雪: [11, 22] };
 
-/**
- * 取当前客气步（含主气）。
- * @param year 年份（用于判断当前月是否落在该年）
- * @param zhuke 客气六步
- * @param currentMonth 可选当前月（1-12）；未传时用 new Date() 取当前月
- */
-function getCurrentStep(
-  year: number,
-  zhuke: Array<{ step: string; qi: string; start: string; end: string }>,
-  currentMonth?: number,
-): { step: string; qi: string; start: string; end: string; zhuqi: string } | null {
-  const mo = currentMonth ?? (() => {
-    const now = new Date();
-    return now.getFullYear() === year ? now.getMonth() + 1 : 1;
-  })();
-  const idx = Math.min(5, Math.max(0, Math.floor((mo - 1) / 2)));
-  return { ...zhuke[idx], zhuqi: ZHUQI_ORDER[idx] };
-}
+interface JieQiEntry { getYear?: () => number; getMonth?: () => number; getDay?: () => number; }
+interface SolarLike { fromYmd?(year: number, month: number, day: number): { getLunar(): { getJieQiTable?: () => Record<string, JieQiEntry | string> } }; fromYmdHms?(year: number, month: number, day: number, hour: number, minute: number, second: number): { getLunar(): { getJieQiTable?: () => Record<string, JieQiEntry | string> } }; }
+interface CalendarDate { year: number; month: number; day: number; }
 
-/** 客主加临关系 */
-function getKeZhuJiaLin(keqi: string, zhuqi: string): string {
-  if (!keqi || !zhuqi) return '未知';
-  if (keqi === zhuqi) return '同气';
-  const wx: Record<string, string> = { 厥阴风木: '木', 少阴君火: '火', 少阳相火: '火', 太阴湿土: '土', 阳明燥金: '金', 太阳寒水: '水' };
-  const cycle = ['木', '火', '土', '金', '水'];
-  const k = cycle.indexOf(wx[keqi]);
-  const z = cycle.indexOf(wx[zhuqi]);
-  if (k < 0 || z < 0) return '未知';
-  if ((k + 1) % 5 === z) return '客生主';
-  if ((z + 1) % 5 === k) return '主生客';
-  if ((k + 2) % 5 === z) return '客克主';
-  if ((z + 2) % 5 === k) return '主克客';
-  return '同类';
-}
+export interface YunqiTransport { element: string; taiShao: '太' | '少'; }
+export interface YunqiStep { step: string; qi: string; start: string; end: string; startDate: string; endDate: string; zhuqi: string; }
+export interface YunqiPatterns { tianfu: boolean; suihui: boolean; taiyiTianfu: boolean; tongTianfu: boolean; tongSuihui: boolean; pingqi: boolean; qihua: string | null; jianhua: string | null; zhengdui: { qi: string; type: '正化' | '对化' }; }
+export interface YunqiResult { engineName: string; mode: 'local-exact' | 'local-approx'; confidenceNote: string; year: number; targetDate: string; tiangan: string; dizhi: string; yearBoundary: string; wuyun: { dayun: string; zhuyun: YunqiTransport[]; keyun: YunqiTransport[]; }; liuqi: { sitian: string; zaiquan: string; zhuke: YunqiStep[]; current_step: YunqiStep | null; kezhujialin: string; }; patterns: YunqiPatterns; observation: string; disease_tendency: string; }
+export interface YunqiInput { year: number; targetDate?: string; birthMonth?: number; birthDay?: number; solar?: SolarLike | null; currentMonth?: number; }
 
-// ── 结果类型（与旧 YunqiEngine.calculate 输出一致，对齐 baseTypes YunqiData）──
+function pad(value: number): string { return String(value).padStart(2, '0'); }
+function formatDate(date: CalendarDate): string { return `${date.year}-${pad(date.month)}-${pad(date.day)}`; }
+function compareDate(left: CalendarDate, right: CalendarDate): number { return left.year - right.year || left.month - right.month || left.day - right.day; }
+function parseDate(value: string): CalendarDate | null { const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value); if (!match) return null; const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])); return date.getFullYear() === Number(match[1]) && date.getMonth() === Number(match[2]) - 1 && date.getDate() === Number(match[3]) ? { year: Number(match[1]), month: Number(match[2]), day: Number(match[3]) } : null; }
+function fallbackDate(year: number, term: string): CalendarDate { const [month, day] = FALLBACK_TERMS[term] ?? FALLBACK_TERMS.大寒; return { year, month, day }; }
 
-export interface YunqiResult {
-  engineName: string;
-  mode: 'local-exact' | 'local-approx';
-  confidenceNote: string;
-  year: number;
-  tiangan: string;
-  dizhi: string;
-  yearBoundary: string;
-  wuyun: {
-    dayun: string;
-    zhuyun: string[];
-    keyun: string[];
-  };
-  liuqi: {
-    sitian: string;
-    zaiquan: string;
-    zhuke: Array<{ step: string; qi: string; start: string; end: string }>;
-    current_step: { step: string; qi: string; start: string; end: string; zhuqi: string } | null;
-    kezhujialin: string;
-  };
-  disease_tendency: string;
-}
-
-/**
- * 取大寒日期（用于大寒定年）。传入 solar 时走精确节气表，未传返回 null。
- */
-function getDaHanDate(year: number, solar?: SolarLike | null): { year: number; month: number; day: number } | null {
-  if (!solar) return null;
-  try {
-    const s = solar.fromYmdHms
-      ? solar.fromYmdHms(year, 1, 15, 0, 0, 0)
-      : solar.fromYmd?.(year, 1, 15);
-    const lunar = s && typeof s.getLunar === 'function' ? s.getLunar() : null;
-    const table = lunar && typeof lunar.getJieQiTable === 'function' ? lunar.getJieQiTable() : null;
-    if (!table) return null;
-    const dahan = table['大寒'] || table.DA_HAN || table['Dahan'] || table['daHan'];
-    if (!dahan || typeof dahan === 'string') return null;
-    const dy = typeof dahan.getYear === 'function' ? dahan.getYear() : null;
-    const dm = typeof dahan.getMonth === 'function' ? dahan.getMonth() : null;
-    const dd = typeof dahan.getDay === 'function' ? dahan.getDay() : null;
-    if (dy && dm && dd) return { year: Number(dy), month: Number(dm), day: Number(dd) };
-    return null;
-  } catch {
-    return null;
+function getTerm(year: number, term: string, solar?: SolarLike | null): { date: CalendarDate; exact: boolean } {
+  if (solar) {
+    try {
+      const source = solar.fromYmdHms ? solar.fromYmdHms(year, 7, 1, 0, 0, 0) : solar.fromYmd?.(year, 7, 1);
+      const table = source?.getLunar().getJieQiTable?.();
+      const keys: Record<string, string> = { 大寒: 'DA_HAN', 春分: 'CHUN_FEN', 小满: 'XIAO_MAN', 大暑: 'DA_SHU', 秋分: 'QIU_FEN', 小雪: 'XIAO_XUE' };
+      const item = table?.[term] ?? table?.[keys[term]];
+      if (item && typeof item !== 'string' && item.getYear?.() && item.getMonth?.() && item.getDay?.()) return { date: { year: item.getYear(), month: item.getMonth(), day: item.getDay() }, exact: true };
+    } catch { /* fall through */ }
   }
+  return { date: fallbackDate(year, term), exact: false };
 }
 
-export interface YunqiInput {
-  /** 公历年/生辰年 */
-  year: number;
-  /** 生辰月（大寒定年用，判断该年生辰在大寒前还是后），可选 */
-  birthMonth?: number;
-  /** 生辰日，可选 */
-  birthDay?: number;
-  /** 可选 lunar-javascript Solar 入口，传入走精确大寒定年 */
-  solar?: SolarLike | null;
-  /** 可选当前月（1-12），用于 current_step；未传用 new Date() */
-  currentMonth?: number;
+function getGanzhi(year: number): [string, string] { return [TG[((year - 4) % 10 + 10) % 10], DZ[((year - 4) % 12 + 12) % 12]]; }
+function transport(elements: readonly string[], anchor: string, taiShao: '太' | '少'): YunqiTransport[] { const anchorIndex = elements.indexOf(anchor); return elements.map((element, index) => ({ element, taiShao: Math.abs(index - anchorIndex) % 2 === 0 ? taiShao : taiShao === '太' ? '少' : '太' })); }
+function cycleNext(element: string, distance: number): string { return WUXING[(WUXING.indexOf(element as typeof WUXING[number]) + distance + WUXING.length) % WUXING.length]; }
+function getKeZhuJiaLin(keqi: string, zhuqi: string): string { const ke = LIUQI_WUXING[keqi]; const zhu = LIUQI_WUXING[zhuqi]; if (!ke || !zhu) return '未知'; if (ke === zhu) return '客主同气'; if (cycleNext(ke, 1) === zhu) return '客气生主气'; if (cycleNext(zhu, 1) === ke) return '主气生客气'; if (cycleNext(ke, 2) === zhu) return '客气克主气'; if (cycleNext(zhu, 2) === ke) return '主气克客气'; return '未知'; }
+
+function getPatterns(dayun: string, taiShao: '太' | '少', dizhi: string, sitian: string, zaiquan: string): YunqiPatterns {
+  const sitianElement = LIUQI_WUXING[sitian];
+  const zaiquanElement = LIUQI_WUXING[zaiquan];
+  const tianfu = dayun === sitianElement;
+  const suihui = dayun === DIZHI_WUXING[dizhi];
+  const zhengdui: Record<string, { qi: string; type: '正化' | '对化' }> = { 午: { qi: '少阴君火', type: '正化' }, 子: { qi: '少阴君火', type: '对化' }, 未: { qi: '太阴湿土', type: '正化' }, 丑: { qi: '太阴湿土', type: '对化' }, 寅: { qi: '少阳相火', type: '正化' }, 申: { qi: '少阳相火', type: '对化' }, 酉: { qi: '阳明燥金', type: '正化' }, 卯: { qi: '阳明燥金', type: '对化' }, 辰: { qi: '太阳寒水', type: '正化' }, 戌: { qi: '太阳寒水', type: '对化' }, 巳: { qi: '厥阴风木', type: '正化' }, 亥: { qi: '厥阴风木', type: '对化' } };
+  return { tianfu, suihui, taiyiTianfu: tianfu && suihui, tongTianfu: taiShao === '太' && dayun === zaiquanElement, tongSuihui: taiShao === '少' && dayun === zaiquanElement, pingqi: (taiShao === '太' && cycleNext(sitianElement, 2) === dayun) || (taiShao === '少' && (sitianElement === dayun || cycleNext(sitianElement, 1) === dayun)), qihua: taiShao === '太' ? cycleNext(dayun, 4) : null, jianhua: taiShao === '少' ? cycleNext(dayun, 4) : null, zhengdui: zhengdui[dizhi] };
 }
 
-/**
- * 五运六气计算 —— 纯 TS 版。
- * 传入 solar 时按大寒边界修正运气年份（local-exact），否则按公历年近似（local-approx）。
- */
+function getObservation(dayun: string, sitian: string): string {
+  const byDayun: Record<string, string> = { 土运太过: '湿滞偏重时，宜留意起居干爽与饮食节制', 土运不及: '运化偏弱时，宜重视饮食规律与作息稳定', 金运太过: '燥象偏显时，宜留意环境湿度与作息调护', 金运不及: '燥润失衡时，宜注意起居调适', 水运太过: '寒湿偏著时，宜注意保暖与劳逸平衡', 水运不及: '收藏不足时，宜注意休息与节律调养', 木运太过: '风动偏显时，宜保持情志舒展与规律作息', 木运不及: '条达不足时，宜适度舒展身心', 火运太过: '热象偏显时，宜避暑节劳、保持心境平和', 火运不及: '温煦不足时，宜注意保暖与作息节律' };
+  const bySitian: Record<string, string> = { 少阴君火: '火热时令宜注意避暑与安静调摄', 太阴湿土: '湿气偏重时宜关注居处通风干爽', 少阳相火: '暑热偏盛时宜注意劳逸与补水', 阳明燥金: '燥气偏显时宜注意环境润泽', 太阳寒水: '寒气偏显时宜注意保暖避寒', 厥阴风木: '风气偏动时宜注意起居有常' };
+  return `传统气机观察：${byDayun[dayun]}；${bySitian[sitian]}。`;
+}
+
 export function calculateYunqi(input: YunqiInput): YunqiResult {
-  const { year, solar } = input;
-
-  // 大寒定年：生辰在大寒前 → 用上一年运气
-  let effectiveYear = year;
-  let yearBoundary = '本年运气以出生年份为参考。';
-  let mode: 'local-exact' | 'local-approx' = 'local-approx';
-  let confidenceNote = '按出生年份参看岁运、司天在泉与客气六步。';
-
-  const dahan = getDaHanDate(year, solar);
-  if (dahan) {
-    const bm = input.birthMonth ?? 6;
-    const bd = input.birthDay ?? 15;
-    const beforeDahan = bm < dahan.month || (bm === dahan.month && bd < dahan.day);
-    effectiveYear = beforeDahan ? year - 1 : year;
-    yearBoundary = `大寒定年：${year}年大寒为${dahan.month}月${dahan.day}日，当前使用${effectiveYear}年运气。`;
-    mode = 'local-exact';
-    confidenceNote = '已通过 lunar-javascript/Solar 全局对象修正大寒定年；五运六气规则仍由本地表推算。';
-  }
-
-  const tgIndex = (effectiveYear - 4) % 10;
-  const dzIndex = (effectiveYear - 4) % 12;
-  const tiangan = TG[tgIndex >= 0 ? tgIndex : tgIndex + 10];
-  const dizhi = DZ[dzIndex >= 0 ? dzIndex : dzIndex + 12];
-
-  const dayun = WUYUN_TABLE[tiangan] || '';
-  const sitian = SITIAN_TABLE[dizhi] || '';
-  const zaiquan = ZAIQUAN_TABLE[sitian] || '';
-
-  const zhuyun = ['木', '火', '土', '金', '水'];
-  const dayunWx = extractWuxing(dayun);
-  const wxCycle = ['木', '火', '土', '金', '水'];
-  const startIdx = wxCycle.indexOf(dayunWx);
-  const keyun: string[] = [];
-  for (let i = 0; i < 5; i++) {
-    keyun.push(wxCycle[(startIdx + i) % 5]);
-  }
-
-  const sitianIdx = LIUQI_ORDER.indexOf(sitian);
-  const stepNames = ['初之气', '二之气', '三之气', '四之气', '五之气', '六之气'];
-  const termPairs = [
-    ['大寒', '春分'], ['春分', '小满'], ['小满', '大暑'],
-    ['大暑', '秋分'], ['秋分', '小雪'], ['小雪', '大寒'],
-  ];
-  const zhuke: Array<{ step: string; qi: string; start: string; end: string }> = [];
-  for (let i = 0; i < 6; i++) {
-    const qiIdx = (sitianIdx - 2 + i + 6) % 6;
-    zhuke.push({ step: stepNames[i], qi: LIUQI_ORDER[qiIdx], start: termPairs[i][0], end: termPairs[i][1] });
-  }
-
-  const tendencies: string[] = [];
-  if (dayun) tendencies.push(dayun);
-  if (sitian) tendencies.push(sitian);
-  const disease_tendency = tendencies.map((t) => DISEASE_MAP[t] || '').filter(Boolean).join('，') || '无明显特殊倾向';
-
-  const currentStep = getCurrentStep(effectiveYear, zhuke, input.currentMonth);
-  const kezhujialin = getKeZhuJiaLin(currentStep ? currentStep.qi : '', currentStep ? currentStep.zhuqi : '');
-
-  return {
-    engineName: 'YunqiEngine',
-    mode,
-    confidenceNote,
-    year: effectiveYear,
-    tiangan,
-    dizhi,
-    yearBoundary,
-    wuyun: { dayun, zhuyun, keyun },
-    liuqi: { sitian, zaiquan, zhuke, current_step: currentStep, kezhujialin },
-    disease_tendency,
-  };
+  const target = input.targetDate ? parseDate(input.targetDate) : null;
+  const targetDate = target ?? { year: input.year, month: input.birthMonth ?? input.currentMonth ?? new Date().getMonth() + 1, day: input.birthDay ?? 15 };
+  const dahan = getTerm(targetDate.year, '大寒', input.solar);
+  const year = compareDate(targetDate, dahan.date) < 0 ? targetDate.year - 1 : targetDate.year;
+  const [tiangan, dizhi] = getGanzhi(year);
+  const dayun = WUYUN_TABLE[tiangan];
+  const dayunName = `${dayun.element}运${dayun.taiShao === '太' ? '太过' : '不及'}`;
+  const sitian = SITIAN_TABLE[dizhi];
+  const zaiquan = ZAIQUAN_TABLE[sitian];
+  const terms = STEP_TERMS.map(([start]) => getTerm(year, start, input.solar));
+  const nextDahan = getTerm(year + 1, '大寒', input.solar);
+  const allTerms = [...terms, nextDahan];
+  const sitianIndex = LIUQI_ORDER.indexOf(sitian);
+  const zhuke = STEP_NAMES.map((step, index) => ({ step, qi: LIUQI_ORDER[(sitianIndex - 2 + index + 6) % 6], start: STEP_TERMS[index][0], end: STEP_TERMS[index][1], startDate: formatDate(allTerms[index].date), endDate: formatDate(allTerms[index + 1].date), zhuqi: ZHUQI_ORDER[index] }));
+  const currentStep = zhuke.find((step) => { const start = parseDate(step.startDate); const end = parseDate(step.endDate); return Boolean(start && end && compareDate(targetDate, start) >= 0 && compareDate(targetDate, end) < 0); }) ?? zhuke[0];
+  const keyunElements = Array.from({ length: 5 }, (_, index) => cycleNext(dayun.element, index));
+  const patterns = getPatterns(dayun.element, dayun.taiShao, dizhi, sitian, zaiquan);
+  const exact = dahan.exact && allTerms.every((term) => term.exact);
+  const observation = getObservation(dayunName, sitian);
+  return { engineName: 'YunqiEngine', mode: exact ? 'local-exact' : 'local-approx', confidenceNote: exact ? '本次推算已按节气日期划分运气年度与六气步位。' : '本次推算已按传统历法口径处理，结果仅作传统文化参考。', year, targetDate: formatDate(targetDate), tiangan, dizhi, yearBoundary: `运气年度以大寒为界；查询日期为${formatDate(targetDate)}，归入${year}年运气。`, wuyun: { dayun: dayunName, zhuyun: transport(WUXING, dayun.element, dayun.taiShao), keyun: transport(keyunElements, dayun.element, dayun.taiShao) }, liuqi: { sitian, zaiquan, zhuke, current_step: currentStep, kezhujialin: getKeZhuJiaLin(currentStep.qi, currentStep.zhuqi) }, patterns, observation, disease_tendency: observation };
 }
 
-// ── ToolEnvelope 适配 ─────────────────────────────────────
+export interface YunqiData extends YunqiResult { export_snapshot: ExportSnapshot; }
+function describeTransport(steps: YunqiTransport[]): string { return steps.map(({ element, taiShao }) => `${element}${taiShao}`).join(' → '); }
+function describePatterns(patterns: YunqiPatterns): string { return [patterns.tianfu && '天符', patterns.suihui && '岁会', patterns.taiyiTianfu && '太一天符', patterns.tongTianfu && '同天符', patterns.tongSuihui && '同岁会', patterns.pingqi && '平气', patterns.qihua && `齐化${patterns.qihua}`, patterns.jianhua && `兼化${patterns.jianhua}`, `${patterns.zhengdui.qi}${patterns.zhengdui.type}`].filter(Boolean).join('、') || '未见特别格局标识'; }
 
-export interface YunqiData extends YunqiResult {
-  export_snapshot: ExportSnapshot;
-}
-
-/** 五运六气的 ToolEnvelope 本地运行器版本。 */
 export function calcYunqiEnveloped(input: YunqiInput): ToolEnvelope<YunqiData> {
   const result = calculateYunqi(input);
-  const y = result.year;
-  const tg = result.tiangan;
-  const dz = result.dizhi;
-  const dayun = result.wuyun.dayun;
-  const sitian = result.liuqi.sitian;
-  const zaiquan = result.liuqi.zaiquan;
-  const tendency = result.disease_tendency;
-
-  const snapshot: ExportSnapshot = {
-    summary: `${y}年(${tg}${dz})岁运${dayun}，司天${sitian}，在泉${zaiquan}。疾病倾向：${tendency}。`,
-    tags: ['五运六气', tg + dz + '年', dayun, sitian],
-    sections: [
-      { heading: '岁运', body: `${tg}年岁运为${dayun}，主全年气候与体质基本倾向。客运：${result.wuyun.keyun.join('→')}。` },
-      { heading: '司天在泉', body: `司天${sitian}主上半年气候，在泉${zaiquan}主下半年气候。` },
-      { heading: '客气六步', body: result.liuqi.zhuke.map((s) => `${s.step}(${s.start}~${s.end}):${s.qi}`).join('；') + '。' },
-      { heading: '客主加临', body: result.liuqi.kezhujialin ? `当前${result.liuqi.current_step?.step ?? ''}客主加临：${result.liuqi.kezhujialin}。` : '未知。' },
-      { heading: '疾病倾向', body: tendency + '。以上为运气推算的文化参考，不作为诊疗建议。' },
-      { heading: '年份边界', body: result.yearBoundary },
-    ],
-    sourceNotes: '五运六气内容仅作传统文化与日常调养参考。',
-  };
-
-  return {
-    ok: true,
-    tool: result.engineName,
-    version: result.mode,
-    input_normalized: input as unknown as Record<string, unknown>,
-    data: { ...result, export_snapshot: snapshot },
-    warnings: [result.confidenceNote, result.mode === 'local-approx' ? '岁运信息仅作辅助参考' : ''].filter(Boolean),
-  };
+  const snapshot: ExportSnapshot = { summary: `${result.year}年（${result.tiangan}${result.dizhi}）${result.wuyun.dayun}，司天${result.liuqi.sitian}，在泉${result.liuqi.zaiquan}。`, tags: ['五运六气', `${result.tiangan}${result.dizhi}年`, result.wuyun.dayun, result.liuqi.sitian], sections: [
+    { heading: '查询日期', body: `查询日期为${result.targetDate}；${result.yearBoundary}` },
+    { heading: '岁运', body: `${result.tiangan}年为${result.wuyun.dayun}。主运：${describeTransport(result.wuyun.zhuyun)}；客运：${describeTransport(result.wuyun.keyun)}。` },
+    { heading: '司天在泉', body: `司天为${result.liuqi.sitian}，在泉为${result.liuqi.zaiquan}。` },
+    { heading: '客气六步', body: result.liuqi.zhuke.map((step) => `${step.step}（${step.startDate}至${step.endDate}前）：${step.qi}`).join('；') + '。' },
+    { heading: '当前步位', body: `${result.liuqi.current_step?.step}为${result.liuqi.current_step?.qi}，与${result.liuqi.current_step?.zhuqi}的客主加临为${result.liuqi.kezhujialin}。` },
+    { heading: '运气格局', body: `传统运气格局：${describePatterns(result.patterns)}。太一天符据《素问·六微旨大论》“天符岁会……太一天符之会也”标识天符与岁会同时成立；仅作传统文化与气候病机理论学习参考。` },
+    { heading: '气候与调养观察', body: `${result.observation}以上内容仅作传统文化与气候病机理论学习参考，不构成医学诊断或治疗建议；如有不适，请咨询执业医师。` },
+  ], sourceNotes: '五运六气内容仅作传统文化与日常调养参考。' };
+  return { ok: true, tool: result.engineName, version: result.mode, input_normalized: input as unknown as Record<string, unknown>, data: { ...result, export_snapshot: snapshot }, warnings: [result.confidenceNote, '岁运信息仅作辅助参考'] };
 }

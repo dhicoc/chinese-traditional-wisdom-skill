@@ -2,7 +2,7 @@
  * generate-verify-page.mjs — 生成 React Shell 人工/自动回归验证页 dist/verify.html
  *
  * 设计目标：
- *   1. 在页面标注每个模块的能力模式（local-exact / local-approx / demo / knowledge / derived）
+ *   1. 在页面标注每个模块的用户可读参考范围
  *   2. 内嵌浏览器端最小 verify 脚本：
  *      - 自动访问每个 hash
  *      - 检查 h2 标题
@@ -21,11 +21,11 @@ const distRoot = resolve(appRoot, 'dist');
 
 /** 模块能力模式 → 徽章文案 + 颜色（与 src/lib/modules.ts 的 status 对齐）。 */
 const MODE_BADGE = {
-  'local-exact': { label: 'local-exact', title: '本地精确历法', color: '#2a9d8f' },
-  'local-approx': { label: 'local-approx', title: '本地规则', color: '#0a9396' },
-  demo: { label: 'demo', title: '演示结构', color: '#e9c46a' },
-  knowledge: { label: 'knowledge', title: '知识映射', color: '#94a3b8' },
-  derived: { label: 'derived', title: '派生', color: '#a78bfa' },
+  'local-exact': { label: '传统历法推算', title: '按传统历法口径推算', color: '#2a9d8f' },
+  'local-approx': { label: '传统方法参考', title: '按传统方法提供参考', color: '#0a9396' },
+  demo: { label: '示例展示', title: '示例展示内容', color: '#e9c46a' },
+  knowledge: { label: '知识参考', title: '传统文化知识参考', color: '#94a3b8' },
+  derived: { label: '综合说明', title: '综合整理说明', color: '#a78bfa' },
 };
 
 /**
@@ -46,8 +46,7 @@ const MODULE_SPECS = [
   { id: 'bazhai', hash: '#bazhai', mode: 'local-approx', workspace: 'features/bazhai/BazhaiWorkspace.tsx', titleMatch: '八宅大游年', checkPixels: true },
   { id: 'yunqi', hash: '#yunqi', mode: 'local-exact', workspace: 'features/yunqi/YunqiWorkspace.tsx', titleMatch: '五运六气', checkPixels: true },
   { id: 'tizhi', hash: '#tizhi', mode: 'derived', workspace: 'features/constitution/ConstitutionWorkspace.tsx', titleMatch: '体质辨识', checkPixels: true },
-  { id: 'testing', hash: '#testing', mode: 'derived', workspace: 'features/testing/TestRunnerConsole.tsx', titleMatch: '测试控制台', checkPixels: false, note: 'Phase 9 测试入口聚合，无 canvas' },
-  { id: 'reader', hash: '#reader', mode: 'knowledge', workspace: 'features/knowledge/AncientTextSplitReader.tsx', titleMatch: '古籍 Split Reader', checkPixels: false, note: 'Phase 8 古籍对照阅读器，无 canvas' },
+  { id: 'reader', hash: '#reader', mode: 'knowledge', workspace: 'features/knowledge/AncientTextSplitReader.tsx', titleMatch: '古籍阅读', checkPixels: false, note: '古籍对照阅读器，无 canvas' },
 ];
 
 function readSrc(rel) {

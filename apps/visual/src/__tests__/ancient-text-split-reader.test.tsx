@@ -20,8 +20,12 @@ describe('AncientTextSplitReader', () => {
     render(<AncientTextSplitReader />);
 
     expect(screen.getByText('当前古籍：八宅明镜')).toBeInTheDocument();
-    expect(screen.getByText(citationId)).toBeInTheDocument();
+    expect(screen.getByText('已关联古籍引用。')).toBeInTheDocument();
+    expect(screen.queryByText(citationId)).not.toBeInTheDocument();
     expect(screen.queryByText(/尚未内嵌到阅读器/)).not.toBeInTheDocument();
+    expect(document.body.textContent).not.toContain('kb://');
+    expect(document.body.textContent).not.toContain('.json');
+    expect(document.body.textContent).not.toContain('eight-mansions');
   });
 
   it('未收录古籍的 citation 不伪装为当前默认正文', () => {
@@ -35,7 +39,8 @@ describe('AncientTextSplitReader', () => {
     render(<AncientTextSplitReader />);
 
     expect(screen.getByText('当前古籍：葬书·内篇')).toBeInTheDocument();
-    expect(screen.getByText(citationId)).toBeInTheDocument();
+    expect(screen.getByText('已关联古籍引用。')).toBeInTheDocument();
+    expect(screen.queryByText(citationId)).not.toBeInTheDocument();
     expect(screen.getByText('该古籍已建立稳定引用，但正文尚未内嵌到阅读器。')).toBeInTheDocument();
     expect(screen.queryByText('八宅明镜 ↔ 八宅大游年映射')).not.toBeInTheDocument();
   });
@@ -50,7 +55,8 @@ describe('AncientTextSplitReader', () => {
     });
 
     expect(screen.getByText('当前古籍：八宅明镜')).toBeInTheDocument();
-    expect(screen.getByText(createKnowledgeCitationId('03-yang-house/八宅明镜.md'))).toBeInTheDocument();
+    expect(screen.getByText('已关联古籍引用。')).toBeInTheDocument();
+    expect(screen.queryByText(createKnowledgeCitationId('03-yang-house/八宅明镜.md'))).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '古籍原文' })).toBeInTheDocument();
   });
 });

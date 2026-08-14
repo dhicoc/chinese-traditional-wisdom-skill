@@ -23,7 +23,7 @@ function HitCard({ hit }: { hit: KnowledgeReferenceHit }) {
       </div>
       <h4 className="mt-2 text-sm font-semibold text-jade-100">{hit.title}</h4>
       {hit.citationId && (
-        <code className="mt-1 block break-all font-mono text-[10px] text-jade-400/80">{hit.citationId}</code>
+        <p className="mt-1 text-[10px] text-jade-400/80">已关联古籍引用。</p>
       )}
       <p className="mt-1 text-xs leading-5 text-jade-100/60">{hit.summary}</p>
       {hit.details.length > 0 && (

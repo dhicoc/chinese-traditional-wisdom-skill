@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { DEFAULT_TRADITIONAL_DISCLAIMER, toSemanticReport, type SemanticReport } from '@/legacy/reportLayers';
+import { DEFAULT_TRADITIONAL_DISCLAIMER, toSemanticReport, toUserWarnings, type SemanticReport } from '@/legacy/reportLayers';
 import { getReportMetadataItems, type ReportMetadata } from '@/legacy/reportMetadata';
 import { dispatchCommandFeedback } from '@/lib/commandIntents';
 
@@ -56,7 +56,7 @@ export function createExportReportHtml({
   const factSection = resolvedSemanticReport.facts.length ? `
     <section class="facts">
       <h2>结构化事实核对</h2>
-      <p class="boundary">以下内容已与本次本地计算结果核对；不包含传统解释、建议或现实效果判断。</p>
+      <p class="boundary">以下内容已与本次推算结果核对；不包含传统解释、建议或现实效果判断。</p>
       <dl>${resolvedSemanticReport.facts.map((fact) => `<div><dt>${escapeHtml(fact.label)}</dt><dd>${escapeHtml(fact.value)}</dd></div>`).join('')}</dl>
     </section>` : '';
   const interpretationSection = resolvedSemanticReport.traditionalInterpretations.length ? `
@@ -75,19 +75,20 @@ export function createExportReportHtml({
       <ul>${resolvedSemanticReport.disclaimers.map((disclaimer) => `<li>${escapeHtml(disclaimer)}</li>`).join('')}</ul>
     </aside>` : '';
   const content = `${factSection}${interpretationSection}${actionSection}${disclaimerSection}`;
+  const userWarnings = toUserWarnings(warnings);
   const noticeSection = notices.length ? `
     <aside class="notice">
       <h2>计算状态</h2>
       <ul>${notices.map((notice) => `<li>${escapeHtml(notice)}</li>`).join('')}</ul>
     </aside>` : '';
-  const warningSection = warnings.length ? `
+  const warningSection = userWarnings.length ? `
     <aside class="warning">
       <h2>使用限制与注意事项</h2>
-      <ul>${warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join('')}</ul>
+      <ul>${userWarnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join('')}</ul>
     </aside>` : '';
   const metadataSection = reportMetadata ? `
     <section class="report-metadata">
-      <h2>报告信息</h2>
+      <h2>限制与注意事项</h2>
       <dl>${getReportMetadataItems(reportMetadata).map(({ label, value }) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('')}</dl>
     </section>` : '';
 
@@ -132,7 +133,7 @@ export function createExportReportHtml({
     <header>
       <p class="eyebrow">传统文化参考</p>
       <h1>${escapeHtml(title)}</h1>
-      <p class="meta">生成时间：${escapeHtml(generatedAt)}<br>本地计算结果</p>
+      <p class="meta">生成时间：${escapeHtml(generatedAt)}<br>本次计算结果</p>
     </header>
     <div class="summary">${escapeHtml(report.summary).replace(/\n/g, '<br>')}</div>
     ${metadataSection}
