@@ -6,7 +6,7 @@ describe('knowledgeReference', () => {
     const hit = queryKnowledgeReferences('郭璞').find((item) => item.title === '葬书·内篇');
 
     expect(hit?.kind).toBe('ancient-index');
-    expect(hit?.citationId).toBe('kb://fengshui/01-situation-form/葬書-內篇.md#%E8%91%AC%E4%B9%A6%C2%B7%E5%86%85%E7%AF%87');
+    expect(hit?.citationId).toBe('kb://fengshui/01-situation-form/葬書-內篇.md');
     expect(hit?.source).toBe('01-situation-form/葬書-內篇.md');
   });
 

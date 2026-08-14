@@ -62,9 +62,9 @@ export function SearchModal({ onSelectModule }: { onSelectModule: (id: ModuleId)
 
   const total = result.terms.length + result.mappings.length + result.kb.length;
 
-  function openReader(term: string) {
+  function openReader(term: string, citationId?: string) {
     onSelectModule('reader');
-    window.setTimeout(() => dispatchReaderSearchIntent({ term, raw: term }), 0);
+    window.setTimeout(() => dispatchReaderSearchIntent({ term, citationId, raw: term }), 0);
     setOpen(false);
   }
 
@@ -157,12 +157,12 @@ export function SearchModal({ onSelectModule }: { onSelectModule: (id: ModuleId)
           )}
 
           {result.kb.length > 0 && (
-            <ResultGroup label="古籍文献" count={result.kb.length}>
+            <ResultGroup label="古籍文献" count={result.kb.length} testId="search-results-ancient">
               {result.kb.slice(0, 10).map((k) => (
                 <div
                   key={k.file}
                   className="cursor-pointer border-b border-white/5 px-5 py-2.5 transition hover:bg-white/5"
-                  onClick={() => openReader(k.title)}
+                  onClick={() => openReader(k.title, k.citationId)}
                 >
                   <div className="flex items-center gap-1.5">
                     <span className="rounded bg-stone-700 px-1.5 py-px text-[11px] font-bold text-white">
@@ -191,9 +191,14 @@ export function SearchModal({ onSelectModule }: { onSelectModule: (id: ModuleId)
   );
 }
 
-function ResultGroup({ label, count, children }: { label: string; count: number; children: React.ReactNode }) {
+function ResultGroup({ label, count, children, testId }: {
+  label: string;
+  count: number;
+  children: React.ReactNode;
+  testId?: string;
+}) {
   return (
-    <div>
+    <div data-testid={testId}>
       <div className="flex justify-between px-5 py-1.5 text-[11px] text-jade-100/30">
         <span>{label}</span>
         <span>{count} 条</span>

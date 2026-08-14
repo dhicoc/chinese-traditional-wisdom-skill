@@ -158,9 +158,16 @@ describe('divination and reader command parsers', () => {
     expect(parseReaderSearchCommand('reader 八宅')).toMatchObject({ term: '八宅' });
   });
 
-  it('retains a reader search until its lazy workspace consumes it', () => {
-    dispatchReaderSearchIntent({ term: '生气', raw: '古籍 生气' });
-    expect(consumeReaderSearchIntent()).toMatchObject({ term: '生气' });
+  it('retains a reader citation until its lazy workspace consumes it', () => {
+    dispatchReaderSearchIntent({
+      term: '生气',
+      citationId: 'kb://fengshui/03-yang-house/八宅明镜.md',
+      raw: '古籍 生气',
+    });
+    expect(consumeReaderSearchIntent()).toMatchObject({
+      term: '生气',
+      citationId: 'kb://fengshui/03-yang-house/八宅明镜.md',
+    });
     expect(consumeReaderSearchIntent()).toBeNull();
   });
 

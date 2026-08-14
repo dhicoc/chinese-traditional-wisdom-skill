@@ -9,6 +9,11 @@ export default defineConfig({
       '@kb': `${import.meta.dirname}/../../knowledge-base`,
     },
   },
+  server: {
+    fs: {
+      allow: [`${import.meta.dirname}/../../knowledge-base`],
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,

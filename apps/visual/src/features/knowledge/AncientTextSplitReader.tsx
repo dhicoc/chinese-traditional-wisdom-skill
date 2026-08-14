@@ -5,6 +5,7 @@ import {
   READER_SEARCH_INTENT_EVENT,
   type ReaderSearchIntentDetail,
 } from '@/lib/commandIntents';
+import { createKnowledgeCitationId, findKnowledgeBaseEntry } from '@/legacy/searchEngine';
 
 // 构建时导入古籍原文和映射 JSON（Vite ?raw）
 import bazhaiText from '@kb/fengshui/03-yang-house/八宅明镜.md?raw';
@@ -22,6 +23,8 @@ interface TextPair {
   mappingName: string;
   mappingJson: string;
 }
+
+const BAZHAI_CITATION_ID = createKnowledgeCitationId('03-yang-house/八宅明镜.md');
 
 const TEXT_PAIRS: TextPair[] = [
   {
@@ -86,12 +89,14 @@ function highlightJson(json: string): string {
 
 export function AncientTextSplitReader() {
   const [selectedId, setSelectedId] = useState(TEXT_PAIRS[0].id);
+  const [selectedCitationId, setSelectedCitationId] = useState(BAZHAI_CITATION_ID);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     function applyReaderSearchIntent(detail: ReaderSearchIntentDetail | null) {
       if (!detail?.term) return;
       setSearchTerm(detail.term);
+      setSelectedCitationId(detail.citationId ?? BAZHAI_CITATION_ID);
     }
 
     function handleReaderSearchIntent(event: Event) {
@@ -104,6 +109,8 @@ export function AncientTextSplitReader() {
   }, []);
 
   const selected = TEXT_PAIRS.find((p) => p.id === selectedId) ?? TEXT_PAIRS[0];
+  const selectedBook = findKnowledgeBaseEntry(selectedCitationId);
+  const hasEmbeddedText = selectedCitationId === BAZHAI_CITATION_ID;
 
   // 搜索：在原文中高亮匹配的行
   const highlightedSource = useMemo(() => {
@@ -121,10 +128,11 @@ export function AncientTextSplitReader() {
   const contextPayload = useMemo(
     () => ({
       项目: '古籍阅读',
-      当前内容: selected.title,
+      当前内容: selectedBook?.title ?? selected.title,
+      引用ID: selectedCitationId,
       搜索关键词: searchTerm || '未填写',
     }),
-    [selected, searchTerm],
+    [selected, selectedBook, selectedCitationId, searchTerm],
   );
 
   return (
@@ -136,6 +144,13 @@ export function AncientTextSplitReader() {
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
               阅读古籍原文与相关说明，支持关键词搜索与重点标记；现收录《八宅明镜》。
             </p>
+            <div className="mt-3 rounded-card border border-white/10 bg-black/20 p-3 text-xs leading-5 text-jade-100/55">
+              <p>当前古籍：{selectedBook?.title ?? '未识别的古籍条目'}</p>
+              <code className="mt-1 block break-all font-mono text-jade-300">{selectedCitationId}</code>
+              {!hasEmbeddedText && (
+                <p className="mt-2 text-amber-200">该古籍已建立稳定引用，但正文尚未内嵌到阅读器。</p>
+              )}
+            </div>
             <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
               古籍阅读内容仅作传统文化知识学习参考，不作为现实决策依据。
             </p>
@@ -144,69 +159,77 @@ export function AncientTextSplitReader() {
         </div>
       </div>
 
-      {/* 文本对选择器 */}
-      <div className="flex flex-wrap gap-2">
-        {TEXT_PAIRS.map((pair) => (
-          <button
-            key={pair.id}
-            type="button"
-            onClick={() => setSelectedId(pair.id)}
-            className={[
-              'shrink-0 rounded-full border px-3 py-2 text-xs font-medium transition',
-              pair.id === selectedId
-                ? 'border-jade-500/40 bg-jade-500/12 text-jade-50'
-                : 'border-transparent text-jade-100/45 hover:border-white/10 hover:text-jade-100/80',
-            ].join(' ')}
-          >
-            {pair.title}
-          </button>
-        ))}
-      </div>
-
-      {/* 搜索栏 */}
-      <div className="flex items-center gap-3 rounded-panel border border-ink-700 bg-black/24 p-3">
-        <span className="font-mono text-sm text-jade-500">🔍</span>
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="搜索原文关键词…"
-          className="flex-1 bg-transparent text-sm text-jade-100 placeholder:text-jade-100/55 focus:outline-none"
-        />
-        {searchTerm && (
-          <button
-            type="button"
-            onClick={() => setSearchTerm('')}
-            className="text-xs text-jade-100/45 hover:text-jade-100/70"
-          >
-            清除
-          </button>
-        )}
-      </div>
-
-      {/* Split View */}
-      <div className="grid gap-4 xl:grid-cols-2">
-        {/* 左侧：古籍原文 */}
-        <div className="min-w-0 rounded-panel border border-ink-700 bg-ink-850/60 p-4">
-          <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
-            <h3 className="font-serif text-sm font-semibold text-jade-100/70">古籍原文</h3>
+      {hasEmbeddedText ? (
+        <>
+          {/* 文本对选择器 */}
+          <div className="flex flex-wrap gap-2">
+            {TEXT_PAIRS.map((pair) => (
+              <button
+                key={pair.id}
+                type="button"
+                onClick={() => setSelectedId(pair.id)}
+                className={[
+                  'shrink-0 rounded-full border px-3 py-2 text-xs font-medium transition',
+                  pair.id === selectedId
+                    ? 'border-jade-500/40 bg-jade-500/12 text-jade-50'
+                    : 'border-transparent text-jade-100/45 hover:border-white/10 hover:text-jade-100/80',
+                ].join(' ')}
+              >
+                {pair.title}
+              </button>
+            ))}
           </div>
-          <div
-            className="max-h-[60vh] overflow-y-auto pr-2 text-sm leading-7"
-            dangerouslySetInnerHTML={{ __html: highlightedSource }}
-          />
-        </div>
 
-        {/* 右侧：相关说明 */}
-        <div className="min-w-0 rounded-panel border border-ink-700 bg-ink-850/60 p-4">
-          <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
-            <h3 className="font-serif text-sm font-semibold text-jade-100/70">相关说明</h3>
+          {/* 搜索栏 */}
+          <div className="flex items-center gap-3 rounded-panel border border-ink-700 bg-black/24 p-3">
+            <span className="font-mono text-sm text-jade-500">🔍</span>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="搜索原文关键词…"
+              className="flex-1 bg-transparent text-sm text-jade-100 placeholder:text-jade-100/55 focus:outline-none"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                className="text-xs text-jade-100/45 hover:text-jade-100/70"
+              >
+                清除
+              </button>
+            )}
           </div>
-          <pre className="max-h-[60vh] max-w-full overflow-auto rounded-card border border-white/8 bg-black/30 p-3 text-xs leading-5">
-            <code dangerouslySetInnerHTML={{ __html: highlightedJson }} />
-          </pre>
+
+          {/* Split View */}
+          <div className="grid gap-4 xl:grid-cols-2">
+            {/* 左侧：古籍原文 */}
+            <div className="min-w-0 rounded-panel border border-ink-700 bg-ink-850/60 p-4">
+              <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
+                <h3 className="font-serif text-sm font-semibold text-jade-100/70">古籍原文</h3>
+              </div>
+              <div
+                className="max-h-[60vh] overflow-y-auto pr-2 text-sm leading-7"
+                dangerouslySetInnerHTML={{ __html: highlightedSource }}
+              />
+            </div>
+
+            {/* 右侧：相关说明 */}
+            <div className="min-w-0 rounded-panel border border-ink-700 bg-ink-850/60 p-4">
+              <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2">
+                <h3 className="font-serif text-sm font-semibold text-jade-100/70">相关说明</h3>
+              </div>
+              <pre className="max-h-[60vh] max-w-full overflow-auto rounded-card border border-white/8 bg-black/30 p-3 text-xs leading-5">
+                <code dangerouslySetInnerHTML={{ __html: highlightedJson }} />
+              </pre>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="rounded-panel border border-amber-300/20 bg-amber-500/5 p-4 text-sm leading-7 text-jade-100/65">
+          当前引用对应的古籍正文尚未收录到本地阅读器；可保留引用 ID 以便后续补充原文时追溯。
         </div>
-      </div>
+      )}
     </section>
   );
 }

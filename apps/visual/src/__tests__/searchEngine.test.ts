@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createKnowledgeCitationId, searchAll, getIndexStats } from '@/legacy/searchEngine';
+import { createKnowledgeCitationId, findKnowledgeBaseEntry, searchAll, getIndexStats } from '@/legacy/searchEngine';
 
 describe('searchEngine', () => {
   it('空查询返回空结果', () => {
@@ -31,11 +31,22 @@ describe('searchEngine', () => {
     expect(r.kb.some((k) => k.author === '郭璞')).toBe(true);
   });
 
-  it('古籍结果提供基于路径与标题的稳定 citation ID', () => {
+  it('古籍结果提供仅由规范文件路径派生的稳定 citation ID', () => {
     const r = searchAll('郭璞');
     const zangs = r.kb.find((item) => item.title === '葬书·内篇');
-    expect(zangs?.citationId).toBe('kb://fengshui/01-situation-form/葬書-內篇.md#%E8%91%AC%E4%B9%A6%C2%B7%E5%86%85%E7%AF%87');
-    expect(zangs?.citationId).toBe(createKnowledgeCitationId('01-situation-form/葬書-內篇.md', '葬书·内篇'));
+    expect(zangs?.citationId).toBe('kb://fengshui/01-situation-form/葬書-內篇.md');
+    expect(zangs?.citationId).toBe(createKnowledgeCitationId('01-situation-form/葬書-內篇.md'));
+  });
+
+  it('可用 citation ID 反查唯一古籍条目', () => {
+    const citationId = createKnowledgeCitationId('03-yang-house/八宅明镜.md');
+
+    expect(findKnowledgeBaseEntry(citationId)).toMatchObject({
+      citationId,
+      file: '03-yang-house/八宅明镜.md',
+      title: '八宅明镜',
+    });
+    expect(findKnowledgeBaseEntry('kb://fengshui/missing.md')).toBeNull();
   });
 
   it('搜索结果含 category/completeness/source 元数据', () => {

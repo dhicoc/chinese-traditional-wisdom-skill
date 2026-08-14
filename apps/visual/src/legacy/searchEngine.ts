@@ -75,8 +75,9 @@ const MAPPING_INDEX: MappingIndex[] = [
 
 // ─── 古籍索引（从 knowledge-base/fengshui/_index.md 提取）──
 
-interface KbIndex {
+export interface KnowledgeBaseEntry {
   file: string;
+  citationId: string;
   title: string;
   author: string;
   category: string;
@@ -84,6 +85,8 @@ interface KbIndex {
   summary: string;
   tags: string[];
 }
+
+type KbIndex = Omit<KnowledgeBaseEntry, 'citationId'>;
 
 const KB_INDEX: KbIndex[] = [
   { file: '01-situation-form/葬書-內篇.md', title: '葬书·内篇', author: '郭璞', category: '形势派', completeness: '完整', summary: '风水形势派纲领，论生气、藏风、得水', tags: ['葬书', '郭璞', '形势', '生气', '风水'] },
@@ -124,8 +127,17 @@ function indexOf(haystack: string, needle: string): number {
   return haystack.toLowerCase().indexOf(needle.toLowerCase());
 }
 
-export function createKnowledgeCitationId(file: string, title: string): string {
-  return `kb://fengshui/${file}#${encodeURIComponent(title)}`;
+export function createKnowledgeCitationId(file: string): string {
+  return `kb://fengshui/${file}`;
+}
+
+const KNOWLEDGE_BASE_ENTRIES: KnowledgeBaseEntry[] = KB_INDEX.map((entry) => ({
+  ...entry,
+  citationId: createKnowledgeCitationId(entry.file),
+}));
+
+export function findKnowledgeBaseEntry(citationId: string): KnowledgeBaseEntry | null {
+  return KNOWLEDGE_BASE_ENTRIES.find((entry) => entry.citationId === citationId) ?? null;
 }
 
 /** 全文搜索三源，返回按 score 降序的结果 */
@@ -167,7 +179,7 @@ export function searchAll(query: string): SearchResult {
     if (score > 0) {
       kb.push({
         file: k.file,
-        citationId: createKnowledgeCitationId(k.file, k.title),
+        citationId: createKnowledgeCitationId(k.file),
         title: k.title,
         author: k.author,
         category: k.category,

@@ -69,6 +69,7 @@ export interface MeihuaIntentDetail {
 
 export interface ReaderSearchIntentDetail {
   term: string;
+  citationId?: string;
   raw: string;
 }
 
