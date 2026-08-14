@@ -174,8 +174,12 @@ export function ExportReportButton({ module, report, presentation, reportMetadat
       const a = document.createElement('a');
       a.href = url;
       a.download = `${title}-${Date.now()}.html`;
+      document.body.append(a);
       a.click();
-      URL.revokeObjectURL(url);
+      window.setTimeout(() => {
+        a.remove();
+        URL.revokeObjectURL(url);
+      }, 0);
       dispatchCommandFeedback({
         title: '报告已导出',
         description: `${title} · 可在浏览器中打开`,

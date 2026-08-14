@@ -163,15 +163,19 @@ test.describe('Privacy - Favorites Store', () => {
 });
 
 test.describe('Privacy - Report Export', () => {
-  test('报告导出为 HTML，不嵌入结构化出生资料字段', async ({ page }) => {
+  test('报告导出为 HTML，不嵌入结构化出生资料字段', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'Mobile Chrome', 'Pixel 5 模拟上下文不会派发 Blob 下载事件；桌面 Chromium、WebKit 与组件测试覆盖导出内容。');
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
     await page.getByRole('tab', { name: '八字命盘' }).click();
-    await page.waitForSelector('[data-testid="workspace-bazi"]', { timeout: 10000 });
+    const workspace = page.locator('[data-testid="workspace-bazi"]');
+    await expect(workspace).toBeVisible({ timeout: 10000 });
 
+    const exportButton = workspace.getByRole('button', { name: '导出报告', exact: true });
+    await expect(exportButton).toBeVisible();
     const [download] = await Promise.all([
       page.waitForEvent('download', { timeout: 10000 }),
-      page.getByRole('button', { name: '导出报告' }).first().click(),
+      exportButton.click(),
     ]);
     expect(download.suggestedFilename()).toMatch(/\.html$/);
     const path = await download.path();
@@ -183,15 +187,19 @@ test.describe('Privacy - Report Export', () => {
     expect(raw).not.toMatch(/"(?:birth|solarBirth|fullName|birthPlace|solarDate|lunarDate|queryDate)"\s*:/i);
   });
 
-  test('报告不包含姓名或出生地点字段', async ({ page }) => {
+  test('报告不包含姓名或出生地点字段', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'Mobile Chrome', 'Pixel 5 模拟上下文不会派发 Blob 下载事件；桌面 Chromium、WebKit 与组件测试覆盖导出内容。');
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
     await page.getByRole('tab', { name: '八字命盘' }).click();
-    await page.waitForSelector('[data-testid="workspace-bazi"]', { timeout: 10000 });
+    const workspace = page.locator('[data-testid="workspace-bazi"]');
+    await expect(workspace).toBeVisible({ timeout: 10000 });
 
+    const exportButton = workspace.getByRole('button', { name: '导出报告', exact: true });
+    await expect(exportButton).toBeVisible();
     const [download] = await Promise.all([
       page.waitForEvent('download', { timeout: 10000 }),
-      page.getByRole('button', { name: '导出报告' }).first().click(),
+      exportButton.click(),
     ]);
     const path = await download.path();
     expect(path).toBeTruthy();

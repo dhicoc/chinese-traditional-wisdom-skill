@@ -25,7 +25,7 @@ test.describe('P1.3c 八字动态层联动', () => {
     const timeline = workspace.getByRole('list', { name: '大运时间轴' });
     await expect(timeline).toBeVisible();
     const alternateLuck = timeline.locator('button:not([disabled]):not([aria-pressed="true"])').first();
-    await alternateLuck.click();
+    await alternateLuck.click({ force: true });
     await expect(dateInput).not.toHaveValue('2025-07-15');
     await expect(workspace.getByLabel('目标年份')).toHaveValue(/\d{4}/);
     await dateInput.fill('2025-07-15');

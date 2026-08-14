@@ -124,7 +124,7 @@ describe('ExportReportButton', () => {
     expect(downloadedBlob?.type).toBe('text/html;charset=utf-8');
     expect(downloadName).toMatch(/^八字命盘-\d+\.html$/);
     expect(downloadName).not.toContain('1990');
-    expect(revokeObjectUrl).toHaveBeenCalledWith('blob:report');
+    await waitFor(() => expect(revokeObjectUrl).toHaveBeenCalledWith('blob:report'));
     await expect(downloadedBlob?.text()).resolves.toContain('结构化摘要');
     await expect(downloadedBlob?.text()).resolves.toContain('命局要览');
     await expect(downloadedBlob?.text()).resolves.not.toContain('出生资料：');
