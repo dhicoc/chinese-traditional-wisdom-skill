@@ -64,6 +64,10 @@ import {
   getZiweiTransitSnapshot,
 } from '@/engine-api/ziwei';
 import {
+  calculateEquationOfTimeMinutes,
+  resolveTrueSolarTime,
+} from '@/engine-api/trueSolarTime';
+import {
   buildBaziDynamicLayer as buildBaziDynamicLayerLegacy,
   calcBaziEnveloped as calcBaziEnvelopedLegacy,
   calculateBazi as calculateBaziLegacy,
@@ -84,6 +88,10 @@ import { calcTaiyiEnveloped as calcTaiyiEnvelopedLegacy } from '@/legacy/taiyiEn
 import { calcTaisui as calcTaisuiLegacy } from '@/legacy/taisuiEngine';
 import { calcYunqiEnveloped as calcYunqiEnvelopedLegacy, calculateYunqi as calculateYunqiLegacy } from '@/legacy/yunqiEngine';
 import { calcZiweiEnveloped as calcZiweiEnvelopedLegacy, calculateZiwei as calculateZiweiLegacy, getZiweiTransitSnapshot as getZiweiTransitSnapshotLegacy } from '@/legacy/ziweiEngine';
+import {
+  calculateEquationOfTimeMinutes as calculateEquationOfTimeMinutesLegacy,
+  resolveTrueSolarTime as resolveTrueSolarTimeLegacy,
+} from '@/legacy/trueSolarTime';
 import {
   calcMingGua as calcMingGuaLegacy,
   combineBazhaiFeixing as combineBazhaiFeixingLegacy,
@@ -156,6 +164,11 @@ describe('engine-api', () => {
     expect(getZiweiTransitSnapshot).toBe(getZiweiTransitSnapshotLegacy);
     expect(calculateYunqi).toBe(calculateYunqiLegacy);
     expect(calcYunqiEnveloped).toBe(calcYunqiEnvelopedLegacy);
+  });
+
+  it('公开真太阳时 API 仅转发既有本地计算函数', () => {
+    expect(calculateEquationOfTimeMinutes).toBe(calculateEquationOfTimeMinutesLegacy);
+    expect(resolveTrueSolarTime).toBe(resolveTrueSolarTimeLegacy);
   });
 
   it('公开三式与六爻 API 仅转发既有纯引擎函数和选项', () => {

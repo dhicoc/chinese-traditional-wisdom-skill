@@ -1,7 +1,7 @@
 import { Solar } from 'lunar-typescript';
 import type { ToolEnvelope } from './baseTypes';
 import type { SolarBirth } from './birthBridge';
-import { resolveTrueSolarTime, type TrueSolarTimeResolution } from './trueSolarTime';
+import { resolveTrueSolarTime, type TrueSolarTimeResolution } from '@/engine-api/trueSolarTime';
 import { calcBaziEnveloped } from './baziEngine';
 import { calcZiweiEnveloped } from './ziweiEngine';
 import { calcLiuyaoEnveloped } from './liuyaoEngine';

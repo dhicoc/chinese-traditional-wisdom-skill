@@ -1,5 +1,5 @@
 import type { BirthData } from '@/legacy/birthBridge';
-import type { TrueSolarTimeResolution } from '@/legacy/trueSolarTime';
+import type { TrueSolarTimeResolution } from '@/engine-api/trueSolarTime';
 // 副作用导入：确保 historyStore 模块在应用启动即求值，
 // 从而把 HistoryStore 挂到 window（commandIntents 的 getHistoryStore 依赖它，
 // 否则命令历史/收藏记录为死代码）。原 visual/ 旧桥移除后此处需显式触发。

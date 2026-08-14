@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { DEFAULT_BIRTH, type BirthData, type SolarBirth, toSolarBirth } from '@/legacy/birthBridge';
-import type { TrueSolarTimeResolution } from '@/legacy/trueSolarTime';
+import type { TrueSolarTimeResolution } from '@/engine-api/trueSolarTime';
 import {
   BIRTH_INTENT_EVENT,
   CIVIL_TIME_FALLBACK_INTENT_EVENT,
