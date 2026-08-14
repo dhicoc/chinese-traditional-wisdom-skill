@@ -11,6 +11,7 @@ import type { LiuyaoData } from '@/legacy/canvasRenderers';
 import type { LiuyaoLine } from '@/legacy/divinationTypes';
 import { calcLiuyaoEnveloped, type LiuyaoData as EngineLiuyaoData, type LiuyaoInput } from '@/engine-api/divination';
 import { validateDivinationClaims, type DivinationPresentationClaim } from '@/legacy/claimVerification/divinationClaimVerifier';
+import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
 import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import type { ToolEnvelope } from '@/engine-api/types';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
@@ -153,12 +154,19 @@ export function LiuyaoWorkspace() {
     factChecks,
     disclaimers: ['六爻为传统文化占问参考，不作为现实决策依据。'],
   }) : null, [envelope, factChecks]);
-  const exportPresentation = useMemo(() => presentation?.exportReport ? ({
+  const reportMetadata = useMemo(() => envelope ? createWorkspaceReportMetadata({
+    moduleId: 'liuyao',
+    tool: envelope.tool,
+    version: envelope.version,
+    inputSummary: '已按所选起卦方式完成本地起卦；报告不记录占问原文。',
+  }) : null, [envelope]);
+  const exportPresentation = useMemo(() => presentation?.exportReport && reportMetadata ? ({
     report: presentation.exportReport,
     notices: presentation.notices,
     warnings: presentation.warnings,
     semanticReport: presentation.semanticReport,
-  }) : null, [presentation]);
+    reportMetadata,
+  }) : null, [presentation, reportMetadata]);
   const result = (envelope?.ok ? envelope.data : (!ready ? DEFAULT_FALLBACK : null)) as LiuyaoResult | null;
 
   const changedLines = useMemo<LiuyaoData | null>(() => {
@@ -321,6 +329,7 @@ export function LiuyaoWorkspace() {
                 semanticReport={presentation.semanticReport}
                 notices={presentation.notices}
                 warnings={presentation.warnings}
+                reportMetadata={reportMetadata ?? undefined}
                 title="六爻解读"
               />
             </div>

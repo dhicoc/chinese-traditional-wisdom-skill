@@ -3,6 +3,7 @@ import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { MeridianClock } from '@/components/shared/MeridianClock';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
+import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
 import {
   getMeridianByHour,
   MERIDIAN_HOURS,
@@ -45,6 +46,12 @@ export function RhythmWorkspace() {
       ],
     };
   }, [currentShiChen, jieqi, selectedShiChen]);
+  const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
+    moduleId: 'rhythm',
+    tool: 'daily_rhythm',
+    version: '1.0.0',
+    inputSummary: '已生成通用节气与时辰节律参考；报告不保留具体日期、健康数据或其他个人输入。',
+  }), []);
 
   return (
     <div className="space-y-6">
@@ -59,7 +66,7 @@ export function RhythmWorkspace() {
             <span className="rounded-full border border-jade-500/30 bg-jade-500/10 px-3 py-1 text-xs text-jade-500">
               养生参考
             </span>
-            <ExportReportButton module="每日节律" report={exportReport} />
+            <ExportReportButton module="每日节律" report={exportReport} reportMetadata={reportMetadata} />
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import { calcQimenEnveloped, type QimenData } from '@/engine-api/divination';
 import { validateDivinationClaims, type DivinationPresentationClaim } from '@/legacy/claimVerification/divinationClaimVerifier';
+import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
 import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import type { ToolEnvelope } from '@/engine-api/types';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
@@ -108,12 +109,19 @@ export function QimenWorkspace() {
     factChecks,
     disclaimers: ['奇门遁甲结果仅作传统术数文化学习参考，不作为现实决策依据。'],
   }) : null, [envelope, factChecks]);
-  const exportPresentation = useMemo(() => presentation?.exportReport ? ({
+  const reportMetadata = useMemo(() => envelope ? createWorkspaceReportMetadata({
+    moduleId: 'qimen',
+    tool: envelope.tool,
+    version: envelope.version,
+    inputSummary: '时家奇门排盘；已提供出生资料用于本地计算。',
+  }) : null, [envelope]);
+  const exportPresentation = useMemo(() => presentation?.exportReport && reportMetadata ? ({
     report: presentation.exportReport,
     notices: presentation.notices,
     warnings: presentation.warnings,
     semanticReport: presentation.semanticReport,
-  }) : null, [presentation]);
+    reportMetadata,
+  }) : null, [presentation, reportMetadata]);
   const result = envelope?.ok ? envelope.data as QimenResult : null;
 
   const contextPayload = useMemo(
@@ -316,6 +324,7 @@ export function QimenWorkspace() {
             semanticReport={presentation.semanticReport}
             notices={presentation.notices}
             warnings={presentation.warnings}
+            reportMetadata={reportMetadata ?? undefined}
             title="奇门遁甲解读"
           />
         </div>

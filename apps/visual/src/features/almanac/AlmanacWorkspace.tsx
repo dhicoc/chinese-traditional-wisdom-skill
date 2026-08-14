@@ -3,6 +3,8 @@ import { getAlmanacData, getSolarEntry, type AlmanacData } from '@/engine-api/ca
 import { ControlField } from '@/components/shared/ControlField';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
+import { createAlmanacExportReport } from '@/features/almanac/almanacExport';
+import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
 
 /**
  * 每日黄历工作区
@@ -22,6 +24,12 @@ export function AlmanacWorkspace() {
 
   const jiHours = useMemo(() => almanac?.hours.filter((h) => h.luck === '吉') ?? [], [almanac]);
   const xiongHours = useMemo(() => almanac?.hours.filter((h) => h.luck === '凶') ?? [], [almanac]);
+  const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
+    moduleId: 'almanac',
+    tool: 'daily_almanac',
+    version: '1.0.0',
+    inputSummary: '已生成所选日期的黄历与日用民俗参考；报告不保留具体日期。',
+  }), []);
   const exportReport = useMemo(() => {
     if (!almanac) return null;
     return {
@@ -48,7 +56,11 @@ export function AlmanacWorkspace() {
             <span className="rounded-full border border-jade-500/25 bg-jade-500/10 px-3 py-1 text-xs text-jade-400">
               当日参考
             </span>
-            <ExportReportButton module="每日黄历" report={exportReport} />
+            <ExportReportButton
+              module="每日黄历"
+              report={exportReport ? createAlmanacExportReport({ source: exportReport }) : null}
+              reportMetadata={reportMetadata}
+            />
           </div>
         </div>
       </div>

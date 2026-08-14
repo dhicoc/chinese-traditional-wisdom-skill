@@ -97,8 +97,8 @@ describe('command history helpers', () => {
   it('records and lists history when a mock store is present', () => {
     const store: { [k: string]: unknown } = {};
     let history: unknown[] = [];
-    store.add = (entry: { module: string; title: string }) => {
-      const rec = { id: 'h1', module: entry.module, title: entry.title, summary: '', tags: [], mode: 'command', createdAt: 'now', favorite: false };
+    store.add = (entry: { module: string; title: string; reportVersion?: string; capabilityMode?: string; inputSummary?: string }) => {
+      const rec = { id: 'h1', module: entry.module, title: entry.title, summary: '', tags: [], mode: 'command', createdAt: 'now', favorite: false, reportVersion: entry.reportVersion, capabilityMode: entry.capabilityMode, inputSummary: entry.inputSummary };
       history = [rec, ...history];
       return rec;
     };
@@ -106,8 +106,19 @@ describe('command history helpers', () => {
     (window as unknown as { HistoryStore: unknown }).HistoryStore = store;
     try {
       expect(isHistoryStoreReady()).toBe(true);
-      const rec = recordCommandHistory({ module: 'bazi', title: '八字命盘' });
-      expect(rec?.module).toBe('bazi');
+      const rec = recordCommandHistory({
+        module: 'bazi',
+        title: '八字命盘',
+        reportVersion: '1.0',
+        capabilityMode: '按出生资料排盘（local-exact）',
+        inputSummary: '已完成本地计算；不记录原始输入。',
+      });
+      expect(rec).toMatchObject({
+        module: 'bazi',
+        reportVersion: '1.0',
+        capabilityMode: '按出生资料排盘（local-exact）',
+        inputSummary: '已完成本地计算；不记录原始输入。',
+      });
       expect(listCommandHistory()).toHaveLength(1);
     } finally {
       delete (window as unknown as { HistoryStore: unknown }).HistoryStore;

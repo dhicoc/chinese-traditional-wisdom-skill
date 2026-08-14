@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getReportMetadataItems, type ReportMetadata } from '@/legacy/reportMetadata';
 import { DEFAULT_TRADITIONAL_DISCLAIMER, toSemanticReport, type LayerReport, type SemanticReport, type Tone, type ActionCategory, type Strength } from '@/legacy/reportLayers';
 
 /**
@@ -50,11 +51,13 @@ interface FourLayerReportProps {
   notices?: string[];
   /** 用户应知的限制与注意事项 */
   warnings?: string[];
+  /** 与 HTML 导出共用的受控报告信息 */
+  reportMetadata?: ReportMetadata;
   /** 默认是否展开 details，默认 false */
   defaultDetailsOpen?: boolean;
 }
 
-export function FourLayerReport({ report, semanticReport, title, notices = [], warnings = [], defaultDetailsOpen = false }: FourLayerReportProps) {
+export function FourLayerReport({ report, semanticReport, title, notices = [], warnings = [], reportMetadata, defaultDetailsOpen = false }: FourLayerReportProps) {
   const [detailsOpen, setDetailsOpen] = useState(defaultDetailsOpen);
   const toneStyle = TONE_STYLE[report.overallTone];
   const resolvedSemanticReport = semanticReport ?? toSemanticReport({
@@ -81,6 +84,20 @@ export function FourLayerReport({ report, semanticReport, title, notices = [], w
   return (
     <section className="space-y-3">
       {title && <h4 className="text-sm font-semibold text-jade-100">{title}</h4>}
+
+      {reportMetadata && (
+        <div className="rounded-card border border-jade-500/30 bg-jade-500/8 px-3 py-2.5">
+          <p className="text-xs font-semibold text-jade-300">报告信息</p>
+          <dl className="mt-2 space-y-1.5 text-xs leading-5 text-jade-100/75">
+            {getReportMetadataItems(reportMetadata).map(({ label, value }) => (
+              <div key={label} className="flex gap-2">
+                <dt className="shrink-0 text-jade-100/50">{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
 
       {notices.length > 0 && (
         <div className="rounded-card border border-gold-500/30 bg-gold-500/8 px-3 py-2.5">

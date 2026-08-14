@@ -42,7 +42,9 @@ test.describe('P1.3e 用户侧报告与隐私验收', () => {
     expect(report).toContain('计算状态');
     expect(report).toContain('使用限制与注意事项');
     expect(report).toContain('本报告内容仅作传统文化参考。');
-    expect(report).toContain('1990年出生');
+    expect(report).toContain('输入摘要');
+    expect(report).toContain('已提供出生资料用于本地排盘');
+    expect(report).not.toContain('1990年出生');
     expect(report).not.toContain('1990年6月15日');
     expect(report).not.toContain('12时');
   });

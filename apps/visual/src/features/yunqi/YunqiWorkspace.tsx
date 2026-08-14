@@ -8,6 +8,7 @@ import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { calcYunqiEnveloped, type YunqiData } from '@/engine-api/yunqi';
 import type { ToolEnvelope } from '@/engine-api/types';
 import { validateCalendarClaims, type CalendarPresentationClaim } from '@/legacy/claimVerification/calendarClaimVerifier';
+import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
 import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
@@ -93,12 +94,19 @@ export function YunqiWorkspace() {
     factChecks,
     disclaimers: ['五运六气输出仅作传统文化和气候病机理论学习参考，不替代医学诊断。'],
   }), [envelope, factChecks]);
+  const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
+    moduleId: 'yunqi',
+    tool: envelope.tool,
+    version: envelope.version,
+    inputSummary: '指定年份推算；当前月份参与客气计算。',
+  }), [envelope.tool, envelope.version]);
   const exportPresentation = useMemo(() => presentation.exportReport ? ({
     report: presentation.exportReport,
     notices: presentation.notices,
     warnings: presentation.warnings,
     semanticReport: presentation.semanticReport,
-  }) : null, [presentation]);
+    reportMetadata,
+  }) : null, [presentation, reportMetadata]);
   const contextPayload = useMemo(
     () => ({
       项目: '五运六气',
@@ -202,6 +210,7 @@ export function YunqiWorkspace() {
             semanticReport={presentation.semanticReport}
             notices={presentation.notices}
             warnings={presentation.warnings}
+            reportMetadata={reportMetadata}
             title="五运六气解读"
           />
         </div>

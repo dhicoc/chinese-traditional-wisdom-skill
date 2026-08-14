@@ -11,6 +11,7 @@ import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
 import { calcDaliurenEnveloped, DALIUREN_SCHOOLS, type DaliurenData, type DaliurenSchool } from '@/engine-api/divination';
 import { validateDivinationClaims, type DivinationPresentationClaim } from '@/legacy/claimVerification/divinationClaimVerifier';
+import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
 import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import type { ToolEnvelope } from '@/engine-api/types';
 
@@ -96,12 +97,19 @@ export function LiurenWorkspace() {
       : null,
     [result.envelope, factChecks],
   );
-  const exportPresentation = useMemo(() => presentation?.exportReport ? ({
+  const reportMetadata = useMemo(() => result.envelope ? createWorkspaceReportMetadata({
+    moduleId: 'liuren',
+    tool: result.envelope.tool,
+    version: result.envelope.version,
+    inputSummary: '已按本地历法与所选课式完成大六壬排课。',
+  }) : null, [result.envelope]);
+  const exportPresentation = useMemo(() => presentation?.exportReport && reportMetadata ? ({
     report: presentation.exportReport,
     notices: presentation.notices,
     warnings: presentation.warnings,
     semanticReport: presentation.semanticReport,
-  }) : null, [presentation]);
+    reportMetadata,
+  }) : null, [presentation, reportMetadata]);
 
   if (result.loading) {
     return (
@@ -217,6 +225,7 @@ export function LiurenWorkspace() {
                 semanticReport={presentation.semanticReport}
                 notices={presentation.notices}
                 warnings={presentation.warnings}
+                reportMetadata={reportMetadata ?? undefined}
                 title="大六壬解读"
               />
             </div>

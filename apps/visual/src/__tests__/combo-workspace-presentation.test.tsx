@@ -118,22 +118,19 @@ describe('ComboWorkspace presentation 边界', () => {
       data: AnnualFortuneResult;
     };
 
-    expect(html).toContain(envelope.data.export_snapshot.summary);
-    expect(html).toContain(envelope.data.export_snapshot.sections[0]?.heading);
-    expect(html).toContain(envelope.data.export_snapshot.sections[0]?.body);
+    expect(html).toContain('已完成年度综合运势联合分析，仅作传统文化参考。');
+    expect(html).toContain('本报告仅确认已运行所选联合分析方案，不包含占问原文、出生资料、姓名、性别、体质或健康信息。');
+    expect(html).toContain('报告信息');
+    expect(html).toContain('综合参考（local-exact）');
+    expect(html).toContain('已运行所选联合分析方案；报告仅保留分析类型与本地计算状态。');
     const downloadedText = new DOMParser()
       .parseFromString(html?.replace(/<br>/g, '\n') ?? '', 'text/html')
       .body.textContent;
-    for (const section of envelope.data.export_snapshot.sections) {
-      expect(downloadedText).toContain(section.heading);
-      expect(downloadedText).toContain(section.body);
-    }
-    for (const { fact } of createComboFactChecks({ comboType: 'annual', data: envelope.data })) {
-      expect(html).toContain(fact.label);
-      expect(html).toContain(fact.value);
-    }
+    expect(downloadedText).not.toContain(envelope.data.export_snapshot.summary);
+    expect(downloadedText).not.toContain(envelope.data.export_snapshot.sections[0]?.body ?? '');
     expect(html).toContain('COMBO_EXPORT_NOTICE');
-    expect(html).toContain('COMBO_EXPORT_WARNING');
+    expect(html).toContain('导出内容已按隐私边界脱敏处理。');
+    expect(html).not.toContain('COMBO_EXPORT_WARNING');
     expect(html).not.toContain(INTERNAL_EVIDENCE_SENTINEL);
   });
 

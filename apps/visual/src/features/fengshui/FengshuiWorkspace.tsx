@@ -5,6 +5,8 @@ import { FengshuiCompass } from '@/components/shared/FengshuiCompass';
 import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
+import { createFengshuiExportReport } from '@/features/anonymousExport';
+import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
 import {
   getFeixingGrid,
   getBazhaiGrid,
@@ -135,6 +137,12 @@ export function FengshuiWorkspace() {
       ...(feixingGrid ? [{ heading: '留意方位', body: feixingGrid.flat().filter((cell) => ['大凶', '凶'].includes(NINE_STAR_REMEDIES[cell.starNum]?.nature ?? '')).map((cell) => { const remedy = NINE_STAR_REMEDIES[cell.starNum]; const direction = PALACE_TO_DIR[cell.palace] ?? cell.palace; return `${direction}方 · ${remedy.name}\n${remedy.remedy ? `建议：${remedy.remedy}` : '宜保持安静整洁。'}`; }).join('\n\n') || '暂无特别留意的方位。' }] : []),
     ],
   }), [bazhaiGrid, directionSummary, facing, feixingGrid, mingGuaDirs, year, yuanYun]);
+  const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
+    moduleId: 'fengshui',
+    tool: 'fengshui_compass',
+    version: '1.0.0',
+    inputSummary: '已生成本地罗盘方位参考；报告不保留具体年份、房屋坐向、出生资料、住址或其他原始输入。',
+  }), []);
 
   return (
     <section className="space-y-4">
@@ -148,7 +156,11 @@ export function FengshuiWorkspace() {
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="fengshui" title="风水罗盘摘要" payload={contextPayload} />
-            <ExportReportButton module="风水罗盘" report={exportReport} />
+            <ExportReportButton
+              module="风水罗盘"
+              report={createFengshuiExportReport({ source: exportReport })}
+              reportMetadata={reportMetadata}
+            />
           </div>
         </div>
       </div>

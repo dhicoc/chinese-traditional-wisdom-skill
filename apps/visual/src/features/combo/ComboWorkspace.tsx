@@ -28,7 +28,9 @@ import { calcMarriageCombo, type MarriageResult, type MarriageScene } from '@/en
 import type { ToolEnvelope } from '@/engine-api/types';
 import { QUESTIONNAIRE } from '@/legacy/constitutionQuestionnaire';
 import { validateComboClaims, type ComboPresentationClaim } from '@/legacy/claimVerification/comboClaimVerifier';
+import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
 import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
+import { createComboExportReport } from '@/features/combo/comboExport';
 
 /**
  * 联合分析工作区（ROADMAP 功能层增强 Step 1 的 Dashboard 入口）。
@@ -338,12 +340,22 @@ export function ComboWorkspace() {
       disclaimers: ['联合分析结果仅作传统文化学习参考，不作为现实决策依据。'],
     })
     : null, [factChecks, isCurrentResult, result.envelope]);
-  const exportPresentation = useMemo(() => presentation?.exportReport ? ({
-    report: presentation.exportReport,
+  const reportMetadata = useMemo(() => result.envelope ? createWorkspaceReportMetadata({
+    moduleId: 'combo',
+    tool: result.envelope.tool,
+    version: result.envelope.version,
+    inputSummary: '已运行所选联合分析方案；报告仅保留分析类型与本地计算状态。',
+  }) : null, [result.envelope]);
+  const exportPresentation = useMemo(() => presentation?.exportReport && data && result.comboType ? ({
+    report: createComboExportReport({
+      comboName: data.comboName,
+      comboType: result.comboType,
+      source: presentation.exportReport,
+    }),
     notices: presentation.notices,
-    warnings: presentation.warnings,
-    semanticReport: presentation.semanticReport,
-  }) : null, [presentation]);
+    warnings: ['导出内容已按隐私边界脱敏处理。'],
+    reportMetadata: reportMetadata ?? undefined,
+  }) : null, [data, presentation, reportMetadata, result.comboType]);
   const birthSummary = `${solarBirth.year}-${String(solarBirth.month).padStart(2, '0')}-${String(solarBirth.day).padStart(2, '0')} ${String(solarBirth.hour).padStart(2, '0')}:00 ${solarBirth.gender}`;
 
   return (
@@ -701,7 +713,7 @@ export function ComboWorkspace() {
           )}
 
           <div className="console-panel rounded-panel border border-purple-500/16 bg-ink-950/90 p-4 shadow-instrument">
-            <FourLayerReport report={presentation.report} semanticReport={presentation.semanticReport} notices={presentation.notices} warnings={presentation.warnings} title={`${data.comboName}解读`} />
+            <FourLayerReport report={presentation.report} semanticReport={presentation.semanticReport} notices={presentation.notices} warnings={presentation.warnings} reportMetadata={reportMetadata ?? undefined} title={`${data.comboName}解读`} />
           </div>
 
           <div className="flex justify-end gap-2">

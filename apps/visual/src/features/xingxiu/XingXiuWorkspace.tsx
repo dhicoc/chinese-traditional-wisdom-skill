@@ -9,6 +9,7 @@ import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
 import { calcXingXiuEnveloped, type XingXiuData, type XingXiuEntry, type XiuMethod } from '@/engine-api/folklore';
 import { validateCalendarClaims, type CalendarPresentationClaim } from '@/legacy/claimVerification/calendarClaimVerifier';
+import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
 import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import type { ToolEnvelope } from '@/engine-api/types';
 
@@ -78,12 +79,19 @@ export function XingXiuWorkspace() {
       : null,
     [result.envelope, factChecks],
   );
+  const reportMetadata = useMemo(() => result.envelope ? createWorkspaceReportMetadata({
+    moduleId: 'xingxiu',
+    tool: result.envelope.tool,
+    version: result.envelope.version,
+    inputSummary: '已按所选星宿计算方式生成本地值宿与日用参考；不保留出生资料或精确日期。',
+  }) : null, [result.envelope]);
   const exportPresentation = useMemo(() => presentation?.exportReport ? ({
     report: presentation.exportReport,
     notices: presentation.notices,
     warnings: presentation.warnings,
     semanticReport: presentation.semanticReport,
-  }) : null, [presentation]);
+    reportMetadata: reportMetadata ?? undefined,
+  }) : null, [presentation, reportMetadata]);
   const grouped = useMemo(() => {
     const map: Record<string, XingXiuEntry[]> = {};
     for (const x of data?.allXiu ?? []) {
@@ -197,6 +205,7 @@ export function XingXiuWorkspace() {
                 semanticReport={presentation.semanticReport}
                 notices={presentation.notices}
                 warnings={presentation.warnings}
+                reportMetadata={reportMetadata ?? undefined}
                 title="二十八星宿解读"
               />
             </div>

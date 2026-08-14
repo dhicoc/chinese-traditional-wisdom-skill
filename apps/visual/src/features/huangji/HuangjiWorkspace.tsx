@@ -9,6 +9,7 @@ import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
 import { calcHuangjiEnveloped, type HuangjiData } from '@/engine-api/folklore';
 import { validateDivinationClaims, type DivinationPresentationClaim } from '@/legacy/claimVerification/divinationClaimVerifier';
+import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
 import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import type { ToolEnvelope } from '@/engine-api/types';
 
@@ -84,12 +85,19 @@ export function HuangjiWorkspace() {
       : null,
     [result.envelope, factChecks],
   );
-  const exportPresentation = useMemo(() => presentation?.exportReport ? ({
+  const reportMetadata = useMemo(() => result.envelope ? createWorkspaceReportMetadata({
+    moduleId: 'huangji',
+    tool: result.envelope.tool,
+    version: result.envelope.version,
+    inputSummary: '已按本地历法完成元会运世周期与九卦配置计算。',
+  }) : null, [result.envelope]);
+  const exportPresentation = useMemo(() => presentation?.exportReport && reportMetadata ? ({
     report: presentation.exportReport,
     notices: presentation.notices,
     warnings: presentation.warnings,
     semanticReport: presentation.semanticReport,
-  }) : null, [presentation]);
+    reportMetadata,
+  }) : null, [presentation, reportMetadata]);
 
   if (presentation?.state === 'error') {
     return (
@@ -224,6 +232,7 @@ export function HuangjiWorkspace() {
             semanticReport={presentation.semanticReport}
             notices={presentation.notices}
             warnings={presentation.warnings}
+            reportMetadata={reportMetadata ?? undefined}
             title="皇极经世解读"
           />
         </div>

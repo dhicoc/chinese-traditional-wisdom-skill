@@ -4,11 +4,13 @@ import { useBirth } from '@/lib/birthContext';
 import { calcCeziEnveloped, type CeziResult } from '@/engine-api/folklore';
 import type { ToolEnvelope } from '@/engine-api/types';
 import { validateDailyClaims, type DailyPresentationClaim } from '@/legacy/claimVerification/dailyClaimVerifier';
+import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
 import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import { InterpretationCard } from '@/components/shared/InterpretationCard';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import { ExportReportButton } from '@/components/shared/ExportReportButton';
+import { createCeziExportReport } from '@/features/anonymousExport';
 
 type CeziAspect = '事业' | '感情' | '财利' | '健康' | '综合';
 const SAFE_ERROR_MESSAGE = '本次计算未能完成，请核对输入后重试。';
@@ -81,9 +83,13 @@ export function CeziWorkspace() {
     factChecks,
     disclaimers: ['测字结果仅作传统民俗文化学习参考，不作为现实决策依据。'],
   }) : null, [result.envelope, factChecks]);
+  const reportMetadata = useMemo(() => result.envelope ? createWorkspaceReportMetadata({ moduleId: 'cezi', tool: result.envelope.tool, version: result.envelope.version, inputSummary: '已对输入单字按所选方向完成本地字占；报告不记录输入文字、原始问题或出生资料。' }) : null, [result.envelope]);
   const exportPresentation = useMemo(() => presentation?.exportReport ? ({
-    report: presentation.exportReport, notices: presentation.notices, warnings: presentation.warnings, semanticReport: presentation.semanticReport,
-  }) : null, [presentation]);
+    report: createCeziExportReport({ source: presentation.exportReport }),
+    notices: presentation.notices,
+    warnings: ['导出内容已按隐私边界脱敏处理。'],
+    reportMetadata: reportMetadata ?? undefined,
+  }) : null, [presentation, reportMetadata]);
   const r = result.envelope?.ok ? result.envelope.data : null;
   const toneColor = r?.tone === '吉' ? 'text-jade-300' : r?.tone === '凶' ? 'text-red-300' : 'text-amber-300';
 
@@ -107,7 +113,7 @@ export function CeziWorkspace() {
           {r.baziComplement && <div className="rounded-card border border-jade-500/20 bg-jade-500/5 px-3 py-2 text-xs"><p className="font-semibold text-jade-300">八字用神补益</p><p className="mt-1 text-jade-100/60">日主{r.baziComplement.dayMaster} · 用神{r.baziComplement.xiyongShen} · <span className={r.baziComplement.complement === '补用神' ? 'text-jade-300' : r.baziComplement.complement === '克耗' ? 'text-red-300' : 'text-amber-300'}>{r.baziComplement.complement}</span>（补益度{r.baziComplement.score}）</p><p className="text-jade-100/55">{r.baziComplement.detail}</p></div>}
           <div className="space-y-1.5 text-xs"><p className="rounded-card border border-white/8 bg-ink-900/40 px-3 py-2 text-jade-100/60"><span className="text-jade-300">事业影响：</span>{r.careerAdvice}</p><p className="rounded-card border border-white/8 bg-ink-900/40 px-3 py-2 text-jade-100/60"><span className="text-jade-300">感情影响：</span>{r.loveAdvice}</p><p className="rounded-card border border-white/8 bg-ink-900/40 px-3 py-2 text-jade-100/60"><span className="text-jade-300">改字/起名建议：</span>{r.nameAdvice}</p></div>
           <div className="flex justify-end gap-2"><CopyContextButton commandScope="cezi" title="测字摘要" payload={{ 项目: '测字', 文字: r.char, 笔画: r.strokes, 数理: r.shuli, 五行: r.charWuxing, 结构: r.structure.structure, 八字补益: r.baziComplement, 解读: r.synthesis }} /><ExportReportButton module="测字" presentation={exportPresentation} /></div>
-        </div></InterpretationCard><FourLayerReport report={presentation.report} semanticReport={presentation.semanticReport} notices={presentation.notices} warnings={presentation.warnings} title={`测「${r.char}」字解读`} /></div>
+        </div></InterpretationCard><FourLayerReport report={presentation.report} semanticReport={presentation.semanticReport} notices={presentation.notices} warnings={presentation.warnings} reportMetadata={reportMetadata ?? undefined} title={`测「${r.char}」字解读`} /></div>
       )}
     </div>
   );

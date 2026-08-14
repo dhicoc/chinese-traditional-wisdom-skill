@@ -6,6 +6,7 @@ import { MeihuaChart } from '@/components/shared/MeihuaChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { MEIHUA_TRIGRAMS, type MeihuaData } from '@/legacy/canvasRenderers';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
+import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
 import { MEIHUA_INTENT_EVENT, type MeihuaIntentDetail } from '@/lib/commandIntents';
 
 const NAME_MAP: Record<string, string> = {
@@ -100,6 +101,12 @@ export function MeihuaWorkspace() {
       { heading: '卦德旁参', body: `体卦：${data.bodyGuaDe ?? '—'}\n用卦：${data.useGuaDe ?? '—'}\n错卦：${data.cuoTrigram?.name ?? '—'}\n综卦：${data.zongTrigram?.name ?? '—'}` },
     ],
   }), [data]);
+  const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
+    moduleId: 'meihua',
+    tool: 'meihua_yishu',
+    version: '1.0.0',
+    inputSummary: '已生成本地梅花易数卦象参考；报告不保留具体卦象参数、出生资料、原始问题或其他原始输入。',
+  }), []);
 
   return (
     <section className="space-y-4">
@@ -113,7 +120,7 @@ export function MeihuaWorkspace() {
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="meihua" title="梅花易数摘要" payload={contextPayload} />
-            <ExportReportButton module="梅花易数" report={exportReport} />
+            <ExportReportButton module="梅花易数" report={exportReport} reportMetadata={reportMetadata} />
           </div>
         </div>
         <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">

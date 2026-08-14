@@ -11,6 +11,7 @@ import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { useBirth } from '@/lib/birthContext';
 import { calcTaiyiEnveloped, JI_STYLE_NAMES, ACUM_YEAR_NAMES, type TaiyiData, type JiStyle, type AcumYearMethod } from '@/engine-api/divination';
 import { validateDivinationClaims, type DivinationPresentationClaim } from '@/legacy/claimVerification/divinationClaimVerifier';
+import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
 import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import type { ToolEnvelope } from '@/engine-api/types';
 
@@ -78,12 +79,19 @@ export function TaiyiWorkspace() {
       : null,
     [result.envelope, factChecks],
   );
-  const exportPresentation = useMemo(() => presentation?.exportReport ? ({
+  const reportMetadata = useMemo(() => result.envelope ? createWorkspaceReportMetadata({
+    moduleId: 'taiyi',
+    tool: result.envelope.tool,
+    version: result.envelope.version,
+    inputSummary: '已按所选计式与积年法完成本地太乙起局。',
+  }) : null, [result.envelope]);
+  const exportPresentation = useMemo(() => presentation?.exportReport && reportMetadata ? ({
     report: presentation.exportReport,
     notices: presentation.notices,
     warnings: presentation.warnings,
     semanticReport: presentation.semanticReport,
-  }) : null, [presentation]);
+    reportMetadata,
+  }) : null, [presentation, reportMetadata]);
 
   if (result.loading) {
     return (
@@ -219,6 +227,7 @@ export function TaiyiWorkspace() {
                 semanticReport={presentation.semanticReport}
                 notices={presentation.notices}
                 warnings={presentation.warnings}
+                reportMetadata={reportMetadata ?? undefined}
                 title="太乙神数解读"
               />
             </div>

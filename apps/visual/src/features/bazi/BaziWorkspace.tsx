@@ -13,6 +13,7 @@ import { buildBaziDynamicLayer, calculateBazi as calculateBaziPure, calcBaziEnve
 import type { AdvancedBaziAnalysis } from '@/legacy/advancedBazi';
 import type { TrineSource } from '@/legacy/shensha';
 import { validateBaziClaims, type BaziPresentationClaim } from '@/legacy/claimVerification/baziClaimVerifier';
+import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
 import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { type BaziPillars, type WuxingStats } from '@/legacy/canvasRenderers';
@@ -163,20 +164,28 @@ export function BaziWorkspace() {
       : null,
     [envelope, factChecks],
   );
+  const reportMetadata = useMemo(() => envelope ? createWorkspaceReportMetadata({
+    moduleId: 'bazi',
+    tool: envelope.tool,
+    version: envelope.version,
+    inputSummary: `已提供出生资料用于本地排盘；神煞查法：按${trineSource === 'year' ? '年支' : '日支'}。`,
+    timeBasis: baziTimeStatus.status === 'true-solar-verified'
+      ? 'true-solar-verified'
+      : 'civil-unverified',
+  }) : null, [baziTimeStatus.status, envelope, trineSource]);
   const exportPresentation = useMemo(() => {
-    if (!presentation?.exportReport) return null;
+    if (!presentation?.exportReport || !reportMetadata) return null;
     const timeNotice = baziTimeStatus.status === 'true-solar-verified'
       ? '已核验真太阳时。'
-      : baziTimeStatus.status === 'civil-unverified'
-        ? '未完成真太阳时复核：已按用户确认的民用出生记录排盘。'
-        : '等待 Agent 核验出生地点、历史时区与夏令时；当前暂按民用时间展示。';
+      : '民用时间（未完成真太阳时复核）。';
     return {
       report: presentation.exportReport,
       notices: [...presentation.notices, timeNotice],
       warnings: presentation.warnings,
       semanticReport: presentation.semanticReport,
+      reportMetadata,
     };
-  }, [baziTimeStatus.status, presentation]);
+  }, [baziTimeStatus.status, presentation, reportMetadata]);
   const pillarRows = [
     ['年柱', pillars.year],
     ['月柱', pillars.month],
@@ -616,6 +625,7 @@ export function BaziWorkspace() {
               title="命盘解读"
               notices={presentation.notices}
               warnings={presentation.warnings}
+              reportMetadata={reportMetadata ?? undefined}
             />
           </div>
         )}

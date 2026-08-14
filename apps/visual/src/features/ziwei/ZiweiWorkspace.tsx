@@ -16,6 +16,7 @@ import {
 } from '@/engine-api/ziwei';
 import type { ToolEnvelope } from '@/engine-api/types';
 import { validateZiweiClaims, type ZiweiPresentationClaim } from '@/legacy/claimVerification/ziweiClaimVerifier';
+import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
 import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
@@ -207,12 +208,19 @@ export function ZiweiWorkspace() {
     factChecks,
     disclaimers: ['紫微斗数结果仅作传统文化学习参考，不作为现实决策依据。'],
   }), [envelope, factChecks]);
+  const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
+    moduleId: 'ziwei',
+    tool: envelope.tool,
+    version: envelope.version,
+    inputSummary: '已使用本地命盘计算；包含本命盘与所选流年流月视图。',
+  }), [envelope.tool, envelope.version]);
   const exportPresentation = useMemo(() => presentation.exportReport ? ({
     report: presentation.exportReport,
     notices: presentation.notices,
     warnings: presentation.warnings,
     semanticReport: presentation.semanticReport,
-  }) : null, [presentation]);
+    reportMetadata,
+  }) : null, [presentation, reportMetadata]);
   const natalDeities = PALACE_NAMES.flatMap((palace) => {
     const item = data.palaces[palace];
     if (!item?.changsheng12 || !item.boshi12) return [];
@@ -299,6 +307,7 @@ export function ZiweiWorkspace() {
                 semanticReport={presentation.semanticReport}
                 notices={presentation.notices}
                 warnings={presentation.warnings}
+                reportMetadata={reportMetadata}
                 title="命盘解读"
               />
             </div>

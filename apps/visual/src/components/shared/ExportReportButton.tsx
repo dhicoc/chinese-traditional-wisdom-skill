@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { DEFAULT_TRADITIONAL_DISCLAIMER, toSemanticReport, type SemanticReport } from '@/legacy/reportLayers';
+import { getReportMetadataItems, type ReportMetadata } from '@/legacy/reportMetadata';
 import { dispatchCommandFeedback } from '@/lib/commandIntents';
-import { useBirth } from '@/lib/birthContext';
 
 export interface ExportReportSnapshot {
   summary: string;
@@ -13,12 +13,14 @@ export interface ExportUserPresentation {
   notices?: string[];
   warnings?: string[];
   semanticReport?: SemanticReport | null;
+  reportMetadata?: ReportMetadata;
 }
 
 interface ExportReportButtonProps {
   module?: string;
   report?: ExportReportSnapshot | null;
   presentation?: ExportUserPresentation | null;
+  reportMetadata?: ReportMetadata;
 }
 
 function escapeHtml(value: string): string {
@@ -34,19 +36,19 @@ function escapeHtml(value: string): string {
 export function createExportReportHtml({
   title,
   generatedAt,
-  birthSummary,
   report,
   notices = [],
   warnings = [],
   semanticReport,
+  reportMetadata,
 }: {
   title: string;
   generatedAt: string;
-  birthSummary: string;
   report: ExportReportSnapshot;
   notices?: string[];
   warnings?: string[];
   semanticReport?: SemanticReport | null;
+  reportMetadata?: ReportMetadata;
 }): string {
   const resolvedSemanticReport = semanticReport ?? toSemanticReport(report, {
     disclaimers: [DEFAULT_TRADITIONAL_DISCLAIMER],
@@ -83,6 +85,11 @@ export function createExportReportHtml({
       <h2>使用限制与注意事项</h2>
       <ul>${warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join('')}</ul>
     </aside>` : '';
+  const metadataSection = reportMetadata ? `
+    <section class="report-metadata">
+      <h2>报告信息</h2>
+      <dl>${getReportMetadataItems(reportMetadata).map(({ label, value }) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('')}</dl>
+    </section>` : '';
 
   return `<!doctype html>
 <html lang="zh-CN">
@@ -125,9 +132,10 @@ export function createExportReportHtml({
     <header>
       <p class="eyebrow">传统文化参考</p>
       <h1>${escapeHtml(title)}</h1>
-      <p class="meta">生成时间：${escapeHtml(generatedAt)}<br>出生资料：${escapeHtml(birthSummary)}</p>
+      <p class="meta">生成时间：${escapeHtml(generatedAt)}<br>本地计算结果</p>
     </header>
     <div class="summary">${escapeHtml(report.summary).replace(/\n/g, '<br>')}</div>
+    ${metadataSection}
     ${noticeSection}
     ${warningSection}
     ${content}
@@ -144,29 +152,27 @@ function defaultReport(title: string): ExportReportSnapshot {
   };
 }
 
-export function ExportReportButton({ module, report, presentation }: ExportReportButtonProps) {
+export function ExportReportButton({ module, report, presentation, reportMetadata }: ExportReportButtonProps) {
   const [exporting, setExporting] = useState(false);
-  const { birth, solarBirth } = useBirth();
   const title = module ?? '命盘报告';
 
   const handleExport = useCallback(async () => {
     setExporting(true);
     try {
-      const birthSummary = `${birth.year}年出生，${birth.gender}，${birth.isLunar ? '农历' : '公历'}`;
       const content = createExportReportHtml({
         title,
         generatedAt: new Date().toLocaleString('zh-CN'),
-        birthSummary,
         report: presentation?.report ?? report ?? defaultReport(title),
         notices: presentation?.notices,
         warnings: presentation?.warnings,
         semanticReport: presentation?.semanticReport,
+        reportMetadata: presentation?.reportMetadata ?? reportMetadata,
       });
       const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${title}-${solarBirth.year}xxxx-${Date.now()}.html`;
+      a.download = `${title}-${Date.now()}.html`;
       a.click();
       URL.revokeObjectURL(url);
       dispatchCommandFeedback({
@@ -183,7 +189,7 @@ export function ExportReportButton({ module, report, presentation }: ExportRepor
     } finally {
       setExporting(false);
     }
-  }, [birth, presentation, report, solarBirth.year, title]);
+  }, [presentation, report, reportMetadata, title]);
 
   return (
     <button

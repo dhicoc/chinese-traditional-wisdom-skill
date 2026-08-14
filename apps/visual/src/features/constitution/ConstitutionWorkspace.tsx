@@ -6,6 +6,8 @@ import { ExportReportButton } from '@/components/shared/ExportReportButton';
 import { ControlField } from '@/components/shared/ControlField';
 import { RadarChart, type RadarAxis } from '@/components/shared/RadarChart';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
+import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
+import { createConstitutionExportReport } from '@/features/constitution/constitutionExport';
 import {
   calculateScoresFromAnswers,
   deriveDominantConstitution,
@@ -80,18 +82,13 @@ export function ConstitutionWorkspace() {
     主要体质: dominant,
     医疗提示: '体质辨识仅作中医文化参考，不替代医疗诊断。',
   }), [scores, dominant]);
-  const exportReport = useMemo(() => {
-    const group = QUESTIONNAIRE.find((item) => item.type === dominant);
-    return {
-      summary: `体质自评结果：${dominant || '尚未形成主要体质'}。`,
-      sections: [
-        { heading: '体质评分', body: CONSTITUTION_TYPES.map((type) => `${type}：${scores[type]}分`).join('\n') },
-        ...(group ? [{ heading: '调养参考', body: `主要体质：${dominant}\n调养方向：${group.direction}\n食疗参考：${group.diet}\n穴位保健：${group.acupoints}` }] : []),
-        ...(yunqiTendency ? [{ heading: '出生年倾向参考', body: `岁运：${yunqiTendency.dayun}\n司天：${yunqiTendency.sitian}\n${yunqiTendency.tendencies.map((item) => `${item.type}：${item.reason}`).join('\n')}` }] : []),
-        { heading: '使用提醒', body: '本结果根据问卷自评整理，仅作中医文化与日常调养参考；如有不适或健康问题，请咨询专业医师。' },
-      ],
-    };
-  }, [dominant, scores, yunqiTendency]);
+  const exportReport = useMemo(createConstitutionExportReport, []);
+  const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
+    moduleId: 'tizhi',
+    tool: 'constitution_questionnaire',
+    version: '1.0.0',
+    inputSummary: '已完成本地体质倾向评分；报告不包含问卷答案、症状或其他健康数据。',
+  }), []);
 
   // 问卷答题
   const handleAnswer = (questionKey: string, score: number) => {
@@ -129,7 +126,7 @@ export function ConstitutionWorkspace() {
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="tizhi" title="体质辨识摘要" payload={contextPayload} />
-            <ExportReportButton module="体质辨识" report={exportReport} />
+            <ExportReportButton module="体质辨识" report={exportReport} reportMetadata={reportMetadata} />
           </div>
         </div>
       </div>

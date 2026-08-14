@@ -8,6 +8,8 @@ import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferenceP
 import { NinePalaceGrid } from '@/components/shared/NinePalaceGrid';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
 import { LoadingSkeleton } from '@/components/shared/LoadingSkeleton';
+import { createFeixingExportReport } from '@/features/anonymousExport';
+import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
 import {
   calcMingGua,
   getFeixingGrid,
@@ -126,6 +128,12 @@ export function FeixingWorkspace() {
       { heading: '九星方位', body: gridRemedies.map(({ cell, remedy }) => `${PALACE_TO_DIR[cell.palace] ?? cell.palace}方：${remedy?.name ?? `${cell.starNum}星`} · ${remedy?.usageLabel ?? '方位参考'}`).join('\n') },
     ],
   }), [gridRemedies, mingGuaResult, summary, usageSummary, year, yuanYun]);
+  const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
+    moduleId: 'feixing',
+    tool: 'annual_flying_stars',
+    version: '1.0.0',
+    inputSummary: '已生成本地流年飞星方位参考；报告不保留具体年份、出生资料或其他原始输入。',
+  }), []);
 
   return (
     <section className="space-y-4">
@@ -139,7 +147,11 @@ export function FeixingWorkspace() {
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="feixing" title="流年飞星摘要" payload={contextPayload} />
-            <ExportReportButton module="流年飞星" report={exportReport} />
+            <ExportReportButton
+              module="流年飞星"
+              report={createFeixingExportReport({ source: exportReport })}
+              reportMetadata={reportMetadata}
+            />
           </div>
         </div>
       </div>

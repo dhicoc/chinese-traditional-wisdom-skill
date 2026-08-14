@@ -6,6 +6,8 @@ import { EightMansionsChart } from '@/components/shared/EightMansionsChart';
 import { KnowledgeReferencePanel } from '@/components/shared/KnowledgeReferencePanel';
 import { TermExplanationPanel } from '@/components/shared/TermExplanationPanel';
 import { ZoomableSvg } from '@/components/shared/ZoomableSvg';
+import { createBazhaiExportReport } from '@/features/anonymousExport';
+import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
 import {
   calcMenZhuZao,
   calcTaisui,
@@ -88,6 +90,12 @@ export function BazhaiWorkspace() {
       { heading: '太岁与门主灶', body: `太岁：${taisui.taisui.direction}\n岁破：${taisui.suiPo.direction}\n三煞：${taisui.sanSha.zhiList.join('、')}\n门主灶：${menZhuZao.overall.tone === '吉' ? '格局优良' : menZhuZao.overall.tone === '凶' ? '需留意' : '格局一般'}\n${menZhuZao.remedies.join('\n') || '可按实际居住需求审慎调整。'}` },
     ],
   }), [combo, compatibility, facing, flowYear, gender, houseGua, menZhuZao, personalDirs, sectorAnalysis, summary, taisui, year]);
+  const reportMetadata = useMemo(() => createWorkspaceReportMetadata({
+    moduleId: 'bazhai',
+    tool: 'bazhai_dayou_nian',
+    version: '1.0.0',
+    inputSummary: '已生成本地八宅方位参考；报告不保留具体年份、出生资料、房屋坐向或其他原始输入。',
+  }), []);
 
   return (
     <section className="space-y-4">
@@ -101,7 +109,11 @@ export function BazhaiWorkspace() {
           </div>
           <div className="flex gap-2">
             <CopyContextButton commandScope="bazhai" title="八宅大游年摘要" payload={contextPayload} />
-            <ExportReportButton module="八宅大游年" report={exportReport} />
+            <ExportReportButton
+              module="八宅大游年"
+              report={createBazhaiExportReport({ source: exportReport })}
+              reportMetadata={reportMetadata}
+            />
           </div>
         </div>
       </div>

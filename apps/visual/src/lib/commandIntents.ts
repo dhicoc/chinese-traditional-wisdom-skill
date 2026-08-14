@@ -319,6 +319,9 @@ export interface CommandHistoryEntry {
   mode: string;
   createdAt: string;
   favorite: boolean;
+  reportVersion: string;
+  capabilityMode: string;
+  inputSummary: string;
 }
 
 interface HistoryStoreLike {
@@ -348,6 +351,9 @@ export function recordCommandHistory(entry: {
   summary?: string;
   tags?: string[];
   mode?: string;
+  reportVersion?: string;
+  capabilityMode?: string;
+  inputSummary?: string;
 }): CommandHistoryEntry | null {
   const store = getHistoryStore();
   if (!store) return null;
@@ -357,6 +363,9 @@ export function recordCommandHistory(entry: {
     summary: entry.summary ?? '',
     tags: entry.tags ?? [],
     mode: entry.mode ?? 'command',
+    reportVersion: entry.reportVersion ?? '1.0',
+    capabilityMode: entry.capabilityMode ?? '命令入口（command）',
+    inputSummary: entry.inputSummary ?? '已执行本地命令；不记录原始输入。',
   });
 }
 

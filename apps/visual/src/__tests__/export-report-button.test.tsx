@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { createExportReportHtml, ExportReportButton, type ExportUserPresentation } from '@/components/shared/ExportReportButton';
+import { createReportMetadata } from '@/legacy/reportMetadata';
 
 vi.mock('@/lib/birthContext', () => ({
   useBirth: () => ({
@@ -23,7 +24,6 @@ describe('ExportReportButton', () => {
     const html = createExportReportHtml({
       title: '八字 <报告>',
       generatedAt: '2026/8/7 12:00:00',
-      birthSummary: '1990年6月15日 <12>时',
       report: {
         summary: '日主 & 喜用神',
         sections: [{ heading: '结论 <一>', body: '保留 <标签>\n并换行' }],
@@ -45,7 +45,6 @@ describe('ExportReportButton', () => {
     const html = createExportReportHtml({
       title: '测试报告',
       generatedAt: '2026/8/7 12:00:00',
-      birthSummary: '1990年6月15日 12时',
       report: { summary: '摘要', sections: [{ heading: '不应平铺', body: '旧章节内容' }] },
       semanticReport: {
         facts: [{ label: '日主 <核对>', value: '辛 & 金', tool: 'bazi_calculate' }],
@@ -90,7 +89,6 @@ describe('ExportReportButton', () => {
     const html = createExportReportHtml({
       title: '星宿报告',
       generatedAt: '2026/8/7 12:00:00',
-      birthSummary: '1990年6月15日 12时',
       ...presentationWithInternalField,
     });
 
@@ -124,10 +122,13 @@ describe('ExportReportButton', () => {
 
     await waitFor(() => expect(click).toHaveBeenCalledOnce());
     expect(downloadedBlob?.type).toBe('text/html;charset=utf-8');
-    expect(downloadName).toMatch(/^八字命盘-1990xxxx-\d+\.html$/);
+    expect(downloadName).toMatch(/^八字命盘-\d+\.html$/);
+    expect(downloadName).not.toContain('1990');
     expect(revokeObjectUrl).toHaveBeenCalledWith('blob:report');
     await expect(downloadedBlob?.text()).resolves.toContain('结构化摘要');
     await expect(downloadedBlob?.text()).resolves.toContain('命局要览');
+    await expect(downloadedBlob?.text()).resolves.not.toContain('出生资料：');
+    await expect(downloadedBlob?.text()).resolves.not.toContain('1990年出生，男，公历');
   });
 
   it('只导出摘要与章节，不输出快照附带的内部元信息', () => {
@@ -140,7 +141,6 @@ describe('ExportReportButton', () => {
     const html = createExportReportHtml({
       title: '测试报告',
       generatedAt: '2026/8/7 12:00:00',
-      birthSummary: '1990年6月15日 12时',
       report,
     });
 
@@ -156,9 +156,8 @@ describe('ExportReportButton', () => {
     const html = createExportReportHtml({
       title: '测试报告',
       generatedAt: '2026/8/7 12:00:00',
-      birthSummary: '1990年6月15日 12时',
       report: { summary: '摘要', sections: [] },
-      notices: ['未完成真太阳时复核'],
+      notices: ['未完成真太阳时复核'], 
       warnings: ['流派口径可能存在差异'],
     });
 
@@ -166,6 +165,30 @@ describe('ExportReportButton', () => {
     expect(html).toContain('未完成真太阳时复核');
     expect(html).toContain('使用限制与注意事项');
     expect(html).toContain('流派口径可能存在差异');
+  });
+
+  it('以与 Dashboard 相同的字段和顺序导出报告信息', () => {
+    const reportMetadata = createReportMetadata({
+      tool: 'BaziLunarAdapter',
+      version: '0.3.0',
+      capability: { mode: 'local-exact', modeLabel: '按出生资料排盘' },
+      inputSummary: '1990年出生，男，公历',
+      timeBasis: 'civil-unverified',
+    });
+    const html = createExportReportHtml({
+      title: '测试报告',
+      generatedAt: '2026/8/7 12:00:00',
+      report: { summary: '摘要', sections: [] },
+      reportMetadata,
+    });
+
+    const labels = ['报告版本', '工具版本', '能力模式', '输入摘要', '时间口径'];
+    expect(html).toContain('报告信息');
+    for (let index = 1; index < labels.length; index += 1) {
+      expect(html.indexOf(labels[index - 1])).toBeLessThan(html.indexOf(labels[index]));
+    }
+    expect(html).toContain('BaziLunarAdapter@0.3.0');
+    expect(html).toContain('民用时间（未完成真太阳时复核）');
   });
 
   it('未传入报告时不读取页面文本或导出内部说明', async () => {

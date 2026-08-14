@@ -1,6 +1,7 @@
 import { describe, expect, it, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
+import { createReportMetadata } from '@/legacy/reportMetadata';
 import { toFourLayer, type LayerReport, type ReadingLike } from '@/legacy/reportLayers';
 import { calcBaziEnveloped } from '@/legacy/baziEngine';
 
@@ -120,6 +121,25 @@ describe('FourLayerReport 渲染', () => {
     expect(screen.getAllByRole('listitem')[0].textContent).toContain('未完成真太阳时复核');
     expect(screen.getByText('使用限制与注意事项')).toBeInTheDocument();
     expect(screen.getAllByRole('listitem')[1].textContent).toContain('流派口径可能存在差异');
+  });
+
+  it('以与导出报告相同字段和顺序显示报告信息', () => {
+    const report: LayerReport = { tldr: 't', overallTone: '中', highlights: [], details: [], actions: [] };
+    const reportMetadata = createReportMetadata({
+      tool: 'BaziLunarAdapter',
+      version: '0.3.0',
+      capability: { mode: 'local-exact', modeLabel: '按出生资料排盘' },
+      inputSummary: '已提供出生资料用于本地排盘。',
+      timeBasis: 'civil-unverified',
+    });
+    const { container } = render(<FourLayerReport report={report} reportMetadata={reportMetadata} />);
+
+    const labels = ['报告版本', '工具版本', '能力模式', '输入摘要', '时间口径'];
+    expect(screen.getByText('报告信息')).toBeInTheDocument();
+    expect(screen.getAllByText('1.0').length).toBeGreaterThan(0);
+    expect(screen.getByText('BaziLunarAdapter@0.3.0')).toBeInTheDocument();
+    expect(screen.getByText('民用时间（未完成真太阳时复核）')).toBeInTheDocument();
+    expect([...container.querySelectorAll('dt')].map((element) => element.textContent)).toEqual(labels);
   });
 
   it('用显式语义报告渲染已核对事实与传统解释边界', () => {
