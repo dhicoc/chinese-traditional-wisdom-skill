@@ -35,7 +35,7 @@ test.describe('P1.3m 奇门遁甲用户侧验收', () => {
     await expect.poll(() => hourPillar.textContent()).toBe(initialHourPillar);
     await expect(workspace.getByTestId('qimen-chart')).toBeVisible();
 
-    await expect(workspace.getByText('奇门遁甲结果仅作传统术数文化学习参考，不作为现实决策依据。')).toBeVisible();
+    await expect(workspace.getByTestId('qimen-culture-disclaimer')).toHaveText('奇门遁甲结果仅作传统术数文化学习参考，不作为现实决策依据。');
     await expectNoHorizontalOverflow(page);
   });
 });

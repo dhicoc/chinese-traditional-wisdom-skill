@@ -149,7 +149,7 @@ export function QimenWorkspace() {
             <p className="mt-1 max-w-3xl text-sm leading-6 text-jade-100/55">
               时家奇门排盘 · 文化学习参考
             </p>
-            <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
+            <p data-testid="qimen-culture-disclaimer" className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
               奇门遁甲结果仅作传统术数文化学习参考，不作为现实决策依据。
             </p>
           </div>
