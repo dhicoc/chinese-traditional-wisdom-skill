@@ -35,6 +35,7 @@ const requiredFiles = [
   "ROADMAP.md",
   "docs/RESEARCH-ROADMAP.md",
   "docs/RULE-CHANGELOG.md",
+  "docs/ENGINE-PACKAGE-EVALUATION.md",
   "requirements.txt",
   "apps/visual/package.json",
   "apps/visual/scripts/run-engine.ts",
@@ -76,6 +77,7 @@ const packageJson = read("apps/visual/package.json");
 const packageLockPath = path.join(root, "apps/visual/package-lock.json");
 const releaseVerification = read("docs/RELEASE-VERIFICATION.md");
 const ruleChangelog = read("docs/RULE-CHANGELOG.md");
+const enginePackageEvaluation = read("docs/ENGINE-PACKAGE-EVALUATION.md");
 const pythonRequirements = read("requirements.txt");
 const directRunner = read("apps/visual/src/legacy/directRunner.ts");
 const localToolRegistry = read("apps/visual/src/legacy/localToolRegistry.ts");
@@ -134,6 +136,8 @@ check(pythonRequirements.includes("not required to install, publish, or run the 
   "requirements.txt 必须声明 Python 依赖仅用于离线交叉校验。");
 check(ruleChangelog.includes("## 变更条目格式") && ruleChangelog.includes("兼容性影响") && ruleChangelog.includes("回归证据"),
   "RULE-CHANGELOG.md 必须记录来源、兼容性影响与回归证据。");
+check(enginePackageEvaluation.includes("## 结论：暂不拆分") && enginePackageEvaluation.includes("pnpm engine") && enginePackageEvaluation.includes("ToolEnvelope") && enginePackageEvaluation.includes("Dashboard"),
+  "ENGINE-PACKAGE-EVALUATION.md 必须记录本地包拆分的 CLI、结果契约与 Dashboard 兼容性结论。");
 check(directRunner.includes("runLocalTool"), "directRunner.ts 缺少 runLocalTool");
 
 const localToolNames = extractMatches(
