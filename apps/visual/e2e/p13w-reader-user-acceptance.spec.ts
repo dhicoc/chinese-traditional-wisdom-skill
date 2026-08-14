@@ -23,7 +23,7 @@ test.describe('P1.3w 古籍阅读用户侧验收', () => {
 
     const workspace = page.locator('[data-testid="workspace-reader"]');
     await expect(workspace.getByText('当前古籍：八宅明镜')).toBeVisible({ timeout: 60000 });
-    await expect(workspace.getByText('kb://fengshui/03-yang-house/八宅明镜.md', { exact: true })).toBeVisible();
+    await expect(workspace.getByText('已关联古籍引用。', { exact: true })).toBeVisible();
     await expect(workspace.getByRole('heading', { name: '古籍原文', exact: true })).toBeVisible();
   });
 
@@ -45,12 +45,13 @@ test.describe('P1.3w 古籍阅读用户侧验收', () => {
     await expect(workspace.getByRole('heading', { name: '古籍原文', exact: true })).toBeVisible();
     await expect(workspace.getByRole('heading', { name: '相关说明', exact: true })).toBeVisible();
 
-    const mappingContent = workspace.locator('pre');
-    const initialMapping = await mappingContent.textContent();
+    const explanation = workspace.getByText(/本页将《八宅明镜》原文与/);
+    const initialExplanation = await explanation.textContent();
     const lifeTrigram = workspace.getByRole('button', { name: '八宅明镜 ↔ 命卦映射', exact: true });
     await lifeTrigram.click();
     await expect(lifeTrigram).toHaveClass(/bg-jade-500\/12/);
-    await expect.poll(() => mappingContent.textContent()).not.toBe(initialMapping);
+    await expect(explanation).toContainText('命卦说明');
+    expect(await explanation.textContent()).not.toBe(initialExplanation);
 
     await workspace.getByRole('button', { name: '清除', exact: true }).click();
     await expect(searchInput).toHaveValue('');

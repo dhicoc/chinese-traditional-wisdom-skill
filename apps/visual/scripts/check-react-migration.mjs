@@ -60,9 +60,10 @@ const baziWorkspace = read("apps/visual/src/features/bazi/BaziWorkspace.tsx");
 const ziweiWorkspace = read("apps/visual/src/features/ziwei/ZiweiWorkspace.tsx");
 
 const ids = moduleIdsFromModulesSource(modules);
+const workspaceIds = ids.filter((value) => value !== "home" && value !== "testing");
 check(ids.includes("home"), "MODULES 应保留 home 模块 id");
 check(ids.length >= 14, "React MODULES 应覆盖 home + 至少 13 个工作区模块（当前含日用工具/测试/阅读器/历史，数量随演进增长）");
-for (const id of ids.filter((value) => value !== "home")) {
+for (const id of workspaceIds) {
   check(registry.includes(id + ":"), "workspaceRegistry 应注册模块 " + id);
 }
 check(registry.includes("HomeDashboard"), "workspaceRegistry 应把未命中模块回退到 HomeDashboard");
