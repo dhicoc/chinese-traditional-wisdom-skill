@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/chinese-traditional-wisdom/knowledge-manifest.schema.json",
+  "title": "Chinese Traditional Wisdom Knowledge Manifest",
+  "type": "object",
+  "required": ["schemaVersion", "generatedBy", "entries"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "generatedBy": { "type": "string" },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "path", "title", "domain", "contentType", "contentScope", "sourceAttribution", "license", "reviewStatus", "sha256", "bytes"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "path": { "type": "string", "minLength": 1 },
+          "title": { "type": "string", "minLength": 1 },
+          "domain": { "type": "string", "minLength": 1 },
+          "contentType": { "enum": ["primary-text", "mapping", "project-reference", "index"] },
+          "contentScope": { "enum": ["full", "excerpt", "chapter", "index", "unknown"] },
+          "sourceAttribution": { "type": "string", "minLength": 1 },
+          "license": { "type": "string", "minLength": 1 },
+          "reviewStatus": { "enum": ["reviewed", "needs-scholarly-review", "generated-metadata"] },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "bytes": { "type": "integer", "minimum": 1 },
+          "version": { "type": ["string", "null"] }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

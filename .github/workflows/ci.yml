@@ -31,6 +31,8 @@ jobs:
           node scripts/smoke-react-shell.mjs
           node scripts/check-doc-contracts.mjs
           node scripts/check-knowledge-references.mjs
+          node scripts/generate-knowledge-manifest.mjs --check
+          node scripts/check-knowledge-provenance.mjs
           node scripts/check-mapping-schema.mjs
           node scripts/check-react-migration.mjs
           node scripts/check-search-index.mjs

@@ -2,7 +2,7 @@
 
 > 更新时间：2026-08-20
 > 分支：`main`
-> 状态：P0、P1 已收口（P0-03、P1-02 按产品决定不实施）。下一项为 P2-01：知识 Manifest 与来源治理。
+> 状态：P0、P1 已收口；P2-01 知识 Manifest 与来源治理已完成。下一项为 P2-02：真正的古籍全文检索与阅读器。
 
 ## 新会话恢复步骤
 
@@ -156,3 +156,10 @@ git diff -- docs/IMPLEMENTATION-PLAN.md docs/NEXT-SESSION-HANDOFF.md AGENTS.md R
 - 新增 `engine:bundle` / `engine:bundle:verify`；bundle 默认不含原始输入、不可 replay，只接受全部通过 verifier 的脱敏 claims。
 - 修正根 `pnpm engine` 示例的 fixture 相对路径。
 - 当前基线：745 项单测、303 项文档契约、225 React smoke、生产构建与四浏览器 smoke 32/32 通过。
+### P2-01 Knowledge Manifest ✅
+
+- 生成式 sidecar manifest 覆盖 41 项：30 篇古籍正文、1 个知识索引、6 个风水映射、4 个 reference。
+- 每项包含稳定 URI、内容类型/范围、来源与许可证状态、scholarly review 状态、SHA-256 和字节数。
+- `generate-knowledge-manifest --check` 阻止生成结果漂移；`check-knowledge-provenance` 当前 725 项通过。
+- 新增 `THIRD_PARTY_NOTICES.md`，记录主要运行库、解梦、康熙字义和风水文本/映射的治理状态。
+- 验证：745 项单测、225 React smoke、309 文档契约、725 knowledge provenance、生产构建和四浏览器 smoke 32/32 通过。

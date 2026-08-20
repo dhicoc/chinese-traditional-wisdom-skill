@@ -634,6 +634,8 @@ result-bundle.json
 
 ## CTW-P2-01：建立知识 Manifest 与来源治理
 
+> 状态：✅ 已完成（2026-08-20）。采用生成式 sidecar manifest 以避免批量改写古籍正文：覆盖 30 篇 primary text、1 个索引、6 个映射和 4 个 reference；每项具有稳定 ID、内容类型/范围、来源与许可证状态、审阅状态、SHA-256 和字节数。新增 schema、生成/陈旧检查、725 项 provenance 检查与 THIRD_PARTY_NOTICES。
+
 ### 每个古籍文件增加 frontmatter
 
 ```yaml

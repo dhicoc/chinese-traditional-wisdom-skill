@@ -37,6 +37,11 @@ const requiredFiles = [
   "docs/RESEARCH-ROADMAP.md",
   "docs/RULE-CHANGELOG.md",
   "docs/ENGINE-PACKAGE-EVALUATION.md",
+  "THIRD_PARTY_NOTICES.md",
+  "knowledge-base/manifest.schema.json",
+  "knowledge-base/manifest.generated.json",
+  "apps/visual/scripts/generate-knowledge-manifest.mjs",
+  "apps/visual/scripts/check-knowledge-provenance.mjs",
   "requirements.txt",
   "package.json",
   "scripts/setup.sh",
@@ -148,6 +153,8 @@ check(rootPackageJson.packageManager === "pnpm@10.26.1" && rootPackageJson.scrip
   "根 package.json 必须把 pnpm/TypeScript CLI 作为权威入口。");
 check(ciWorkflow.includes("pnpm/action-setup@v5") && !ciWorkflow.includes("version: 10"),
   "CI 必须让 pnpm/action-setup 读取根 packageManager，不能再声明第二个 pnpm version。");
+check(ciWorkflow.includes("generate-knowledge-manifest.mjs --check") && ciWorkflow.includes("check-knowledge-provenance.mjs"),
+  "CI 必须校验 knowledge manifest 与 provenance。");
 check(setupSh.includes("pip3 install") && setupSh.includes("pnpm --dir") && setupSh.includes("engine:list"),
   "setup.sh 必须同时安装 Python oracle 与 TypeScript runtime，并验证 engine:list。");
 check(setupBat.includes("python -m pip install") && setupBat.includes("pnpm --dir") && setupBat.includes("engine:list"),

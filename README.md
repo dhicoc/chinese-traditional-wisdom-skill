@@ -198,6 +198,8 @@ pnpm engine <tool> <input-json-file>
 | [发布前验证与故障排查](docs/RELEASE-VERIFICATION.md) | 新环境安装、质量门、四浏览器回归与失败产物定位 |
 | [`bootstrap/`](bootstrap/) | 八字、紫微、六爻、梅花、风水等领域的详细说明 |
 | [`apps/visual/`](apps/visual/) | Dashboard、纯 TypeScript 引擎与测试 |
+| [knowledge-base/manifest.generated.json](knowledge-base/manifest.generated.json) | 古籍、映射与 reference 的稳定 ID、来源状态、许可证状态和 SHA-256 校验 |
+| [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) | 运行库与捆绑数据集的来源和发布治理要求 |
 
 ### 开发验证
 
