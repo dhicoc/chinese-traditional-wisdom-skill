@@ -25,6 +25,7 @@ function exists(relPath) {
 }
 
 const requiredFiles = [
+  ".github/workflows/ci.yml",
   "README.md",
   "README_en.md",
   "README_AI.md",
@@ -79,6 +80,7 @@ const readmeEnglish = read("README_en.md");
 const runner = read("apps/visual/scripts/run-engine.ts");
 const packageJson = read("apps/visual/package.json");
 const rootPackageJson = JSON.parse(read("package.json"));
+const ciWorkflow = read(".github/workflows/ci.yml");
 const setupSh = read("scripts/setup.sh");
 const setupBat = read("scripts/setup.bat");
 const pythonOracleReadme = read("scripts/README.md");
@@ -144,6 +146,8 @@ check(pythonRequirements.includes("not required to install, publish, or run the 
   "requirements.txt 必须声明 Python 依赖仅用于离线交叉校验。");
 check(rootPackageJson.packageManager === "pnpm@10.26.1" && rootPackageJson.scripts?.engine?.includes("apps/visual"),
   "根 package.json 必须把 pnpm/TypeScript CLI 作为权威入口。");
+check(ciWorkflow.includes("pnpm/action-setup@v5") && !ciWorkflow.includes("version: 10"),
+  "CI 必须让 pnpm/action-setup 读取根 packageManager，不能再声明第二个 pnpm version。");
 check(setupSh.includes("pip3 install") && setupSh.includes("pnpm --dir") && setupSh.includes("engine:list"),
   "setup.sh 必须同时安装 Python oracle 与 TypeScript runtime，并验证 engine:list。");
 check(setupBat.includes("python -m pip install") && setupBat.includes("pnpm --dir") && setupBat.includes("engine:list"),
