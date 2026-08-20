@@ -1,10 +1,15 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { LOCAL_TOOL_NAMES } from '@/legacy/localToolRegistry';
+import { LOCAL_TOOL_NAMES, LOCAL_TOOL_REGISTRY, type LocalToolName } from '@/legacy/localToolRegistry';
 import { describeLocalTool, listLocalToolDescriptors } from '@/legacy/localToolIntrospection';
-import { runLocalTool } from '@/legacy/directRunner';
+import { LOCAL_TOOL_RUNNERS, runLocalTool } from '@/legacy/directRunner';
 import { verifyLocalToolClaims } from '@/legacy/localClaimVerifier';
 import { presentLocalTool } from '@/legacy/agentPresentation';
 
+function toolFixture(tool: LocalToolName): unknown {
+  return JSON.parse(fs.readFileSync(path.resolve(`src/__fixtures__/local-tools/${tool}.success.json`), 'utf8'));
+}
 const BAZI_INPUT = {
   birth: { year: 1990, month: 6, day: 15, hour: 12, minute: 0, gender: '男' as const },
   timeBasis: 'civil-unverified' as const,
@@ -85,5 +90,43 @@ describe('Agent CLI introspection and public claims verification', () => {
     expect(describeLocalTool('calc_bazhai').inputSchema).toMatchObject({ required: ['birthYear', 'gender', 'year'] });
     expect(describeLocalTool('combo_annual_fortune').inputSchema).toMatchObject({ required: ['birth', 'baziTimeContext', 'targetYear', 'currentMonth'] });
     expect(describeLocalTool('combo_space_time').inputSchema).toMatchObject({ required: ['birth', 'targetYear'] });
+  });
+  it.each(LOCAL_TOOL_NAMES)('matches %s success fixture to the registry resultToolId', async (tool) => {
+    const result = await runLocalTool(tool, toolFixture(tool));
+    if (tool === 'resolve_true_solar_time') {
+      expect(result).toHaveProperty('trueSolarBirth');
+    } else {
+      expect((result as any).tool).toBe(LOCAL_TOOL_REGISTRY[tool].resultToolId);
+    }
+  });
+
+  it('routes all public verifier families through the registry binding', async () => {
+    const ziwei = await runLocalTool('ziwei_chart', toolFixture('ziwei_chart')) as any;
+    const feixing = await runLocalTool('calc_feixing', toolFixture('calc_feixing')) as any;
+    const bazhai = await runLocalTool('calc_bazhai', toolFixture('calc_bazhai')) as any;
+    const almanac = await runLocalTool('get_almanac', toolFixture('get_almanac')) as any;
+    const liuyao = await runLocalTool('cast_liuyao', toolFixture('cast_liuyao')) as any;
+    const dream = await runLocalTool('dream_interpret', toolFixture('dream_interpret')) as any;
+    const annual = await runLocalTool('combo_annual_fortune', toolFixture('combo_annual_fortune')) as any;
+
+    expect(verifyLocalToolClaims('ziwei_chart', ziwei, [{ tool: 'ziwei_chart', kind: 'metadata', field: 'fiveElementsClass', value: ziwei.data.fiveElementsClass }]).valid).toBe(true);
+    expect(verifyLocalToolClaims('calc_feixing', feixing, [{ tool: 'calc_feixing', kind: 'year', value: feixing.data.year }]).valid).toBe(true);
+    expect(verifyLocalToolClaims('calc_bazhai', bazhai, [{ tool: 'calc_bazhai', kind: 'mingGua', field: 'trigram', value: bazhai.data.mingGua.trigram }]).valid).toBe(true);
+    expect(verifyLocalToolClaims('get_almanac', almanac, [{ tool: 'get_almanac', kind: 'almanac', field: 'solarDate', value: almanac.data.solarDate }]).valid).toBe(true);
+    expect(verifyLocalToolClaims('cast_liuyao', liuyao, [{ tool: 'cast_liuyao', kind: 'hexagram', field: 'name', value: liuyao.data.hexagramName }]).valid).toBe(true);
+    expect(verifyLocalToolClaims('dream_interpret', dream, [{ tool: 'dream_interpret', kind: 'dreamSearch', field: 'hit', value: dream.data.hit }]).valid).toBe(true);
+    expect(verifyLocalToolClaims('combo_annual_fortune', annual, [{ tool: 'combo_annual_fortune', kind: 'annualContext', field: 'targetYear', value: annual.data.context.targetYear }]).valid).toBe(true);
+  });
+  it('keeps registry, runner, schemas, and fixtures exhaustive', () => {
+    expect(new Set(Object.keys(LOCAL_TOOL_RUNNERS))).toEqual(new Set(LOCAL_TOOL_NAMES));
+    for (const tool of LOCAL_TOOL_NAMES) {
+      const definition = LOCAL_TOOL_REGISTRY[tool];
+      const descriptor = describeLocalTool(tool);
+      expect(descriptor.resultToolId).toBe(definition.resultToolId);
+      expect(descriptor.claimVerifier).toBe(definition.claimVerifier);
+      expect(descriptor.riskDomain).toBe(definition.riskDomain);
+      expect(descriptor.inputSchema).toMatchObject({ required: [...definition.requiredInputKeys] });
+      expect(descriptor.successFixture).toBe(`src/__fixtures__/local-tools/${tool}.success.json`);
+    }
   });
 });

@@ -546,6 +546,8 @@ interface CapabilityDescriptor {
 
 ## CTW-P1-04：建立完整 Tool Descriptor Registry
 
+> 状态：✅ 已完成（2026-08-20）。LOCAL_TOOL_REGISTRY 已成为 32 工具单一 typed definition source，统一声明 requiredInputKeys、category、resultKind/resultToolId、claimVerifier、riskDomain 和 presenter；Runner 使用 satisfies Record<LocalToolName, LocalToolRunner> 穷尽绑定，introspection/schema/fixture/docs 和公开 verifier 均派生或受其键集合约束。740 项单测覆盖 32 个实际 resultToolId 与 7 类 verifier。
+
 ### 目标
 
 从一个 registry 自动派生：

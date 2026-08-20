@@ -23,7 +23,7 @@ pnpm engine:verify bazi_calculate <envelope-json-file> <claims-json-file>
 pnpm engine:present bazi_calculate <input-json-file>
 ```
 
-`engine:list` 返回 32 个工具的稳定公开清单；`engine:describe` 返回输入 schema、fixture、claims 类型、风险域和限制。除 `resolve_true_solar_time` 直接输出 `TrueSolarTimeResolution` 外，计算命令输出 JSON `ToolEnvelope`。`engine:verify` 当前公开支持八字 claims，`engine:present` 可直接返回不含 `input_normalized` 的八字已核验事实。`run-engine.ts` 支持输入文件，也支持从 stdin 接收 JSON。不得把用户的完整生辰写入长期日志或案例记录。
+`engine:list` 返回 32 个工具的稳定公开清单；`engine:describe` 返回输入 schema、fixture、claims 类型、风险域和限制。除 `resolve_true_solar_time` 直接输出 `TrueSolarTimeResolution` 外，计算命令输出 JSON `ToolEnvelope`。`engine:verify` 根据完整 Tool Descriptor Registry 路由所有已接入 verifier 的工具；无 verifier 的工具明确返回 `UNSUPPORTED_INPUT`。`engine:present` 当前可直接返回不含 `input_normalized` 的八字已核验事实。`run-engine.ts` 支持输入文件，也支持从 stdin 接收 JSON。不得把用户的完整生辰写入长期日志或案例记录。
 
 ## 2. 请求路径判定
 

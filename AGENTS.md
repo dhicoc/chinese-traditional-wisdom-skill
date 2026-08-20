@@ -12,7 +12,7 @@ Before planning or editing this repository, read these files in order:
 
 ## Current priority
 
-P0, P1-01, and P1-03 are complete. P1-02 was explicitly skipped by product decision. Continue with P1-04: establish the complete Tool Descriptor Registry so tool names, schemas, runner dispatch, claims verifiers, fixtures, docs, risk domains, and presenters derive from one typed source.
+P0, P1-01, P1-03, and P1-04 are complete. P1-02 was explicitly skipped by product decision. Continue with P1-05: add canonical input fingerprints, consistent provenance for all 32 tools, and privacy-safe reproducible result bundles.
 
 ## Non-negotiable boundaries
 

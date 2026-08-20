@@ -22,9 +22,11 @@ pnpm engine:present bazi_calculate <input-json-file>
 
 - `engine:list` 输出 32 个工具的类别、结果类型、claims verifier 类型和风险域。
 - `engine:describe` 输出单个工具的 schema 版本、标准 fixture、可用 claim kinds 与限制；当前八字提供完整 JSON Schema，其余工具在 registry 迁移期间保留契约说明和 fixture 路径。
-- `engine:verify` 当前公开支持 `bazi_calculate`，会拒绝篡改 claim、跨工具 claim 和错误来源的 envelope。
+- `engine:verify` 对 registry 中 `claimVerifier` 非 `none` 的工具公开可用，覆盖八字、紫微、飞星、八宅、历法、占测、日用和已接入的联合分析；会拒绝篡改 claim、跨工具 claim 和错误来源的 envelope。无 verifier 的预处理、问卷清单和部分联合工具会明确返回 `UNSUPPORTED_INPUT`。
 - `engine:present` 当前公开支持 `bazi_calculate`，输出已核验事实、传统解释、限制、免责声明和 provenance，不输出 `input_normalized`。
 - 原有 `pnpm engine <tool> <input-json-file>` 与 stdin 行为保持不变。
+
+`apps/visual/src/legacy/localToolRegistry.ts` 是完整工具定义单一来源：每个工具声明必填输入键、类别、结果类型、实际 `resultToolId`、claims verifier、风险域和 presenter。`LOCAL_TOOL_NAMES`、Agent introspection、Runner 穷尽绑定、公开 verifier、fixture 路径和文档检查均由该定义或其键集合派生；新增工具遗漏任一绑定会在 TypeScript 或契约测试中失败。
 
 公开输入 fixture 位于 `apps/visual/src/__fixtures__/local-tools/`。每个本地工具都有 `.success.json` 可执行示例；它同时是 CLI 回归的标准成功输入。每个工具也有 `.boundary.json` 与 `.failure.json`，分别覆盖业务边界和必须被 CLI 契约拒绝的输入。工具名、三类 fixture 与 CLI 工具表由 `apps/visual/src/legacy/localToolRegistry.ts` 的 `LOCAL_TOOL_REGISTRY` / `LOCAL_TOOL_NAMES` 统一派生，文档检查会阻止任何遗漏。
 

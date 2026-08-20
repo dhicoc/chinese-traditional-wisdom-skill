@@ -161,12 +161,16 @@ check(ruleChangelog.includes("## 变更条目格式") && ruleChangelog.includes(
 check(enginePackageEvaluation.includes("## 结论：暂不拆分") && enginePackageEvaluation.includes("pnpm engine") && enginePackageEvaluation.includes("ToolEnvelope") && enginePackageEvaluation.includes("Dashboard"),
   "ENGINE-PACKAGE-EVALUATION.md 必须记录本地包拆分的 CLI、结果契约与 Dashboard 兼容性结论。");
 check(directRunner.includes("runLocalTool"), "directRunner.ts 缺少 runLocalTool");
+check(directRunner.includes("LOCAL_TOOL_RUNNERS") && directRunner.includes("satisfies Record<LocalToolName, LocalToolRunner>"),
+  "directRunner.ts 必须以 LocalToolName 穷尽绑定全部 Runner。");
 
 const localToolNames = extractMatches(
   localToolRegistry.match(/export const LOCAL_TOOL_REGISTRY = \{([\s\S]*?)\} as const/)?.[1] ?? '',
-  /^\s{2}([a-z_]+): \{\},$/gm,
+  /^\s{2}([a-z_]+): \{ requiredInputKeys:/gm,
 );
 check(localToolNames.length > 0, "localToolRegistry.ts 缺少 LOCAL_TOOL_REGISTRY 运行时清单");
+check(localToolRegistry.includes("requiredInputKeys") && localToolRegistry.includes("resultToolId") && localToolRegistry.includes("claimVerifier") && localToolRegistry.includes("presenter"),
+  "localToolRegistry.ts 必须维护完整 typed descriptor 字段。");
 check(directRunner.includes('parseLocalToolCall'), "directRunner.ts 未通过共享工具契约解析输入");
 
 const toolIndex = docs["tool-index.md"];

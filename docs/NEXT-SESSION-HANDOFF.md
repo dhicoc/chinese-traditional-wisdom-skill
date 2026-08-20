@@ -2,7 +2,7 @@
 
 > 更新时间：2026-08-20
 > 分支：`main`
-> 状态：P0 已收口；P1-01、P1-03 已完成；P1-02 按产品决定不实施。下一项为 P1-04：完整 Tool Descriptor Registry。
+> 状态：P0 已收口；P1-01、P1-03、P1-04 已完成；P1-02 按产品决定不实施。下一项为 P1-05：统一 provenance 和可复核结果包。
 
 ## 新会话恢复步骤
 
@@ -141,3 +141,10 @@ git diff -- docs/IMPLEMENTATION-PLAN.md docs/NEXT-SESSION-HANDOFF.md AGENTS.md R
 - 4 个工具的 Agent describe schema、boundary/failure fixture 与 input_normalized 回归已同步。
 - 本地 CI：706 项单测、225 React smoke、300 文档契约、全部知识检查和生产构建通过。
 - E2E：飞星、八宅、联合高频咨询四浏览器 20/20 通过。
+### P1-04 Tool Descriptor Registry ✅
+
+- 32 工具统一在 `LOCAL_TOOL_REGISTRY` 声明 required inputs、category、result kind/tool ID、verifier、risk domain 与 presenter。
+- `LOCAL_TOOL_RUNNERS` 以 `Record<LocalToolName, LocalToolRunner>` 编译期穷尽；introspection 和 JSON Schema 从 registry 派生。
+- 公开 `engine:verify` 已覆盖所有现有 verifier 家族；无 verifier 工具明确返回 `UNSUPPORTED_INPUT`。
+- 32 个 success fixture 的实际 `envelope.tool`/真太阳时结果 ID 与 registry 全部回归锁定。
+- 当前基线：740 项单测、302 项文档契约、225 React smoke、生产构建与四浏览器 smoke 32/32 通过。
