@@ -2,7 +2,7 @@
 
 > 更新时间：2026-08-20
 > 分支：`main`
-> 状态：P0 已收口；P1-01 实施中。类型化语义核心契约与八字 Dashboard 垂直切片已完成，下一步推广到飞星、黄历和其余工作区。
+> 状态：P0 已收口；P1-01 类型化语义已完成。下一项为 P1-02：拆分内容性质、实际 runtime mode、证据覆盖和风险域。
 
 ## 新会话恢复步骤
 
@@ -121,11 +121,12 @@ git diff -- docs/IMPLEMENTATION-PLAN.md docs/NEXT-SESSION-HANDOFF.md AGENTS.md R
 - 文档契约从 288 增至 297 项，覆盖根入口和双运行时安装边界。
 - 本地 CI：698 单测、225 React smoke、297 文档契约、生产构建通过。
 - E2E：指定 `D:\Caches\ms-playwright`，四项目 smoke 32/32 通过。
-### P1-01 类型化语义（实施中）
+### P1-01 类型化语义 ✅
 
 - `reportLayers.ts` 新增 `TypedSemanticPresentation`；`toUserPresentation` 在提供 typed contract 时不再从 summary/body 关键词反推 tone 或 actions。
 - 八字 Dashboard 已接入显式 neutral tone、类型化 highlights/details/actions/limitations/disclaimers。
 - 新增反例测试：文本含“风险很高”“相冲”等词时，显式 tone 仍保持 `中`。
 - 本地 CI：60 个测试文件、699 项测试、225 React smoke、297 文档契约、生产构建通过。
 - E2E：语义报告与八字动态层四浏览器 16/16 通过。
-- 下一步：以同一 typed contract 接入飞星和黄历，再推广其余工作区；完成后删除关键路径上的自由文本 tone 推断。
+- 完成：所有 `toUserPresentation` 生产调用默认转换为 typed neutral；飞星/黄历确认不使用文本推断；`toFourLayer` 和 `toFocusedReport` 仅保留为显式 legacy API。
+- 验证：702 项单测、225 React smoke、299 文档契约、生产构建通过；完整 E2E 432/436，并发超时的 4 项单线程复跑全部通过。

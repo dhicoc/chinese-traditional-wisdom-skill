@@ -437,7 +437,7 @@ pnpm test:e2e
 
 ## CTW-P1-01：用类型化语义替代文本关键词分类
 
-> 状态：🚧 实施中；类型化契约与八字 Dashboard 垂直切片已接入，待推广到飞星、黄历和其余工作区。
+> 状态：✅ 已完成（2026-08-20）。13 个 FourLayer 工作区的生产用户呈现默认走 typed neutral；八字保留领域显式 typed presentation；飞星和黄历经审计本来使用结构化字段直接渲染。旧关键词 tone/action 推断仅保留为显式 legacy API，并有源码边界回归测试。
 
 ### 问题
 

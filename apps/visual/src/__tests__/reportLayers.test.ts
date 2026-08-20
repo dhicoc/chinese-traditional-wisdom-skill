@@ -321,4 +321,15 @@ describe('typed semantic presentation', () => {
     expect(presentation.semanticReport?.facts).toMatchObject([{ label: '年柱', value: '庚午' }]);
     expect(presentation.notices).toContain('不从自由文本反推吉凶。');
   });
+  it('defaults every user presentation to neutral typed semantics instead of keyword inference', () => {
+    const presentation = toUserPresentation({
+      ok: true,
+      data: { export_snapshot: { summary: '风险很高且相冲', sections: [{ heading: '策略指导', body: '主动出击并催财' }] } },
+    }, { disclaimers: ['仅作参考。'] });
+
+    expect(presentation.report?.overallTone).toBe('中');
+    expect(presentation.report?.highlights).toEqual([]);
+    expect(presentation.report?.actions).toEqual([]);
+    expect(presentation.report?.details).toEqual([{ heading: '策略指导', body: '主动出击并催财' }]);
+  });
 });

@@ -12,7 +12,7 @@ Before planning or editing this repository, read these files in order:
 
 ## Current priority
 
-P0 is closed. P1-01 is in progress: the typed semantic contract and Bazi Dashboard slice are complete. Next migrate Feixing and Almanac, then the remaining workspaces, before moving to capability/runtime status separation, explicit CLI time inputs, the full Tool Descriptor Registry, and provenance/result bundles.
+P0 and P1-01 are complete. Continue with P1-02: separate content nature, actual runtime mode, evidence coverage, and risk domain; make Dashboard/report/history consume the same runtime-aware capability descriptor before moving to explicit CLI time inputs.
 
 ## Non-negotiable boundaries
 
