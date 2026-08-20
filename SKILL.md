@@ -23,6 +23,8 @@ cd apps/visual && pnpm engine <tool> <input-json-file>
 
 本地 CLI 与 Dashboard 都使用纯 TypeScript 引擎；CLI 经 `parseLocalToolInput()` / `runLocalTool()` 执行一次性契约，Dashboard 按页面直接调用纯引擎。Python 工具仅可作命令行交叉验证，不是对话计算数据源。
 
+CLI 结果统一附带脱敏 provenance。需要跨会话交接时可运行 pnpm engine:bundle <tool> <input.json> [claims.json]，并用 pnpm engine:bundle:verify <bundle.json> 检查完整性；结果包不含原始输入、不可直接 replay，FNV 指纹不是密码学签名。
+
 ## 1. 三路分流
 
 先判定请求属于哪条路径，不要把普通人生问题自动术数化：

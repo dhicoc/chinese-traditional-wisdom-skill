@@ -12,7 +12,7 @@ Before planning or editing this repository, read these files in order:
 
 ## Current priority
 
-P0, P1-01, P1-03, and P1-04 are complete. P1-02 was explicitly skipped by product decision. Continue with P1-05: add canonical input fingerprints, consistent provenance for all 32 tools, and privacy-safe reproducible result bundles.
+P0 and P1 are closed; P0-03 and P1-02 were explicitly skipped by product decision. Continue with P2-01: add a generated knowledge manifest, structured source/licensing metadata, checksums, review status, and provenance checks before full-text indexing.
 
 ## Non-negotiable boundaries
 

@@ -98,6 +98,13 @@ describe('Agent CLI introspection and public claims verification', () => {
     } else {
       expect((result as any).tool).toBe(LOCAL_TOOL_REGISTRY[tool].resultToolId);
     }
+    expect((result as any).provenance).toMatchObject({
+      schemaVersion: '1.0.0',
+      tool,
+      resultToolId: LOCAL_TOOL_REGISTRY[tool].resultToolId,
+      rulesetVersion: '2026.08.20',
+    });
+    expect((result as any).provenance.inputFingerprint).toMatch(/^fnv1a32:[0-9a-f]{8}$/);
   });
 
   it('routes all public verifier families through the registry binding', async () => {

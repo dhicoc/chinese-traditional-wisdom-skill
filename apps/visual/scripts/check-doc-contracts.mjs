@@ -176,6 +176,8 @@ check(directRunner.includes('parseLocalToolCall'), "directRunner.ts 未通过共
 const toolIndex = docs["tool-index.md"];
 check(toolIndex.includes("## 显式时间输入") && toolIndex.includes("combo_annual_fortune.targetYear"),
   "tool-index.md 必须记录公共 CLI 的显式时间输入边界。");
+check(toolIndex.includes("## 统一 provenance 与隐私安全结果包") && toolIndex.includes("engine:bundle:verify"),
+  "tool-index.md 必须记录 provenance、bundle 隐私和完整性边界。");
 const documentedTools = extractMatches(toolIndex, /\| `([^`]+)` \| `src\/__fixtures__\/local-tools\/[^`]+\.success\.json` \|/g);
 checkSameToolNames("tool-index.md CLI 工具表", documentedTools, localToolNames);
 

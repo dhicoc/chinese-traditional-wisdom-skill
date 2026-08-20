@@ -23,7 +23,9 @@
     "engine:list": "tsx scripts/run-engine-agent.ts list",
     "engine:describe": "tsx scripts/run-engine-agent.ts describe",
     "engine:verify": "tsx scripts/run-engine-agent.ts verify",
-    "engine:present": "tsx scripts/run-engine-agent.ts present"
+    "engine:present": "tsx scripts/run-engine-agent.ts present",
+    "engine:bundle": "tsx scripts/run-engine-agent.ts bundle",
+    "engine:bundle:verify": "tsx scripts/run-engine-agent.ts verify-bundle"
   },
   "dependencies": {
     "@radix-ui/react-slot": "1.3.3",

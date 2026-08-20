@@ -4,6 +4,7 @@ export type WuxingStats = Record<'木' | '火' | '土' | '金' | '水', number>;
 export type Tone = '吉' | '凶' | '中';
 
 import type { EvidenceBundle, ResultMeta } from './envelopeEvidence';
+import type { ResultProvenance } from './provenance';
 
 // ──────────────────────────────────────────────────────────────────────
 //  ToolEnvelope —— 统一工具输出信封（借鉴 horosa-skill ToolEnvelope）
@@ -72,6 +73,8 @@ export interface ToolEnvelope<TData = unknown> {
   evidence?: EvidenceBundle;
   /** 结果元数据（引擎版本/算法/实际口径） */
   result_meta?: ResultMeta;
+  /** 统一的本地结果来源、版本、口径与脱敏输入指纹。 */
+  provenance?: ResultProvenance;
 }
 
 /**

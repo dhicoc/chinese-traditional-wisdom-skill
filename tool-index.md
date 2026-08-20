@@ -99,6 +99,18 @@ CLI 成功时仍只在 stdout 输出 `ToolEnvelope` 或 `TrueSolarTimeResolution
 
 `code` 可为 `INVALID_JSON`、`INPUT_READ_FAILURE`、`UNKNOWN_TOOL`、`INVALID_INPUT` 或 `ENGINE_FAILURE`。其中 `ToolEnvelope` 内的 `ok: false` 是工具的正常业务结果，不是 CLI 异常，CLI 仍以 `0` 退出并原样输出该 envelope。
 
+## 统一 provenance 与隐私安全结果包
+
+所有 `runLocalTool()` 结果（含真太阳时预处理）都附带 `provenance`：工具与实际 result ID、工具/规则版本、锁定依赖版本、实际 calculationConfig、脱敏 input fingerprint、稳定引用 ID 和限制说明。`inputFingerprint` 与 bundle `integrity` 使用 canonical JSON + FNV-1a 32 位，只用于本地一致性和意外篡改检测，不是密码学签名。
+
+```bash
+cd apps/visual
+pnpm engine:bundle bazi_calculate <input-json-file> [claims-json-file]
+pnpm engine:bundle:verify <bundle-json-file>
+```
+
+结果包默认 `inputIncluded: false`、`replayable: false`，不包含 `input_normalized`、完整生辰、地点、姓名或原始问题。提供 claims 时只收录本次 verifier 全部通过的脱敏结构化 facts；任何篡改 claim 都会阻止生成。若需要重新计算，用户仍须在本地重新提供原始输入，当前版本不把原始输入写入结果包。
+
 ## ToolEnvelope 与本地校验
 
 ```ts

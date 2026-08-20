@@ -26,6 +26,7 @@ import { searchDreamEnveloped } from './envelopeSample';
 import { asLocalToolError, LocalToolError } from './localToolErrors';
 import { parseLocalToolCall } from './toolContracts';
 import type { LocalToolName } from './localToolRegistry';
+import { attachLocalProvenance } from './localProvenance';
 
 type Input = Record<string, unknown>;
 type DirectResult = ToolEnvelope<unknown> | TrueSolarTimeResolution;
@@ -156,7 +157,8 @@ export const LOCAL_TOOL_RUNNERS = {
 export async function runLocalTool(tool: string, rawInput: unknown): Promise<DirectResult> {
   try {
     const { tool: parsedTool, input } = parseLocalToolCall(tool, record(rawInput));
-    return await LOCAL_TOOL_RUNNERS[parsedTool](input as never);
+    const result = await LOCAL_TOOL_RUNNERS[parsedTool](input as never);
+    return attachLocalProvenance(parsedTool, input, result);
   } catch (error) {
     if (error instanceof LocalToolError) throw error;
     throw asLocalToolError('ENGINE_FAILURE', error, tool);

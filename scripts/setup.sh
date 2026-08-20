@@ -30,7 +30,7 @@ echo
 echo "Authoritative Agent runtime:"
 echo "  pnpm engine:list"
 echo "  pnpm engine:describe bazi_calculate"
-echo "  pnpm engine bazi_calculate apps/visual/src/__fixtures__/local-tools/bazi_calculate.success.json"
+echo "  pnpm engine bazi_calculate src/__fixtures__/local-tools/bazi_calculate.success.json"
 echo
 echo "Dashboard:"
 echo "  pnpm dev"

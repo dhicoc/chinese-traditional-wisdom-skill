@@ -69,6 +69,10 @@ Agent 必须为影响结果的日期和年份提供显式字段。尤其是 `cal
 
 需要查询指定日期的大运、小运、流年、流月或流日时，继续使用 `bazi_calculate`，在既有输入中加入严格格式的 `transitDate: "YYYY-MM-DD"`。从本次 `ToolEnvelope.data.transit` 读取动态事实；小运按虚岁定位，并根据 `minor.source` 披露本地历法序列或 `local-fallback`。不要新建动态层工具，也不要让 Dashboard 经过 CLI Runner。
 
+### Provenance 与结果包
+
+每次 CLI 结果都带统一 `provenance`。需要保存可核验交接物时，使用 `pnpm engine:bundle <tool> <input.json> [claims.json]`；用 `pnpm engine:bundle:verify <bundle.json>` 检查完整性。结果包只含脱敏 provenance 和已通过 claims，不含原始输入，当前不可直接 replay。FNV 指纹用于本地一致性，不得表述为数字签名或安全认证。
+
 ## 4. claims 校验边界
 
 在最终文本中呈现确定性事实前，从本次 `ToolEnvelope.data` 提取最小 claims 集并调用对应本地 `validate*Claims(data, claims)`：

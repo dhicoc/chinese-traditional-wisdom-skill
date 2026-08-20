@@ -1,4 +1,5 @@
 import type { SolarBirth } from './birthBridge';
+import type { ResultProvenance } from './provenance';
 
 export interface VerifiedBirthLocation {
   displayName: string;
@@ -21,6 +22,7 @@ export interface TrueSolarTimeResolution {
   crossedShichen: boolean;
   crossedZiChu: boolean;
   evidence: string[];
+  provenance?: ResultProvenance;
 }
 
 function getDayOfYear(year: number, month: number, day: number): number {

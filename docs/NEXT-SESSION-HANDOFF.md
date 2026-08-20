@@ -2,7 +2,7 @@
 
 > 更新时间：2026-08-20
 > 分支：`main`
-> 状态：P0 已收口；P1-01、P1-03、P1-04 已完成；P1-02 按产品决定不实施。下一项为 P1-05：统一 provenance 和可复核结果包。
+> 状态：P0、P1 已收口（P0-03、P1-02 按产品决定不实施）。下一项为 P2-01：知识 Manifest 与来源治理。
 
 ## 新会话恢复步骤
 
@@ -148,3 +148,11 @@ git diff -- docs/IMPLEMENTATION-PLAN.md docs/NEXT-SESSION-HANDOFF.md AGENTS.md R
 - 公开 `engine:verify` 已覆盖所有现有 verifier 家族；无 verifier 工具明确返回 `UNSUPPORTED_INPUT`。
 - 32 个 success fixture 的实际 `envelope.tool`/真太阳时结果 ID 与 registry 全部回归锁定。
 - 当前基线：740 项单测、302 项文档契约、225 React smoke、生产构建与四浏览器 smoke 32/32 通过。
+### P1-05 Provenance 与结果包 ✅
+
+- 32 个 `runLocalTool()` 结果（含真太阳时）统一附加 tool/result ID、版本、规则集、锁定依赖、calculationConfig、脱敏 input fingerprint、citation IDs 和 limitations。
+- canonical JSON 对对象键排序、保留数组顺序，拒绝 NaN/Infinity、循环引用和非 JSON 类型。
+- fingerprint 在 hash 前脱敏完整生辰、地点、姓名、问题、证据、问卷与完整日期；FNV 仅用于本地一致性，不是密码学签名。
+- 新增 `engine:bundle` / `engine:bundle:verify`；bundle 默认不含原始输入、不可 replay，只接受全部通过 verifier 的脱敏 claims。
+- 修正根 `pnpm engine` 示例的 fixture 相对路径。
+- 当前基线：745 项单测、303 项文档契约、225 React smoke、生产构建与四浏览器 smoke 32/32 通过。

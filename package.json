@@ -17,6 +17,8 @@
     "engine:list": "pnpm --dir apps/visual engine:list",
     "engine:describe": "pnpm --dir apps/visual engine:describe",
     "engine:verify": "pnpm --dir apps/visual engine:verify",
-    "engine:present": "pnpm --dir apps/visual engine:present"
+    "engine:present": "pnpm --dir apps/visual engine:present",
+    "engine:bundle": "pnpm --dir apps/visual engine:bundle",
+    "engine:bundle:verify": "pnpm --dir apps/visual engine:bundle:verify"
   }
 }

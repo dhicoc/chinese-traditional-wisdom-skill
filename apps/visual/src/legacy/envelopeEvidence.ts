@@ -71,29 +71,7 @@ export interface ResultMeta {
   calculationConfig?: Record<string, unknown>;
 }
 
-/** 稳定序列化：拒绝 NaN/Infinity/循环引用，用于输入哈希 */
-export function stableStringify(value: unknown): string {
-  const seen = new WeakSet<object>();
-  return JSON.stringify(value, (_key, val) => {
-    if (typeof val === 'number' && !Number.isFinite(val)) return undefined;
-    if (val && typeof val === 'object') {
-      if (seen.has(val)) return undefined;
-      seen.add(val);
-    }
-    return val;
-  });
-}
-
-/** FNV-1a 64 位哈希（简化 32 位版，够用于去重/标识） */
-export function hashStableValue(value: unknown): string {
-  const str = stableStringify(value) ?? '';
-  let h = 0x811c9dc5;
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 0x01000193);
-  }
-  return (h >>> 0).toString(16).padStart(8, '0');
-}
+export { canonicalStringify, stableStringify, hashStableValue } from './provenance';
 
 /** 规范化 + 去重证据条目（按 level|title|detail|source 拼 key） */
 export function normalizeEvidence(items: PromptEvidenceItem[]): PromptEvidenceItem[] {
