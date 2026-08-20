@@ -59,8 +59,28 @@ export function AgentConfirmPanel({ route, onConfirm, onCancel }: AgentConfirmPa
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-400">目标工具</p>
             <p className="mt-1 text-lg font-semibold text-jade-50">{target.title}</p>
             <p className="mt-1 text-xs text-jade-100/55">{route.reason}</p>
+            <p data-testid="agent-confirm-route-kind" className="mt-2 text-[11px] text-jade-100/45">
+              路径：{route.routeKind === 'knowledge' ? '文化知识' : route.routeKind === 'high-risk' ? '高风险边界优先' : '本地计算'}
+            </p>
           </div>
 
+          {route.riskNotices.length > 0 && (
+            <div data-testid="agent-confirm-risk" role="alert" className="rounded-card border border-cinnabar-500/35 bg-cinnabar-500/10 p-3">
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-cinnabar-300">现实风险边界</p>
+              <ul className="mt-2 space-y-1 text-xs leading-5 text-jade-100/75">
+                {route.riskNotices.map((notice) => <li key={notice}>· {notice}</li>)}
+              </ul>
+            </div>
+          )}
+
+          {route.missingInputs.length > 0 && (
+            <div data-testid="agent-confirm-missing" className="rounded-card border border-gold-500/25 bg-gold-500/8 p-3">
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gold-400">使用前请确认</p>
+              <ul className="mt-2 space-y-1 text-xs leading-5 text-jade-100/70">
+                {route.missingInputs.map((item) => <li key={item.field}>· {item.reason}</li>)}
+              </ul>
+            </div>
+          )}
           {route.question && (
             <div data-testid="agent-confirm-question" className="rounded-card border border-white/8 bg-black/24 p-3">
               <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-jade-100/45">识别问题</p>
@@ -118,7 +138,7 @@ export function AgentConfirmPanel({ route, onConfirm, onCancel }: AgentConfirmPa
             data-testid="agent-confirm-execute"
             className="rounded-card border border-jade-500/45 bg-jade-500/20 px-4 py-2 text-xs font-semibold text-jade-50 transition hover:bg-jade-500/30 active:scale-[0.98]"
           >
-            确认执行
+            {route.routeKind === 'high-risk' ? '仍要打开工具' : '确认执行'}
           </button>
         </div>
       </div>

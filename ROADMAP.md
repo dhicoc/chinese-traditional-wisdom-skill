@@ -1,5 +1,6 @@
 # ROADMAP.md — 本地直调 Skill 主路线图
 
+> **当前实施入口（2026-08-19）：** 具体任务、文件范围、依赖关系与验收标准见 [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md)；跨会话恢复先读 [docs/NEXT-SESSION-HANDOFF.md](docs/NEXT-SESSION-HANDOFF.md)。
 ## 方向与不变边界
 
 本项目的唯一运行模型是本地、一次性、可复核的 Skill 调用：

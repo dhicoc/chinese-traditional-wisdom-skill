@@ -1,25 +1,37 @@
 @echo off
+setlocal
 chcp 65001 >nul
+set "ROOT=%~dp0.."
+
 echo === Chinese Traditional Wisdom AI Agent Workflow - Setup ===
 echo.
+echo [1/4] Installing Python offline-oracle dependencies...
+python -m pip install -r "%ROOT%\requirements.txt"
+if errorlevel 1 exit /b 1
 
-echo [1/3] Installing Python dependencies...
-pip install -r requirements.txt
-if errorlevel 1 (
-    echo WARNING: pip install failed
-)
-
-echo [2/3] Installing Node.js dependencies...
-if exist package.json (
-    call npm install 2>nul
-)
-
-echo [3/3] Setup complete!
 echo.
-echo Quick start:
-echo   python scripts/bazi_calc.py 1990-05-15 --gender male --hour 15
-echo   python scripts/yunqi_calc.py 2026
-echo   python scripts/full_consultation.py 1990-05-15
+echo [2/4] Installing the authoritative TypeScript runtime...
+call pnpm --dir "%ROOT%\apps\visual" install --frozen-lockfile
+if errorlevel 1 exit /b 1
+
 echo.
-echo Or run the Web Dashboard: cd apps/visual ^&^& pnpm dev
-pause
+echo [3/4] Verifying TypeScript contracts and tool discovery...
+call pnpm --dir "%ROOT%\apps\visual" typecheck
+if errorlevel 1 exit /b 1
+call pnpm --dir "%ROOT%\apps\visual" engine:list >nul
+if errorlevel 1 exit /b 1
+
+echo.
+echo [4/4] Setup complete.
+echo.
+echo Authoritative Agent runtime:
+echo   pnpm engine:list
+echo   pnpm engine:describe bazi_calculate
+echo   pnpm engine bazi_calculate apps/visual/src/__fixtures__/local-tools/bazi_calculate.success.json
+echo.
+echo Dashboard:
+echo   pnpm dev
+echo.
+echo Python dependencies were installed for offline maintenance cross-checks only.
+echo They are not a user-facing calculation source and must not replace ToolEnvelope results.
+endlocal

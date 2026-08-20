@@ -37,6 +37,10 @@ const requiredFiles = [
   "docs/RULE-CHANGELOG.md",
   "docs/ENGINE-PACKAGE-EVALUATION.md",
   "requirements.txt",
+  "package.json",
+  "scripts/setup.sh",
+  "scripts/setup.bat",
+  "scripts/README.md",
   "apps/visual/package.json",
   "apps/visual/scripts/run-engine.ts",
   "apps/visual/src/legacy/directRunner.ts",
@@ -74,6 +78,10 @@ const docs = Object.fromEntries([
 const readmeEnglish = read("README_en.md");
 const runner = read("apps/visual/scripts/run-engine.ts");
 const packageJson = read("apps/visual/package.json");
+const rootPackageJson = JSON.parse(read("package.json"));
+const setupSh = read("scripts/setup.sh");
+const setupBat = read("scripts/setup.bat");
+const pythonOracleReadme = read("scripts/README.md");
 const packageLockPath = path.join(root, "apps/visual/package-lock.json");
 const releaseVerification = read("docs/RELEASE-VERIFICATION.md");
 const ruleChangelog = read("docs/RULE-CHANGELOG.md");
@@ -134,6 +142,16 @@ for (const qualityGate of [
 }
 check(pythonRequirements.includes("not required to install, publish, or run the Dashboard or CLI"),
   "requirements.txt 必须声明 Python 依赖仅用于离线交叉校验。");
+check(rootPackageJson.packageManager === "pnpm@10.26.1" && rootPackageJson.scripts?.engine?.includes("apps/visual"),
+  "根 package.json 必须把 pnpm/TypeScript CLI 作为权威入口。");
+check(setupSh.includes("pip3 install") && setupSh.includes("pnpm --dir") && setupSh.includes("engine:list"),
+  "setup.sh 必须同时安装 Python oracle 与 TypeScript runtime，并验证 engine:list。");
+check(setupBat.includes("python -m pip install") && setupBat.includes("pnpm --dir") && setupBat.includes("engine:list"),
+  "setup.bat 必须同时安装 Python oracle 与 TypeScript runtime，并验证 engine:list。");
+check(!setupSh.includes("python scripts/bazi_calc.py") && !setupBat.includes("python scripts/bazi_calc.py"),
+  "setup Quick Start 不得把 Python helper 表述为用户计算入口。");
+check(pythonOracleReadme.includes("Authoritative user-facing flow") && pythonOracleReadme.includes("ToolEnvelope"),
+  "scripts/README.md 必须声明 Python 仅为离线 oracle。");
 check(ruleChangelog.includes("## 变更条目格式") && ruleChangelog.includes("兼容性影响") && ruleChangelog.includes("回归证据"),
   "RULE-CHANGELOG.md 必须记录来源、兼容性影响与回归证据。");
 check(enginePackageEvaluation.includes("## 结论：暂不拆分") && enginePackageEvaluation.includes("pnpm engine") && enginePackageEvaluation.includes("ToolEnvelope") && enginePackageEvaluation.includes("Dashboard"),

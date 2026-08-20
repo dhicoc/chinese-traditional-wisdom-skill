@@ -95,9 +95,24 @@ Dashboard 还提供：全局生辰资料管理、真太阳时核验/民用时间
 
 适合希望浏览盘面、修改输入并查看可视化结果的用户。
 
+完整安装会同时安装 TypeScript 权威运行时和 Python 离线交叉验证依赖：
+
+```powershell
+scripts\setup.bat
+pnpm dev
+```
+
+Linux/macOS：
+
+```bash
+./scripts/setup.sh
+pnpm dev
+```
+
+也可只在已经完成依赖安装的环境中直接进入 Dashboard：
+
 ```bash
 cd apps/visual
-pnpm install --frozen-lockfile
 pnpm dev
 ```
 

@@ -35,6 +35,9 @@ export default defineConfig({
 
     /* Video recording */
     video: 'on-first-retry',
+
+    /* Disable decorative motion so WebKit actionability checks observe stable controls. */
+    reducedMotion: 'reduce',
   },
 
   /* Configure projects for major browsers */

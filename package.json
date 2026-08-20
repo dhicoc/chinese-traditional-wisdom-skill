@@ -1,8 +1,22 @@
 {
   "name": "chinese-traditional-wisdom-ai-agent-workflow",
   "version": "1.0.0",
-  "description": "Chinese Traditional Wisdom AI Agent Workflow",
-  "dependencies": {
-    "lunar-typescript": "^1.8.6"
+  "private": true,
+  "description": "Local-first Chinese Traditional Wisdom Agent Skill and Dashboard",
+  "packageManager": "pnpm@10.26.1",
+  "engines": {
+    "node": ">=24.12.0 <25"
+  },
+  "scripts": {
+    "dev": "pnpm --dir apps/visual dev",
+    "build": "pnpm --dir apps/visual build",
+    "typecheck": "pnpm --dir apps/visual typecheck",
+    "test": "pnpm --dir apps/visual test:unit",
+    "test:e2e": "pnpm --dir apps/visual test:e2e",
+    "engine": "pnpm --dir apps/visual engine",
+    "engine:list": "pnpm --dir apps/visual engine:list",
+    "engine:describe": "pnpm --dir apps/visual engine:describe",
+    "engine:verify": "pnpm --dir apps/visual engine:verify",
+    "engine:present": "pnpm --dir apps/visual engine:present"
   }
 }

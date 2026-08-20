@@ -130,4 +130,36 @@ describe('agentRouter routeQuery', () => {
       });
     }
   });
+  it('routes classic philosophy questions to the knowledge path without requiring a chart', () => {
+    const route = routeQuery('庄子怎么看焦虑');
+    expect(route?.module).toBe('reader');
+    expect(route?.routeKind).toBe('knowledge');
+    expect(route?.missingInputs).toEqual([]);
+  });
+
+  it('marks urgent health wording as high-risk and prioritizes professional care', () => {
+    const route = routeQuery('最近胸痛，八字怎么看');
+    expect(route?.routeKind).toBe('high-risk');
+    expect(route?.riskNotices.join(' ')).toContain('优先联系当地急救或执业医师');
+  });
+
+  it('marks investment guarantees as high-risk instead of a fortune promise', () => {
+    const route = routeQuery('投资股票买哪只可以稳赚');
+    expect(route?.routeKind).toBe('high-risk');
+    expect(route?.riskNotices.join(' ')).toContain('不能给出买卖保证');
+  });
+
+  it('warns about unauthorized third-party analysis', () => {
+    const route = routeQuery('分析同事的婚姻八字');
+    expect(route?.routeKind).toBe('high-risk');
+    expect(route?.riskNotices.join(' ')).toContain('已获得相关人士授权');
+  });
+
+  it('asks to confirm birth context instead of defaulting a missing birth time', () => {
+    const route = routeQuery('我想看事业');
+    expect(route?.missingInputs).toMatchObject([
+      { field: 'birth.confirmation' },
+    ]);
+    expect(route?.missingInputs[0].reason).toContain('不得默认子时');
+  });
 });

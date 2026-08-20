@@ -14,7 +14,7 @@ import type { AdvancedBaziAnalysis } from '@/legacy/advancedBazi';
 import type { TrineSource } from '@/legacy/shensha';
 import { validateBaziClaims, type BaziPresentationClaim } from '@/legacy/claimVerification/baziClaimVerifier';
 import { createWorkspaceReportMetadata } from '@/legacy/reportMetadata';
-import { toUserPresentation, type StructuredFactCheck } from '@/legacy/reportLayers';
+import { toUserPresentation, type StructuredFactCheck, type TypedSemanticPresentation } from '@/legacy/reportLayers';
 import { FourLayerReport } from '@/components/shared/FourLayerReport';
 import { type BaziPillars, type WuxingStats } from '@/legacy/canvasRenderers';
 import type { ShenShaItem } from '@/legacy/shensha';
@@ -135,6 +135,27 @@ function createBaziFactChecks(data: BaziData): StructuredFactCheck[] {
   }));
 }
 
+export function createBaziTypedPresentation(data: BaziData): TypedSemanticPresentation {
+  const strength = data.advancedAnalysis.support.strength;
+  return {
+    summary: '已完成八字结构化排盘。以下先列本次核对事实，再单独呈现传统解释。',
+    overallTone: '中',
+    highlights: [{
+      label: '日主强弱（传统术语）',
+      value: strength,
+      tone: '中',
+      strength: strength === '身强' ? '强' : strength === '身弱' ? '弱' : null,
+    }],
+    details: (data.export_snapshot?.sections ?? []).map((section) => ({
+      heading: section.heading,
+      body: section.body,
+    })),
+    actions: [],
+    limitations: ['类型化语义不从自由文本反推吉凶或行动类别。'],
+    disclaimers: ['本报告提供结构化计算与传统文化解释参考，不构成对现实结果、医疗、法律或财务事项的保证或专业建议。'],
+    tags: ['八字', '类型化语义'],
+  };
+}
 export function BaziWorkspace() {
   const { birth, baziTimeStatus } = useBirth();
   const solarBirth = baziTimeStatus.status === 'true-solar-verified'
@@ -166,14 +187,19 @@ export function BaziWorkspace() {
     () => envelope?.ok ? createBaziFactChecks(envelope.data) : [],
     [envelope],
   );
+  const typedPresentation = useMemo(
+    () => envelope?.ok ? createBaziTypedPresentation(envelope.data) : undefined,
+    [envelope],
+  );
   const presentation = useMemo(
     () => envelope
       ? toUserPresentation(envelope, {
         factChecks,
+        typedPresentation,
         disclaimers: ['本报告提供结构化计算与传统文化解释参考，不构成对现实结果、医疗、法律或财务事项的保证或专业建议。'],
       })
       : null,
-    [envelope, factChecks],
+    [envelope, factChecks, typedPresentation],
   );
   const reportMetadata = useMemo(() => envelope ? createWorkspaceReportMetadata({
     moduleId: 'bazi',

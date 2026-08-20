@@ -1,5 +1,15 @@
 # 发布前验证与故障排查
 
+## 0. 完整安装入口
+
+仓库根目录的 `scripts/setup.bat` 与 `scripts/setup.sh` 默认同时安装：
+
+1. `requirements.txt` 中的 Python 离线 oracle 依赖；
+2. `apps/visual` 的冻结 pnpm 依赖；
+3. TypeScript 类型检查和 `engine:list` 就绪验证。
+
+安装完整不改变运行权威边界：Agent 和 Dashboard 只使用 TypeScript；Python 仅用于离线维护交叉验证，不能替代 `ToolEnvelope`。
+
 本指南面向维护者与本地安装环境，说明发布或合并前如何验证 CLI、Dashboard 与公开文档的一致性。它不改变既有架构：Dashboard 直接调用纯 TypeScript 引擎；CLI / Skill / Agent 通过本地 Engine/CLI 取得 `ToolEnvelope`，并在呈现确定性事实前完成本地 claims 校验。
 
 > 传统文化参考，非绝对预测。不得以模型记忆代替本次本地引擎结果，也不得将完整生辰、精确地点或可识别身份写入 fixture、日志或提交记录。

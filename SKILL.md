@@ -1,6 +1,6 @@
 ---
 name: chinese-traditional-wisdom-ai-agent-workflow
-description: 中国传统文化整体智慧咨询系统。遇到人生困惑、健康调养、事业决策、婚恋、择居、占卜或传统文化问题时，使用本地确定性引擎并遵守伦理边界。
+description: 当用户明确请求中国传统文化、八字、紫微、六爻、梅花、奇门、风水、黄历、五运六气、中医体质文化、儒释道经典或相关本地计算时使用。普通医疗、法律、财务、心理或一般人生建议不因主题相关而自动触发术数计算。
 ---
 
 # 中国传统文化整体智慧咨询系统
@@ -17,12 +17,23 @@ description: 中国传统文化整体智慧咨询系统。遇到人生困惑、�
 cd apps/visual && pnpm engine <tool> <input-json-file>
 ```
 
-4. 除 `resolve_true_solar_time` 直接返回 `TrueSolarTimeResolution` 外，CLI 返回 `ToolEnvelope`。只从该次 `ToolEnvelope.data` 提取确定性事实；用对应本地 `validate*Claims(data, claims)` 核对结构化 claims 后，才能写成“本次引擎结果”。
-5. 引擎失败时遵守 Fail-Two：停止盲目重试，检查输入和备用方案；不要用模型记忆补答。
+4. 首次接入或不确定输入契约时，先运行 `pnpm engine:list` 与 `pnpm engine:describe <tool>`。八字可使用 `pnpm engine:present bazi_calculate <input-json-file>` 直接取得隐私安全、已核验的结构化事实；其他工具在 typed presentation 接入前仍按下一步处理。
+5. 除 `resolve_true_solar_time` 直接返回 `TrueSolarTimeResolution` 外，CLI 返回 `ToolEnvelope`。只从该次 `ToolEnvelope.data` 提取确定性事实；将 envelope 与最小 claims 分别写入临时 JSON 后，用 `pnpm engine:verify bazi_calculate <envelope-json-file> <claims-json-file>` 核对八字 claims。校验通过后才能写成“本次引擎结果”。
+6. 引擎失败时遵守 Fail-Two：停止盲目重试，检查输入和备用方案；不要用模型记忆补答。
 
 本地 CLI 与 Dashboard 都使用纯 TypeScript 引擎；CLI 经 `parseLocalToolInput()` / `runLocalTool()` 执行一次性契约，Dashboard 按页面直接调用纯引擎。Python 工具仅可作命令行交叉验证，不是对话计算数据源。
 
-## 1. 三层路由
+## 1. 三路分流
+
+先判定请求属于哪条路径，不要把普通人生问题自动术数化：
+
+1. **文化知识**：用户询问经典、思想、历史或术语时，读取 reference、古籍和知识库；没有确定性计算就不调用排盘引擎。
+2. **传统计算**：只有用户明确请求排盘、起卦、择日、体质问卷或本地传统计算时，才进入工具、claims 校验和分层输出。
+3. **高风险现实问题**：医疗急症、自伤风险、投资借贷、法律事项、结构性房屋改造或未授权第三人分析，先给专业转介和边界提示；仅在用户仍明确要求时补充文化背景，不给现实效果保证。
+
+普通医疗、法律、财务、心理、关系或职场建议应优先使用现实信息和专业支持。传统文化内容不得替代急救、诊断、治疗、持牌财务意见或建筑安全评估。
+
+## 2. 三层路由
 
 | 层 | 分类 | 作用 |
 |---|---|---|

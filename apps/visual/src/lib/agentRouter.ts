@@ -19,8 +19,13 @@ import {
  * 纯本地规则路由，不调用 LLM，确定性可测。
  */
 
+export type AgentRouteKind = 'knowledge' | 'calculation' | 'high-risk';
+
 export interface AgentRoute {
   module: ModuleId;
+  routeKind: AgentRouteKind;
+  missingInputs: Array<{ field: string; reason: string }>;
+  riskNotices: string[];
   reason: string;
   birthPatch?: Partial<BirthData>;
   liuyao?: LiuyaoIntentDetail;
@@ -95,7 +100,7 @@ const TOPIC_KEYWORDS: Partial<Record<ModuleId, string[]>> = {
   namewuxing: ['姓名', '起名', '改名', '笔画', '三才', '五行', '名字', '测名', '姓名学', '天格', '人格', '地格', '外格', '总格'],
   dream: ['梦', '解梦', '梦境', '意象', '做梦', '梦到', '梦见', '周公解梦'],
   rhythm: ['节律', '时辰', '经络', '养生', '子午流注', '气血', '子时', '丑时', '寅时', '卯时', '辰时', '巳时', '午时', '未时', '申时', '酉时', '戌时', '亥时', '胆经', '肝经', '肺经', '大肠经'],
-  reader: ['古籍', '原文', '八宅明镜', '经典', '书', '经典原文', '古籍对照', '注释'],
+  reader: ['古籍', '原文', '八宅明镜', '经典', '书', '经典原文', '古籍对照', '注释', '庄子', '道德经', '论语', '孟子', '佛经', '儒家', '道家', '佛教'],
 };
 
 const QUESTION_INTENT: Array<{ pattern: RegExp; module: ModuleId; reason: string }> = [
@@ -109,6 +114,7 @@ const QUESTION_INTENT: Array<{ pattern: RegExp; module: ModuleId; reason: string
   { pattern: /(子女|孩子|怀孕|生子|后代)/, module: 'bazi', reason: '子女相关 → 八字命盘' },
   { pattern: /(父母|长辈|父亲|母亲|孝道)/, module: 'bazi', reason: '父母长辈 → 八字命盘' },
   { pattern: /(大运|流月|十年运|每年运)/, module: 'bazi', reason: '大运流月 → 八字命盘' },
+  { pattern: /(庄子|道德经|论语|孟子|佛经|儒家|道家|佛教|经典思想)/, module: 'reader', reason: '传统文化知识 → 古籍阅读' },
   { pattern: /(健康|疾病|身体|生病|调养|养生|长寿)/, module: 'tizhi', reason: '健康体质 → 体质辨识' },
   { pattern: /(体质|气虚|阳虚|阴虚|痰湿|湿热|怕冷|怕热|乏力)/, module: 'tizhi', reason: '体质辨识 → 九种体质' },
   { pattern: /(八宅|游年|命卦|宅卦|东四|西四|卧室|厨房方位)/, module: 'bazhai', reason: '八宅布局 → 八宅大游年' },
@@ -123,6 +129,30 @@ const QUESTION_INTENT: Array<{ pattern: RegExp; module: ModuleId; reason: string
   { pattern: /(古籍|原文|经典|书|古籍对照)/, module: 'reader', reason: '古籍阅读 → Split Reader' },
 ];
 
+const BIRTH_CONTEXT_MODULES = new Set<ModuleId>(['bazi', 'ziwei', 'huangji', 'chenguz', 'combo']);
+const URGENT_HEALTH_PATTERN = /(胸痛|呼吸困难|昏厥|大出血|意识不清|自伤|自杀|急性疼痛|严重过敏)/;
+const HIGH_RISK_FINANCE_PATTERN = /(股票|基金|期货|加密货币|借贷|贷款|重仓|投资).*(买|卖|押|梭哈|保证|稳赚)|买哪只股票/;
+const THIRD_PARTY_PATTERN = /(同事|前任|陌生人|他人|别人的|朋友的).*(八字|婚姻|感情|健康|命运)/;
+
+function decorateRoute(raw: string, route: Omit<AgentRoute, 'routeKind' | 'missingInputs' | 'riskNotices'>): AgentRoute {
+  const riskNotices: string[] = [];
+  if (URGENT_HEALTH_PATTERN.test(raw)) riskNotices.push('检测到可能需要及时处理的健康或人身安全信号，请优先联系当地急救或执业医师；传统文化工具不能用于诊断或替代治疗。');
+  if (HIGH_RISK_FINANCE_PATTERN.test(raw)) riskNotices.push('投资与借贷属于高风险现实决策，本工具不能给出买卖保证、收益承诺或替代持牌专业意见。');
+  if (THIRD_PARTY_PATTERN.test(raw)) riskNotices.push('请确认已获得相关人士授权；不得保存或推断未授权第三人的敏感资料。');
+
+  const missingInputs: AgentRoute['missingInputs'] = [];
+  if (BIRTH_CONTEXT_MODULES.has(route.module) && !route.birthPatch) {
+    missingInputs.push({ field: 'birth.confirmation', reason: '请确认全局生辰资料真实、完整；缺少时分时不得默认子时。' });
+  }
+  if (route.module === 'fengshui') missingInputs.push({ field: 'housing.context', reason: '涉及具体住宅时需补充坐向、使用目标与必要空间信息；不据此替代建筑安全意见。' });
+
+  const routeKind: AgentRouteKind = riskNotices.length > 0
+    ? 'high-risk'
+    : route.module === 'reader' || route.module === 'fengshui'
+      ? 'knowledge'
+      : 'calculation';
+  return { ...route, routeKind, missingInputs, riskNotices };
+}
 /**
  * 把自然语言 query 路由到模块 + 预填上下文。
  * 返回 null 表示无法识别为 agent 提问（应回退到普通命令搜索）。
@@ -140,31 +170,31 @@ export function routeQuery(query: string): AgentRoute | null {
   const reader = parseReaderSearchCommand(raw) ?? undefined;
 
   if (liuyao) {
-    return {
+    return decorateRoute(raw, {
       module: 'liuyao',
       reason: '六爻命令 → 六爻占卜',
       birthPatch: extractBirthLoose(raw),
       liuyao,
       question: extractQuestion(raw),
-    };
+    });
   }
   if (meihua) {
-    return {
+    return decorateRoute(raw, {
       module: 'meihua',
       reason: '梅花命令 → 梅花易数',
       birthPatch: extractBirthLoose(raw),
       meihua,
       question: extractQuestion(raw),
-    };
+    });
   }
   if (reader) {
-    return {
+    return decorateRoute(raw, {
       module: 'reader',
       reason: '古籍命令 → Split Reader',
       birthPatch: extractBirthLoose(raw),
       reader,
       question: extractQuestion(raw),
-    };
+    });
   }
 
   // 3. 模块评分
@@ -236,7 +266,7 @@ export function routeQuery(query: string): AgentRoute | null {
     if (alternatives.length >= 2) break;
   }
 
-  return {
+  return decorateRoute(raw, {
     module: bestModule,
     reason,
     birthPatch,
@@ -245,7 +275,7 @@ export function routeQuery(query: string): AgentRoute | null {
     reader: reader && bestModule === 'reader' ? reader : undefined,
     question,
     alternatives: alternatives.length > 0 ? alternatives : undefined,
-  };
+  });
 }
 
 function extractBirthLoose(query: string): Partial<BirthData> | undefined {

@@ -1,14 +1,39 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
 echo "=== Chinese Traditional Wisdom AI Agent Workflow - Setup ==="
-echo ""
-echo "[1/3] Installing Python dependencies..."
-pip3 install -r requirements.txt 2>/dev/null || pip install -r requirements.txt 2>/dev/null || echo "WARNING: pip install failed"
-echo ""
-echo "[2/3] Setup complete!"
-echo ""
-echo "Quick start:"
-echo "  python scripts/bazi_calc.py 1990-05-15 --gender male --hour 15"
-echo "  python scripts/yunqi_calc.py 2026"
-echo "  python scripts/full_consultation.py 1990-05-15"
-echo ""
-echo "Or run the Web Dashboard: cd apps/visual && pnpm dev"
+echo
+echo "[1/4] Installing Python offline-oracle dependencies..."
+if command -v pip3 >/dev/null 2>&1; then
+  pip3 install -r "$ROOT_DIR/requirements.txt"
+elif command -v pip >/dev/null 2>&1; then
+  pip install -r "$ROOT_DIR/requirements.txt"
+else
+  echo "ERROR: pip/pip3 is required for the complete installation." >&2
+  exit 1
+fi
+
+echo
+echo "[2/4] Installing the authoritative TypeScript runtime..."
+pnpm --dir "$ROOT_DIR/apps/visual" install --frozen-lockfile
+
+echo
+echo "[3/4] Verifying TypeScript contracts and tool discovery..."
+pnpm --dir "$ROOT_DIR/apps/visual" typecheck
+pnpm --dir "$ROOT_DIR/apps/visual" engine:list >/dev/null
+
+echo
+echo "[4/4] Setup complete."
+echo
+echo "Authoritative Agent runtime:"
+echo "  pnpm engine:list"
+echo "  pnpm engine:describe bazi_calculate"
+echo "  pnpm engine bazi_calculate apps/visual/src/__fixtures__/local-tools/bazi_calculate.success.json"
+echo
+echo "Dashboard:"
+echo "  pnpm dev"
+echo
+echo "Python dependencies were installed for offline maintenance cross-checks only."
+echo "They are not a user-facing calculation source and must not replace ToolEnvelope results."

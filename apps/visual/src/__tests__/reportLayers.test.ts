@@ -297,3 +297,28 @@ describe('toFocusedReport 专项解读', () => {
     expect(Array.isArray(focused.actions)).toBe(true);
   });
 });
+describe('typed semantic presentation', () => {
+  it('uses explicit tone and actions without inferring them from free text', () => {
+    const presentation = toUserPresentation({
+      ok: true,
+      data: { export_snapshot: { summary: '风险很高但不应决定吉凶', sections: [{ heading: '旧文本', body: '相冲等词不应反推 tone' }] } },
+      warnings: [],
+    }, {
+      factChecks: [{ fact: { label: '年柱', value: '庚午', tool: 'bazi_calculate' }, validation: { valid: true } }],
+      typedPresentation: {
+        summary: '显式类型化摘要',
+        overallTone: '中',
+        highlights: [{ label: '类型化重点', value: '仅按显式字段', tone: '中', strength: null }],
+        details: [{ heading: '传统解释', body: '明确归类，不做关键词推断。' }],
+        actions: [{ text: '核对现实信息', category: '决策' }],
+        limitations: ['不从自由文本反推吉凶。'],
+        disclaimers: ['传统文化参考。'],
+      },
+    });
+    expect(presentation.report?.tldr).toBe('显式类型化摘要');
+    expect(presentation.report?.overallTone).toBe('中');
+    expect(presentation.report?.actions).toEqual([{ text: '核对现实信息', category: '决策' }]);
+    expect(presentation.semanticReport?.facts).toMatchObject([{ label: '年柱', value: '庚午' }]);
+    expect(presentation.notices).toContain('不从自由文本反推吉凶。');
+  });
+});

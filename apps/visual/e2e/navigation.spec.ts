@@ -134,14 +134,33 @@ test.describe('CommandBar Navigation', () => {
     await expect(page.locator('[data-testid="command-feedback"]')).toContainText('六爻占卜');
   });
 
+  test('should route a classical philosophy question to the knowledge path', async ({ page }) => {
+    await page.locator('[data-testid="command-bar"]').press('Enter');
+    await page.fill('[data-testid="command-input"]', '庄子怎么看焦虑');
+    await page.locator('[data-testid="command-result"]:has-text("建议打开")').press('Enter');
+
+    await expect(page.locator('[data-testid="agent-confirm-target"]')).toContainText('古籍阅读');
+    await expect(page.locator('[data-testid="agent-confirm-route-kind"]')).toContainText('文化知识');
+    await expect(page.locator('[data-testid="agent-confirm-risk"]')).toHaveCount(0);
+  });
+
+  test('should surface urgent health boundaries before opening a traditional tool', async ({ page }) => {
+    await page.locator('[data-testid="command-bar"]').press('Enter');
+    await page.fill('[data-testid="command-input"]', '最近胸痛，八字怎么看');
+    await page.locator('[data-testid="command-result"]:has-text("建议打开")').press('Enter');
+
+    await expect(page.locator('[data-testid="agent-confirm-route-kind"]')).toContainText('高风险边界优先');
+    await expect(page.locator('[data-testid="agent-confirm-risk"]')).toContainText('优先联系当地急救或执业医师');
+    await expect(page.locator('[data-testid="agent-confirm-execute"]')).toContainText('仍要打开工具');
+  });
   test('should suggest Bazi for a birth and wealth question, then update birth', async ({ page }) => {
     await page.click('[data-testid="command-bar"]');
     await page.fill('[data-testid="command-input"]', '1990-06-15 12 男 今年财运');
-    await page.click('[data-testid="command-result"]:has-text("建议打开")');
+    await page.locator('[data-testid="command-result"]:has-text("建议打开")').press('Enter');
 
     // 确认面板应展示生辰预填
     await expect(page.locator('[data-testid="agent-confirm-birth"]')).toContainText('1990-06-15');
-    await page.click('[data-testid="agent-confirm-execute"]');
+    await page.locator('[data-testid="agent-confirm-execute"]').press('Enter');
 
     await expect(page.locator('[data-testid="workspace-bazi"]')).toBeVisible();
     await expect(page.locator('[data-testid="command-feedback"]')).toContainText('八字命盘');

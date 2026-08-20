@@ -49,6 +49,16 @@ export interface Action {
   category: ActionCategory;
 }
 
+export interface TypedSemanticPresentation {
+  summary: string;
+  overallTone: Tone;
+  highlights: Highlight[];
+  details: ReadingSection[];
+  actions: Action[];
+  limitations: string[];
+  disclaimers: string[];
+  tags?: string[];
+}
 export interface LayerReport {
   /** 第一层：一句话总结 + 总体吉凶定调 */
   tldr: string;
@@ -261,6 +271,7 @@ export function toUserPresentation(
   semanticOptions: {
     factChecks?: StructuredFactCheck[];
     disclaimers?: string[];
+    typedPresentation?: TypedSemanticPresentation;
   } = {},
 ): UserPresentation {
   if (!envelope.ok) {
@@ -283,12 +294,34 @@ export function toUserPresentation(
 
   const snapshot = envelope.data?.export_snapshot;
   const timeSourceNotice = envelope.data?.timeSource?.notice;
+  const typed = semanticOptions.typedPresentation;
+  const report: LayerReport | null = typed
+    ? {
+      tldr: typed.summary,
+      overallTone: typed.overallTone,
+      highlights: typed.highlights,
+      details: typed.details,
+      actions: typed.actions,
+      tags: typed.tags,
+    }
+    : snapshot ? toFourLayer(snapshot) : null;
+  const semanticReport: SemanticReport | null = typed
+    ? {
+      facts: (semanticOptions.factChecks ?? []).filter(({ validation }) => validation.valid).map(({ fact }) => fact),
+      traditionalInterpretations: [
+        ...typed.highlights.map(({ label, value }) => ({ heading: label, body: value })),
+        ...typed.details,
+      ],
+      actions: typed.actions,
+      disclaimers: uniqueText([...typed.disclaimers, ...(semanticOptions.disclaimers ?? [])]),
+    }
+    : snapshot ? toSemanticReport(snapshot, semanticOptions) : null;
   return {
     state: 'success',
-    report: snapshot ? toFourLayer(snapshot) : null,
-    semanticReport: snapshot ? toSemanticReport(snapshot, semanticOptions) : null,
-    exportReport: snapshot ? { summary: snapshot.summary, sections: snapshot.sections } : null,
-    notices: uniqueText([timeSourceNotice]),
+    report,
+    semanticReport,
+    exportReport: snapshot ? { summary: typed?.summary ?? snapshot.summary, sections: snapshot.sections } : null,
+    notices: uniqueText([timeSourceNotice, ...(typed?.limitations ?? [])]),
     warnings: toUserWarnings(Array.isArray(envelope.warnings) ? envelope.warnings : []),
   };
 }

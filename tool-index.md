@@ -10,6 +10,22 @@ cd apps/visual && pnpm engine <tool> <input-json-file>
 
 实现位置：`apps/visual/scripts/run-engine.ts`。CLI 读取 JSON 输入并调用 `src/legacy/directRunner.ts`；除 `resolve_true_solar_time` 直接输出 `TrueSolarTimeResolution` 外，输出一个 JSON `ToolEnvelope`。没有可复核的本地输出时，AI 不得自行推演。
 
+### Agent 自描述与校验入口
+
+```bash
+cd apps/visual
+pnpm engine:list
+pnpm engine:describe bazi_calculate
+pnpm engine:verify bazi_calculate <envelope-json-file> <claims-json-file>
+pnpm engine:present bazi_calculate <input-json-file>
+```
+
+- `engine:list` 输出 32 个工具的类别、结果类型、claims verifier 类型和风险域。
+- `engine:describe` 输出单个工具的 schema 版本、标准 fixture、可用 claim kinds 与限制；当前八字提供完整 JSON Schema，其余工具在 registry 迁移期间保留契约说明和 fixture 路径。
+- `engine:verify` 当前公开支持 `bazi_calculate`，会拒绝篡改 claim、跨工具 claim 和错误来源的 envelope。
+- `engine:present` 当前公开支持 `bazi_calculate`，输出已核验事实、传统解释、限制、免责声明和 provenance，不输出 `input_normalized`。
+- 原有 `pnpm engine <tool> <input-json-file>` 与 stdin 行为保持不变。
+
 公开输入 fixture 位于 `apps/visual/src/__fixtures__/local-tools/`。每个本地工具都有 `.success.json` 可执行示例；它同时是 CLI 回归的标准成功输入。每个工具也有 `.boundary.json` 与 `.failure.json`，分别覆盖业务边界和必须被 CLI 契约拒绝的输入。工具名、三类 fixture 与 CLI 工具表由 `apps/visual/src/legacy/localToolRegistry.ts` 的 `LOCAL_TOOL_REGISTRY` / `LOCAL_TOOL_NAMES` 统一派生，文档检查会阻止任何遗漏。
 
 从 stdin 调用时，将同一 JSON 内容传给 `-`：

@@ -7,7 +7,7 @@
 ```text
 1. 由本文件路径确定 <SKILL_ROOT>。
 2. 确认存在 SKILL.md、RULES.md、tool-index.md、bootstrap/、apps/visual/。
-3. 需要运行引擎时，使用 Node `24.12.x` 与 pnpm `10.26.1`，在 apps/visual 安装锁定依赖：pnpm install --frozen-lockfile。
+3. 完整安装通过根目录 `scripts/setup.bat` 或 `./scripts/setup.sh` 同时安装 TypeScript 权威运行时与 Python 离线 oracle；Agent 正式计算仍只使用 `pnpm engine`。已有依赖环境可在 apps/visual 执行 `pnpm install --frozen-lockfile`。
 4. 读取用户问题，按三层路由选择工具；缺少必填输入时先追问。
 5. 不得因为引擎未运行而改用模型记忆自行排盘、校时、算数或判断规则。
 ```
@@ -15,12 +15,27 @@
 本地命令行入口：
 
 ```bash
-cd apps/visual && pnpm engine <tool> <input-json-file>
+cd apps/visual
+pnpm engine:list
+pnpm engine:describe bazi_calculate
+pnpm engine bazi_calculate <input-json-file>
+pnpm engine:verify bazi_calculate <envelope-json-file> <claims-json-file>
+pnpm engine:present bazi_calculate <input-json-file>
 ```
 
-除 `resolve_true_solar_time` 直接输出 `TrueSolarTimeResolution` 外，命令输出 JSON `ToolEnvelope`。`run-engine.ts` 支持输入文件，也支持从 stdin 接收 JSON。不得把用户的完整生辰写入长期日志或案例记录。
+`engine:list` 返回 32 个工具的稳定公开清单；`engine:describe` 返回输入 schema、fixture、claims 类型、风险域和限制。除 `resolve_true_solar_time` 直接输出 `TrueSolarTimeResolution` 外，计算命令输出 JSON `ToolEnvelope`。`engine:verify` 当前公开支持八字 claims，`engine:present` 可直接返回不含 `input_normalized` 的八字已核验事实。`run-engine.ts` 支持输入文件，也支持从 stdin 接收 JSON。不得把用户的完整生辰写入长期日志或案例记录。
 
-## 2. 执行链路
+## 2. 请求路径判定
+
+在选择工具前先分流：
+
+- **文化知识路径**：经典、思想、历史、术语和古籍问题只查知识来源，不因主题相关自动排盘。
+- **传统计算路径**：用户明确请求排盘、起卦、择日、体质问卷或本地传统计算时，执行 CLI 和 claims 校验。
+- **高风险路径**：医疗急症、自伤风险、投资借贷、法律事项、结构性房屋改造和未授权第三人分析先给现实风险提示及专业转介；不能给收益、疗效、安全或现实结果保证。
+
+Dashboard 的自然语言路由会返回 `routeKind`、`missingInputs` 与 `riskNotices`，确认面板必须在跳转前展示这些信息。
+
+## 3. 执行链路
 
 ```text
 用户输入
