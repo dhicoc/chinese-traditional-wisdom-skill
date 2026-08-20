@@ -497,4 +497,36 @@ describe('runLocalTool', () => {
       scene: '合作',
     });
   });
+  it('requires explicit temporal context for public CLI tools', () => {
+    expect(() => parseLocalToolInput('calc_feixing', {})).toThrow('year');
+    expect(() => parseLocalToolInput('calc_bazhai', { birthYear: 1990, gender: '男' })).toThrow('year');
+    expect(() => parseLocalToolInput('combo_annual_fortune', {
+      birth: BIRTH,
+      baziTimeContext: { timeBasis: 'civil-unverified', civilFallbackConfirmed: true },
+      currentMonth: 8,
+    })).toThrow('targetYear');
+    expect(() => parseLocalToolInput('combo_annual_fortune', {
+      birth: BIRTH,
+      baziTimeContext: { timeBasis: 'civil-unverified', civilFallbackConfirmed: true },
+      targetYear: 2026,
+    })).toThrow('currentMonth');
+    expect(() => parseLocalToolInput('combo_space_time', { birth: BIRTH })).toThrow('targetYear');
+  });
+
+  it('keeps explicit temporal inputs in normalized CLI results', async () => {
+    const feixing = await runLocalTool('calc_feixing', { year: 2026 });
+    const bazhai = await runLocalTool('calc_bazhai', { birthYear: 1990, gender: '男', year: 2026 });
+    const annual = await runLocalTool('combo_annual_fortune', {
+      birth: BIRTH,
+      baziTimeContext: { timeBasis: 'civil-unverified', civilFallbackConfirmed: true },
+      targetYear: 2026,
+      currentMonth: 8,
+    });
+    const spaceTime = await runLocalTool('combo_space_time', { birth: BIRTH, targetYear: 2026 });
+
+    expect((feixing as any).input_normalized.year).toBe(2026);
+    expect((bazhai as any).input_normalized.year).toBe(2026);
+    expect((annual as any).input_normalized).toMatchObject({ targetYear: 2026, currentMonth: 8 });
+    expect((spaceTime as any).input_normalized).toMatchObject({ targetYear: 2026 });
+  });
 });

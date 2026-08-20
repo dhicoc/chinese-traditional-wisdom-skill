@@ -58,6 +58,28 @@ const BAZI_INPUT_SCHEMA = {
   ],
 } as const;
 
+const EXPLICIT_TIME_SCHEMAS: Partial<Record<LocalToolName, Record<string, unknown>>> = {
+  calc_feixing: {
+    $schema: 'https://json-schema.org/draft/2020-12/schema', type: 'object', additionalProperties: false,
+    required: ['year'],
+    properties: { year: { type: 'integer', minimum: 1, maximum: 9999 }, birthYear: { type: 'integer', minimum: 1, maximum: 9999 }, gender: { enum: ['男', '女'] } },
+  },
+  calc_bazhai: {
+    $schema: 'https://json-schema.org/draft/2020-12/schema', type: 'object', additionalProperties: false,
+    required: ['birthYear', 'gender', 'year'],
+    properties: { birthYear: { type: 'integer', minimum: 1, maximum: 9999 }, gender: { enum: ['男', '女'] }, year: { type: 'integer', minimum: 1, maximum: 9999 }, door: { type: 'string' }, bedroom: { type: 'string' }, kitchen: { type: 'string' } },
+  },
+  combo_annual_fortune: {
+    $schema: 'https://json-schema.org/draft/2020-12/schema', type: 'object', additionalProperties: false,
+    required: ['birth', 'baziTimeContext', 'targetYear', 'currentMonth'],
+    properties: { birth: BIRTH_SCHEMA, baziTimeContext: { type: 'object' }, targetYear: { type: 'integer', minimum: 1, maximum: 9999 }, currentMonth: { type: 'integer', minimum: 1, maximum: 12 } },
+  },
+  combo_space_time: {
+    $schema: 'https://json-schema.org/draft/2020-12/schema', type: 'object', additionalProperties: false,
+    required: ['birth', 'targetYear'],
+    properties: { birth: BIRTH_SCHEMA, targetYear: { type: 'integer', minimum: 1, maximum: 9999 } },
+  },
+};
 const CATEGORY: Record<LocalToolName, LocalToolCategory> = {
   resolve_true_solar_time: 'time-calibration',
   bazi_calculate: 'chart',
@@ -175,7 +197,7 @@ export const LOCAL_TOOL_DESCRIPTORS = Object.fromEntries(LOCAL_TOOL_NAMES.map((n
       ...(name === 'bazi_calculate' ? ['真太阳时必须提供完整、可重新计算的核验结果；否则明确使用民用时间降级。'] : []),
     ],
     inputSchemaVersion: '1.0.0',
-    inputSchema: name === 'bazi_calculate' ? BAZI_INPUT_SCHEMA : GENERIC_SCHEMA,
+    inputSchema: name === 'bazi_calculate' ? BAZI_INPUT_SCHEMA : EXPLICIT_TIME_SCHEMAS[name] ?? GENERIC_SCHEMA,
   };
   return [name, descriptor];
 })) as Record<LocalToolName, LocalToolDescriptor>;

@@ -69,6 +69,17 @@ cd apps/visual && pnpm engine bazi_calculate - < src/__fixtures__/local-tools/ba
 
 结果仍为 `ToolEnvelope`，动态事实位于 `data.transit`。`bazi_calculate.transit.boundary.json` 覆盖节气边界，`bazi_calculate.transit.failure.json` 用于确认非法日期会被 CLI 契约拒绝。详细字段、claims 和解释边界见 `bootstrap/bazi-engine.md`。
 
+## 显式时间输入
+
+公共 CLI 不读取系统当前年份来补全结果。以下字段必须显式提供：
+
+- `calc_feixing.year`；
+- `calc_bazhai.year`；
+- `combo_annual_fortune.targetYear` 与 `currentMonth`；
+- `combo_space_time.targetYear`。
+
+Dashboard 可以读取设备当前日期以便操作，但必须在调用纯引擎前转换为显式字段。`get_almanac.date`、`get_daily_rhythm.date/hour`、`combo_daily_wellness.now` 和其他日用日期字段同样由现有输入契约显式校验。所有最终采用的日期或年份必须出现在 `input_normalized`，不得在 Agent 层猜测。
+
 ## CLI 错误语义
 
 CLI 成功时仍只在 stdout 输出 `ToolEnvelope` 或 `TrueSolarTimeResolution`。读取输入、JSON 解析、工具名或输入契约失败时，stdout 为空、进程以 `1` 退出，并在 stderr 输出以下稳定 JSON：

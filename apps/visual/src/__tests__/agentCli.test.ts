@@ -80,4 +80,10 @@ describe('Agent CLI introspection and public claims verification', () => {
     const result = await runLocalTool('list_constitution_questionnaire', {});
     expect(() => verifyLocalToolClaims('list_constitution_questionnaire', result, [])).toThrow('没有公开结构化 claims 校验器');
   });
+  it('describes explicit temporal requirements for date-sensitive CLI tools', () => {
+    expect(describeLocalTool('calc_feixing').inputSchema).toMatchObject({ required: ['year'] });
+    expect(describeLocalTool('calc_bazhai').inputSchema).toMatchObject({ required: ['birthYear', 'gender', 'year'] });
+    expect(describeLocalTool('combo_annual_fortune').inputSchema).toMatchObject({ required: ['birth', 'baziTimeContext', 'targetYear', 'currentMonth'] });
+    expect(describeLocalTool('combo_space_time').inputSchema).toMatchObject({ required: ['birth', 'targetYear'] });
+  });
 });

@@ -483,6 +483,8 @@ interface SemanticPresentation {
 
 ## CTW-P1-02：拆分能力状态维度
 
+> 状态：⏭️ 产品决定不实施（2026-08-20）。保留现有 ModuleStatus、Dashboard 标签、报告元数据与历史 Schema，不进行能力状态四维拆分。
+
 ### 目标结构
 
 ```ts
@@ -514,6 +516,8 @@ interface CapabilityDescriptor {
 ---
 
 ## CTW-P1-03：移除 CLI 隐式系统时间
+
+> 状态：✅ 已完成（2026-08-20）。公共 CLI 强制显式 `calc_feixing.year`、`calc_bazhai.year`、`combo_annual_fortune.targetYear/currentMonth` 与 `combo_space_time.targetYear`；Dashboard 在 UI 层显式传值；schema、fixture、input_normalized、706 项单测、300 项文档契约、构建和四浏览器高频场景 20/20 均通过。
 
 ### 当前重点
 

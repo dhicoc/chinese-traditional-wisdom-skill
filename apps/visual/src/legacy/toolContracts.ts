@@ -138,8 +138,8 @@ export interface ConstitutionQuestionnaireToolInput extends Input {}
 export interface ComboAnnualFortuneToolInput {
   birth: BaziBirth;
   baziTimeContext: Input;
-  targetYear?: number;
-  currentMonth?: number;
+  targetYear: number;
+  currentMonth: number;
 }
 
 export interface ComboMonthlyFortuneToolInput {
@@ -166,7 +166,7 @@ export interface ComboDecisionToolInput {
 
 export interface ComboSpaceTimeToolInput {
   birth: BaziBirth;
-  targetYear?: number;
+  targetYear: number;
 }
 
 export interface ComboSanshiToolInput {
@@ -514,11 +514,11 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
       } as ZiweiInput;
     }
     case 'calc_feixing': {
-      if (input.year !== undefined) year(input.year, 'year');
+      const targetYear = year(input.year, 'year');
       if (input.birthYear !== undefined) year(input.birthYear, 'birthYear');
       if (input.gender !== undefined && input.gender !== '男' && input.gender !== '女') throw new Error('gender 必须是“男”或“女”。');
       return {
-        year: input.year as number | undefined,
+        year: targetYear,
         gender: input.gender as '男' | '女' | undefined,
         birthYear: input.birthYear as number | undefined,
       } as FeixingInput;
@@ -526,7 +526,7 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
     case 'calc_bazhai': {
       year(input.birthYear, 'birthYear');
       if (input.gender !== '男' && input.gender !== '女') throw new Error('gender 必须是“男”或“女”。');
-      if (input.year !== undefined) year(input.year, 'year');
+      const targetYear = year(input.year, 'year');
       for (const key of ['door', 'bedroom', 'kitchen'] as const) {
         if (input[key] !== undefined) direction(input[key], key);
       }
@@ -536,7 +536,7 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
         door: input.door as string | undefined,
         bedroom: input.bedroom as string | undefined,
         kitchen: input.kitchen as string | undefined,
-        year: input.year as number | undefined,
+        year: targetYear,
       } as BazhaiInput;
     }
     case 'cast_liuyao': {
@@ -713,8 +713,8 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
       return {
         birth: birthInput,
         baziTimeContext: context,
-        targetYear: input.targetYear === undefined ? undefined : year(input.targetYear, 'targetYear'),
-        currentMonth: input.currentMonth === undefined ? undefined : integer(input.currentMonth, 'currentMonth', 1, 12),
+        targetYear: year(input.targetYear, 'targetYear'),
+        currentMonth: integer(input.currentMonth, 'currentMonth', 1, 12),
       } as ComboAnnualFortuneToolInput;
     }
     case 'combo_monthly_fortune': {
@@ -757,7 +757,7 @@ export function parseLocalToolInput(tool: string, rawInput: unknown): LocalToolC
     case 'combo_space_time':
       return {
         birth: birth(input.birth, 'birth'),
-        targetYear: input.targetYear === undefined ? undefined : year(input.targetYear, 'targetYear'),
+        targetYear: year(input.targetYear, 'targetYear'),
       } as ComboSpaceTimeToolInput;
     case 'combo_sanshi': {
       const liurenSchool = input.liurenSchool ?? 'classic';

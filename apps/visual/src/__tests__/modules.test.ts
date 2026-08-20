@@ -203,3 +203,13 @@ describe('User presentation typed semantic boundary', () => {
     expect(almanac).toContain('almanac.dayGanZhi');
   });
 });
+describe('CLI explicit-time boundary', () => {
+  it('keeps Dashboard convenience outside the public CLI contract', () => {
+    const combo = readSource('features/combo/ComboWorkspace.tsx');
+    const contracts = readSource('legacy/toolContracts.ts');
+    expect(combo).toContain('currentMonth: new Date().getMonth() + 1');
+    expect(combo).toContain('calcSpaceTimeCombo({ birth: birthInput, targetYear, solar })');
+    expect(contracts).toContain("const targetYear = year(input.year, 'year')");
+    expect(contracts).toContain("targetYear: year(input.targetYear, 'targetYear')");
+  });
+});

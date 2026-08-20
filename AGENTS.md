@@ -12,7 +12,7 @@ Before planning or editing this repository, read these files in order:
 
 ## Current priority
 
-P0 and P1-01 are complete. Continue with P1-02: separate content nature, actual runtime mode, evidence coverage, and risk domain; make Dashboard/report/history consume the same runtime-aware capability descriptor before moving to explicit CLI time inputs.
+P0, P1-01, and P1-03 are complete. P1-02 was explicitly skipped by product decision. Continue with P1-04: establish the complete Tool Descriptor Registry so tool names, schemas, runner dispatch, claims verifiers, fixtures, docs, risk domains, and presenters derive from one typed source.
 
 ## Non-negotiable boundaries
 

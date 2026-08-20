@@ -43,6 +43,8 @@ cd apps/visual && pnpm engine <tool> <input-json-file>
 
 缺少出生时间、性别、起卦方式、住宅坐向等必要输入时必须追问。不得默认子时，不得猜测用户未提供的字段。
 
+影响结果的当前日期或年份也不得由 CLI 隐式读取：飞星、八宅、年度联合和空间时间工具必须显式提供 year、	argetYear 或 currentMonth；Dashboard 可在 UI 层取得当前值后显式传入。
+
 ## 2. 本地工具与数据流
 
 ```text

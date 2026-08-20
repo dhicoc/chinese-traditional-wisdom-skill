@@ -2,7 +2,7 @@
 
 > 更新时间：2026-08-20
 > 分支：`main`
-> 状态：P0 已收口；P1-01 类型化语义已完成。下一项为 P1-02：拆分内容性质、实际 runtime mode、证据覆盖和风险域。
+> 状态：P0 已收口；P1-01、P1-03 已完成；P1-02 按产品决定不实施。下一项为 P1-04：完整 Tool Descriptor Registry。
 
 ## 新会话恢复步骤
 
@@ -130,3 +130,14 @@ git diff -- docs/IMPLEMENTATION-PLAN.md docs/NEXT-SESSION-HANDOFF.md AGENTS.md R
 - E2E：语义报告与八字动态层四浏览器 16/16 通过。
 - 完成：所有 `toUserPresentation` 生产调用默认转换为 typed neutral；飞星/黄历确认不使用文本推断；`toFourLayer` 和 `toFocusedReport` 仅保留为显式 legacy API。
 - 验证：702 项单测、225 React smoke、299 文档契约、生产构建通过；完整 E2E 432/436，并发超时的 4 项单线程复跑全部通过。
+
+### P1-02 ⏭️
+
+- 2026-08-20 产品决定不实施能力状态四维拆分；保留现有 ModuleStatus、Dashboard 标签、报告元数据和历史 Schema。
+### P1-03 显式 CLI 时间 ✅
+
+- `calc_feixing.year`、`calc_bazhai.year`、`combo_annual_fortune.targetYear/currentMonth`、`combo_space_time.targetYear` 现为公共 CLI 必填字段。
+- Dashboard 继续提供当前日期便利，但在 UI 层解析后显式传入纯引擎。
+- 4 个工具的 Agent describe schema、boundary/failure fixture 与 input_normalized 回归已同步。
+- 本地 CI：706 项单测、225 React smoke、300 文档契约、全部知识检查和生产构建通过。
+- E2E：飞星、八宅、联合高频咨询四浏览器 20/20 通过。

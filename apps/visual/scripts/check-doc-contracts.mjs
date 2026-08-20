@@ -170,6 +170,8 @@ check(localToolNames.length > 0, "localToolRegistry.ts 缺少 LOCAL_TOOL_REGISTR
 check(directRunner.includes('parseLocalToolCall'), "directRunner.ts 未通过共享工具契约解析输入");
 
 const toolIndex = docs["tool-index.md"];
+check(toolIndex.includes("## 显式时间输入") && toolIndex.includes("combo_annual_fortune.targetYear"),
+  "tool-index.md 必须记录公共 CLI 的显式时间输入边界。");
 const documentedTools = extractMatches(toolIndex, /\| `([^`]+)` \| `src\/__fixtures__\/local-tools\/[^`]+\.success\.json` \|/g);
 checkSameToolNames("tool-index.md CLI 工具表", documentedTools, localToolNames);
 

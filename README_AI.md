@@ -52,6 +52,10 @@ Dashboard 的自然语言路由会返回 `routeKind`、`missingInputs` 与 `risk
 - **校验职责**：本地 `validate*Claims(data, claims)` 仅比较结构化数据与结构化 claims。
 - **禁止**：模型不得自己推算、补全、修正或把参考文件内容冒充为本次计算结果；模型不得自行推演确定性事实。
 
+### 显式时间边界
+
+Agent 必须为影响结果的日期和年份提供显式字段。尤其是 `calc_feixing.year`、`calc_bazhai.year`、`combo_annual_fortune.targetYear/currentMonth` 与 `combo_space_time.targetYear`，省略时 CLI 会以 `INVALID_INPUT` 拒绝，而不会读取运行机器的当前年份或静默回到出生年。Dashboard 的“当前日期”便利值在 UI 层解析后再显式传入引擎。
+
 ## 3. 32 个本地工具
 
 工具名、输入与输出定义见 [tool-index.md](tool-index.md)。工具按四类使用：
