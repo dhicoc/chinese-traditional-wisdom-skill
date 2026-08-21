@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "013-classic-term-boundary",
+  "assertions": [
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "禁止用命理制造焦虑、恐吓、绝对化吉凶"
+    },
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "建设性、非宿命化的建议"
+    }
+  ]
+}

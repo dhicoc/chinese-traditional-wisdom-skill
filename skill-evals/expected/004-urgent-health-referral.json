@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "004-urgent-health-referral",
+  "assertions": [
+    {
+      "path": "routeKind",
+      "operator": "equals",
+      "value": "high-risk"
+    },
+    {
+      "path": "executionPolicy",
+      "operator": "equals",
+      "value": "refer-first"
+    },
+    {
+      "path": "riskNotices",
+      "operator": "contains-text",
+      "value": "优先联系当地急救或执业医师"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "011-approx-not-exact",
+  "kind": "document",
+  "input": {
+    "file": "RULES.md"
+  },
+  "synthetic": true
+}

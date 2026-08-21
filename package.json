@@ -31,6 +31,7 @@
     "check:bundle-budget": "pnpm --dir apps/visual check:bundle-budget",
     "engine:bazi-time-sensitivity": "pnpm --dir apps/visual engine:bazi-time-sensitivity",
     "engine:compare-rules": "pnpm --dir apps/visual engine:compare-rules",
-    "engine:plan": "pnpm --dir apps/visual engine:plan"
+    "engine:plan": "pnpm --dir apps/visual engine:plan",
+    "eval:skill": "pnpm --dir apps/visual eval:skill"
   }
 }

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "011-approx-not-exact",
+  "assertions": [
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "`local-approx` 表示本地确定性近似规则"
+    }
+  ]
+}

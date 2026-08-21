@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "019-skip-capability-status-split",
+  "kind": "document",
+  "input": {
+    "file": "docs/IMPLEMENTATION-PLAN.md"
+  },
+  "synthetic": true
+}

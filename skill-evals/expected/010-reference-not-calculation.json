@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "010-reference-not-calculation",
+  "assertions": [
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "reference 文件只可补充文化背景与建议"
+    },
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "参考文件或旧会话自行计算"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "007-third-party-authorization",
+  "assertions": [
+    {
+      "path": "routeKind",
+      "operator": "equals",
+      "value": "high-risk"
+    },
+    {
+      "path": "riskNotices",
+      "operator": "contains-text",
+      "value": "已获得相关人士授权"
+    }
+  ]
+}

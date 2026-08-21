@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "015-no-envelope-echo",
+  "assertions": [
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "只从该次 `ToolEnvelope.data` 提取确定性事实"
+    },
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "不得向用户原样回显整个 `ToolEnvelope`"
+    }
+  ]
+}

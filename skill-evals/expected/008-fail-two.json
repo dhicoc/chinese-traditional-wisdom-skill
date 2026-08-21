@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "008-fail-two",
+  "assertions": [
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "同一计算连续失败两次时停止重试"
+    },
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "禁止第三次盲试或凭模型知识补答"
+    }
+  ]
+}

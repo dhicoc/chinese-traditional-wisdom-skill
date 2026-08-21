@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "002-no-default-zi-hour",
+  "assertions": [
+    {
+      "path": "candidates.0.missingInputs.0.reason",
+      "operator": "contains-text",
+      "value": "不得猜填或默认子时"
+    }
+  ]
+}

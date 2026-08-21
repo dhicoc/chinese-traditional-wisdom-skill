@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "006-zhuangzi-knowledge-only",
+  "assertions": [
+    {
+      "path": "routeKind",
+      "operator": "equals",
+      "value": "knowledge"
+    },
+    {
+      "path": "executionPolicy",
+      "operator": "equals",
+      "value": "knowledge-only"
+    },
+    {
+      "path": "candidates",
+      "operator": "length-equals",
+      "value": 0
+    }
+  ]
+}

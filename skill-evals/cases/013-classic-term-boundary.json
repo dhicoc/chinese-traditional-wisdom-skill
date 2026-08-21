@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "013-classic-term-boundary",
+  "kind": "document",
+  "input": {
+    "file": "RULES.md"
+  },
+  "synthetic": true
+}

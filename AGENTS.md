@@ -12,7 +12,7 @@ Before planning or editing this repository, read these files in order:
 
 ## Current priority
 
-P0, P1, P2, P3-01, P3-02, P3-03, and P3-05 are complete; P0-03, P1-02, and P3-04 were explicitly skipped by product decision. Do not add a `riskSafetyGate`, execution-blocking safety CLI, or full-input history persistence unless product reverses those decisions. The next task is the section-7 Skill behavior evaluation harness (`skill-evals/cases`, `expected`, and `run-evals`), not another calculation feature.
+P0-P3 and the section-7 Skill behavior evaluation harness are complete; P0-03, P1-02, and P3-04 were explicitly skipped by product decision. The repository is in maintenance/release-audit mode. Run `pnpm eval:skill` before changing Skill behavior, and do not add a `riskSafetyGate`, execution-blocking safety CLI, capability-status split, fine-grained safety-copy scanner, or full-input history persistence unless product reverses those decisions.
 
 ## Non-negotiable boundaries
 

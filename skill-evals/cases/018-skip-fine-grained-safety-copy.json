@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "018-skip-fine-grained-safety-copy",
+  "kind": "document",
+  "input": {
+    "file": "docs/IMPLEMENTATION-PLAN.md"
+  },
+  "synthetic": true
+}

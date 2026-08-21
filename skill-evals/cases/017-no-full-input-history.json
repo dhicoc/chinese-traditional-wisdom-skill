@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "017-no-full-input-history",
+  "kind": "document",
+  "input": {
+    "file": "docs/LOCAL-HISTORY-PRIVACY.md"
+  },
+  "synthetic": true
+}

@@ -152,6 +152,14 @@ ToolEnvelope<TData> = {
 
 使用规则：从本次 `data` 提取结构化 claims，调用本地 `validate*Claims(data, claims)`。校验仅覆盖结构化事实，不能验证自由文本、解释、建议或预测。
 
+## Skill 行为质量门
+
+```bash
+pnpm eval:skill
+```
+
+该命令不是本地计算工具，不改变 32 工具 registry。它离线执行 19 项路由、参数、claims、知识/计算边界、隐私和产品决定契约；失败时退出码为 1。
+
 ## 32 个本地 CLI 工具与标准输入
 
 每行均可按以下形式直接执行：

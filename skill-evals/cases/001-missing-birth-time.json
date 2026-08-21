@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "001-missing-birth-time",
+  "kind": "planner",
+  "input": {
+    "query": "合成评测：八字事业",
+    "providedFields": [
+      "birth.year",
+      "birth.month",
+      "birth.day",
+      "birth.gender"
+    ]
+  },
+  "synthetic": true
+}

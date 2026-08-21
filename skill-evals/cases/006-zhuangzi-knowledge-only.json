@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "006-zhuangzi-knowledge-only",
+  "kind": "planner",
+  "input": {
+    "query": "合成评测：庄子怎么看焦虑"
+  },
+  "synthetic": true
+}

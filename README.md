@@ -211,6 +211,7 @@ pnpm engine:plan --query "想看今年事业"
 | [RULES.md](RULES.md) | 伦理、隐私、健康与输入完整性边界 |
 | [README_AI.md](README_AI.md) | AI Agent 的本地调用说明与故障处理 |
 | [tool-index.md](tool-index.md) | 32 个本地工具、标准 fixture 与 CLI 参考 |
+| [skill-evals/README.md](skill-evals/README.md) | 19 项本地 Skill 行为契约与 `pnpm eval:skill` 使用说明 |
 | [发布前验证与故障排查](docs/RELEASE-VERIFICATION.md) | 新环境安装、质量门、四浏览器回归与失败产物定位 |
 | [`bootstrap/`](bootstrap/) | 八字、紫微、六爻、梅花、风水等领域的详细说明 |
 | [`apps/visual/`](apps/visual/) | Dashboard、纯 TypeScript 引擎与测试 |

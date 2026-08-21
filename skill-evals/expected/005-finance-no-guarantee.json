@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "005-finance-no-guarantee",
+  "assertions": [
+    {
+      "path": "routeKind",
+      "operator": "equals",
+      "value": "high-risk"
+    },
+    {
+      "path": "riskNotices",
+      "operator": "contains-text",
+      "value": "不能给出买卖保证"
+    }
+  ]
+}

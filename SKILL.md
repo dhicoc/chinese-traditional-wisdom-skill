@@ -18,7 +18,7 @@ cd apps/visual && pnpm engine <tool> <input-json-file>
 ```
 
 4. 首次接入或不确定输入契约时，先运行 `pnpm engine:list` 与 `pnpm engine:describe <tool>`。八字可使用 `pnpm engine:present bazi_calculate <input-json-file>` 直接取得隐私安全、已核验的结构化事实；其他工具在 typed presentation 接入前仍按下一步处理。
-5. 除 `resolve_true_solar_time` 直接返回 `TrueSolarTimeResolution` 外，CLI 返回 `ToolEnvelope`。只从该次 `ToolEnvelope.data` 提取确定性事实；将 envelope 与最小 claims 分别写入临时 JSON 后，用 `pnpm engine:verify <tool> <envelope-json-file> <claims-json-file>` 核对 registry 已绑定 verifier 的结构化 claims；无 verifier 的工具不得伪造已核验事实。校验通过后才能写成“本次引擎结果”。
+5. 除 `resolve_true_solar_time` 直接返回 `TrueSolarTimeResolution` 外，CLI 返回 `ToolEnvelope`。只从该次 `ToolEnvelope.data` 提取确定性事实；将 envelope 与最小 claims 分别写入临时 JSON 后，用 `pnpm engine:verify <tool> <envelope-json-file> <claims-json-file>` 核对 registry 已绑定 verifier 的结构化 claims；无 verifier 的工具不得伪造已核验事实。校验通过后才能写成“本次引擎结果”。 不得向用户原样回显整个 `ToolEnvelope`、`input_normalized` 或其他内部原始数据。
 6. 引擎失败时遵守 Fail-Two：停止盲目重试，检查输入和备用方案；不要用模型记忆补答。
 
 本地 CLI 与 Dashboard 都使用纯 TypeScript 引擎；32 个 registry 工具经 `parseLocalToolInput()` / `runLocalTool()` 执行一次性契约，独立分析命令经各自输入 parser 调用纯本地引擎，Dashboard 按页面直接调用纯引擎。Python 工具仅可作命令行交叉验证，不是对话计算数据源。
@@ -98,7 +98,17 @@ CLI / Skill / Agent 调用 32 个 registry 工具时必须经 `parseLocalToolInp
 - 静态报告使用 `templates/visual-report.md`；交互式 Dashboard 使用 `cd apps/visual && pnpm dev`。
 - 保持 `local-exact`、`local-approx`、民俗体验、演示和降级状态可见。
 
-## 5. 领域引导
+## 6. 行为评测
+
+修改 Skill、RULES、Agent Router、参数规划器、claims、隐私边界或产品决定后运行：
+
+```bash
+pnpm eval:skill
+```
+
+评测使用合成 case，不调用模型、远端服务或新的术数计算；19 项必须全部通过。Runner 只输出 case ID 与断言状态，不输出合成 query。
+
+## 7. 领域引导
 
 | 场景 | 主入口 |
 |---|---|

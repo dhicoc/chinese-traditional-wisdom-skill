@@ -2,7 +2,7 @@
 
 > 更新时间：2026-08-21
 > 分支：`main`
-> 状态：P0、P1、P2、P3-01、P3-02、P3-03、P3-05 已完成；P3-04 按产品决定不实施。P0-P3 实施优化已收口，下一项为第 7 节 Skill 行为评测。
+> 状态：P0-P3 与第 7 节 Skill 行为评测已完成；P0-03、P1-02、P3-04 按产品决定不实施。当前进入维护与发布审计状态。
 
 ## 新会话恢复步骤
 
@@ -63,13 +63,12 @@ git diff -- docs/IMPLEMENTATION-PLAN.md docs/NEXT-SESSION-HANDOFF.md AGENTS.md R
 
 ## 推荐下一任务
 
-执行 `docs/IMPLEMENTATION-PLAN.md` 第 7 节 Skill 行为评测计划：
+当前实施计划已全部完成或按产品决定收口。后续仅在出现新需求、依赖升级、规则变更或远端 CI 回归时进入维护：
 
-1. 建立 `skill-evals/cases`、`expected`、`run-evals`；
-2. 覆盖路由、缺失参数追问、工具选择、claims 引用、知识/计算边界和已跳过产品决定；
-3. Eval 只评估行为契约，不调用远端计算，不保存原始咨询资料；
-4. P3-04 不再实施，不要重新创建 `riskSafetyGate`；
-5. P3-05 完整输入持久化不实施，继续采用“不保存”边界。
+1. 先运行 `pnpm eval:skill`，更新对应 case/expected；
+2. 再运行第 9 节完整质量门和四浏览器 E2E；
+3. 不重新引入 `riskSafetyGate`、细粒度安全文案扫描、能力状态拆分或完整输入历史持久化；
+4. 不新增术数功能，除非产品明确提出新的业务目标和验收标准。
 
 ## 不可破坏的架构边界
 
@@ -220,3 +219,14 @@ git diff -- docs/IMPLEMENTATION-PLAN.md docs/NEXT-SESSION-HANDOFF.md AGENTS.md R
 - 文档：`docs/LOCAL-HISTORY-PRIVACY.md`、SKILL、README、ROADMAP 和实施计划已同步。
 - 最终本地 CI：69 个测试文件、800 项单测；225 React smoke、319 文档契约、726 knowledge provenance、59 搜索契约、506 mapping、62 React migration、生产构建与 269 项 bundle budget 全通过；最大 gzip 217461 bytes。
 - 四浏览器历史/隐私 E2E 最终 48/48 通过（首次新增 expiresAt 后 8 项测试误把到期时间当生辰日期，排除系统元数据后四浏览器 8/8 复验通过）。
+
+### Skill 行为评测体系 ✅
+
+- 新增 `skill-evals/cases`、`expected`、`run-evals.ts` 与 README；根目录和 apps/visual 均提供 `pnpm eval:skill`。
+- 15 项实施计划行为全部覆盖：缺时追问、不默认子时、真太阳时证据、既有风险路由、庄子知识路径、Fail-Two、claims、reference、local-approx、隐私、术语边界、引擎失败与禁止整包回显。
+- 额外 4 项锁定产品决定：不新增 riskSafetyGate、不保存完整输入、跳过 P0-03、跳过 P1-02。
+- Runner 仅调用生产 Planner、文档读取和轻量结果包完整性校验；不调用模型、远端服务或新术数计算，输出不含合成 query。
+- 首轮 13/15 暴露数值断言和 ToolEnvelope 文案缺口；修复 Runner 并在 SKILL 明确禁止原样回显后达到 19/19。
+- GitHub Actions Visual quality gates 已新增 `pnpm eval:skill` 阶段。
+- 最终本地验证：69 个测试文件、800 项单测、19/19 eval、225 React smoke、319 文档契约、726 knowledge provenance、59 搜索契约、506 mapping、62 React migration、生产构建与 269 项 bundle budget 全通过；最大 gzip 217461 bytes。
+- 四浏览器 smoke：32/32 通过。

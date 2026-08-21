@@ -39,7 +39,8 @@
     "check:bundle-budget": "node scripts/check-bundle-budget.mjs",
     "engine:bazi-time-sensitivity": "tsx scripts/run-engine-agent.ts bazi-time-sensitivity",
     "engine:compare-rules": "tsx scripts/run-engine-agent.ts compare-rules",
-    "engine:plan": "tsx scripts/run-engine-agent.ts plan"
+    "engine:plan": "tsx scripts/run-engine-agent.ts plan",
+    "eval:skill": "tsx ../../skill-evals/run-evals.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "1.3.3",

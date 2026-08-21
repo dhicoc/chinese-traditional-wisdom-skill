@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "003-true-solar-needs-evidence",
+  "kind": "planner",
+  "input": {
+    "query": "合成评测：请做真太阳时校时",
+    "providedFields": [
+      "birth"
+    ]
+  },
+  "synthetic": true
+}

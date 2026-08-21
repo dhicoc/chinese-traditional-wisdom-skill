@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "009-results-require-claims",
+  "assertions": [
+    {
+      "path": "valid",
+      "operator": "equals",
+      "value": true
+    },
+    {
+      "path": "verifiedFactCount",
+      "operator": "length-at-least",
+      "value": 1
+    }
+  ]
+}

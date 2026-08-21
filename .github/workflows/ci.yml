@@ -26,6 +26,8 @@ jobs:
         run: pnpm typecheck
       - name: unit tests
         run: pnpm test:unit
+      - name: Skill behavior evals
+        run: pnpm eval:skill
       - name: contracts and smoke checks
         run: |
           node scripts/generate-dream-shards.mjs

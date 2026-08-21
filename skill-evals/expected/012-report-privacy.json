@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "012-report-privacy",
+  "assertions": [
+    {
+      "path": "inputIncluded",
+      "operator": "equals",
+      "value": false
+    },
+    {
+      "path": "replayable",
+      "operator": "equals",
+      "value": false
+    },
+    {
+      "path": "text",
+      "operator": "not-matches",
+      "value": "\\b\\d{4}-\\d{2}-\\d{2}\\b"
+    },
+    {
+      "path": "text",
+      "operator": "not-contains-text",
+      "value": "出生地点"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "019-skip-capability-status-split",
+  "assertions": [
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "P1-02：拆分能力状态维度"
+    },
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "保留现有 ModuleStatus"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "016-skip-risk-safety-gate",
+  "assertions": [
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "do not add a `riskSafetyGate`"
+    }
+  ]
+}

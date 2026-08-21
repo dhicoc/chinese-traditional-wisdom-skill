@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "017-no-full-input-history",
+  "assertions": [
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "不保存完整生辰、具体地点、姓名或原始咨询问题"
+    }
+  ]
+}

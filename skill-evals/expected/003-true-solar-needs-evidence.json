@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "003-true-solar-needs-evidence",
+  "assertions": [
+    {
+      "path": "candidates.0.tool",
+      "operator": "equals",
+      "value": "resolve_true_solar_time"
+    },
+    {
+      "path": "candidates.0.missingInputs",
+      "operator": "array-contains-object",
+      "value": {
+        "field": "location"
+      }
+    },
+    {
+      "path": "candidates.1.missingInputs",
+      "operator": "array-contains-object",
+      "value": {
+        "field": "timeBasis"
+      }
+    }
+  ]
+}

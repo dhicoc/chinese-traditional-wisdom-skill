@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "014-engine-failure-no-model",
+  "kind": "document",
+  "input": {
+    "file": "RULES.md"
+  },
+  "synthetic": true
+}

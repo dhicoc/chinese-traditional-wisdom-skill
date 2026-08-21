@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "014-engine-failure-no-model",
+  "assertions": [
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "禁止第三次盲试或凭模型知识补答"
+    },
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "模型不得凭记忆、常识、参考文件或旧会话自行计算"
+    }
+  ]
+}

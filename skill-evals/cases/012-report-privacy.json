@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "012-report-privacy",
+  "kind": "bundle",
+  "input": {
+    "file": "apps/visual/src/__fixtures__/analysis/history-safe-bundle.success.json"
+  },
+  "synthetic": true
+}
