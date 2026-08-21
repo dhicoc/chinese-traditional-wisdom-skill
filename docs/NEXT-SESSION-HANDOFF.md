@@ -2,7 +2,7 @@
 
 > 更新时间：2026-08-21
 > 分支：`main`
-> 状态：P0、P1、P2、P3-01、P3-02、P3-03 已完成。下一项为 P3-04：高风险问题安全门。
+> 状态：P0、P1、P2、P3-01、P3-02、P3-03 已完成；P3-04 按产品决定不实施。下一项为 P3-05：脱敏、可选择的本地咨询历史。
 
 ## 新会话恢复步骤
 
@@ -63,13 +63,16 @@ git diff -- docs/IMPLEMENTATION-PLAN.md docs/NEXT-SESSION-HANDOFF.md AGENTS.md R
 
 ## 推荐下一任务
 
-执行 `CTW-P3-04` 高风险问题安全门：
+执行 `CTW-P3-05` 脱敏、可选择的本地咨询历史：
 
-1. 覆盖急性/严重健康症状、停药/剂量/替代治疗、自伤/他伤、大额投资/借贷、结构性房屋改造、未授权第三人分析；
-2. 命中后先输出专业转介与边界，不生成确定性吉凶或现实效果承诺；
-3. 安全门只做分类和执行许可，不排盘、不判断现实结果；
-4. 复用 P0-02 `routeQuery()` 风险提示与 P3-03 `executionPolicy: refer-first`，避免两套不一致规则；
-5. 增加独立可测 contract、success/boundary/failure 与 CLI/Agent 回归，再运行完整 CI 和四浏览器 E2E。
+1. 默认不保存；保存前显示内容预览；
+2. 只保存已核验事实和匿名摘要，可设置自动过期并一键清空；
+3. 完整输入仅在用户主动选择时本地加密；
+4. 支持导入/导出可复核结果包；
+5. 不引入账户、远端同步、服务端 session 或持久 token；
+6. 先审计现有 `historyStore`、HistoryWorkspace、报告和 result bundle，复用现有能力，不重复实现。
+
+P3-04 不再实施；不要重新创建 `riskSafetyGate`，除非产品明确改变决定。
 
 ## 不可破坏的架构边界
 
@@ -202,3 +205,10 @@ git diff -- docs/IMPLEMENTATION-PLAN.md docs/NEXT-SESSION-HANDOFF.md AGENTS.md R
 - 文档：`docs/AGENT-PARAMETER-PLANNER.md`、SKILL、tool-index、README、ROADMAP 和实施计划已同步。
 - 最终本地 CI：69 个测试文件、796 项单测；225 React smoke、319 文档契约、726 knowledge provenance、59 搜索契约、506 mapping、62 React migration、生产构建与 269 项 bundle budget 全通过；最大 gzip 217454 bytes。
 - 四浏览器 smoke：Chromium、WebKit、Mobile Chrome、Mobile Safari 共 32/32 通过。
+
+### P3-04 高风险问题安全门 ⏭️
+
+- 2026-08-21 产品明确决定不实施 `riskSafetyGate`，原因是项目定位为实用工具，不增加新的执行限制。
+- 已撤销本阶段所有未提交的安全门代码、CLI、测试与界面阻断改动。
+- 保留既有全局 `RULES.md`、免责声明和 P0-02 路由提示，不扩大、不细化额外安全门。
+- 撤销后 typecheck 及 Agent Router / P3-03 Planner 相关 44 项回归通过，工作树恢复干净。

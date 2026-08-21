@@ -12,7 +12,7 @@ Before planning or editing this repository, read these files in order:
 
 ## Current priority
 
-P0, P1, P2, P3-01, P3-02, and P3-03 are complete; P0-03 and P1-02 were explicitly skipped by product decision. Continue with P3-04: build a high-risk safety gate for acute health, medication changes, self/other harm, major finance or debt, structural housing changes, and unauthorized third-party analysis; it must refer first and must not produce deterministic fortune claims or real-world outcome promises.
+P0, P1, P2, P3-01, P3-02, and P3-03 are complete; P0-03, P1-02, and P3-04 were explicitly skipped by product decision. Do not add a `riskSafetyGate` or new execution-blocking safety CLI unless product reverses that decision. Continue with P3-05: improve the opt-in, privacy-safe local consultation history by auditing and extending the existing history store, preview, expiry, clearing, and verifiable result-bundle flows without remote accounts or synchronization.
 
 ## Non-negotiable boundaries
 
