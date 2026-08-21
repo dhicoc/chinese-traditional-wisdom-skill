@@ -45,7 +45,7 @@
 - 69 个测试文件、800 项单元测试。
 - 19/19 Skill 行为评测。
 - 四浏览器全量 E2E 456/456。
-- 发布级真实用户全链路报告：`docs/test-reports/REAL-USER-FULL-CHAIN-2026-08-21.md`。
+- 发布级真实用户全链路与四浏览器证据已归档在 v1.0.0 GitHub Release。
 
 ### Product Decisions
 

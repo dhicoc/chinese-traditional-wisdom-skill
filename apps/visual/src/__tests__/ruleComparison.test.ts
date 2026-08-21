@@ -49,7 +49,7 @@ describe('rule comparison domains', () => {
     const result = compareBaziShenShaRules({ birth: BIRTH, solar: Solar });
     expect(result.variants.map(({ id }) => id)).toEqual(['year', 'day']);
     expect(result.variants.every(({ factsVerified }) => factsVerified)).toBe(true);
-    expect(result.variants.every(({ citations }) => citations.some(({ source }) => source === 'docs/SHENSHA-REFERENCE.md'))).toBe(true);
+    expect(result.variants.every(({ citations }) => citations.some(({ source }) => source === 'apps/visual/src/legacy/shensha.ts#year-day-trine-rules'))).toBe(true);
     expect(result.commonFacts.map(({ field }) => field)).toEqual(expect.arrayContaining(['yearPillar', 'monthPillar', 'dayPillar', 'hourPillar', 'dayMaster', 'elementWood']));
     expect(result.differences.map(({ field }) => field)).toContain('shenShaTrineSource');
   });

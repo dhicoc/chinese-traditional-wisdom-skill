@@ -194,7 +194,7 @@ function baziClaims(data: BaziData): BaziPresentationClaim[] {
 }
 
 const BAZI_SHENSHA_CITATION: RuleCitation = {
-  id: 'ctw-shensha-reference', title: '八字神煞依据文档：年支/日支三合查法', source: 'docs/SHENSHA-REFERENCE.md',
+  id: 'ctw-shensha-reference', title: '八字神煞依据文档：年支/日支三合查法', source: 'apps/visual/src/legacy/shensha.ts#year-day-trine-rules',
   note: '桃花、驿马、华盖、将星等三合类神煞允许按年支或日支显式对照。',
 };
 
@@ -397,7 +397,7 @@ export function compareBaziTimeBasis(input: BaziTimeBasisComparisonInput): RuleC
       id: variant.id, label: variant.label, config: { timeBasis: variant.timeBasis },
       citations: [{
         id: `bazi-time-${variant.id}`, title: variant.label,
-        source: variant.id === 'true-solar' ? 'docs/RELEASE-VERIFICATION.md#真太阳时输入' : 'RULES.md#真太阳时与时间口径',
+        source: 'RULES.md#7-真太阳时核验与民用降级',
         note: variant.id === 'true-solar' ? resolution.location.utcOffsetEvidence : '民用时间仅作为明确降级对照。',
       }],
       facts: { ...baziFacts(envelope.data), timeBasis: variant.timeBasis, birthTime: birthTimeText(variant.birth), ...correctionFacts },
@@ -462,14 +462,14 @@ export function compareZiweiDynamicScope(input: ZiweiDynamicScopeComparisonInput
   const variants: RuleVariantResult[] = [
     {
       id: 'natal-only', label: '仅本命层', config: { dynamicScope: 'natal-only' },
-      citations: [{ id: 'ziwei-natal', title: '紫微本命十二宫与四化口径', source: 'docs/ENGINE-REGRESSION-FIXTURES.md#紫微斗数', note: 'SylarLong/iztro@2.5.8 本命盘。' }],
+      citations: [{ id: 'ziwei-natal', title: '紫微本命十二宫与四化口径', source: 'apps/visual/src/legacy/ziweiEngine.ts#dynamic-transit', note: 'SylarLong/iztro@2.5.8 本命盘。' }],
       facts: { ...natalFacts, dynamicScope: 'natal-only', dynamicAnchor: null, enabledDynamicLayers: [], disabledDynamicLayers: ['流日', '流时', '三方四正'] },
       factsVerified: natalVerified, provenance: natalEnvelope.provenance,
     },
     {
       id: 'month-dynamic', label: '本命 + 月度动态层',
       config: { dynamicScope: 'month', transit: { year: input.transit.year, month: input.transit.month, day: 15 } },
-      citations: [{ id: 'ziwei-month-dynamic', title: '紫微大限/流年/流月/小限口径', source: 'docs/ENGINE-REGRESSION-FIXTURES.md#紫微斗数', note: 'SylarLong/iztro@2.5.8 horoscope；日期固定为目标月 15 日。' }],
+      citations: [{ id: 'ziwei-month-dynamic', title: '紫微大限/流年/流月/小限口径', source: 'apps/visual/src/legacy/ziweiEngine.ts#dynamic-transit', note: 'SylarLong/iztro@2.5.8 horoscope；日期固定为目标月 15 日。' }],
       facts: {
         ...dynamicNatalFacts, dynamicScope: 'month', dynamicAnchor: `${input.transit.year}-${String(input.transit.month).padStart(2, '0')}-15`,
         enabledDynamicLayers: ['大限', '流年', '流月', '小限'], disabledDynamicLayers: ['流日', '流时', '三方四正'],

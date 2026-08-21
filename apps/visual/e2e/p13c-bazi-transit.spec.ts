@@ -83,7 +83,7 @@ test.describe('P1.3c 八字动态层联动', () => {
     await expect(panel.getByText('共同字段', { exact: true })).toBeVisible();
     await expect(panel.getByText('差异字段', { exact: true })).toBeVisible();
     await expect(panel.getByText('结构化事实已校验')).toHaveCount(2);
-    await expect(panel).toContainText('docs/SHENSHA-REFERENCE.md');
+    await expect(panel).toContainText('apps/visual/src/legacy/shensha.ts#year-day-trine-rules');
 
     await panel.getByRole('tab', { name: '称骨版本' }).press('Enter');
     await expect(panel.getByText('通行工整本', { exact: true })).toBeVisible();

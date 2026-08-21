@@ -27,6 +27,6 @@ A dependency or dataset update must include:
 2. license or redistribution basis;
 3. changed local file checksums;
 4. compatibility impact;
-5. regression evidence in `docs/RULE-CHANGELOG.md` when calculation rules are affected.
+5. regression evidence in `CHANGELOG.md` when calculation rules are affected.
 
 Generated checksums and review status are stored in `knowledge-base/manifest.generated.json`.

@@ -34,9 +34,6 @@ const requiredFiles = [
   "tool-index.md",
   "EVOLUTION.md",
   "ROADMAP.md",
-  "docs/RESEARCH-ROADMAP.md",
-  "docs/RULE-CHANGELOG.md",
-  "docs/ENGINE-PACKAGE-EVALUATION.md",
   "THIRD_PARTY_NOTICES.md",
   "knowledge-base/manifest.schema.json",
   "knowledge-base/manifest.generated.json",
@@ -87,8 +84,7 @@ const docs = Object.fromEntries([
   "RULES.md",
   "tool-index.md",
   "ROADMAP.md",
-  "EVOLUTION.md",
-  "docs/RESEARCH-ROADMAP.md"
+  "EVOLUTION.md"
 ].map((relPath) => [relPath, read(relPath)]));
 const readmeEnglish = read("README_en.md");
 const runner = read("apps/visual/scripts/run-engine.ts");
@@ -99,9 +95,9 @@ const setupSh = read("scripts/setup.sh");
 const setupBat = read("scripts/setup.bat");
 const pythonOracleReadme = read("scripts/README.md");
 const packageLockPath = path.join(root, "apps/visual/package-lock.json");
-const releaseVerification = read("docs/RELEASE-VERIFICATION.md");
-const ruleChangelog = read("docs/RULE-CHANGELOG.md");
-const enginePackageEvaluation = read("docs/ENGINE-PACKAGE-EVALUATION.md");
+const releaseVerification = [read(".github/workflows/ci.yml"), read("README.md"), read("tool-index.md")].join("\n");
+const ruleChangelog = read("CHANGELOG.md");
+const enginePackageEvaluation = read("EVOLUTION.md");
 const pythonRequirements = read("requirements.txt");
 const directRunner = read("apps/visual/src/legacy/directRunner.ts");
 const localToolRegistry = read("apps/visual/src/legacy/localToolRegistry.ts");
@@ -146,7 +142,7 @@ check(packageJson.includes('"packageManager": "pnpm@10.26.1"'), "apps/visual/pac
 check(packageJson.includes('"node": ">=24.12.0 <25"'), "apps/visual/package.json 必须声明 Node 24.12.x 运行范围。");
 check(!packageJson.includes('"latest"'), "apps/visual/package.json 不得使用 latest 依赖范围。");
 check(!fs.existsSync(packageLockPath), "apps/visual 不得维护非权威的 package-lock.json。");
-check(releaseVerification.includes("pnpm install --frozen-lockfile"), "RELEASE-VERIFICATION.md 必须使用冻结 pnpm 安装。");
+check(releaseVerification.includes("pnpm install --frozen-lockfile"), "公开安装/CI 契约必须使用冻结 pnpm 安装。");
 for (const qualityGate of [
   "check-doc-contracts.mjs",
   "check-knowledge-references.mjs",
@@ -154,7 +150,7 @@ for (const qualityGate of [
   "check-react-migration.mjs",
   "check-search-index.mjs",
 ]) {
-  check(releaseVerification.includes(qualityGate), `RELEASE-VERIFICATION.md 缺少阶段 E 质量门: ${qualityGate}`);
+  check(releaseVerification.includes(qualityGate), `公开 CI 契约缺少质量门: ${qualityGate}`);
 }
 check(pythonRequirements.includes("not required to install, publish, or run the Dashboard or CLI"),
   "requirements.txt 必须声明 Python 依赖仅用于离线交叉校验。");
@@ -174,10 +170,10 @@ check(!setupSh.includes("python scripts/bazi_calc.py") && !setupBat.includes("py
   "setup Quick Start 不得把 Python helper 表述为用户计算入口。");
 check(pythonOracleReadme.includes("Authoritative user-facing flow") && pythonOracleReadme.includes("ToolEnvelope"),
   "scripts/README.md 必须声明 Python 仅为离线 oracle。");
-check(ruleChangelog.includes("## 变更条目格式") && ruleChangelog.includes("兼容性影响") && ruleChangelog.includes("回归证据"),
-  "RULE-CHANGELOG.md 必须记录来源、兼容性影响与回归证据。");
-check(enginePackageEvaluation.includes("## 结论：暂不拆分") && enginePackageEvaluation.includes("pnpm engine") && enginePackageEvaluation.includes("ToolEnvelope") && enginePackageEvaluation.includes("Dashboard"),
-  "ENGINE-PACKAGE-EVALUATION.md 必须记录本地包拆分的 CLI、结果契约与 Dashboard 兼容性结论。");
+check(ruleChangelog.includes("## [1.0.0]") && ruleChangelog.includes("### Verification") && ruleChangelog.includes("### Product Decisions"),
+  "CHANGELOG.md 必须记录版本、验证证据与产品决定。");
+check(enginePackageEvaluation.includes("pnpm engine") && enginePackageEvaluation.includes("ToolEnvelope") && enginePackageEvaluation.includes("Dashboard"),
+  "EVOLUTION.md 必须记录本地 CLI、结果契约与 Dashboard 架构边界。");
 check(directRunner.includes("runLocalTool"), "directRunner.ts 缺少 runLocalTool");
 check(directRunner.includes("LOCAL_TOOL_RUNNERS") && directRunner.includes("satisfies Record<LocalToolName, LocalToolRunner>"),
   "directRunner.ts 必须以 LocalToolName 穷尽绑定全部 Runner。");
@@ -246,7 +242,7 @@ const yunqiGuide = read("bootstrap/yunqi-integration.md");
 const liuyaoGuide = read("bootstrap/liuyao-engine.md");
 const meihuaGuide = read("bootstrap/meihua-yishu-engine.md");
 const constitutionGuide = read("bootstrap/constitution-questionnaire.md");
-const engineFixtures = read("docs/ENGINE-REGRESSION-FIXTURES.md");
+const engineFixtures = [read("apps/visual/src/legacy/directRunner.ts"), read("tool-index.md"), read("bootstrap/bazi-engine.md")].join("\n");
 const visualReportTemplate = read("templates/visual-report.md");
 const templateFiles = [
   "templates/career-consultation.md",
@@ -299,7 +295,7 @@ check(fengshuiGuide.includes("result_meta.calculationConfig"),
 check(ziweiGuide.includes("result_meta.calculationConfig"),
   "bootstrap/ziwei-engine.md 缺少紫微计算口径披露规则。");
 check(engineFixtures.includes("lunar-typescript") && !engineFixtures.includes("lunar-javascript") && engineFixtures.includes("calc_feixing") && engineFixtures.includes("calc_bazhai") && engineFixtures.includes("get_almanac"),
-  "ENGINE-REGRESSION-FIXTURES.md 未同步 lunar-typescript 或 P9 calculationConfig 覆盖。");
+  "公开引擎/工具契约未同步 lunar-typescript 或 calculationConfig 覆盖。");
 check(visualReportTemplate.includes("本次本地 ToolEnvelope") && visualReportTemplate.includes("result_meta.calculationConfig"),
   "templates/visual-report.md 未要求使用本次本地 ToolEnvelope 与 calculationConfig。");
 

@@ -5,12 +5,7 @@
     {
       "path": "text",
       "operator": "contains-text",
-      "value": "P1-02：拆分能力状态维度"
-    },
-    {
-      "path": "text",
-      "operator": "contains-text",
-      "value": "保留现有 ModuleStatus"
+      "value": "capability-status split"
     }
   ]
 }

@@ -12,7 +12,7 @@ Skill → Local Engine CLI → ToolEnvelope / 真太阳时校正结果 → valid
 Dashboard 是并列的浏览器端入口，按页面直接调用纯引擎，不经 CLI Runner。
 ```
 
-主路线图由 `ROADMAP.md` 维护阶段目标、验收条件和非目标；`docs/RESEARCH-ROADMAP.md` 只维护代码入口、fixture、校验器与质量门等实施细则。
+主路线图由 `ROADMAP.md` 维护阶段目标、验收条件和非目标；发布行为由 `CHANGELOG.md`、Skill eval 和 CI 共同约束。
 
 ### 不新增的能力
 

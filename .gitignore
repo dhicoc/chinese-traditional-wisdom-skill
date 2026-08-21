@@ -65,3 +65,6 @@ qwen-code-export-*.md
 
 # Generated runtime data shards (rebuilt from tracked sources)
 apps/visual/public/dream/shards/
+
+# Local project documentation (not tracked in remote Git)
+/docs/

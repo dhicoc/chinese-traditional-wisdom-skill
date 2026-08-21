@@ -4,11 +4,11 @@
 
 Before planning or editing this repository, read these files in order:
 
-1. `docs/NEXT-SESSION-HANDOFF.md` — latest cross-session state and immediate next task.
-2. `docs/IMPLEMENTATION-PLAN.md` — authoritative phased implementation plan and acceptance criteria.
-3. `SKILL.md` — Agent workflow.
-4. `RULES.md` — safety, privacy, claims, and local-computation boundaries.
-5. `tool-index.md` — current 32-tool CLI contract.
+1. `SKILL.md` — Agent workflow.
+2. `RULES.md` — safety, privacy, claims, and local-computation boundaries.
+3. `tool-index.md` — current 32-tool CLI contract.
+4. `ROADMAP.md` — maintained product direction and completed baseline.
+5. `CHANGELOG.md` — released behavior and compatibility changes.
 
 ## Current priority
 
@@ -26,4 +26,4 @@ v1.0.0 is formally released at tag `v1.0.0`. P0-P3 and the section-7 Skill behav
 
 ## Required verification
 
-For engine, runner, verifier, Dashboard, or public-contract changes, run the quality gates listed in `docs/IMPLEMENTATION-PLAN.md` section 9. Interaction, privacy, responsive, safety-copy, or report changes also require Playwright E2E.
+For engine, runner, verifier, Dashboard, or public-contract changes, run `pnpm typecheck`, `pnpm test`, `pnpm eval:skill`, `pnpm check:release`, `pnpm build`, and the relevant data contracts. Interaction, privacy, responsive, or report changes also require four-project Playwright E2E.

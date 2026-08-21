@@ -5,12 +5,7 @@
     {
       "path": "text",
       "operator": "contains-text",
-      "value": "P0-03：统一安全表达与模板"
-    },
-    {
-      "path": "text",
-      "operator": "contains-text",
-      "value": "项目已有全局免责声明，当前不再细化安全词典"
+      "value": "fine-grained safety-copy scanner"
     }
   ]
 }

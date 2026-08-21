@@ -38,8 +38,8 @@ pnpm engine:plan --query "想看今年事业"
 
 - `engine:bazi-time-sensitivity` 比较候选时辰的稳定与变化字段，不反推唯一时辰。
 - `engine:compare-rules` 支持八字神煞、称骨版本、大六壬流派、太乙配置、已核验时间基准和紫微动态口径；输出结构化 `commonFacts` / `differences`、逐变体来源与事实校验状态。
-- `engine:plan` 只做本地确定性路由与参数存在性检查，输出候选工具、缺失字段、风险提示和建议深度；不回显原始 query，不调用引擎。支持 `--query <text> [--provided fields]` 与 `--input <json>`，详见 [`docs/AGENT-PARAMETER-PLANNER.md`](docs/AGENT-PARAMETER-PLANNER.md)。
-- 三个命令是独立分析入口，不是第 33/34 个 `ToolEnvelope` 工具，不修改 `LOCAL_TOOL_REGISTRY`。规则比较完整契约见 [`docs/RULE-COMPARISON-LAB.md`](docs/RULE-COMPARISON-LAB.md)。
+- `engine:plan` 只做本地确定性路由与参数存在性检查，输出候选工具、缺失字段、风险提示和建议深度；不回显原始 query，不调用引擎。支持 `--query <text> [--provided fields]` 与 `--input <json>`；本节即为公开契约。
+- 三个命令是独立分析入口，不是第 33/34 个 `ToolEnvelope` 工具，不修改 `LOCAL_TOOL_REGISTRY`。规则比较输出只包含显式配置、结构化差异、引用与限制。
 
 公开输入 fixture 位于 `apps/visual/src/__fixtures__/local-tools/`。每个本地工具都有 `.success.json` 可执行示例；它同时是 CLI 回归的标准成功输入。每个工具也有 `.boundary.json` 与 `.failure.json`，分别覆盖业务边界和必须被 CLI 契约拒绝的输入。工具名、三类 fixture 与 CLI 工具表由 `apps/visual/src/legacy/localToolRegistry.ts` 的 `LOCAL_TOOL_REGISTRY` / `LOCAL_TOOL_NAMES` 统一派生，文档检查会阻止任何遗漏。
 

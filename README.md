@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  Stable release: <strong>v1.0.0</strong> · <a href="CHANGELOG.md">Changelog</a> · <a href="docs/releases/v1.0.0.md">Release Notes</a>
+  Stable release: <strong>v1.0.0</strong> · <a href="CHANGELOG.md">Changelog</a> · <a href="https://github.com/dhicoc/chinese-traditional-wisdom-skill/releases/tag/v1.0.0">Release Notes</a>
 </p>
 
 <p align="center">
@@ -193,7 +193,7 @@ pnpm engine <tool> <input-json-file>
 pnpm engine:compare-rules src/__fixtures__/analysis/rule-comparison-bazi.success.json
 ```
 
-该命令是 32 工具之外的独立只读分析入口，只比较结构化字段并列出每个规则来源，不推荐或裁定某一流派。完整支持域见 [规则差异实验室契约](docs/RULE-COMPARISON-LAB.md)。
+该命令是 32 工具之外的独立只读分析入口，只比较结构化字段并列出每个规则来源，不推荐或裁定某一流派。支持域和示例见本页 CLI 说明与 `tool-index.md`。
 
 在尚未确定工具和参数时，可先运行只读规划器：
 
@@ -201,7 +201,7 @@ pnpm engine:compare-rules src/__fixtures__/analysis/rule-comparison-bazi.success
 pnpm engine:plan --query "想看今年事业"
 ```
 
-规划器不排盘、不计算，也不回显原始咨询内容；它只列出候选工具、缺失字段、风险提示和建议深度。详见 [Agent 参数规划器契约](docs/AGENT-PARAMETER-PLANNER.md)。
+规划器不排盘、不计算，也不回显原始咨询内容；它只列出候选工具、缺失字段、风险提示和建议深度。输入方式和输出字段见 `tool-index.md`。
 
 除 `resolve_true_solar_time` 直接返回 `TrueSolarTimeResolution` 外，CLI 返回 JSON `ToolEnvelope`。呈现确定性事实前，应只从本次 `ToolEnvelope.data` 提取结构化 claims，再调用对应本地 `validate*Claims(data, claims)` 核验；该校验不能验证自由文本、传统解释、建议或预测。
 
@@ -216,7 +216,7 @@ pnpm engine:plan --query "想看今年事业"
 | [README_AI.md](README_AI.md) | AI Agent 的本地调用说明与故障处理 |
 | [tool-index.md](tool-index.md) | 32 个本地工具、标准 fixture 与 CLI 参考 |
 | [skill-evals/README.md](skill-evals/README.md) | 19 项本地 Skill 行为契约与 `pnpm eval:skill` 使用说明 |
-| [发布前验证与故障排查](docs/RELEASE-VERIFICATION.md) | 新环境安装、质量门、四浏览器回归与失败产物定位 |
+| [v1.0.0 Release](https://github.com/dhicoc/chinese-traditional-wisdom-skill/releases/tag/v1.0.0) | 安装包、Release Notes、Manifest 与 SHA256SUMS |
 | [`bootstrap/`](bootstrap/) | 八字、紫微、六爻、梅花、风水等领域的详细说明 |
 | [`apps/visual/`](apps/visual/) | Dashboard、纯 TypeScript 引擎与测试 |
 | [knowledge-base/manifest.generated.json](knowledge-base/manifest.generated.json) | 古籍、映射与 reference 的稳定 ID、来源状态、许可证状态和 SHA-256 校验 |
@@ -239,7 +239,7 @@ pnpm build
 pnpm test:e2e
 ```
 
-文档契约检查会确保公开工具清单、CLI、fixture 和关键使用约定保持一致。仅修改文档时，至少运行文档契约检查与 `git diff --check`；完整命令顺序、四浏览器准备和失败产物定位见[发布前验证与故障排查](docs/RELEASE-VERIFICATION.md)。
+文档契约检查会确保公开工具清单、CLI、fixture 和关键使用约定保持一致。仅修改文档时，至少运行文档契约检查与 `git diff --check`；完整质量门以根 `package.json`、`.github/workflows/ci.yml` 和 `tool-index.md` 为准。
 
 ## 仓库结构
 

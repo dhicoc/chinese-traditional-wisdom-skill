@@ -1,6 +1,6 @@
 # ROADMAP.md — 本地直调 Skill 主路线图
 
-> **当前实施入口（2026-08-19）：** 具体任务、文件范围、依赖关系与验收标准见 [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md)；跨会话恢复先读 [docs/NEXT-SESSION-HANDOFF.md](docs/NEXT-SESSION-HANDOFF.md)。
+> **当前状态：** v1.0.0 已正式发布；后续以本路线图、CHANGELOG、Skill eval 与 GitHub Release 维护下一版。
 ## 方向与不变边界
 
 本项目的唯一运行模型是本地、一次性、可复核的 Skill 调用：
@@ -19,7 +19,7 @@ Dashboard 是独立的浏览器端入口，按页面直接调用纯 TypeScript �
 - 真太阳时通过 `resolve_true_solar_time` 接收已外部核验的地点与历史时区证据，并生成 `trueSolarBirth`、`trueSolarResolution`；无法核验时必须明确“未完成真太阳时复核”的民用时间 fallback。
 - 项目保持离线优先、无账户、无远程服务端状态，也不新增协议适配层或 token 校验机制。
 
-技术实施细则见 [`docs/RESEARCH-ROADMAP.md`](docs/RESEARCH-ROADMAP.md)；架构决策历史见 [`EVOLUTION.md`](EVOLUTION.md)。
+架构决策历史见 [`EVOLUTION.md`](EVOLUTION.md)，发布变化见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 当前完成基线
 

@@ -3,7 +3,7 @@
   "id": "018-skip-fine-grained-safety-copy",
   "kind": "document",
   "input": {
-    "file": "docs/IMPLEMENTATION-PLAN.md"
+    "file": "AGENTS.md"
   },
   "synthetic": true
 }
