@@ -3,6 +3,8 @@
 </p>
 
 <h1 align="center">Chinese Traditional Wisdom Skill</h1>
+
+<p align="center">Stable release: <strong>v1.0.0</strong> · <a href="CHANGELOG.md">Changelog</a> · <a href="docs/releases/v1.0.0.md">Release Notes</a></p>
 <p align="center">A local-first Skill for traditional-culture consultation and reflection.</p>
 
 <p align="center">

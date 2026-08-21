@@ -14,6 +14,10 @@
 </p>
 
 <p align="center">
+  Stable release: <strong>v1.0.0</strong> · <a href="CHANGELOG.md">Changelog</a> · <a href="docs/releases/v1.0.0.md">Release Notes</a>
+</p>
+
+<p align="center">
   <a href="#能做什么">能做什么</a> ·
   <a href="#开始使用">开始使用</a> ·
   <a href="#准备哪些信息">准备哪些信息</a> ·

@@ -15,17 +15,16 @@ import sys, json, random
 def calculate(question=None, random_mode=False):
     """Perform Liuyao divination using ichingshifa."""
     try:
-        import ichingshifa
+        from ichingshifa.ichingshifa import Iching
     except ImportError:
-        return {'error': 'ichingshifa not installed. Run: pip install ichingshifa'}
+        return {'error': 'optional ichingshifa oracle is not installed; see requirements-optional-liuyao.txt'}
 
     try:
-        if random_mode:
-            # Generate random hexagram
-            hex_data = ichingshifa.generate_random_iching()
-        else:
-            # Generate iching based on question/time
-            hex_data = ichingshifa.generate_iching(question or '')
+        # ichingshifa 3.x exposes an Iching class. This historical helper uses
+        # the package's local time-based oracle for both modes; the question is
+        # display context only and is never an authoritative Agent calculation.
+        oracle = Iching()
+        hex_data = oracle.qigua_now()
 
         result = {
             'question': question or '(random)',

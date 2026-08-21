@@ -1,13 +1,8 @@
-# Python offline cross-check dependencies
-# Install only when maintaining or comparing legacy Python helpers:
-# pip install -r requirements.txt
-#
-# These packages are not required to install, publish, or run the Dashboard or CLI.
-# The authoritative runtime path is the local TypeScript engine under apps/visual.
-# Python helpers may be used only for offline cross-checking and never as user-facing
-# calculation sources.
+# Python offline cross-check dependencies installed by scripts/setup.*.
+# They are not required to install, publish, or run the Dashboard or CLI.
+# They must never replace the authoritative TypeScript
+# Agent/Dashboard calculation path.
 
 lunar-python==1.4.8
-iztro-py==0.1.0
-ichingshifa==0.1.0
-requests==2.32.3
+iztro-py==0.5.0
+requests==2.32.5

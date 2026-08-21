@@ -14,6 +14,8 @@ pnpm engine <tool> <input-json-file>
 → local claims validation
 ```
 
+Default `scripts/setup.*` installs the cross-platform Python oracle core from `requirements.txt`. The historical `liuyao_calc.py` can additionally use `requirements-optional-liuyao.txt`; that optional package may require native C++ build tools on platforms without an `sxtwl` wheel and is not required for a complete Agent/Dashboard installation.
+
 Python boundaries:
 
 - use only for offline maintenance and discrepancy research;

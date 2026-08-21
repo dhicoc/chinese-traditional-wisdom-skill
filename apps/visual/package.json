@@ -1,6 +1,6 @@
 {
   "name": "chinese-traditional-wisdom-visual",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.26.1",
@@ -40,7 +40,8 @@
     "engine:bazi-time-sensitivity": "tsx scripts/run-engine-agent.ts bazi-time-sensitivity",
     "engine:compare-rules": "tsx scripts/run-engine-agent.ts compare-rules",
     "engine:plan": "tsx scripts/run-engine-agent.ts plan",
-    "eval:skill": "tsx ../../skill-evals/run-evals.ts"
+    "eval:skill": "tsx ../../skill-evals/run-evals.ts",
+    "check:release": "node scripts/check-release-contract.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "1.3.3",

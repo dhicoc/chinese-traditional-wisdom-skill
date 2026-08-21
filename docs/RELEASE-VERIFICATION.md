@@ -46,17 +46,27 @@ pnpm engine resolve_true_solar_time src/__fixtures__/local-tools/resolve_true_so
 ```bash
 pnpm typecheck
 pnpm test:unit
+pnpm eval:skill
+pnpm check:release
 node scripts/smoke-react-shell.mjs
 node scripts/check-doc-contracts.mjs
 node scripts/check-knowledge-references.mjs
 node scripts/check-mapping-schema.mjs
 node scripts/check-react-migration.mjs
+node scripts/generate-knowledge-manifest.mjs --check
+node scripts/check-knowledge-provenance.mjs
+node scripts/generate-char-meaning-shards.mjs --check
+node scripts/generate-dream-shards.mjs --check
+node scripts/generate-knowledge-search-index.mjs --check
 node scripts/check-search-index.mjs
 pnpm build
+node scripts/check-bundle-budget.mjs
 pnpm test:e2e
 ```
 
 - `pnpm typecheck`：检查 TypeScript 项目引用与类型。
+- `pnpm eval:skill`：运行 19 项 Skill 行为与产品决定契约。
+- `pnpm check:release`：核对 VERSION、两个 package 版本、CHANGELOG、Release Notes、README 和 CI。
 - `pnpm test:unit`：运行 Vitest 引擎、契约与回归测试。
 - `node scripts/smoke-react-shell.mjs`：运行 React Shell smoke 检查。
 - `node scripts/check-doc-contracts.mjs`：核对 32 个 CLI 工具、`LOCAL_TOOL_NAMES`、success fixture、Runner、分发约束与公开文档契约。

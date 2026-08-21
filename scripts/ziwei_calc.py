@@ -12,41 +12,37 @@ Usage:
 import sys, json
 
 def calculate(birth_date, gender='male', hour=12):
-    """Calculate Ziwei chart using iztro-py."""
+    """Offline cross-check using the current iztro-py API."""
     try:
-        from iztro import astrolabe
+        from iztro_py import by_solar
     except ImportError:
-        return {'error': 'iztro-py not installed. Run: pip install iztro-py'}
+        return {'error': 'iztro-py offline oracle is not installed. Run the complete setup.'}
 
     try:
-        # Parse date
-        parts = birth_date.split('-')
-        year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
-
-        # iztro-py API:
-        # astrolabe.generate(year, month, day, hour, gender, fix=True)
-        result = astrolabe.generate(year, month, day, hour, gender, fix=True)
-
-        # Extract key data
+        year, month, day = [int(part) for part in birth_date.split('-')]
+        time_index = ((int(hour) + 1) // 2) % 12
+        gender_key = '男' if gender == 'male' else '女'
+        result = by_solar(f'{year}-{month}-{day}', time_index, gender_key)
         palaces = []
-        if hasattr(result, 'palaces'):
-            for p in result.palaces:
-                palaces.append({
-                    'name': getattr(p, 'name', ''),
-                    'stars': [{'name': s.name, 'brightness': s.brightness} for s in getattr(p, 'stars', []) if hasattr(s, 'name')],
-                })
-
-        minggong = result.minggong if hasattr(result, 'minggong') else None
-        shenggong = result.shenggong if hasattr(result, 'shenggong') else None
-
+        for palace in getattr(result, 'palaces', []):
+            stars = list(getattr(palace, 'major_stars', [])) + list(getattr(palace, 'minor_stars', []))
+            palaces.append({
+                'name': str(getattr(palace, 'name', '')),
+                'stars': [
+                    {'name': str(getattr(star, 'name', '')), 'brightness': str(getattr(star, 'brightness', '') or '')}
+                    for star in stars
+                ],
+            })
+        soul_palace = result.get_soul_palace() if hasattr(result, 'get_soul_palace') else None
+        body_palace = result.get_body_palace() if hasattr(result, 'get_body_palace') else None
         return {
             'birth_date': birth_date,
             'gender': gender,
-            'minggong': getattr(minggong, 'name', '') if minggong else '',
-            'shenggong': getattr(shenggong, 'name', '') if shenggong else '',
+            'minggong': str(getattr(soul_palace, 'name', '') or ''),
+            'shenggong': str(getattr(body_palace, 'name', '') or ''),
             'palaces': palaces,
-            'day_stem': result.day_stem if hasattr(result, 'day_stem') else '',
-            'day_branch': result.day_branch if hasattr(result, 'day_branch') else '',
+            'day_stem': '',
+            'day_branch': '',
         }
     except Exception as e:
         return {'error': f'Calculation failed: {str(e)}'}

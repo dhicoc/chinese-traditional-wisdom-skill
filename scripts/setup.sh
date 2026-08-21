@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 echo "=== Chinese Traditional Wisdom AI Agent Workflow - Setup ==="
 echo
-echo "[1/4] Installing Python offline-oracle dependencies..."
+echo "[1/5] Installing Python offline-oracle dependencies..."
 if command -v pip3 >/dev/null 2>&1; then
   pip3 install -r "$ROOT_DIR/requirements.txt"
 elif command -v pip >/dev/null 2>&1; then
@@ -16,16 +16,20 @@ else
 fi
 
 echo
-echo "[2/4] Installing the authoritative TypeScript runtime..."
+echo "[2/5] Verifying Python offline-oracle imports..."
+python3 "$ROOT_DIR/scripts/check_python_oracles.py" 2>/dev/null || python "$ROOT_DIR/scripts/check_python_oracles.py"
+
+echo
+echo "[3/5] Installing the authoritative TypeScript runtime..."
 pnpm --dir "$ROOT_DIR/apps/visual" install --frozen-lockfile
 
 echo
-echo "[3/4] Verifying TypeScript contracts and tool discovery..."
+echo "[4/5] Verifying TypeScript contracts and tool discovery..."
 pnpm --dir "$ROOT_DIR/apps/visual" typecheck
 pnpm --dir "$ROOT_DIR/apps/visual" engine:list >/dev/null
 
 echo
-echo "[4/4] Setup complete."
+echo "[5/5] Setup complete."
 echo
 echo "Authoritative Agent runtime:"
 echo "  pnpm engine:list"
