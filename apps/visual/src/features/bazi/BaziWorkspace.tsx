@@ -20,6 +20,7 @@ import { type BaziPillars, type WuxingStats } from '@/legacy/canvasRenderers';
 import type { ShenShaItem } from '@/legacy/shensha';
 import type { SolarBirth } from '@/legacy/birthBridge';
 import { useBirth } from '@/lib/birthContext';
+import { BirthTimeSensitivityPanel } from './BirthTimeSensitivityPanel';
 
 const DEFAULT_PILLARS: BaziPillars = {
   year: { stem: '甲', branch: '辰' },
@@ -293,6 +294,8 @@ export function BaziWorkspace() {
           </div>
         </div>
       </div>
+
+      <BirthTimeSensitivityPanel />
 
       <section className="bazi-summary-grid grid gap-px overflow-hidden border border-jade-500/20 bg-jade-500/20 sm:grid-cols-2 xl:grid-cols-4" aria-label="命局摘要">
         {[

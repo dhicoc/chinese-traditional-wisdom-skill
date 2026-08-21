@@ -2,7 +2,7 @@
 
 > 更新时间：2026-08-20
 > 分支：`main`
-> 状态：P0、P1、P2 已完成。下一项为 P3-01：出生时间不确定性分析。
+> 状态：P0、P1、P2、P3-01 已完成。下一项为 P3-02：流派与规则差异实验室。
 
 ## 新会话恢复步骤
 
@@ -179,3 +179,10 @@ git diff -- docs/IMPLEMENTATION-PLAN.md docs/NEXT-SESSION-HANDOFF.md AGENTS.md R
 - 新增 generated-data stale checks 和 `check:bundle-budget`；Vite chunk warning 从 1200KB 收紧到 700KB。
 - 当前预算：所有 JS gzip ≤250KB，最大 gzip 217456 bytes；非 vendor raw ≤700KB；首屏入口 gzip ≤50KB；budget 255/255 通过。
 - 最终验证：64 个测试文件、756 项单测、225 React smoke、321 文档契约、725 knowledge provenance、59 搜索契约、生产构建通过；姓名/解梦/测字/古籍四浏览器 E2E 24/24 通过。
+### P3-01 出生时辰不确定性 ✅
+
+- 新增 0–23 小时范围到传统时辰候选的确定性比较，跨午夜与同一时辰去重均有测试。
+- 输出 candidate、stableFacts、variableFacts 和限制，不存在 selectedHour，不校时、不反推。
+- 独立 `engine:bazi-time-sensitivity` 命令保持 32 ToolEnvelope Registry 不变；非法输入返回 `INVALID_INPUT`。
+- 八字 Dashboard 新增可折叠范围面板，显示候选数、稳定字段和变化字段。
+- 验证：760 项单测；四浏览器八字动态层/时辰比较 E2E 8/8 通过。

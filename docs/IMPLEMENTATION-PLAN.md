@@ -749,6 +749,8 @@ kb://fengshui/03-yang-house/八宅明镜.md#游年歌
 
 ## CTW-P3-01：出生时间不确定性分析
 
+> 状态：✅ 已完成（2026-08-21）。新增纯确定性时辰范围比较引擎、独立 Agent CLI 与八字 Dashboard 面板；按民用小时范围去重为传统时辰候选，输出 stableFacts/variableFacts，不输出 selectedHour，不通过人生事件或解释校时。760 项单测与四浏览器八字 E2E 8/8 通过。
+
 ```text
 输入出生时间范围
 → 枚举候选时辰

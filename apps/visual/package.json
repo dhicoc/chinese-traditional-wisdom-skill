@@ -36,7 +36,8 @@
     "check:char-shards": "node scripts/generate-char-meaning-shards.mjs --check",
     "data:dream-shards": "node scripts/generate-dream-shards.mjs",
     "check:dream-shards": "node scripts/generate-dream-shards.mjs --check",
-    "check:bundle-budget": "node scripts/check-bundle-budget.mjs"
+    "check:bundle-budget": "node scripts/check-bundle-budget.mjs",
+    "engine:bazi-time-sensitivity": "tsx scripts/run-engine-agent.ts bazi-time-sensitivity"
   },
   "dependencies": {
     "@radix-ui/react-slot": "1.3.3",

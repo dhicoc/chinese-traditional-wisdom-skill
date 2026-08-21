@@ -28,6 +28,7 @@
     "check:char-shards": "pnpm --dir apps/visual check:char-shards",
     "data:dream-shards": "pnpm --dir apps/visual data:dream-shards",
     "check:dream-shards": "pnpm --dir apps/visual check:dream-shards",
-    "check:bundle-budget": "pnpm --dir apps/visual check:bundle-budget"
+    "check:bundle-budget": "pnpm --dir apps/visual check:bundle-budget",
+    "engine:bazi-time-sensitivity": "pnpm --dir apps/visual engine:bazi-time-sensitivity"
   }
 }

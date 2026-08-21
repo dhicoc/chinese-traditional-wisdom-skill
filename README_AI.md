@@ -65,6 +65,10 @@ Agent 必须为影响结果的日期和年份提供显式字段。尤其是 `cal
 3. 联合分析：年度、月度、决策、空间时间、三式、养生、择日与合婚。
 4. 本地路由和参数检查：按本次请求在 Skill 侧完成；缺参必须追问，不得猜填。
 
+### 出生时辰不确定性
+
+用户只知道时段或完全不知道时辰时，不得默认子时，也不得根据人生事件反推。使用 `pnpm engine:bazi-time-sensitivity <input.json>` 比较候选范围：只转述 `stableFacts` 与 `variableFacts`，明确该结果不选择唯一出生时辰。此命令是分析入口，不新增 ToolEnvelope 工具。
+
 ### 八字动态层路由
 
 需要查询指定日期的大运、小运、流年、流月或流日时，继续使用 `bazi_calculate`，在既有输入中加入严格格式的 `transitDate: "YYYY-MM-DD"`。从本次 `ToolEnvelope.data.transit` 读取动态事实；小运按虚岁定位，并根据 `minor.source` 披露本地历法序列或 `local-fallback`。不要新建动态层工具，也不要让 Dashboard 经过 CLI Runner。

@@ -71,6 +71,17 @@ cd apps/visual && pnpm engine bazi_calculate - < src/__fixtures__/local-tools/ba
 
 结果仍为 `ToolEnvelope`，动态事实位于 `data.transit`。`bazi_calculate.transit.boundary.json` 覆盖节气边界，`bazi_calculate.transit.failure.json` 用于确认非法日期会被 CLI 契约拒绝。详细字段、claims 和解释边界见 `bootstrap/bazi-engine.md`。
 
+## 八字出生时辰不确定性比较
+
+该能力是独立确定性分析命令，不新增第 33 个 ToolEnvelope 工具，也不改变 32 工具 Registry：
+
+```bash
+cd apps/visual
+pnpm engine:bazi-time-sensitivity src/__fixtures__/analysis/bazi-time-sensitivity.success.json
+```
+
+输入只包含出生年月日、性别、历法和 0–23 的起止小时。输出枚举范围内不重复的传统时辰，分别列出候选四柱、五行计数、强弱术语，并把跨候选完全相同的字段放入 `stableFacts`、发生变化的字段放入 `variableFacts`。该命令不输出 `selectedHour`，不得根据人生事件、传统解释或模型推断选择唯一时辰。跨午夜范围按民用小时顺序处理；真太阳时仍须走独立外部核验链路。
+
 ## 显式时间输入
 
 公共 CLI 不读取系统当前年份来补全结果。以下字段必须显式提供：

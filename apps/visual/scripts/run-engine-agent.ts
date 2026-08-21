@@ -1,3 +1,4 @@
+import { Solar } from 'lunar-typescript';
 import { readFile } from 'node:fs/promises';
 import { stderr, stdout } from 'node:process';
 import { isLocalToolName } from '../src/legacy/localToolRegistry.ts';
@@ -6,6 +7,7 @@ import { verifyLocalToolClaims } from '../src/legacy/localClaimVerifier.ts';
 import { presentLocalTool } from '../src/legacy/agentPresentation.ts';
 import { LocalToolError, localToolErrorPayload } from '../src/legacy/localToolErrors.ts';
 import { createSafeResultBundle, serializeSafeResultBundle, verifySafeResultBundle } from '../src/legacy/resultBundle.ts';
+import { analyzeBaziTimeSensitivity, parseBaziTimeSensitivityInput } from '../src/legacy/baziTimeSensitivity.ts';
 
 async function readJson(path: string | undefined, label: string, tool?: string): Promise<unknown> {
   if (!path) throw new LocalToolError('INVALID_INPUT', `${label}缺少 JSON 文件路径。`, tool);
@@ -34,6 +36,16 @@ async function main() {
     return;
   }
 
+  if (command === 'bazi-time-sensitivity') {
+    try {
+      const input = parseBaziTimeSensitivityInput(await readJson(toolArg, 'input'));
+      stdout.write(`${JSON.stringify(analyzeBaziTimeSensitivity({ ...input, solar: Solar }))}\n`);
+      return;
+    } catch (error) {
+      if (error instanceof LocalToolError) throw error;
+      throw new LocalToolError('INVALID_INPUT', error instanceof Error ? error.message : String(error));
+    }
+  }
   if (command === 'verify-bundle') {
     const bundle = await readJson(toolArg, 'bundle');
     stdout.write(`${JSON.stringify(verifySafeResultBundle(bundle))}\n`);
@@ -64,7 +76,7 @@ async function main() {
     return;
   }
 
-  throw new LocalToolError('INVALID_INPUT', '用法：engine-agent list | describe <tool> | verify <tool> <envelope.json> <claims.json> | present <tool> <input.json> | bundle <tool> <input.json> [claims.json] | verify-bundle <bundle.json>');
+  throw new LocalToolError('INVALID_INPUT', '用法：engine-agent list | describe <tool> | verify <tool> <envelope.json> <claims.json> | present <tool> <input.json> | bundle <tool> <input.json> [claims.json] | verify-bundle <bundle.json> | bazi-time-sensitivity <input.json>');
 }
 
 main().catch((error: unknown) => {

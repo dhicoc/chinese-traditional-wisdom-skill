@@ -12,7 +12,7 @@ Before planning or editing this repository, read these files in order:
 
 ## Current priority
 
-P0, P1, and P2 are complete; P0-03 and P1-02 were explicitly skipped by product decision. Continue with P3-01: implement birth-time uncertainty analysis that compares candidate shichen outputs, reports stable versus variable facts, and never guesses or back-solves a unique birth time.
+P0, P1, P2, and P3-01 are complete; P0-03 and P1-02 were explicitly skipped by product decision. Continue with P3-02: build a rule/school comparison lab that runs explicitly selected configurations, diffs only structured fields, cites each ruleset, and never declares one school uniquely correct.
 
 ## Non-negotiable boundaries
 

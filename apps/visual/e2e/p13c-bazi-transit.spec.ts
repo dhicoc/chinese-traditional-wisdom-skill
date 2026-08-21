@@ -50,4 +50,24 @@ test.describe('P1.3c 八字动态层联动', () => {
     await expect(dateInput).toHaveValue('2026-01-01');
     await expect(workspace.getByLabel('目标年份')).toHaveValue('2026');
   });
+  test('出生时辰范围只比较稳定与变化字段，不反推唯一时辰', async ({ page }) => {
+    test.setTimeout(90000);
+    await page.goto(`${BASE_URL}#bazi`);
+    const workspace = page.locator('[data-testid="workspace-bazi"]');
+    const panel = workspace.getByTestId('bazi-time-sensitivity');
+    await expect(panel).toBeVisible({ timeout: 60000 });
+    await panel.getByRole('button', { name: '开始比较' }).press('Enter');
+    await expect(panel.getByText('候选时辰（12）')).toBeVisible();
+    await expect(panel.getByText('跨候选稳定')).toBeVisible();
+    await expect(panel.getByText('随时辰变化')).toBeVisible();
+    await expect(panel.getByText(/年柱：/)).toBeVisible();
+    await expect(panel.getByText(/时柱：\d+ 种结果/)).toBeVisible();
+
+    await panel.getByLabel('候选起始小时').fill('23');
+    await panel.getByLabel('候选结束小时').fill('1');
+    await expect(panel.getByText('候选时辰（2）')).toBeVisible();
+    await expect(panel).toContainText('不校时、不反推');
+    await expect(panel.getByText(/唯一出生时辰/)).toBeVisible();
+  });
+
 });
