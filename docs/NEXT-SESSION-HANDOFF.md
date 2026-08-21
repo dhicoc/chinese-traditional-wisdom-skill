@@ -1,8 +1,8 @@
 # 下一会话交接
 
-> 更新时间：2026-08-20
+> 更新时间：2026-08-21
 > 分支：`main`
-> 状态：P0、P1、P2、P3-01 已完成。下一项为 P3-02：流派与规则差异实验室。
+> 状态：P0、P1、P2、P3-01、P3-02 已完成。下一项为 P3-03：Agent 参数规划器。
 
 ## 新会话恢复步骤
 
@@ -63,16 +63,22 @@ git diff -- docs/IMPLEMENTATION-PLAN.md docs/NEXT-SESSION-HANDOFF.md AGENTS.md R
 
 ## 推荐下一任务
 
-执行 `CTW-P0-01` 的最小垂直切片：
+执行 `CTW-P3-03` Agent 参数规划器：
 
-1. 增加 `engine:list`；
-2. 增加 `engine:describe bazi_calculate`；
-3. 增加 `engine:verify bazi_calculate`；
-4. 加入单元和 CLI 集成测试；
-5. 更新 `SKILL.md` 和 `tool-index.md`；
-6. 运行全量质量门。
+1. 只做查询路由和参数完整性检查，不计算盘面；
+2. 输出候选工具、缺失字段、风险提示和建议深度；
+3. 复用现有 32 工具 descriptor/JSON Schema 与 P0-02 路由边界；
+4. 日期、年份、随机种子、流派和降级规则仍必须显式；
+5. 不把普通医疗、法律、财务、心理或一般人生建议自动术数化；
+6. 增加独立 CLI、success/boundary/failure、Dashboard/Agent 契约测试，并运行全量质量门。
 
-不要一开始重构全部 32 个工具；先让八字单工具端到端闭环，再扩展飞星与黄历。
+建议命令仍为：
+
+```bash
+pnpm engine:plan --query "想看今年事业"
+```
+
+与 `engine:bazi-time-sensitivity`、`engine:compare-rules` 一样，优先作为独立分析入口，不增加第 33 个 `ToolEnvelope` registry 工具。
 
 ## 不可破坏的架构边界
 
@@ -84,16 +90,12 @@ git diff -- docs/IMPLEMENTATION-PLAN.md docs/NEXT-SESSION-HANDOFF.md AGENTS.md R
 - Python 只用于离线交叉验证。
 - 不在日志、历史或报告中保存完整生辰、地点、姓名和原始问题。
 
-## 当前文档改动
+## 当前状态
 
-预期新增/修改：
+- P3-02 完成提交后工作树应保持干净并与 `origin/main` 同步。
+- 规则差异实验室契约见 `docs/RULE-COMPARISON-LAB.md`。
+- Playwright 浏览器固定目录：`D:\Caches\ms-playwright`。
 
-- `AGENTS.md`
-- `docs/IMPLEMENTATION-PLAN.md`
-- `docs/NEXT-SESSION-HANDOFF.md`
-- `ROADMAP.md`（增加实施入口链接）
-
-当前没有生产代码修改。
 ## 2026-08-20 阶段记录
 
 ### CTW-P0-01 ✅
@@ -186,3 +188,14 @@ git diff -- docs/IMPLEMENTATION-PLAN.md docs/NEXT-SESSION-HANDOFF.md AGENTS.md R
 - 独立 `engine:bazi-time-sensitivity` 命令保持 32 ToolEnvelope Registry 不变；非法输入返回 `INVALID_INPUT`。
 - 八字 Dashboard 新增可折叠范围面板，显示候选数、稳定字段和变化字段。
 - 验证：760 项单测；四浏览器八字动态层/时辰比较 E2E 8/8 通过。
+
+### P3-02 流派与规则差异实验室 ✅
+
+- 新增递归结构化比较核心：对象键和集合数组使用确定性 canonical 排序；少于两个、重复 ID 或无规则来源的变体会被拒绝。
+- 交付 6 个域：八字神煞 year/day、称骨 standard/folk/full、六壬 classic/gufa/daxquan、太乙 2–4 组 `jiStyle`/`acumYear`、民用/已核验真太阳时、紫微仅本命/月度动态层。
+- 每个变体均携带显式 config、citations、脱敏 provenance 与 `factsVerified`；自由文本解释、吉凶、应期和现实事件不进入 diff。
+- 独立 `engine:compare-rules` 命令复用输入契约，不改变 32 工具 registry；非法域、隐式/重复配置、真太阳时复算不一致均返回 `INVALID_INPUT`。
+- 八字 Dashboard 新增动态加载的“规则差异实验室”；未展开时不加载六壬、太乙和紫微比较模块。无完整核验结果时禁用时间基准页签，不补造地点证据。
+- 文档：`docs/RULE-COMPARISON-LAB.md`、`SKILL.md`、`tool-index.md`、README、ROADMAP 与实施计划已同步。
+- 最终本地 CI：67 个测试文件、779 项单测；225 React smoke、319 文档契约、726 knowledge provenance、59 搜索契约、506 mapping、62 React migration、生产构建与 269 项 bundle budget 全通过；最大 gzip 217454 bytes。
+- 四浏览器 E2E：Chromium、WebKit、Mobile Chrome、Mobile Safari 共 16/16 通过，覆盖 6 个域切换、无核验禁用和可复算真太阳时启用。

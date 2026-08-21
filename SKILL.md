@@ -21,7 +21,7 @@ cd apps/visual && pnpm engine <tool> <input-json-file>
 5. 除 `resolve_true_solar_time` 直接返回 `TrueSolarTimeResolution` 外，CLI 返回 `ToolEnvelope`。只从该次 `ToolEnvelope.data` 提取确定性事实；将 envelope 与最小 claims 分别写入临时 JSON 后，用 `pnpm engine:verify <tool> <envelope-json-file> <claims-json-file>` 核对 registry 已绑定 verifier 的结构化 claims；无 verifier 的工具不得伪造已核验事实。校验通过后才能写成“本次引擎结果”。
 6. 引擎失败时遵守 Fail-Two：停止盲目重试，检查输入和备用方案；不要用模型记忆补答。
 
-本地 CLI 与 Dashboard 都使用纯 TypeScript 引擎；CLI 经 `parseLocalToolInput()` / `runLocalTool()` 执行一次性契约，Dashboard 按页面直接调用纯引擎。Python 工具仅可作命令行交叉验证，不是对话计算数据源。
+本地 CLI 与 Dashboard 都使用纯 TypeScript 引擎；32 个 registry 工具经 `parseLocalToolInput()` / `runLocalTool()` 执行一次性契约，独立分析命令经各自输入 parser 调用纯本地引擎，Dashboard 按页面直接调用纯引擎。Python 工具仅可作命令行交叉验证，不是对话计算数据源。
 
 CLI 结果统一附带脱敏 provenance。需要跨会话交接时可运行 pnpm engine:bundle <tool> <input.json> [claims.json]，并用 pnpm engine:bundle:verify <bundle.json> 检查完整性；结果包不含原始输入、不可直接 replay，FNV 指纹不是密码学签名。
 
@@ -45,9 +45,11 @@ CLI 结果统一附带脱敏 provenance。需要跨会话交接时可运行 pnpm
 
 缺少出生时间、性别、起卦方式、住宅坐向等必要输入时必须追问。不得默认子时，不得猜测用户未提供的字段。
 
-若用户只能提供出生小时范围，使用 pnpm engine:bazi-time-sensitivity <input.json> 比较候选时辰的 stableFacts 与 ariableFacts。不得据人生事件、模型判断或传统解释反推唯一出生时辰。
+若用户只能提供出生小时范围，使用 pnpm engine:bazi-time-sensitivity <input.json> 比较候选时辰的 stableFacts 与 variableFacts。不得据人生事件、模型判断或传统解释反推唯一出生时辰。
 
-影响结果的当前日期或年份也不得由 CLI 隐式读取：飞星、八宅、年度联合和空间时间工具必须显式提供 year、	argetYear 或 currentMonth；Dashboard 可在 UI 层取得当前值后显式传入。
+若用户明确要求比较流派、版本、计式或时间口径，使用 `pnpm engine:compare-rules <input.json>`。该独立分析命令不属于 32 工具 registry；只允许比较调用方显式选择的配置，只引用 `commonFacts`、`differences`、各变体 `citations` 与 `factsVerified`。不得新增、推断或推荐 `bestVariant`、`selectedVariant`、`recommendedVariant`，也不得用解释、现实事件或预测选择流派。支持域与输入见 `docs/RULE-COMPARISON-LAB.md`。
+
+影响结果的当前日期或年份也不得由 CLI 隐式读取：飞星、八宅、年度联合和空间时间工具必须显式提供 year、targetYear 或 currentMonth；Dashboard 可在 UI 层取得当前值后显式传入。
 
 ## 2. 本地工具与数据流
 
@@ -82,7 +84,7 @@ Dashboard 只能展示核验、待核验和民用降级状态，不能自行猜�
 
 小运按目标日期的虚岁定位，`minor.source` 为 `lunar-exact` 时表示来自本地历法序列，为 `local-fallback` 时必须在解读中说明使用了本地降级规则。关系字段只说明干支规则事实，不可据此直接断言事业、婚恋、健康、财富或其他现实结果。完整输入示例与 claims 写法见 `bootstrap/bazi-engine.md`。
 
-CLI / Skill / Agent 必须经 `parseLocalToolInput()` 和 `runLocalTool()` 取得 `ToolEnvelope`；Dashboard 仍按页面直接调用纯 TypeScript 引擎，不经 CLI Runner。
+CLI / Skill / Agent 调用 32 个 registry 工具时必须经 `parseLocalToolInput()` 和 `runLocalTool()` 取得 `ToolEnvelope`；时辰与规则比较等独立分析命令必须经专用 parser，且只调用纯 TypeScript 引擎。Dashboard 仍按页面直接调用纯引擎，不经 CLI Runner。
 
 ## 5. 解读与报告
 

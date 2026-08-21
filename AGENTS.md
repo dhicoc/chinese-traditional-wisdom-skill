@@ -12,12 +12,12 @@ Before planning or editing this repository, read these files in order:
 
 ## Current priority
 
-P0, P1, P2, and P3-01 are complete; P0-03 and P1-02 were explicitly skipped by product decision. Continue with P3-02: build a rule/school comparison lab that runs explicitly selected configurations, diffs only structured fields, cites each ruleset, and never declares one school uniquely correct.
+P0, P1, P2, P3-01, and P3-02 are complete; P0-03 and P1-02 were explicitly skipped by product decision. Continue with P3-03: build an Agent parameter planner that only routes requests and reports candidate tools, missing fields, risk notices, and suggested depth; it must never calculate charts or silently invent dates, schools, seeds, or fallback choices.
 
 ## Non-negotiable boundaries
 
 - Models must not calculate charts, stems/branches, numeric mappings, or deterministic facts themselves.
-- Agent/CLI calls pass through the input contract and `runLocalTool()`; Dashboard calls pure browser-safe engines directly.
+- Agent/CLI registry-tool calls pass through the input contract and `runLocalTool()`; independent analysis commands use dedicated parsers and pure local engines; Dashboard calls pure browser-safe engines directly.
 - Claims validation covers structured facts only, never interpretations, predictions, advice, medical safety, or real-world outcomes.
 - Verified true solar time requires externally verified longitude, IANA timezone, historical UTC offset, daylight-saving evidence, and a recomputable resolution. Otherwise use the explicit civil-time fallback notice.
 - Do not add remote accounts, server sessions, persistent tokens, remote calculation, or protocol bridges.

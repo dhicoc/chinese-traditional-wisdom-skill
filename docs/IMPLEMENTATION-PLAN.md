@@ -771,6 +771,8 @@ kb://fengshui/03-yang-house/八宅明镜.md#游年歌
 
 ## CTW-P3-02：流派与规则差异实验室
 
+> 状态：✅ 已完成（2026-08-21）。已交付 6 个比较域、独立 Agent CLI、逐变体规则引用与 claims 校验、Dashboard 动态加载实验室及四浏览器回归；不增加第 33 个 registry 工具。
+
 首批对比：
 
 - 神煞三合来源 year/day；
@@ -781,6 +783,21 @@ kb://fengshui/03-yang-house/八宅明镜.md#游年歌
 - 紫微动态口径。
 
 只显示字段 diff，不把某一流派标记为唯一正确。
+
+已实现公开输出：
+
+- `variants[]`：显式配置、规则引用、脱敏 provenance 与 `factsVerified`；
+- `commonFacts[]`：全部配置相同的结构化字段；
+- `differences[]`：按变体列出不同的结构化字段；
+- `limitations[]`：固定声明不裁定唯一正确流派，不用解释、预测或现实事件选择配置。
+
+独立命令：
+
+```bash
+pnpm engine:compare-rules <comparison-input.json>
+```
+
+Dashboard 通过浏览器安全纯引擎直接运行，比较模块仅在展开实验室后动态加载。时间基准域只有完整、外部核验且本地复算一致的真太阳时结果存在时才可用；否则只显示缺失证据说明。详细契约与 fixture 清单见 `docs/RULE-COMPARISON-LAB.md`。
 
 ---
 

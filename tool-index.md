@@ -28,6 +28,17 @@ pnpm engine:present bazi_calculate <input-json-file>
 
 `apps/visual/src/legacy/localToolRegistry.ts` 是完整工具定义单一来源：每个工具声明必填输入键、类别、结果类型、实际 `resultToolId`、claims verifier、风险域和 presenter。`LOCAL_TOOL_NAMES`、Agent introspection、Runner 穷尽绑定、公开 verifier、fixture 路径和文档检查均由该定义或其键集合派生；新增工具遗漏任一绑定会在 TypeScript 或契约测试中失败。
 
+### 独立分析命令（不增加 registry 工具数）
+
+```bash
+pnpm engine:bazi-time-sensitivity <input-json-file>
+pnpm engine:compare-rules <comparison-input-json-file>
+```
+
+- `engine:bazi-time-sensitivity` 比较候选时辰的稳定与变化字段，不反推唯一时辰。
+- `engine:compare-rules` 支持八字神煞、称骨版本、大六壬流派、太乙配置、已核验时间基准和紫微动态口径；输出结构化 `commonFacts` / `differences`、逐变体来源与事实校验状态。
+- 两个命令是独立分析入口，不是第 33/34 个 `ToolEnvelope` 工具，不修改 `LOCAL_TOOL_REGISTRY`。规则比较完整契约见 [`docs/RULE-COMPARISON-LAB.md`](docs/RULE-COMPARISON-LAB.md)。
+
 公开输入 fixture 位于 `apps/visual/src/__fixtures__/local-tools/`。每个本地工具都有 `.success.json` 可执行示例；它同时是 CLI 回归的标准成功输入。每个工具也有 `.boundary.json` 与 `.failure.json`，分别覆盖业务边界和必须被 CLI 契约拒绝的输入。工具名、三类 fixture 与 CLI 工具表由 `apps/visual/src/legacy/localToolRegistry.ts` 的 `LOCAL_TOOL_REGISTRY` / `LOCAL_TOOL_NAMES` 统一派生，文档检查会阻止任何遗漏。
 
 从 stdin 调用时，将同一 JSON 内容传给 `-`：
