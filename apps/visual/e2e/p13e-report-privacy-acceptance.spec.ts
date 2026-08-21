@@ -63,7 +63,7 @@ test.describe('P1.3e 用户侧报告与隐私验收', () => {
 
     const workspace = page.locator('[data-testid="workspace-history"]');
     await expect(workspace.getByRole('heading', { name: '本地历史与收藏', exact: true }).first()).toBeVisible({ timeout: 60000 });
-    await expect(workspace.getByText('脱敏阅读摘要')).toBeVisible();
+    await expect(workspace.getByText('默认不保存。', { exact: false })).toBeVisible();
     await expect(workspace.getByText('1990年6月15日', { exact: true })).toHaveCount(0);
     const baziEntry = workspace.getByRole('article').filter({ hasText: '八字 · ****' });
     const entryText = await baziEntry.innerText();
@@ -72,7 +72,7 @@ test.describe('P1.3e 用户侧报告与隐私验收', () => {
     await baziEntry.getByTitle('收藏').click();
     page.once('dialog', (dialog) => void dialog.accept());
     await workspace.getByRole('button', { name: '清空历史' }).click();
-    await expect(workspace.getByText('暂无历史记录。生成命盘后会自动保存脱敏摘要。')).toBeVisible();
+    await expect(workspace.getByText('暂无历史记录。操作后可在预览中主动保存脱敏摘要。')).toBeVisible();
 
     await workspace.getByRole('button', { name: '收藏 (1)' }).click();
     await expect(workspace.getByTitle('取消收藏')).toBeVisible();
