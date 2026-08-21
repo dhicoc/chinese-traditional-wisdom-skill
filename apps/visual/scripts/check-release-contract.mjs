@@ -23,7 +23,7 @@ check(text('README.md').includes(`Stable release: <strong>v${version}</strong>`)
 check(!fs.existsSync(path.join(root, 'package-lock.json')), 'package-lock.json must not exist');
 check(rootPackage.private === true && visualPackage.private === true, 'packages must remain private/local distribution');
 check(rootPackage.packageManager === visualPackage.packageManager, 'packageManager must match');
-check(text('SKILL.md').startsWith('---\nname:'), 'SKILL frontmatter must remain present');
+check(/^---\r?\nname:/u.test(text('SKILL.md')), 'SKILL frontmatter must remain present');
 check(text('.github/workflows/ci.yml').includes('pnpm eval:skill'), 'CI must run Skill evals');
 check(text('apps/visual/pnpm-workspace.yaml').includes('nanoid: 3.3.18'), 'release must override patched nanoid');
 check(text('apps/visual/pnpm-workspace.yaml').includes('onlyBuiltDependencies'), 'allowed build dependencies must be explicit');
