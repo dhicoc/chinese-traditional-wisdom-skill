@@ -1,8 +1,8 @@
 # Skill 全链路真实用户模拟测试报告
 
-> 日期：2026-08-21  
-> 被测提交：`6e3b4b5 test(skill): add deterministic behavior evals`  
-> 分支：`main`  
+> 日期：2026-08-21
+> 被测提交：`6e3b4b5 test(skill): add deterministic behavior evals`
+> 分支：`main`
 > 测试类型：发布级全链路验收、真实用户旅程模拟、跨浏览器回归
 
 ## 一句话结论
