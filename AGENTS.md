@@ -12,7 +12,7 @@ Before planning or editing this repository, read these files in order:
 
 ## Current priority
 
-P0, P1, P2-01, and P2-02 are complete; P0-03 and P1-02 were explicitly skipped by product decision. Continue with P2-03: shard large character/dream/search data, move heavy search work off the main thread where justified, and enforce bundle-size budgets without hiding warnings.
+P0, P1, and P2 are complete; P0-03 and P1-02 were explicitly skipped by product decision. Continue with P3-01: implement birth-time uncertainty analysis that compares candidate shichen outputs, reports stable versus variable facts, and never guesses or back-solves a unique birth time.
 
 ## Non-negotiable boundaries
 

@@ -28,6 +28,7 @@ jobs:
         run: pnpm test:unit
       - name: contracts and smoke checks
         run: |
+          node scripts/generate-dream-shards.mjs
           node scripts/smoke-react-shell.mjs
           node scripts/check-doc-contracts.mjs
           node scripts/check-knowledge-references.mjs
@@ -35,10 +36,14 @@ jobs:
           node scripts/check-knowledge-provenance.mjs
           node scripts/check-mapping-schema.mjs
           node scripts/check-react-migration.mjs
+          node scripts/generate-char-meaning-shards.mjs --check
+          node scripts/generate-dream-shards.mjs --check
           node scripts/generate-knowledge-search-index.mjs --check
           node scripts/check-search-index.mjs
       - name: build
         run: pnpm build
+      - name: bundle budget
+        run: node scripts/check-bundle-budget.mjs
 
   playwright-e2e:
     name: Playwright E2E (${{ matrix.project }})

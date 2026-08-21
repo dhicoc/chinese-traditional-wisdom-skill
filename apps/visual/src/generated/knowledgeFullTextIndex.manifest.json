@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedBy": "generate-knowledge-search-index.mjs",
+  "sectionCount": 95,
+  "bookCitationIds": [
+    "kb://fengshui/01-situation-form/撼龙经.md",
+    "kb://fengshui/01-situation-form/疑龙经.md",
+    "kb://fengshui/01-situation-form/葬書-內篇.md",
+    "kb://fengshui/01-situation-form/葬書-外篇.md",
+    "kb://fengshui/01-situation-form/葬書-雜篇.md",
+    "kb://fengshui/01-situation-form/葬经翼.md",
+    "kb://fengshui/01-situation-form/雪心赋.md",
+    "kb://fengshui/02-principle-form/催官篇.md",
+    "kb://fengshui/02-principle-form/天玉经.md",
+    "kb://fengshui/02-principle-form/都天宝照经.md",
+    "kb://fengshui/02-principle-form/青囊序.md",
+    "kb://fengshui/02-principle-form/青囊经.md",
+    "kb://fengshui/03-yang-house/八宅明镜.md",
+    "kb://fengshui/03-yang-house/阳宅三要.md",
+    "kb://fengshui/03-yang-house/阳宅十书-全文.md",
+    "kb://fengshui/03-yang-house/阳宅十书-第10章-论符镇.md",
+    "kb://fengshui/03-yang-house/阳宅十书-第1章-论宅外形.md",
+    "kb://fengshui/03-yang-house/阳宅十书-第2章-论福元.md",
+    "kb://fengshui/03-yang-house/阳宅十书-第3章-论大游年.md",
+    "kb://fengshui/03-yang-house/阳宅十书-第4章-论穿宫九星.md",
+    "kb://fengshui/03-yang-house/阳宅十书-第5章-论元空装卦.md",
+    "kb://fengshui/03-yang-house/阳宅十书-第6章-论开门修造门.md",
+    "kb://fengshui/03-yang-house/阳宅十书-第7章-论放水.md",
+    "kb://fengshui/03-yang-house/阳宅十书-第8章-论宅内形.md",
+    "kb://fengshui/03-yang-house/阳宅十书-第9章-论宅选择.md",
+    "kb://fengshui/04-comprehensive/地理大全.md",
+    "kb://fengshui/04-comprehensive/宅经.md",
+    "kb://fengshui/04-comprehensive/管氏地理指蒙.md",
+    "kb://fengshui/05-others/入地眼全书.md",
+    "kb://fengshui/05-others/博山篇.md"
+  ],
+  "shards": [
+    "knowledgeFullTextIndex.shards/shard-0.json",
+    "knowledgeFullTextIndex.shards/shard-1.json",
+    "knowledgeFullTextIndex.shards/shard-2.json",
+    "knowledgeFullTextIndex.shards/shard-3.json"
+  ]
+}

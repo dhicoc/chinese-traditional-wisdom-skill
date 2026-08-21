@@ -23,6 +23,11 @@
     "knowledge:manifest": "pnpm --dir apps/visual knowledge:manifest",
     "check:knowledge-provenance": "pnpm --dir apps/visual check:knowledge-provenance",
     "knowledge:index": "pnpm --dir apps/visual knowledge:index",
-    "check:knowledge-index": "pnpm --dir apps/visual check:knowledge-index"
+    "check:knowledge-index": "pnpm --dir apps/visual check:knowledge-index",
+    "data:char-shards": "pnpm --dir apps/visual data:char-shards",
+    "check:char-shards": "pnpm --dir apps/visual check:char-shards",
+    "data:dream-shards": "pnpm --dir apps/visual data:dream-shards",
+    "check:dream-shards": "pnpm --dir apps/visual check:dream-shards",
+    "check:bundle-budget": "pnpm --dir apps/visual check:bundle-budget"
   }
 }

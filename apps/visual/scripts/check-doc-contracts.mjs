@@ -43,8 +43,13 @@ const requiredFiles = [
   "apps/visual/scripts/generate-knowledge-manifest.mjs",
   "apps/visual/scripts/check-knowledge-provenance.mjs",
   "apps/visual/src/legacy/knowledgeFullTextSearch.ts",
-  "apps/visual/src/generated/knowledgeFullTextIndex.json",
+  "apps/visual/src/generated/knowledgeFullTextIndex.manifest.json",
+  "apps/visual/src/generated/knowledgeFullTextIndex.shards/shard-0.json",
   "apps/visual/scripts/generate-knowledge-search-index.mjs",
+  "apps/visual/src/legacy/charMeaningLoaders.generated.ts",
+  "apps/visual/scripts/check-bundle-budget.mjs",
+  "apps/visual/scripts/generate-dream-shards.mjs",
+  "apps/visual/scripts/generate-char-meaning-shards.mjs",
   "requirements.txt",
   "package.json",
   "scripts/setup.sh",
@@ -158,6 +163,8 @@ check(ciWorkflow.includes("pnpm/action-setup@v5") && !ciWorkflow.includes("versi
   "CI 必须让 pnpm/action-setup 读取根 packageManager，不能再声明第二个 pnpm version。");
 check(ciWorkflow.includes("generate-knowledge-manifest.mjs --check") && ciWorkflow.includes("check-knowledge-provenance.mjs"),
   "CI 必须校验 knowledge manifest 与 provenance。");
+check(ciWorkflow.includes("check-bundle-budget.mjs") && ciWorkflow.includes("generate-char-meaning-shards.mjs --check") && ciWorkflow.includes("generate-dream-shards.mjs --check"),
+  "CI 必须校验数据分片陈旧状态与 bundle budget。");
 check(setupSh.includes("pip3 install") && setupSh.includes("pnpm --dir") && setupSh.includes("engine:list"),
   "setup.sh 必须同时安装 Python oracle 与 TypeScript runtime，并验证 engine:list。");
 check(setupBat.includes("python -m pip install") && setupBat.includes("pnpm --dir") && setupBat.includes("engine:list"),

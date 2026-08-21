@@ -36,19 +36,10 @@ export function getCharWuxing(char: string): string {
  * 字义出处文本（charMeanings.json，约 1.69MB）按需动态加载，避免拖入姓名五行/测字的静态 chunk。
  * 仅用于展示（字义出处），不参与任何评分计算；评分所需的 {k,w} 来自 kangxiStrokes.json（静态 import）。
  */
-let charMeaningsCache: Record<string, string> | null = null;
-async function loadCharMeanings(): Promise<Record<string, string>> {
-  if (!charMeaningsCache) {
-    const mod = await import('./charMeanings');
-    charMeaningsCache = mod.CHAR_MEANINGS;
-  }
-  return charMeaningsCache;
-}
-
-/** 取汉字字义出处（fate character.json 的 meaning 字段，19931 字）。未收录返回空串。 */
+/** 取汉字字义出处；按 Unicode 分片懒加载，仅加载目标字所属约 1/32 数据。 */
 export async function getCharMeaning(char: string): Promise<string> {
-  const CHAR_MEANINGS = await loadCharMeanings();
-  return CHAR_MEANINGS[char] ?? '';
+  const { getCharMeaningFromShard } = await import('./charMeanings');
+  return getCharMeaningFromShard(char);
 }
 
 /** 未收录字回退估算：用 Unicode 编码取模，仅作占位，UI 会标注「未收录」。 */

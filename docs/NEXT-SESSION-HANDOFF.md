@@ -2,7 +2,7 @@
 
 > 更新时间：2026-08-20
 > 分支：`main`
-> 状态：P0、P1、P2-01、P2-02 已完成。下一项为 P2-03：大型数据资源分片与 bundle budget。
+> 状态：P0、P1、P2 已完成。下一项为 P3-01：出生时间不确定性分析。
 
 ## 新会话恢复步骤
 
@@ -171,3 +171,11 @@ git diff -- docs/IMPLEMENTATION-PLAN.md docs/NEXT-SESSION-HANDOFF.md AGENTS.md R
 - 阅读器通过 Vite glob 将每部古籍拆为独立懒加载 chunk，能打开任意知识库古籍、定位章节并高亮关键词。
 - 原文与项目阅读说明保持双栏且不显示内部 kb:// ID。
 - 验证：748 项单测、构建通过，四浏览器 reader E2E 12/12 通过。
+### P2-03 数据分片与预算 ✅
+
+- 字义 19931 条按 Unicode 确定性拆为 32 个分片，单片约 46–56KB，浏览器和 Node/tsx 按目标字加载。
+- 95 个古籍章节索引均衡拆为 4 片，单片约 184–224KB；异步防抖搜索规模较小，暂不引入 Worker。
+- 9548 条解梦全量库从 12MB public 单文件迁为 source，并生成 22 个分类/体积分片，单片不超过 700KB；运行时按 manifest 加载。
+- 新增 generated-data stale checks 和 `check:bundle-budget`；Vite chunk warning 从 1200KB 收紧到 700KB。
+- 当前预算：所有 JS gzip ≤250KB，最大 gzip 217456 bytes；非 vendor raw ≤700KB；首屏入口 gzip ≤50KB；budget 255/255 通过。
+- 最终验证：64 个测试文件、756 项单测、225 React smoke、321 文档契约、725 knowledge provenance、59 搜索契约、生产构建通过；姓名/解梦/测字/古籍四浏览器 E2E 24/24 通过。

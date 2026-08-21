@@ -3,7 +3,7 @@
  *
  * 数据来源（均 MIT 许可）：
  * - 现代解读层：oswin-hu/zhougong_dream 9550 条（精选 137 条内嵌于 dreamData.ts，
- *   全量 9548 条放 public/dream/dream-dictionary.json 运行时 fetch）。
+ *   全量 9548 条按大类与体积分片放在 public/dream/shards/，运行时按 manifest 加载）。
  * - 古文原典层：KianReed/dreamlogic-mcp 952 条原版周公解梦古文断语（内嵌）。
  *
  * 提供：关键词搜索（精确→包含→古文）、吉凶配色、大类分类、多系统联动提示
@@ -75,7 +75,7 @@ function searchClassics(keyword: string): DreamClassic[] {
   return includes.slice(0, 8);
 }
 
-/** 全量库缓存（运行时 fetch public/dream/dream-dictionary.json） */
+/** 全量库缓存（运行时按 public/dream/shards/manifest.json 加载分类分片） */
 let fullEntriesCache: DreamEntry[] | null = null;
 let fullLoadingPromise: Promise<DreamEntry[]> | null = null;
 
@@ -83,19 +83,19 @@ let fullLoadingPromise: Promise<DreamEntry[]> | null = null;
 export function loadFullDictionary(): Promise<DreamEntry[]> {
   if (fullEntriesCache) return Promise.resolve(fullEntriesCache);
   if (fullLoadingPromise) return fullLoadingPromise;
-  fullLoadingPromise = fetch('/dream/dream-dictionary.json')
-    .then((res) => {
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.json() as unknown as DreamEntry[];
-    })
-    .then((data) => {
-      // 清洗空 title 脏数据
-      fullEntriesCache = data.filter((e) => e.title && e.title.trim() && e.biglx && e.biglx.trim());
+  fullLoadingPromise = fetch('/dream/shards/manifest.json')
+    .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json() as Promise<{ shards: Array<{ file: string }> }>; })
+    .then((manifest) => Promise.all(manifest.shards.map(({ file }) => fetch(`/dream/shards/${file}`).then((res) => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${file}`);
+      return res.json() as Promise<DreamEntry[]>;
+    }))))
+    .then((shards) => {
+      fullEntriesCache = shards.flat().filter((entry) => entry.title?.trim() && entry.biglx?.trim());
       return fullEntriesCache;
     })
-    .catch((err) => {
+    .catch((error) => {
       fullLoadingPromise = null;
-      console.warn('全量周公解梦库加载失败，回退精选库:', err);
+      console.warn('全量周公解梦分片加载失败，回退精选库:', error);
       return DREAM_ENTRIES;
     });
   return fullLoadingPromise;

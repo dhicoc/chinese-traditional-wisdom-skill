@@ -14,7 +14,7 @@ This file records bundled libraries and datasets that materially affect the loca
 
 | Dataset | Declared upstream/source | Use | Repository location | Current governance status |
 |---|---|---|---|---|
-| Dream dictionary | `oswin-hu/zhougong_dream` and `KianReed/dreamlogic-mcp`, declared MIT in source comments | Local folklore lookup | `apps/visual/public/dream/`, `src/legacy/dream-data/` | Upstream revision/hash must be recorded before formal redistribution. |
+| Dream dictionary | `oswin-hu/zhougong_dream` and `KianReed/dreamlogic-mcp`, declared MIT in source comments | Local folklore lookup | `apps/visual/src/legacy/dream-data/dream-dictionary.source.json`, gitignored generated `public/dream/shards/`, and `src/legacy/dream-data/dreamData.generated.ts` | Upstream revision/hash must be recorded before formal redistribution. |
 | Kangxi strokes and character meanings | `babyname/fate`, declared MIT in source comments | Name/character lookup | `src/legacy/kangxiStrokes.json`, `charMeanings.json` | Upstream revision/hash must be recorded before formal redistribution. |
 | Fengshui classical texts | Mixed public digitization sources listed in `knowledge-base/fengshui/_index.md` | Knowledge reading/reference | `knowledge-base/fengshui/` | Per-title source, edition, transcription rights and completeness need scholarly review. |
 | Fengshui mappings | Project-maintained compilation from traditional rules and cited sources | Deterministic local mappings | `knowledge-base/fengshui/mappings/` | Structure is CI-validated; rule correctness/source review remains separate. |

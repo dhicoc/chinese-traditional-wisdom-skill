@@ -201,6 +201,10 @@ pnpm engine <tool> <input-json-file>
 | [knowledge-base/manifest.generated.json](knowledge-base/manifest.generated.json) | 古籍、映射与 reference 的稳定 ID、来源状态、许可证状态和 SHA-256 校验 |
 | [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) | 运行库与捆绑数据集的来源和发布治理要求 |
 
+### 本地数据分片与性能预算
+
+大型字义、古籍全文索引和解梦全量库均由源数据生成分片：字义 32 片、全文索引 4 片、解梦 22 片。`pnpm check:bundle-budget` 在生产构建后检查首屏、gzip chunk、分片源文件和已移除的 12MB 公共单文件，CI 不通过提高 Vite 告警阈值掩盖回归。
+
 ### 开发验证
 
 改动引擎、输入契约、Dashboard 或公开文档后，在 `apps/visual` 运行：

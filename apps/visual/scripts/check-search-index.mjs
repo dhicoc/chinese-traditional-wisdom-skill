@@ -34,7 +34,7 @@ const modalPath = "apps/visual/src/features/search/SearchModal.tsx";
 check(exists(enginePath), "应存在 apps/visual/src/legacy/searchEngine.ts 搜索引擎纯函数");
 check(exists(termJsonPath), "应存在 termExplanations.json 术语数据");
 check(exists(modalPath), "应存在 features/search/SearchModal.tsx 搜索浮层组件");
-check(exists("apps/visual/src/generated/knowledgeFullTextIndex.json"), "应存在构建期古籍全文索引");
+check(exists("apps/visual/src/generated/knowledgeFullTextIndex.manifest.json") && exists("apps/visual/src/generated/knowledgeFullTextIndex.shards/shard-0.json"), "应存在构建期古籍全文分片索引");
 check(exists("apps/visual/src/legacy/knowledgeFullTextSearch.ts"), "应存在异步古籍全文搜索模块");
 check(exists("apps/visual/scripts/generate-knowledge-search-index.mjs"), "应存在古籍全文索引生成器");
 check(!exists("visual/js/search.js"), "旧 visual/js/search.js 应已移除");

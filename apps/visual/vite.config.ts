@@ -6,8 +6,8 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@kb': path.resolve(__dirname, '../../knowledge-base'),
+      '@': path.resolve(import.meta.dirname, './src'),
+      '@kb': path.resolve(import.meta.dirname, '../../knowledge-base'),
     },
   },
   server: {
@@ -20,7 +20,7 @@ export default defineConfig({
   build: {
     target: 'es2020',
     // 放宽体积告警阈值，便于观察拆分后各 chunk 实际大小
-    chunkSizeWarningLimit: 1200,
+    chunkSizeWarningLimit: 700,
     rollupOptions: {
       output: {
         // 手动分包：把重型历法/紫微/奇门库拆成独立 vendor chunk，

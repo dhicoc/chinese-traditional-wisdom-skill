@@ -4,7 +4,10 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'knowledge-base/manifest.generated.json'), 'utf8'));
-const output = path.join(root, 'apps/visual/src/generated/knowledgeFullTextIndex.json');
+const generatedDir = path.join(root, 'apps/visual/src/generated');
+const shardDir = path.join(generatedDir, 'knowledgeFullTextIndex.shards');
+const manifestPath = path.join(generatedDir, 'knowledgeFullTextIndex.manifest.json');
+const legacyPath = path.join(generatedDir, 'knowledgeFullTextIndex.json');
 const normalize = (text) => text.replace(/[`*_>#|\[\]()]/g, ' ').replace(/\s+/g, ' ').trim();
 const sections = [];
 
@@ -17,38 +20,37 @@ for (const entry of manifest.entries.filter((item) => item.contentType === 'prim
     if (!current) return;
     const text = normalize(current.lines.join('\n'));
     if (!text) return;
-    sections.push({
-      citationId: `${entry.id}#section-${String(current.index).padStart(4, '0')}`,
-      bookCitationId: entry.id,
-      file: entry.path.replace(/^knowledge-base\/fengshui\//, ''),
-      title: entry.title,
-      heading: current.heading,
-      excerpt: text.slice(0, 220),
-      searchText: `${entry.title} ${current.heading} ${text}`.toLowerCase(),
-    });
+    sections.push({ citationId: `${entry.id}#section-${String(current.index).padStart(4, '0')}`, bookCitationId: entry.id, file: entry.path.replace(/^knowledge-base\/fengshui\//, ''), title: entry.title, heading: current.heading, excerpt: text.slice(0, 220), searchText: `${entry.title} ${current.heading} ${text}`.toLowerCase() });
   };
   for (const line of lines) {
     const heading = /^(#{1,4})\s+(.+?)\s*$/.exec(line);
-    if (heading) {
-      flush();
-      current = { index: sectionIndex++, heading: normalize(heading[2]), lines: [line] };
-    } else {
-      if (!current) current = { index: sectionIndex++, heading: entry.title, lines: [] };
-      current.lines.push(line);
-    }
+    if (heading) { flush(); current = { index: sectionIndex++, heading: normalize(heading[2]), lines: [line] }; }
+    else { if (!current) current = { index: sectionIndex++, heading: entry.title, lines: [] }; current.lines.push(line); }
   }
   flush();
 }
-
 sections.sort((a, b) => a.citationId < b.citationId ? -1 : a.citationId > b.citationId ? 1 : 0);
-fs.mkdirSync(path.dirname(output), { recursive: true });
-const serialized = `${JSON.stringify({ schemaVersion: '1.0.0', generatedBy: 'generate-knowledge-search-index.mjs', sections }, null, 2)}\n`;
-if (process.argv.includes('--check')) {
-  if (!fs.existsSync(output) || fs.readFileSync(output, 'utf8') !== serialized) {
-    console.error('knowledge full-text index is stale; run pnpm knowledge:index');
-    process.exitCode = 1;
-  } else console.log(`knowledge full-text index: ${sections.length} sections current`);
-} else {
-  fs.writeFileSync(output, serialized);
-  console.log(`generated ${path.relative(root, output).replace(/\\/g, '/')}: ${sections.length} sections`);
+const SHARDS = 4;
+const buckets = Array.from({ length: SHARDS }, () => ({ bytes: 0, sections: [] }));
+for (const section of [...sections].sort((a, b) => JSON.stringify(b).length - JSON.stringify(a).length)) {
+  const bucket = buckets.reduce((smallest, candidate) => candidate.bytes < smallest.bytes ? candidate : smallest);
+  bucket.sections.push(section);
+  bucket.bytes += JSON.stringify(section).length;
 }
+const outputs = new Map();
+for (let i = 0; i < SHARDS; i++) {
+  buckets[i].sections.sort((a, b) => a.citationId < b.citationId ? -1 : a.citationId > b.citationId ? 1 : 0);
+  outputs.set(path.join(shardDir, `shard-${i}.json`), `${JSON.stringify({ schemaVersion: '1.0.0', sections: buckets[i].sections }, null, 2)}\n`);
+}
+const indexManifest = { schemaVersion: '1.0.0', generatedBy: 'generate-knowledge-search-index.mjs', sectionCount: sections.length, bookCitationIds: [...new Set(sections.map((item) => item.bookCitationId))].sort(), shards: Array.from({ length: SHARDS }, (_, i) => `knowledgeFullTextIndex.shards/shard-${i}.json`) };
+outputs.set(manifestPath, `${JSON.stringify(indexManifest, null, 2)}\n`);
+let stale = false;
+for (const [file, content] of outputs) {
+  if (process.argv.includes('--check')) { if (!fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== content) stale = true; }
+  else { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, content); }
+}
+if (!process.argv.includes('--check') && fs.existsSync(legacyPath)) fs.rmSync(legacyPath);
+if (process.argv.includes('--check')) {
+  if (stale || fs.existsSync(legacyPath)) { console.error('knowledge full-text shards are stale; run pnpm knowledge:index'); process.exitCode = 1; }
+  else console.log(`knowledge full-text index: ${sections.length} sections in ${SHARDS} shards current`);
+} else console.log(`generated ${sections.length} knowledge sections in ${SHARDS} shards`);
