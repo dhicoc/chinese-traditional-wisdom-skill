@@ -137,7 +137,8 @@ const KNOWLEDGE_BASE_ENTRIES: KnowledgeBaseEntry[] = KB_INDEX.map((entry) => ({
 }));
 
 export function findKnowledgeBaseEntry(citationId: string): KnowledgeBaseEntry | null {
-  return KNOWLEDGE_BASE_ENTRIES.find((entry) => entry.citationId === citationId) ?? null;
+  const bookCitationId = citationId.split('#')[0];
+  return KNOWLEDGE_BASE_ENTRIES.find((entry) => entry.citationId === bookCitationId) ?? null;
 }
 
 /** 全文搜索三源，返回按 score 降序的结果 */

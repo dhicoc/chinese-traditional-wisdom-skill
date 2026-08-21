@@ -28,7 +28,7 @@ describe('AncientTextSplitReader', () => {
     expect(document.body.textContent).not.toContain('eight-mansions');
   });
 
-  it('未收录古籍的 citation 不伪装为当前默认正文', () => {
+  it('通过任意知识库 citation 按需加载对应正文，不伪装为默认正文', async () => {
     const citationId = createKnowledgeCitationId('01-situation-form/葬書-內篇.md');
     dispatchReaderSearchIntent({
       term: '生气',
@@ -41,8 +41,9 @@ describe('AncientTextSplitReader', () => {
     expect(screen.getByText('当前古籍：葬书·内篇')).toBeInTheDocument();
     expect(screen.getByText('已关联古籍引用。')).toBeInTheDocument();
     expect(screen.queryByText(citationId)).not.toBeInTheDocument();
-    expect(screen.getByText('该古籍已建立稳定引用，但正文尚未内嵌到阅读器。')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '葬書（內篇）' }, { timeout: 10000 })).toBeInTheDocument();
     expect(screen.queryByText('八宅明镜 ↔ 八宅大游年映射')).not.toBeInTheDocument();
+    expect(document.body.textContent).not.toContain('kb://');
   });
 
   it('无 citation 的后续搜索回到默认已收录正文', () => {

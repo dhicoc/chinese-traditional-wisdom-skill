@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CopyContextButton } from '@/components/shared/CopyContextButton';
 import {
   consumeReaderSearchIntent,
@@ -9,6 +9,12 @@ import { getCanonicalHexagram, type CanonicalHexagram } from '@/legacy/ichingTex
 import { createKnowledgeCitationId, findKnowledgeBaseEntry } from '@/legacy/searchEngine';
 
 import bazhaiText from '@kb/fengshui/03-yang-house/八宅明镜.md?raw';
+
+const BOOK_LOADERS = import.meta.glob<string>([
+  '../../../../../knowledge-base/fengshui/**/*.md',
+  '!../../../../../knowledge-base/fengshui/mappings/**',
+  '!../../../../../knowledge-base/fengshui/_index.md',
+], { query: '?raw', import: 'default' });
 
 interface TextPair {
   id: string;
@@ -51,22 +57,19 @@ const TEXT_PAIRS: TextPair[] = [
 ];
 
 function renderMarkdownLite(text: string): string {
-  const h1Open = '<h1 class="text-jade-50 font-serif text-xl font-bold mt-5 mb-3">';
-  const h2Open = '<h2 class="text-jade-100 font-serif text-lg font-semibold mt-5 mb-2">';
-  const h3Open = '<h3 class="text-jade-100/70 font-semibold mt-4 mb-2">';
+  let headingIndex = 0;
   return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/^### (.+)$/gm, `${h3Open}$1</h3>`)
-    .replace(/^## (.+)$/gm, `${h2Open}$1</h2>`)
-    .replace(/^# (.+)$/gm, `${h1Open}$1</h1>`)
-    .replace(/^> (.+)$/gm, '<blockquote class="border-l-2 border-jade-500/30 pl-3 text-jade-100/55 italic my-2">$1</blockquote>')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/^(#{1,3}) (.+)$/gm, (_match, marks: string, title: string) => {
+      const id = `section-${String(headingIndex++).padStart(4, '0')}`;
+      const classes = marks.length === 1 ? 'text-jade-50 font-serif text-xl font-bold mt-5 mb-3' : marks.length === 2 ? 'text-jade-100 font-serif text-lg font-semibold mt-5 mb-2' : 'text-jade-100/70 font-semibold mt-4 mb-2';
+      return `<h${marks.length} id="${id}" data-knowledge-section="${id}" class="${classes}">${title}</h${marks.length}>`;
+    })
+    .replace(/^&gt; (.+)$/gm, '<blockquote class="border-l-2 border-jade-500/30 pl-3 text-jade-100/55 italic my-2">$1</blockquote>')
     .replace(/\*\*(.+?)\*\*/g, '<strong class="text-jade-100/80">$1</strong>')
     .replace(/^---$/gm, '<hr class="border-white/8 my-3" />')
     .replace(/\n\n/g, '</p><p class="text-jade-100/70 leading-7 my-1">')
-    .replace(/^/, '<p class="text-jade-100/70 leading-7 my-1">')
-    .replace(/$/, '</p>');
+    .replace(/^/, '<p class="text-jade-100/70 leading-7 my-1">').replace(/$/, '</p>');
 }
 
 function toIChingReading(detail: ReaderSearchIntentDetail): IChingReading | null {
@@ -111,11 +114,25 @@ function ClassicalTextCard({ title, hexagram, changingLines }: {
   );
 }
 
+function splitCitation(citationId: string): { bookCitationId: string; anchor: string | null; file: string | null } {
+  const [bookCitationId, anchor] = citationId.split('#');
+  const prefix = 'kb://fengshui/';
+  return { bookCitationId, anchor: anchor || null, file: bookCitationId.startsWith(prefix) ? bookCitationId.slice(prefix.length) : null };
+}
+
+function findBookLoader(file: string): (() => Promise<string>) | null {
+  const normalized = file.replace(/\\/g, '/');
+  const entry = Object.entries(BOOK_LOADERS).find(([key]) => key.replace(/\\/g, '/').endsWith(`/fengshui/${normalized}`));
+  return entry?.[1] ?? null;
+}
 export function AncientTextSplitReader() {
   const [selectedId, setSelectedId] = useState(TEXT_PAIRS[0].id);
   const [selectedCitationId, setSelectedCitationId] = useState(BAZHAI_CITATION_ID);
   const [searchTerm, setSearchTerm] = useState('');
   const [ichingReading, setIChingReading] = useState<IChingReading | null>(null);
+  const [loadedText, setLoadedText] = useState<string | null>(bazhaiText);
+  const [loadState, setLoadState] = useState<'idle' | 'loading' | 'error'>('idle');
+  const sourceContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function applyReaderSearchIntent(detail: ReaderSearchIntentDetail | null) {
@@ -135,19 +152,37 @@ export function AncientTextSplitReader() {
     return () => window.removeEventListener(READER_SEARCH_INTENT_EVENT, handleReaderSearchIntent);
   }, []);
 
+  useEffect(() => {
+    const { bookCitationId, file } = splitCitation(selectedCitationId);
+    if (!file || bookCitationId === BAZHAI_CITATION_ID) { setLoadedText(bazhaiText); setLoadState('idle'); return; }
+    const loader = findBookLoader(file);
+    if (!loader) { setLoadedText(null); setLoadState('error'); return; }
+    let cancelled = false;
+    setLoadedText(null);
+    setLoadState('loading');
+    void loader().then((source) => { if (!cancelled) { setLoadedText(source); setLoadState('idle'); } })
+      .catch(() => { if (!cancelled) { setLoadedText(null); setLoadState('error'); } });
+    return () => { cancelled = true; };
+  }, [selectedCitationId]);
   const selected = TEXT_PAIRS.find((pair) => pair.id === selectedId) ?? TEXT_PAIRS[0];
   const selectedBook = findKnowledgeBaseEntry(selectedCitationId);
-  const hasEmbeddedText = selectedCitationId === BAZHAI_CITATION_ID;
+  const { bookCitationId, anchor: selectedAnchor } = splitCitation(selectedCitationId);
+  const hasEmbeddedText = loadedText !== null;
   const highlightedSource = useMemo(() => {
-    const html = renderMarkdownLite(selected.source);
+    const html = renderMarkdownLite(loadedText ?? '');
     if (!searchTerm) return html;
     const escaped = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return html.replace(
       new RegExp(escaped, 'gi'),
       '<mark class="bg-amber-500/30 text-amber-100 rounded px-0.5">$&</mark>',
     );
-  }, [selected, searchTerm]);
+  }, [loadedText, searchTerm]);
 
+  useEffect(() => {
+    if (!selectedAnchor || !loadedText) return;
+    const frame = window.requestAnimationFrame(() => sourceContainerRef.current?.querySelector<HTMLElement>(`#${CSS.escape(selectedAnchor)}`)?.scrollIntoView({ block: 'start' }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [highlightedSource, loadedText, selectedAnchor]);
   const contextPayload = useMemo(() => ({
     项目: '古籍阅读',
     当前内容: ichingReading ? `《周易》${ichingReading.hexagram.name}卦` : selectedBook?.title ?? selected.title,
@@ -196,12 +231,13 @@ export function AncientTextSplitReader() {
           <div>
             <h2 className="font-serif text-2xl font-semibold text-jade-100">古籍阅读</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/55">
-              阅读古籍原文与相关说明，支持关键词搜索与重点标记；现收录《八宅明镜》与起卦关联的《周易》原文。
+              阅读知识库中的全部古籍原文，支持全文检索、章节定位与重点标记；起卦结果仍可关联《周易》卦爻原文。
             </p>
             <div className="mt-3 rounded-card border border-white/10 bg-black/20 p-3 text-xs leading-5 text-jade-100/55">
               <p>当前古籍：{selectedBook?.title ?? '未识别的古籍条目'}</p>
               <p className="mt-1 text-jade-300">已关联古籍引用。</p>
-              {!hasEmbeddedText && <p className="mt-2 text-amber-200">该古籍已建立稳定引用，但正文尚未内嵌到阅读器。</p>}
+              {loadState === 'loading' && <p className="mt-2 text-jade-300">正在按需加载古籍正文…</p>}
+              {loadState === 'error' && <p className="mt-2 text-amber-200">正文加载失败，请从搜索结果重新打开或检查知识索引。</p>}
             </div>
             <p className="mt-3 rounded-card border border-jade-500/20 bg-jade-500/10 p-3 text-xs leading-5 text-jade-100/55">
               古籍阅读内容仅作传统文化知识学习参考，不作为现实决策依据。
@@ -213,16 +249,18 @@ export function AncientTextSplitReader() {
 
       {hasEmbeddedText ? (
         <>
-          <div className="flex flex-wrap gap-2">
-            {TEXT_PAIRS.map((pair) => (
-              <button key={pair.id} type="button" onClick={() => setSelectedId(pair.id)} className={[
-                'shrink-0 rounded-full border px-3 py-2 text-xs font-medium transition',
-                pair.id === selectedId ? 'border-jade-500/40 bg-jade-500/12 text-jade-50' : 'border-transparent text-jade-100/45 hover:border-white/10 hover:text-jade-100/80',
-              ].join(' ')}>
-                {pair.title}
-              </button>
-            ))}
-          </div>
+          {bookCitationId === BAZHAI_CITATION_ID && (
+            <div className="flex flex-wrap gap-2">
+              {TEXT_PAIRS.map((pair) => (
+                <button key={pair.id} type="button" onClick={() => setSelectedId(pair.id)} className={[
+                  'shrink-0 rounded-full border px-3 py-2 text-xs font-medium transition',
+                  pair.id === selectedId ? 'border-jade-500/40 bg-jade-500/12 text-jade-50' : 'border-transparent text-jade-100/45 hover:border-white/10 hover:text-jade-100/80',
+                ].join(' ')}>
+                  {pair.title}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="flex items-center gap-3 rounded-panel border border-ink-700 bg-black/24 p-3">
             <span className="font-mono text-sm text-jade-500">🔍</span>
             <input type="text" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="搜索原文关键词…" className="flex-1 bg-transparent text-sm text-jade-100 placeholder:text-jade-100/55 focus:outline-none" />
@@ -231,11 +269,13 @@ export function AncientTextSplitReader() {
           <div className="grid gap-4 xl:grid-cols-2">
             <div className="min-w-0 rounded-panel border border-ink-700 bg-ink-850/60 p-4">
               <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2"><h3 className="font-serif text-sm font-semibold text-jade-100/70">古籍原文</h3></div>
-              <div className="max-h-[60vh] overflow-y-auto pr-2 text-sm leading-7" dangerouslySetInnerHTML={{ __html: highlightedSource }} />
+              <div ref={sourceContainerRef} data-testid="knowledge-book-source" className="max-h-[60vh] scroll-pt-4 overflow-y-auto pr-2 text-sm leading-7" dangerouslySetInnerHTML={{ __html: highlightedSource }} />
             </div>
             <div className="min-w-0 rounded-panel border border-ink-700 bg-ink-850/60 p-4">
               <div className="mb-3 flex items-center justify-between border-b border-white/8 pb-2"><h3 className="font-serif text-sm font-semibold text-jade-100/70">相关说明</h3></div>
-              <p className="rounded-card border border-white/8 bg-black/30 p-3 text-sm leading-7 text-jade-100/65">本页将《八宅明镜》原文与{selected.mappingName}并列阅读，便于对照理解传统术语与方位关系。</p>
+              <p className="rounded-card border border-white/8 bg-black/30 p-3 text-sm leading-7 text-jade-100/65">{bookCitationId === BAZHAI_CITATION_ID
+                  ? `本页将《八宅明镜》原文与${selected.mappingName}并列阅读，便于对照理解传统术语与方位关系。`
+                  : `本栏为项目阅读说明；左侧保持《${selectedBook?.title ?? '所选古籍'}》原文并关联稳定引用。原文与项目说明不混写。`}</p>
             </div>
           </div>
         </>

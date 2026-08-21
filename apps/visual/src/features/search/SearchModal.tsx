@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ModuleId } from '@/lib/modules';
 import { searchAll, type SearchResult } from '@/legacy/searchEngine';
 import { dispatchReaderSearchIntent } from '@/lib/commandIntents';
+import { searchKnowledgeFullText, type KnowledgeFullTextHit } from '@/legacy/knowledgeFullTextSearch';
 
 /**
  * SearchModal — 全局搜索浮层（从 visual/js/search.js 迁移）
@@ -21,6 +22,8 @@ export function openSearchModal(): void {
 export function SearchModal({ onSelectModule }: { onSelectModule: (id: ModuleId) => void }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [fullTextHits, setFullTextHits] = useState<KnowledgeFullTextHit[]>([]);
+  const [fullTextLoading, setFullTextLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -57,10 +60,25 @@ export function SearchModal({ onSelectModule }: { onSelectModule: (id: ModuleId)
     () => (open ? searchAll(debouncedQuery) : { terms: [], mappings: [], kb: [] }),
     [open, debouncedQuery],
   );
+  useEffect(() => {
+    let cancelled = false;
+    if (!open || !debouncedQuery.trim()) {
+      setFullTextHits([]);
+      setFullTextLoading(false);
+      return () => { cancelled = true; };
+    }
+    setFullTextLoading(true);
+    void searchKnowledgeFullText(debouncedQuery).then((hits) => {
+      if (!cancelled) setFullTextHits(hits);
+    }).finally(() => {
+      if (!cancelled) setFullTextLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [open, debouncedQuery]);
 
   if (!open) return null;
 
-  const total = result.terms.length + result.mappings.length + result.kb.length;
+  const total = result.terms.length + result.mappings.length + result.kb.length + fullTextHits.length;
 
   function openReader(term: string, citationId?: string) {
     onSelectModule('reader');
@@ -156,6 +174,27 @@ export function SearchModal({ onSelectModule }: { onSelectModule: (id: ModuleId)
             </ResultGroup>
           )}
 
+          {fullTextLoading && <div data-testid="search-fulltext-loading" className="px-5 py-2 text-xs text-jade-100/35">正在检索古籍正文…</div>}
+
+          {fullTextHits.length > 0 && (
+            <ResultGroup label="古籍正文" count={fullTextHits.length} testId="search-results-fulltext">
+              {fullTextHits.map((hit) => (
+                <button
+                  type="button"
+                  key={hit.citationId}
+                  className="block w-full border-b border-white/5 px-5 py-2.5 text-left transition hover:bg-white/5"
+                  onClick={() => openReader(debouncedQuery, hit.citationId)}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="rounded bg-jade-700/60 px-1.5 py-px text-[11px] font-bold text-white">正文</span>
+                    <span className="text-[13px] font-semibold text-jade-100">{highlight(hit.title, debouncedQuery)}</span>
+                    <span className="text-[11px] text-jade-100/40">{highlight(hit.heading, debouncedQuery)}</span>
+                  </div>
+                  <div className="mt-1 line-clamp-2 text-xs leading-relaxed text-jade-100/50">{highlight(hit.excerpt, debouncedQuery)}</div>
+                </button>
+              ))}
+            </ResultGroup>
+          )}
           {result.kb.length > 0 && (
             <ResultGroup label="古籍文献" count={result.kb.length} testId="search-results-ancient">
               {result.kb.slice(0, 10).map((k) => (

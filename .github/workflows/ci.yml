@@ -35,6 +35,7 @@ jobs:
           node scripts/check-knowledge-provenance.mjs
           node scripts/check-mapping-schema.mjs
           node scripts/check-react-migration.mjs
+          node scripts/generate-knowledge-search-index.mjs --check
           node scripts/check-search-index.mjs
       - name: build
         run: pnpm build

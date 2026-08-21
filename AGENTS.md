@@ -12,7 +12,7 @@ Before planning or editing this repository, read these files in order:
 
 ## Current priority
 
-P0, P1, and P2-01 are complete; P0-03 and P1-02 were explicitly skipped by product decision. Continue with P2-02: generate a real full-text section index from knowledge Markdown, lazy-load every book, navigate to stable kb:// anchors, and keep original text separate from project explanation.
+P0, P1, P2-01, and P2-02 are complete; P0-03 and P1-02 were explicitly skipped by product decision. Continue with P2-03: shard large character/dream/search data, move heavy search work off the main thread where justified, and enforce bundle-size budgets without hiding warnings.
 
 ## Non-negotiable boundaries
 

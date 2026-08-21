@@ -2,7 +2,7 @@
 
 > 更新时间：2026-08-20
 > 分支：`main`
-> 状态：P0、P1 已收口；P2-01 知识 Manifest 与来源治理已完成。下一项为 P2-02：真正的古籍全文检索与阅读器。
+> 状态：P0、P1、P2-01、P2-02 已完成。下一项为 P2-03：大型数据资源分片与 bundle budget。
 
 ## 新会话恢复步骤
 
@@ -163,3 +163,11 @@ git diff -- docs/IMPLEMENTATION-PLAN.md docs/NEXT-SESSION-HANDOFF.md AGENTS.md R
 - `generate-knowledge-manifest --check` 阻止生成结果漂移；`check-knowledge-provenance` 当前 725 项通过。
 - 新增 `THIRD_PARTY_NOTICES.md`，记录主要运行库、解梦、康熙字义和风水文本/映射的治理状态。
 - 验证：745 项单测、225 React smoke、309 文档契约、725 knowledge provenance、生产构建和四浏览器 smoke 32/32 通过。
+### P2-02 古籍全文检索与阅读器 ✅
+
+- 30 篇 primary text 构建为 95 个章节，稳定深链接格式为 `kb://fengshui/<file>#section-0000`。
+- 847KB 全文搜索索引通过 dynamic import 异步加载，不进入首屏同步依赖。
+- SearchModal 新增“古籍正文”结果组，支持正文短语、章节标题、书名综合评分。
+- 阅读器通过 Vite glob 将每部古籍拆为独立懒加载 chunk，能打开任意知识库古籍、定位章节并高亮关键词。
+- 原文与项目阅读说明保持双栏且不显示内部 kb:// ID。
+- 验证：748 项单测、构建通过，四浏览器 reader E2E 12/12 通过。

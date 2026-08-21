@@ -21,6 +21,8 @@
     "engine:bundle": "pnpm --dir apps/visual engine:bundle",
     "engine:bundle:verify": "pnpm --dir apps/visual engine:bundle:verify",
     "knowledge:manifest": "pnpm --dir apps/visual knowledge:manifest",
-    "check:knowledge-provenance": "pnpm --dir apps/visual check:knowledge-provenance"
+    "check:knowledge-provenance": "pnpm --dir apps/visual check:knowledge-provenance",
+    "knowledge:index": "pnpm --dir apps/visual knowledge:index",
+    "check:knowledge-index": "pnpm --dir apps/visual check:knowledge-index"
   }
 }

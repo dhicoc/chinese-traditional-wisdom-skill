@@ -34,6 +34,9 @@ const modalPath = "apps/visual/src/features/search/SearchModal.tsx";
 check(exists(enginePath), "应存在 apps/visual/src/legacy/searchEngine.ts 搜索引擎纯函数");
 check(exists(termJsonPath), "应存在 termExplanations.json 术语数据");
 check(exists(modalPath), "应存在 features/search/SearchModal.tsx 搜索浮层组件");
+check(exists("apps/visual/src/generated/knowledgeFullTextIndex.json"), "应存在构建期古籍全文索引");
+check(exists("apps/visual/src/legacy/knowledgeFullTextSearch.ts"), "应存在异步古籍全文搜索模块");
+check(exists("apps/visual/scripts/generate-knowledge-search-index.mjs"), "应存在古籍全文索引生成器");
 check(!exists("visual/js/search.js"), "旧 visual/js/search.js 应已移除");
 
 const engine = read(enginePath);
@@ -94,6 +97,7 @@ check(!engine.includes("'_index.md'"), "KB_INDEX 不应把 _index.md 当作正�
 check(modal.includes("openSearchModal"), "SearchModal 应导出 openSearchModal 触发函数");
 check(modal.includes("OPEN_SEARCH_INTENT_EVENT"), "SearchModal 应定义 OPEN_SEARCH_INTENT_EVENT 事件");
 check(modal.includes("searchAll"), "SearchModal 应调用 searchAll 检索");
+check(modal.includes("searchKnowledgeFullText") && modal.includes("search-results-fulltext"), "SearchModal 应异步检索并展示古籍正文结果");
 check(modal.includes("dispatchReaderSearchIntent"), "SearchModal 点击古籍应派发 reader 搜索意图");
 
 // ── AppShell 挂载契约 ──

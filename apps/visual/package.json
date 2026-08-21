@@ -27,7 +27,9 @@
     "engine:bundle": "tsx scripts/run-engine-agent.ts bundle",
     "engine:bundle:verify": "tsx scripts/run-engine-agent.ts verify-bundle",
     "knowledge:manifest": "node scripts/generate-knowledge-manifest.mjs",
-    "check:knowledge-provenance": "node scripts/generate-knowledge-manifest.mjs --check && node scripts/check-knowledge-provenance.mjs"
+    "check:knowledge-provenance": "node scripts/generate-knowledge-manifest.mjs --check && node scripts/check-knowledge-provenance.mjs",
+    "knowledge:index": "node scripts/generate-knowledge-search-index.mjs",
+    "check:knowledge-index": "node scripts/generate-knowledge-search-index.mjs --check"
   },
   "dependencies": {
     "@radix-ui/react-slot": "1.3.3",

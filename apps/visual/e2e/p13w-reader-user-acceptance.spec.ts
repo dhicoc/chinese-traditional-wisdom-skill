@@ -27,6 +27,28 @@ test.describe('P1.3w 古籍阅读用户侧验收', () => {
     await expect(workspace.getByRole('heading', { name: '古籍原文', exact: true })).toBeVisible();
   });
 
+  test('全文短语搜索定位到非默认古籍章节并按需加载原文', async ({ page }) => {
+    await page.goto(BASE_URL);
+    await expect(page.locator('[data-testid="app-shell"]')).toBeVisible();
+    await page.getByRole('button', { name: '打开命令面板' }).click();
+    await page.getByTestId('command-input').fill('全局搜索');
+    await page.getByTestId('command-result').filter({ hasText: '全局搜索 · 术语 / 古籍 / 映射表' }).click();
+
+    const searchInput = page.getByPlaceholder('搜索术语、古籍、风水概念…');
+    await searchInput.fill('杨公妙应不多言');
+    const fullTextResults = page.getByTestId('search-results-fulltext');
+    await expect(fullTextResults).toBeVisible({ timeout: 60000 });
+    await fullTextResults.getByText('都天宝照经', { exact: true }).first().click();
+
+    const workspace = page.locator('[data-testid="workspace-reader"]');
+    await expect(workspace.getByText('当前古籍：都天宝照经')).toBeVisible({ timeout: 60000 });
+    await expect(workspace.getByTestId('knowledge-book-source')).toContainText('杨公妙应不多言', { timeout: 60000 });
+    await expect(workspace.locator('mark').filter({ hasText: '杨公妙应不多言' })).toBeVisible();
+    await expect(workspace.getByText(/原文与项目说明不混写/)).toBeVisible();
+    await expect(workspace.getByText(/kb:\/\//)).toHaveCount(0);
+    await expectNoHorizontalOverflow(page);
+  });
+
   test('命令面板搜索、文本对切换与清除关键词刷新阅读内容，并呈现知识参考边界', async ({ page }) => {
     await page.goto(BASE_URL);
     await expect(page.locator('[data-testid="app-shell"]')).toBeVisible();
