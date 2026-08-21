@@ -12,7 +12,7 @@ Before planning or editing this repository, read these files in order:
 
 ## Current priority
 
-P0-P3 and the section-7 Skill behavior evaluation harness are complete; P0-03, P1-02, and P3-04 were explicitly skipped by product decision. The repository is in maintenance/release-audit mode. Run `pnpm eval:skill` before changing Skill behavior, and do not add a `riskSafetyGate`, execution-blocking safety CLI, capability-status split, fine-grained safety-copy scanner, or full-input history persistence unless product reverses those decisions.
+v1.0.0 is formally released at tag `v1.0.0`. P0-P3 and the section-7 Skill behavior evaluation harness are complete; P0-03, P1-02, and P3-04 were explicitly skipped by product decision. The repository is in stable maintenance and next-version product-planning mode. Run `pnpm eval:skill` before changing Skill behavior, preserve the v1.0.0 tag, and do not add a `riskSafetyGate`, execution-blocking safety CLI, capability-status split, fine-grained safety-copy scanner, or full-input history persistence unless product reverses those decisions.
 
 ## Non-negotiable boundaries
 

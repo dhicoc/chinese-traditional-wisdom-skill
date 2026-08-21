@@ -2,7 +2,7 @@
 
 > 更新时间：2026-08-21
 > 分支：`main`
-> 状态：P0-P3 与第 7 节 Skill 行为评测已完成；P0-03、P1-02、P3-04 按产品决定不实施。当前进入维护与发布审计状态。
+> 状态：v1.0.0 已正式发布；P0-P3 与第 7 节 Skill 行为评测已完成，P0-03、P1-02、P3-04 按产品决定不实施。当前进入稳定维护与下一版产品规划。
 
 ## 新会话恢复步骤
 
@@ -79,6 +79,16 @@ git diff -- docs/IMPLEMENTATION-PLAN.md docs/NEXT-SESSION-HANDOFF.md AGENTS.md R
 - 不引入远程账户、服务端状态、持久 token 或远程计算。
 - Python 只用于离线交叉验证。
 - 不在日志、历史或报告中保存完整生辰、地点、姓名和原始问题。
+
+## v1.0.0 正式发布
+
+- Tag：`v1.0.0` → `3a7dd71d0ae3d64c2d8572f04c0c28b3bc324b39`；
+- Release：`https://github.com/dhicoc/chinese-traditional-wisdom-skill/releases/tag/v1.0.0`；
+- 资产：源码包、Dashboard 静态包、Release Manifest、SHA256SUMS；
+- 发布 CI：`https://github.com/dhicoc/chinese-traditional-wisdom-skill/actions/runs/32468543910`，质量门和四浏览器全绿；
+- tag 冷克隆 setup、32 工具、19 eval、build、Chromium smoke 通过；
+- 资产下载校验和静态 Dashboard Canary 通过；
+- 详细证据：`docs/releases/v1.0.0-publication-verification.md`。
 
 ## 当前状态
 
