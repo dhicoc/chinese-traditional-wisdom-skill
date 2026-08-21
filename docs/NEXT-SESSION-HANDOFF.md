@@ -2,7 +2,7 @@
 
 > 更新时间：2026-08-21
 > 分支：`main`
-> 状态：P0、P1、P2、P3-01、P3-02 已完成。下一项为 P3-03：Agent 参数规划器。
+> 状态：P0、P1、P2、P3-01、P3-02、P3-03 已完成。下一项为 P3-04：高风险问题安全门。
 
 ## 新会话恢复步骤
 
@@ -63,22 +63,13 @@ git diff -- docs/IMPLEMENTATION-PLAN.md docs/NEXT-SESSION-HANDOFF.md AGENTS.md R
 
 ## 推荐下一任务
 
-执行 `CTW-P3-03` Agent 参数规划器：
+执行 `CTW-P3-04` 高风险问题安全门：
 
-1. 只做查询路由和参数完整性检查，不计算盘面；
-2. 输出候选工具、缺失字段、风险提示和建议深度；
-3. 复用现有 32 工具 descriptor/JSON Schema 与 P0-02 路由边界；
-4. 日期、年份、随机种子、流派和降级规则仍必须显式；
-5. 不把普通医疗、法律、财务、心理或一般人生建议自动术数化；
-6. 增加独立 CLI、success/boundary/failure、Dashboard/Agent 契约测试，并运行全量质量门。
-
-建议命令仍为：
-
-```bash
-pnpm engine:plan --query "想看今年事业"
-```
-
-与 `engine:bazi-time-sensitivity`、`engine:compare-rules` 一样，优先作为独立分析入口，不增加第 33 个 `ToolEnvelope` registry 工具。
+1. 覆盖急性/严重健康症状、停药/剂量/替代治疗、自伤/他伤、大额投资/借贷、结构性房屋改造、未授权第三人分析；
+2. 命中后先输出专业转介与边界，不生成确定性吉凶或现实效果承诺；
+3. 安全门只做分类和执行许可，不排盘、不判断现实结果；
+4. 复用 P0-02 `routeQuery()` 风险提示与 P3-03 `executionPolicy: refer-first`，避免两套不一致规则；
+5. 增加独立可测 contract、success/boundary/failure 与 CLI/Agent 回归，再运行完整 CI 和四浏览器 E2E。
 
 ## 不可破坏的架构边界
 
@@ -199,3 +190,15 @@ pnpm engine:plan --query "想看今年事业"
 - 文档：`docs/RULE-COMPARISON-LAB.md`、`SKILL.md`、`tool-index.md`、README、ROADMAP 与实施计划已同步。
 - 最终本地 CI：67 个测试文件、779 项单测；225 React smoke、319 文档契约、726 knowledge provenance、59 搜索契约、506 mapping、62 React migration、生产构建与 269 项 bundle budget 全通过；最大 gzip 217454 bytes。
 - 四浏览器 E2E：Chromium、WebKit、Mobile Chrome、Mobile Safari 共 16/16 通过，覆盖 6 个域切换、无核验禁用和可复算真太阳时启用。
+
+### P3-03 Agent 参数规划器 ✅
+
+- 新增 `agentParameterPlanner.ts`，复用 `routeQuery()` 与 32 工具 descriptor，只输出 route、候选工具、缺失字段、风险提示、执行策略和建议深度。
+- 独立 `engine:plan --query <text> [--provided fields]` / `--input <json>` 已接入；不改变 registry 工具数。
+- `providedFields` 只接受字段存在性，不接收值；输出不包含原始 query。
+- “今天/今年/明年”不隐式换算；完整生辰仍需明确 timeBasis；真太阳时先规划证据核验。
+- 普通医疗、法律、财务、心理问题不自动术数化；急性风险和未授权第三人请求使用 `refer-first`，候选 `executionAllowed: false`。
+- 静态测试锁定 planner 不导入 `directRunner`、`runLocalTool` 或排盘 Engine。
+- 文档：`docs/AGENT-PARAMETER-PLANNER.md`、SKILL、tool-index、README、ROADMAP 和实施计划已同步。
+- 最终本地 CI：69 个测试文件、796 项单测；225 React smoke、319 文档契约、726 knowledge provenance、59 搜索契约、506 mapping、62 React migration、生产构建与 269 项 bundle budget 全通过；最大 gzip 217454 bytes。
+- 四浏览器 smoke：Chromium、WebKit、Mobile Chrome、Mobile Safari 共 32/32 通过。

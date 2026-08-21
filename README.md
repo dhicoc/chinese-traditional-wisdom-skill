@@ -191,6 +191,14 @@ pnpm engine:compare-rules src/__fixtures__/analysis/rule-comparison-bazi.success
 
 该命令是 32 工具之外的独立只读分析入口，只比较结构化字段并列出每个规则来源，不推荐或裁定某一流派。完整支持域见 [规则差异实验室契约](docs/RULE-COMPARISON-LAB.md)。
 
+在尚未确定工具和参数时，可先运行只读规划器：
+
+```bash
+pnpm engine:plan --query "想看今年事业"
+```
+
+规划器不排盘、不计算，也不回显原始咨询内容；它只列出候选工具、缺失字段、风险提示和建议深度。详见 [Agent 参数规划器契约](docs/AGENT-PARAMETER-PLANNER.md)。
+
 除 `resolve_true_solar_time` 直接返回 `TrueSolarTimeResolution` 外，CLI 返回 JSON `ToolEnvelope`。呈现确定性事实前，应只从本次 `ToolEnvelope.data` 提取结构化 claims，再调用对应本地 `validate*Claims(data, claims)` 核验；该校验不能验证自由文本、传统解释、建议或预测。
 
 标准 success fixture、所有工具名与 CLI 示例见 [tool-index.md](tool-index.md)。

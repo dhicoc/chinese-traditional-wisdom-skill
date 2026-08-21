@@ -803,6 +803,8 @@ Dashboard 通过浏览器安全纯引擎直接运行，比较模块仅在展开�
 
 ## CTW-P3-03：Agent 参数规划器
 
+> 状态：✅ 已完成（2026-08-21）。已交付只读规划核心、独立 `engine:plan` CLI、presence-only 输入提示、风险/专业边界和 success/boundary/failure 回归；不增加 registry 工具。
+
 建议命令：
 
 ```bash
@@ -810,6 +812,17 @@ pnpm engine:plan --query "想看今年事业"
 ```
 
 输出候选工具、缺失字段、风险提示和建议深度。Planner 只做路由和参数检查，不做盘面计算。
+
+已实现：
+
+- 复用 `routeQuery()` 与 `LOCAL_TOOL_DESCRIPTORS`，候选工具始终来自现有 32 工具 registry；
+- `recognizedInputs` 只保存字段存在性，不输出原始 query 或字段值；
+- `missingInputs` 按 descriptor 必填键生成，并对生辰、时间基准、日期、年份、地点证据和第三人授权给出明确原因；
+- `executionPolicy` 区分 `plan-only`、`refer-first`、`knowledge-only` 与 `no-traditional-calculation`；
+- “今天/今年/明年”不被 CLI 静默换算，真太阳时先规划 `resolve_true_solar_time`，普通专业问题不自动术数化；
+- 源文件静态回归确保不导入 `directRunner`、`runLocalTool` 或任何排盘 Engine。
+
+完整契约与 fixture 见 `docs/AGENT-PARAMETER-PLANNER.md`。
 
 ---
 

@@ -49,6 +49,8 @@ CLI 结果统一附带脱敏 provenance。需要跨会话交接时可运行 pnpm
 
 若用户明确要求比较流派、版本、计式或时间口径，使用 `pnpm engine:compare-rules <input.json>`。该独立分析命令不属于 32 工具 registry；只允许比较调用方显式选择的配置，只引用 `commonFacts`、`differences`、各变体 `citations` 与 `factsVerified`。不得新增、推断或推荐 `bestVariant`、`selectedVariant`、`recommendedVariant`，也不得用解释、现实事件或预测选择流派。支持域与输入见 `docs/RULE-COMPARISON-LAB.md`。
 
+在选择工具前可运行 `pnpm engine:plan --query "<用户请求>"`。参数规划器只输出 `routeTarget`、候选工具、缺失字段、风险提示和建议深度，不调用计算引擎。只可把 `inputReady: true` 理解为必填字段名称齐全；仍须将真实输入交给对应 `parseLocalToolInput()`。命中 `refer-first`、`knowledge-only` 或 `no-traditional-calculation` 时不得绕过策略执行候选工具。Agent 不得回显、记录或持久化原始咨询文本。完整契约见 `docs/AGENT-PARAMETER-PLANNER.md`。
+
 影响结果的当前日期或年份也不得由 CLI 隐式读取：飞星、八宅、年度联合和空间时间工具必须显式提供 year、targetYear 或 currentMonth；Dashboard 可在 UI 层取得当前值后显式传入。
 
 ## 2. 本地工具与数据流
@@ -84,7 +86,7 @@ Dashboard 只能展示核验、待核验和民用降级状态，不能自行猜�
 
 小运按目标日期的虚岁定位，`minor.source` 为 `lunar-exact` 时表示来自本地历法序列，为 `local-fallback` 时必须在解读中说明使用了本地降级规则。关系字段只说明干支规则事实，不可据此直接断言事业、婚恋、健康、财富或其他现实结果。完整输入示例与 claims 写法见 `bootstrap/bazi-engine.md`。
 
-CLI / Skill / Agent 调用 32 个 registry 工具时必须经 `parseLocalToolInput()` 和 `runLocalTool()` 取得 `ToolEnvelope`；时辰与规则比较等独立分析命令必须经专用 parser，且只调用纯 TypeScript 引擎。Dashboard 仍按页面直接调用纯引擎，不经 CLI Runner。
+CLI / Skill / Agent 调用 32 个 registry 工具时必须经 `parseLocalToolInput()` 和 `runLocalTool()` 取得 `ToolEnvelope`；参数规划、时辰与规则比较等独立分析命令必须经专用 parser，且只调用纯 TypeScript 引擎。Dashboard 仍按页面直接调用纯引擎，不经 CLI Runner。
 
 ## 5. 解读与报告
 

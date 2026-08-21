@@ -9,6 +9,7 @@ import { LocalToolError, localToolErrorPayload } from '../src/legacy/localToolEr
 import { createSafeResultBundle, serializeSafeResultBundle, verifySafeResultBundle } from '../src/legacy/resultBundle.ts';
 import { analyzeBaziTimeSensitivity, parseBaziTimeSensitivityInput } from '../src/legacy/baziTimeSensitivity.ts';
 import { parseRuleComparisonRequest, runRuleComparison } from '../src/legacy/ruleComparison.ts';
+import { parseAgentParameterPlanInput, planAgentParameters } from '../src/legacy/agentParameterPlanner.ts';
 
 async function readJson(path: string | undefined, label: string, tool?: string): Promise<unknown> {
   if (!path) throw new LocalToolError('INVALID_INPUT', `${label}缺少 JSON 文件路径。`, tool);
@@ -31,12 +32,40 @@ function requireTool(value: string | undefined) {
 }
 
 async function main() {
-  const [command, toolArg, firstPath, secondPath] = process.argv.slice(2);
+  const args = process.argv.slice(2);
+  const [command, toolArg, firstPath, secondPath] = args;
   if (command === 'list') {
     stdout.write(`${JSON.stringify({ schemaVersion: '1.0.0', tools: listLocalToolDescriptors().map(({ name, category, resultKind, claimVerifier, riskDomain }) => ({ name, category, resultKind, claimVerifier, riskDomain })) })}\n`);
     return;
   }
 
+  if (command === 'plan') {
+    try {
+      let rawInput: unknown;
+      if (toolArg === '--input') {
+        if (args.length !== 3) throw new TypeError('用法：engine:plan --input <planner-input.json>。');
+        rawInput = await readJson(firstPath, 'planner input');
+      } else {
+        const queryIndex = args.indexOf('--query');
+        if (queryIndex < 0 || !args[queryIndex + 1]) throw new TypeError('engine:plan 必须提供 --query <text> 或 --input <file>。');
+        const providedIndex = args.indexOf('--provided');
+        const allowedLength = providedIndex >= 0 ? 5 : 3;
+        if (queryIndex !== 1 || args.length !== allowedLength || (providedIndex >= 0 && providedIndex !== 3)) {
+          throw new TypeError('用法：engine:plan --query <text> [--provided field1,field2]。');
+        }
+        rawInput = {
+          query: args[queryIndex + 1],
+          providedFields: providedIndex >= 0 ? args[providedIndex + 1]?.split(',').map((field) => field.trim()).filter(Boolean) : [],
+        };
+      }
+      stdout.write(`${JSON.stringify(planAgentParameters(parseAgentParameterPlanInput(rawInput)))}
+`);
+      return;
+    } catch (error) {
+      if (error instanceof LocalToolError) throw error;
+      throw new LocalToolError('INVALID_INPUT', error instanceof Error ? error.message : String(error));
+    }
+  }
   if (command === 'bazi-time-sensitivity') {
     try {
       const input = parseBaziTimeSensitivityInput(await readJson(toolArg, 'input'));
@@ -87,7 +116,7 @@ async function main() {
     return;
   }
 
-  throw new LocalToolError('INVALID_INPUT', '用法：engine-agent list | describe <tool> | verify <tool> <envelope.json> <claims.json> | present <tool> <input.json> | bundle <tool> <input.json> [claims.json] | verify-bundle <bundle.json> | bazi-time-sensitivity <input.json> | compare-rules <input.json>');
+  throw new LocalToolError('INVALID_INPUT', '用法：engine-agent list | describe <tool> | verify <tool> <envelope.json> <claims.json> | present <tool> <input.json> | bundle <tool> <input.json> [claims.json] | verify-bundle <bundle.json> | bazi-time-sensitivity <input.json> | compare-rules <input.json> | plan --query <text> [--provided fields] | plan --input <input.json>');
 }
 
 main().catch((error: unknown) => {
