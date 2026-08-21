@@ -41,6 +41,7 @@ const requiredFiles = [
   "knowledge-base/manifest.schema.json",
   "knowledge-base/manifest.generated.json",
   "apps/visual/scripts/generate-knowledge-manifest.mjs",
+  "apps/visual/scripts/lib/canonical-text.mjs",
   "apps/visual/scripts/check-knowledge-provenance.mjs",
   "apps/visual/src/legacy/knowledgeFullTextSearch.ts",
   "apps/visual/src/generated/knowledgeFullTextIndex.manifest.json",

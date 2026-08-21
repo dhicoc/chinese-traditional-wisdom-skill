@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { canonicalTextBuffer } from './lib/canonical-text.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const outputPath = path.join(root, 'knowledge-base/manifest.generated.json');
@@ -18,7 +19,7 @@ function filesUnder(dir, predicate) {
 }
 
 function hashFile(file) {
-  return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+  return crypto.createHash('sha256').update(canonicalTextBuffer(file)).digest('hex');
 }
 
 function inferScope(name) {
@@ -42,7 +43,7 @@ function entryFor(file, options) {
     license: options.license,
     reviewStatus: options.reviewStatus,
     sha256: hashFile(file),
-    bytes: stat.size,
+    bytes: canonicalTextBuffer(file).length,
     version: options.version ?? null,
   };
 }
