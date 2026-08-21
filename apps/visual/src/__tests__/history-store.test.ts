@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { HistoryStore, HISTORY_SCHEMA_VERSION } from '@/legacy/historyStore';
 
@@ -116,4 +118,41 @@ describe('HistoryStore', () => {
     expect(HistoryStore.list()).toEqual([]);
     getItem.mockRestore();
   });
+  it('preview 默认不写入，只有显式 add 才保存', () => {
+    const preview = HistoryStore.preview({ module: 'bazi', title: '待保存摘要', summary: '匿名摘要', mode: 'local' });
+    expect(preview).not.toBeNull();
+    expect(HistoryStore.list()).toEqual([]);
+    HistoryStore.add(preview!);
+    expect(HistoryStore.list()).toHaveLength(1);
+    expect(HistoryStore.list()[0].expiresAt).not.toBeNull();
+  });
+
+  it('按用户设置自动清理过期记录', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-08-21T00:00:00.000Z'));
+    HistoryStore.setRetentionDays(7);
+    HistoryStore.add({ module: 'bazi', title: '七天记录', summary: '摘要', mode: 'local' });
+    expect(HistoryStore.list()).toHaveLength(1);
+    vi.setSystemTime(new Date('2026-08-29T00:00:00.000Z'));
+    expect(HistoryStore.list()).toEqual([]);
+    vi.useRealTimers();
+  });
+
+  it('一键清空历史与收藏', () => {
+    const entry = HistoryStore.add({ module: 'bazi', title: '待清空', summary: '摘要', mode: 'local' });
+    HistoryStore.toggleFavorite(entry!.id);
+    HistoryStore.clearAll();
+    expect(HistoryStore.list()).toEqual([]);
+    expect(HistoryStore.listFavorites()).toEqual([]);
+  });
+
+  it('只持久化完整性有效且不可 replay 的结果包', () => {
+    const bundle = JSON.parse(fs.readFileSync(path.resolve('src/__fixtures__/analysis/history-safe-bundle.success.json'), 'utf8'));
+    HistoryStore.add({ module: 'bazi', title: '有效包', summary: '摘要', mode: 'verified-bundle', resultBundle: bundle });
+    expect(HistoryStore.list()[0].resultBundle?.integrity).toBe(bundle.integrity);
+
+    HistoryStore.add({ module: 'ziwei', title: '篡改包', summary: '摘要', mode: 'verified-bundle', resultBundle: { ...bundle, resultVersion: 'tampered' } });
+    expect(HistoryStore.list().find((entry) => entry.title === '篡改包')?.resultBundle).toBeUndefined();
+  });
+
 });

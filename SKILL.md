@@ -25,6 +25,8 @@ cd apps/visual && pnpm engine <tool> <input-json-file>
 
 CLI 结果统一附带脱敏 provenance。需要跨会话交接时可运行 pnpm engine:bundle <tool> <input.json> [claims.json]，并用 pnpm engine:bundle:verify <bundle.json> 检查完整性；结果包不含原始输入、不可直接 replay，FNV 指纹不是密码学签名。
 
+Dashboard 本地历史默认不保存。操作后仅生成内存中的脱敏预览，用户主动确认后才写入 localStorage；可设置自动过期或一键清空。导入结果包必须先通过完整性校验，且 `inputIncluded` / `replayable` 均为 false。完整生辰、地点、姓名和原始咨询问题不写入历史，也不提供加密持久化入口。
+
 ## 1. 三路分流
 
 先判定请求属于哪条路径，不要把普通人生问题自动术数化：

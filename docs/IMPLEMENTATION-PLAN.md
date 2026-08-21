@@ -845,6 +845,8 @@ pnpm engine:plan --query "想看今年事业"
 
 ## CTW-P3-05：脱敏、可选择的本地咨询历史
 
+> 状态：✅ 已完成（2026-08-21）。默认不保存；保存前预览；脱敏摘要和已核验事实显式保存；支持过期、一键清空及隐私安全结果包导入/导出。基于项目更严格的隐私边界，不提供完整输入或原始问题的持久化，即使加密也不写入历史。
+
 要求：
 
 - 默认不保存；
@@ -854,6 +856,14 @@ pnpm engine:plan --query "想看今年事业"
 - 一键清空；
 - 完整输入仅在用户主动选择时本地加密；
 - 支持导入/导出可复核结果包。
+
+实现说明：
+
+- 命令导航完成后只生成内存预览，localStorage 仍为空；用户点击“保存脱敏摘要”后才写入；
+- History schema v3 增加 `expiresAt`、`verifiedFacts` 和可选隐私安全 `resultBundle`；保留 v0/v1/v2 读取兼容；
+- 自动过期支持 7/30/90 天或永不过期；提供历史、收藏分别清理及一键清空全部；
+- 结果包导入前验证 canonical integrity、`inputIncluded: false`、`replayable: false`，显示预览后保存；导出前再次校验；
+- 完整输入本地加密入口不实施：全局边界禁止在历史中持久化完整生辰、地点、姓名或原始问题，采用“完全不保存”而不是“加密后保存”。
 
 ## 7. Skill 行为评测计划
 
@@ -957,21 +967,12 @@ pnpm exec playwright install chromium webkit
 3. `AgentPresentation` 放在现有 `ToolEnvelope` 内，还是作为独立输出；
 4. provenance 的 rulesetVersion 是全局版本还是按领域版本；
 5. 知识索引使用轻量倒排索引还是 MiniSearch/FlexSearch；
-6. 完整可重放结果包是否在首版支持本地加密输入；
+6. ✅ 已决定：不保存完整输入，不提供可重放或加密完整输入的历史入口；结果包继续 `inputIncluded: false` / `replayable: false`；
 7. 历史中的传统强烈术语是否保留原文标签并加解释，还是默认显示中性别名。
 
 ## 11. 下一会话的推荐第一任务
 
-从 `CTW-P0-01` 开始，但先只实现最小垂直切片：
-
-1. `engine:list`；
-2. `engine:describe bazi_calculate`；
-3. `engine:verify bazi_calculate`；
-4. 对应单元和 CLI 集成测试；
-5. 更新 `SKILL.md` 和 `tool-index.md`；
-6. 运行全量质量门。
-
-不要第一步就重构 32 个工具 registry。先证明一个工具的端到端契约，再推广到飞星和黄历，最后批量迁移。
+P0、P1、P2 和 P3 实施项已经完成或按产品决定明确跳过。下一步执行第 7 节 Skill 行为评测计划：先建立 cases / expected / run-evals 的最小闭环，验证路由、缺失参数、工具选择、claims 与安全边界，不再新增术数功能。
 
 ## 12. 当前结论
 

@@ -4,7 +4,8 @@ import { runLocalTool } from './directRunner';
 import { verifyLocalToolClaims } from './localClaimVerifier';
 import { LOCAL_TOOL_REGISTRY, type LocalToolName } from './localToolRegistry';
 import { LocalToolError } from './localToolErrors';
-import { canonicalStringify, hashStableValue, redactFingerprintInput, type ResultProvenance } from './provenance';
+import { canonicalStringify, redactFingerprintInput, type ResultProvenance } from './provenance';
+import { resultBundleIntegrity, verifyPortableResultBundle } from './resultBundleIntegrity';
 
 export interface SafeResultBundle {
   schemaVersion: '1.0.0';
@@ -28,10 +29,6 @@ function safeClaim(value: unknown): unknown {
   if (Array.isArray(redacted)) return redacted.map(safeClaim);
   if (redacted && typeof redacted === 'object') return Object.fromEntries(Object.entries(redacted as Record<string, unknown>).map(([key, child]) => [key, safeClaim(child)]));
   return redacted;
-}
-
-function bundleIntegrity(bundle: BundleWithoutIntegrity): string {
-  return `fnv1a32:${hashStableValue(bundle)}`;
 }
 
 export async function createSafeResultBundle(tool: LocalToolName, input: unknown, claims: unknown[] = []): Promise<SafeResultBundle> {
@@ -61,14 +58,11 @@ export async function createSafeResultBundle(tool: LocalToolName, input: unknown
     inputIncluded: false,
     replayable: false,
   };
-  return { ...base, integrity: bundleIntegrity(base) };
+  return { ...base, integrity: resultBundleIntegrity(base) };
 }
 
 export function verifySafeResultBundle(value: unknown): { valid: boolean; expected: string; actual?: string } {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return { valid: false, expected: '' };
-  const { integrity, ...base } = value as SafeResultBundle;
-  const expected = bundleIntegrity(base);
-  return { valid: integrity === expected, expected, actual: integrity };
+  return verifyPortableResultBundle(value);
 }
 
 export function serializeSafeResultBundle(bundle: SafeResultBundle): string {

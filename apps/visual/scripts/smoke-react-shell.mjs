@@ -540,7 +540,7 @@ if (exists(commandIntentsPath)) {
   check(commandIntents.includes('CommandHistoryEntry'), 'commandIntents 应定义命令历史条目类型');
 }
 
-check(commandBar.includes('recordCommandHistory'), 'CommandBar 应记录命令执行历史');
+check(commandBar.includes('prepareCommandHistory') && commandBar.includes('history-save-preview'), 'CommandBar 应在保存前展示脱敏历史预览');
 check(commandBar.includes('listCommandHistory'), 'CommandBar 应支持历史重放动态项');
 check(commandBar.includes('history-'), 'CommandBar 历史重放项应有稳定 id 前缀');
 

@@ -18,8 +18,10 @@ import {
   parseLiuyaoCommand,
   parseMeihuaCommand,
   parseReaderSearchCommand,
-  recordCommandHistory,
+  prepareCommandHistory,
+  savePreparedCommandHistory,
   listCommandHistory,
+  type CommandHistoryEntry,
 } from '@/lib/commandIntents';
 import { routeQuery, type AgentRoute } from '@/lib/agentRouter';
 import { AgentConfirmPanel } from './AgentConfirmPanel';
@@ -61,10 +63,12 @@ function CommandPalette({
   items,
   onDismiss,
   getDynamicItems,
+  onHistoryPreview,
 }: {
   items: CommandItem[];
   onDismiss: () => void;
   getDynamicItems?: (query: string) => CommandItem[];
+  onHistoryPreview: (entry: CommandHistoryEntry | null) => void;
 }) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -79,19 +83,19 @@ function CommandPalette({
     (item: CommandItem) => {
       item.action();
       if (item.module) {
-        recordCommandHistory({
+        onHistoryPreview(prepareCommandHistory({
           module: item.module,
           title: item.label,
           summary: '已打开对应工具。',
           tags: [item.group === '导航' ? '导航' : '工具'],
           mode: item.group === '导航' ? 'navigation' : 'command',
           inputSummary: '已打开对应工具；不记录原始输入。',
-        });
+        }));
       }
       dispatchCommandFeedback(buildCommandFeedback(item));
       onDismiss();
     },
-    [onDismiss],
+    [onDismiss, onHistoryPreview],
   );
 
   useEffect(() => {
@@ -202,6 +206,7 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [feedback, setFeedback] = useState<CommandFeedbackState | null>(null);
   const [pendingRoute, setPendingRoute] = useState<AgentRoute | null>(null);
+  const [historyPreview, setHistoryPreview] = useState<CommandHistoryEntry | null>(null);
   const active = getModuleById(activeModule);
   const inputRef = useRef<HTMLButtonElement>(null);
 
@@ -454,6 +459,7 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
           items={items}
           getDynamicItems={getDynamicItems}
           onDismiss={() => setPaletteOpen(false)}
+          onHistoryPreview={setHistoryPreview}
         />
       )}
 
@@ -468,14 +474,14 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
             if (route.liuyao) window.setTimeout(() => dispatchLiuyaoIntent(route.liuyao!), 0);
             if (route.meihua) window.setTimeout(() => dispatchMeihuaIntent(route.meihua!), 0);
             if (route.reader) window.setTimeout(() => dispatchReaderSearchIntent(route.reader!), 0);
-            recordCommandHistory({
+            setHistoryPreview(prepareCommandHistory({
               module: route.module,
               title: '已打开：' + getModuleById(route.module).title,
               summary: '已根据输入打开对应工具。',
               tags: ['工具'],
               mode: 'agent',
               inputSummary: '已根据输入打开对应工具；不记录原始问题或输入资料。',
-            });
+            }));
             dispatchCommandFeedback({
               title: '已打开：' + getModuleById(route.module).title,
               description: route.reason + (route.question ? ' · ' + route.question : ''),
@@ -485,6 +491,19 @@ export function CommandBar({ activeModule, onSelectModule }: CommandBarProps) {
           }}
           onCancel={() => setPendingRoute(null)}
         />
+      )}
+
+      {historyPreview && (
+        <aside data-testid="history-save-preview" className="fixed bottom-5 right-5 z-[65] w-[min(24rem,calc(100vw-2rem))] rounded-card border border-gold-500/30 bg-ink-850/95 p-4 shadow-2xl">
+          <p className="text-xs font-semibold text-gold-300">保存前预览（默认不保存）</p>
+          <p className="mt-2 text-sm text-jade-50">{historyPreview.title}</p>
+          <p className="mt-1 text-xs leading-5 text-jade-100/55">{historyPreview.summary}</p>
+          <p className="mt-1 text-[11px] text-jade-100/40">{historyPreview.inputSummary}</p>
+          <div className="mt-3 flex justify-end gap-2">
+            <button type="button" onClick={() => setHistoryPreview(null)} className="rounded border border-white/10 px-3 py-1.5 text-xs text-jade-100/60">不保存</button>
+            <button type="button" onClick={() => { savePreparedCommandHistory(historyPreview); setHistoryPreview(null); }} className="rounded border border-jade-500/30 bg-jade-500/15 px-3 py-1.5 text-xs text-jade-100">保存脱敏摘要</button>
+          </div>
+        </aside>
       )}
 
       {feedback && (

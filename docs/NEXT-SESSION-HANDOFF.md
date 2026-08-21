@@ -2,7 +2,7 @@
 
 > 更新时间：2026-08-21
 > 分支：`main`
-> 状态：P0、P1、P2、P3-01、P3-02、P3-03 已完成；P3-04 按产品决定不实施。下一项为 P3-05：脱敏、可选择的本地咨询历史。
+> 状态：P0、P1、P2、P3-01、P3-02、P3-03、P3-05 已完成；P3-04 按产品决定不实施。P0-P3 实施优化已收口，下一项为第 7 节 Skill 行为评测。
 
 ## 新会话恢复步骤
 
@@ -63,16 +63,13 @@ git diff -- docs/IMPLEMENTATION-PLAN.md docs/NEXT-SESSION-HANDOFF.md AGENTS.md R
 
 ## 推荐下一任务
 
-执行 `CTW-P3-05` 脱敏、可选择的本地咨询历史：
+执行 `docs/IMPLEMENTATION-PLAN.md` 第 7 节 Skill 行为评测计划：
 
-1. 默认不保存；保存前显示内容预览；
-2. 只保存已核验事实和匿名摘要，可设置自动过期并一键清空；
-3. 完整输入仅在用户主动选择时本地加密；
-4. 支持导入/导出可复核结果包；
-5. 不引入账户、远端同步、服务端 session 或持久 token；
-6. 先审计现有 `historyStore`、HistoryWorkspace、报告和 result bundle，复用现有能力，不重复实现。
-
-P3-04 不再实施；不要重新创建 `riskSafetyGate`，除非产品明确改变决定。
+1. 建立 `skill-evals/cases`、`expected`、`run-evals`；
+2. 覆盖路由、缺失参数追问、工具选择、claims 引用、知识/计算边界和已跳过产品决定；
+3. Eval 只评估行为契约，不调用远端计算，不保存原始咨询资料；
+4. P3-04 不再实施，不要重新创建 `riskSafetyGate`；
+5. P3-05 完整输入持久化不实施，继续采用“不保存”边界。
 
 ## 不可破坏的架构边界
 
@@ -212,3 +209,14 @@ P3-04 不再实施；不要重新创建 `riskSafetyGate`，除非产品明确改
 - 已撤销本阶段所有未提交的安全门代码、CLI、测试与界面阻断改动。
 - 保留既有全局 `RULES.md`、免责声明和 P0-02 路由提示，不扩大、不细化额外安全门。
 - 撤销后 typecheck 及 Agent Router / P3-03 Planner 相关 44 项回归通过，工作树恢复干净。
+
+### P3-05 脱敏、可选择的本地咨询历史 ✅
+
+- CommandBar 不再自动写历史；操作完成后显示“保存前预览（默认不保存）”，用户主动确认才写 localStorage。
+- History schema 升级到 v3，新增 expiresAt、verifiedFacts 与可选隐私安全 resultBundle；旧 schema 继续迁移和重新脱敏。
+- 自动过期支持 7/30/90 天或永不过期；新增一键清空全部，保留原有历史/收藏独立清理。
+- 结果包导入前校验完整性和隐私标志，先预览后保存；导出前再次校验，可原样下载。
+- 不提供完整输入加密保存：完整生辰、地点、姓名和原始问题始终不进入历史，采用更严格的“不保存”。
+- 文档：`docs/LOCAL-HISTORY-PRIVACY.md`、SKILL、README、ROADMAP 和实施计划已同步。
+- 最终本地 CI：69 个测试文件、800 项单测；225 React smoke、319 文档契约、726 knowledge provenance、59 搜索契约、506 mapping、62 React migration、生产构建与 269 项 bundle budget 全通过；最大 gzip 217461 bytes。
+- 四浏览器历史/隐私 E2E 最终 48/48 通过（首次新增 expiresAt 后 8 项测试误把到期时间当生辰日期，排除系统元数据后四浏览器 8/8 复验通过）。

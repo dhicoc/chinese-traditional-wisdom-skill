@@ -49,7 +49,7 @@ function hasFullDate(s: string): boolean {
 
 /** 检查历史/收藏条目是否含完整出生日期，排除 createdAt/id 等时间戳字段 */
 function entryHasFullBirthDate(entry: Record<string, unknown>): boolean {
-  const skipKeys = new Set(['createdAt', 'id', 'timestamp', 'generatedAt']);
+  const skipKeys = new Set(['createdAt', 'expiresAt', 'id', 'timestamp', 'generatedAt']);
   for (const [key, value] of Object.entries(entry)) {
     if (skipKeys.has(key)) continue;
     if (typeof value === 'string' && hasFullDate(value)) return true;

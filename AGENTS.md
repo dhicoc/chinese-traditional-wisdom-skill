@@ -12,7 +12,7 @@ Before planning or editing this repository, read these files in order:
 
 ## Current priority
 
-P0, P1, P2, P3-01, P3-02, and P3-03 are complete; P0-03, P1-02, and P3-04 were explicitly skipped by product decision. Do not add a `riskSafetyGate` or new execution-blocking safety CLI unless product reverses that decision. Continue with P3-05: improve the opt-in, privacy-safe local consultation history by auditing and extending the existing history store, preview, expiry, clearing, and verifiable result-bundle flows without remote accounts or synchronization.
+P0, P1, P2, P3-01, P3-02, P3-03, and P3-05 are complete; P0-03, P1-02, and P3-04 were explicitly skipped by product decision. Do not add a `riskSafetyGate`, execution-blocking safety CLI, or full-input history persistence unless product reverses those decisions. The next task is the section-7 Skill behavior evaluation harness (`skill-evals/cases`, `expected`, and `run-evals`), not another calculation feature.
 
 ## Non-negotiable boundaries
 
