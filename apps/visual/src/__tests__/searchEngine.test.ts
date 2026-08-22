@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createKnowledgeCitationId, findKnowledgeBaseEntry, searchAll, getIndexStats } from '@/legacy/searchEngine';
+import { createKnowledgeCitationId, findKnowledgeBaseEntry, listKnowledgeBaseEntries, searchAll, getIndexStats } from '@/legacy/searchEngine';
 
 describe('searchEngine', () => {
   it('空查询返回空结果', () => {
@@ -36,6 +36,16 @@ describe('searchEngine', () => {
     const zangs = r.kb.find((item) => item.title === '葬书·内篇');
     expect(zangs?.citationId).toBe('kb://fengshui/01-situation-form/葬書-內篇.md');
     expect(zangs?.citationId).toBe(createKnowledgeCitationId('01-situation-form/葬書-內篇.md'));
+  });
+
+  it('提供完整且不可通过返回值篡改的馆藏书目', () => {
+    const first = listKnowledgeBaseEntries();
+    const second = listKnowledgeBaseEntries();
+
+    expect(first).toHaveLength(getIndexStats().knowledgeBase);
+    expect(first.some((entry) => entry.title === '八宅明镜')).toBe(true);
+    first[0].tags.push('临时标签');
+    expect(second[0].tags).not.toContain('临时标签');
   });
 
   it('可用 citation ID 反查唯一古籍条目', () => {

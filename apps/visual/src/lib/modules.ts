@@ -292,9 +292,9 @@ export const MODULES: WisdomModule[] = [
     status: 'knowledge',
     statusLabel: '知识参考',
     privacyLevel: '不含个人资料',
-    questionTypes: ['古籍原文', '相关说明', '搜索'],
+    questionTypes: ['古籍原文', '书目浏览', '原文检索'],
     accent: '#8a6d35',
-    description: '阅读古籍原文与相关说明，支持关键词搜索与重点标记；现收录《八宅明镜》。',
+    description: '浏览本地馆藏，按书名、作者和主题查找典籍，并在原文中检索重点词句。',
   },
   {
     id: 'history',

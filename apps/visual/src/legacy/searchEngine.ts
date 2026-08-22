@@ -141,6 +141,11 @@ export function findKnowledgeBaseEntry(citationId: string): KnowledgeBaseEntry |
   return KNOWLEDGE_BASE_ENTRIES.find((entry) => entry.citationId === bookCitationId) ?? null;
 }
 
+/** 面向书目浏览的只读馆藏列表，不暴露可变的内部索引。 */
+export function listKnowledgeBaseEntries(): KnowledgeBaseEntry[] {
+  return KNOWLEDGE_BASE_ENTRIES.map((entry) => ({ ...entry, tags: [...entry.tags] }));
+}
+
 /** 全文搜索三源，返回按 score 降序的结果 */
 export function searchAll(query: string): SearchResult {
   if (!query || query.length < 1) return { terms: [], mappings: [], kb: [] };
