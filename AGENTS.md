@@ -12,7 +12,7 @@ Before planning or editing this repository, read these files in order:
 
 ## Current priority
 
-v1.0.0 is formally released at tag `v1.0.0`. P0-P3 and the section-7 Skill behavior evaluation harness are complete; P0-03, P1-02, and P3-04 were explicitly skipped by product decision. The repository is in stable maintenance and next-version product-planning mode. Run `pnpm eval:skill` before changing Skill behavior, preserve the v1.0.0 tag, and do not add a `riskSafetyGate`, execution-blocking safety CLI, capability-status split, fine-grained safety-copy scanner, or full-input history persistence unless product reverses those decisions.
+v1.0.0 is formally released at tag `v1.0.0`. P4-01 unified consultation wizard phase 1 is the current implementation priority: the new `consult` workspace plans natural-language requests, keeps all 32 tools discoverable/transferable, and directly executes the verified BaZi slice through browser-safe engines. Continue by extracting reusable input/execution components for additional tool families without calling `runLocalTool()` from Dashboard. Run `pnpm eval:skill` before changing Skill behavior, preserve the v1.0.0 tag, and do not add a `riskSafetyGate`, execution-blocking safety CLI, capability-status split, fine-grained safety-copy scanner, or full-input history persistence unless product reverses those decisions.
 
 ## Non-negotiable boundaries
 

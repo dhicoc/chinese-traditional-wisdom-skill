@@ -198,7 +198,7 @@ export function routeQuery(query: string): AgentRoute | null {
   }
 
   // 3. 模块评分
-  const signals: ModuleSignal[] = MODULES.map((module) => ({
+  const signals: ModuleSignal[] = MODULES.filter((module) => module.id !== 'consult').map((module) => ({
     id: module.id,
     score: scoreModule(raw, module),
     reason: module.title,

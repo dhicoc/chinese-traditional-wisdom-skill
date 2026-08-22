@@ -27,6 +27,8 @@ CLI 结果统一附带脱敏 provenance。需要跨会话交接时可运行 pnpm
 
 Dashboard 本地历史默认不保存。操作后仅生成内存中的脱敏预览，用户主动确认后才写入 localStorage；可设置自动过期或一键清空。导入结果包必须先通过完整性校验，且 `inputIncluded` / `replayable` 均为 false。完整生辰、地点、姓名和原始咨询问题不写入历史，也不提供加密持久化入口。
 
+Dashboard 的“统一咨询向导”可用自然语言调用本地 Planner、展示缺参和候选工具。向导查询与表单只保留在当前页面内存；八字切片直接调用浏览器安全纯引擎并校验 claims，其他候选转交对应工作区。向导不得调用 `runLocalTool()`，也不得自行生成真太阳时证据。
+
 ## 1. 三路分流
 
 先判定请求属于哪条路径，不要把普通人生问题自动术数化：
@@ -106,7 +108,7 @@ CLI / Skill / Agent 调用 32 个 registry 工具时必须经 `parseLocalToolInp
 pnpm eval:skill
 ```
 
-评测使用合成 case，不调用模型、远端服务或新的术数计算；19 项必须全部通过。Runner 只输出 case ID 与断言状态，不输出合成 query。
+评测使用合成 case，不调用模型、远端服务或新的术数计算；21 项必须全部通过。Runner 只输出 case ID 与断言状态，不输出合成 query。
 
 ## 7. 领域引导
 

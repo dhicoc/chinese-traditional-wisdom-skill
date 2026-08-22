@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "021-consultation-wizard-browser-boundary",
+  "assertions": [
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "executeBaziConsultation"
+    },
+    {
+      "path": "text",
+      "operator": "not-contains-text",
+      "value": "runLocalTool"
+    },
+    {
+      "path": "text",
+      "operator": "not-contains-text",
+      "value": "localStorage.setItem"
+    }
+  ]
+}

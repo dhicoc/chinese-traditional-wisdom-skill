@@ -30,7 +30,7 @@ test.describe('Application Smoke Tests', () => {
     await page.goto(BASE_URL);
     await page.waitForSelector('[data-testid="app-shell"]', { timeout: 10000 });
     await expect(page.locator('[data-testid="sidebar-nav"]')).toBeVisible();
-    // 所有模块以 <button role="tab"> 渲染（当前共 24 个模块）。
+    // 所有模块以 <button role="tab"> 渲染（当前共 25 个模块）。
     // AppShell 对桌面/移动分别渲染一份 tablist（响应式双份），getByRole 默认只匹配可见的一份 → 24
     const tabs = page.getByRole('tab');
     await expect(tabs).toHaveCount(24);

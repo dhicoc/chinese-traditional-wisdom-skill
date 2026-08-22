@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "020-consultation-wizard-module",
+  "assertions": [
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "id: 'consult'"
+    },
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "统一咨询向导"
+    }
+  ]
+}

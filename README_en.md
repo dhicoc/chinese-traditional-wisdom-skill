@@ -42,6 +42,7 @@ Your question
 
 | Your goal | Traditional-culture context | What you receive |
 |---|---|---|
+| Unified entry | Guided consultation wizard | Natural-language planning, missing-input guidance, candidate handoff, and verified BaZi facts |
 | Understand the Four Pillars associated with a birth time | BaZi, favorable elements, ShenSha, annual cycles, and the dynamic layer | Four Pillars, Five Elements, Ten Gods, decadal/minor fortune, and annual, monthly, and daily pillars for a selected date |
 | Reflect on life themes through Ziwei | Ziwei Doushu | Palace, star, and structured-chart information |
 | Organize thinking about a specific question through divination | Liuyao, Meihua Yishu, Qimen Dunjia, Daliuren, Taiyi, character divination | Cast or chart results, reviewable rule facts, and bounded cultural interpretation |
@@ -52,7 +53,7 @@ Your question
 
 ### Complete Dashboard feature directory
 
-The Dashboard currently provides these **24 workspaces**. Calculation workspaces call local TypeScript engines directly; knowledge and local-storage workspaces disclose their reference and data boundaries.
+The Dashboard currently provides these **25 workspaces**. Calculation workspaces call local TypeScript engines directly; knowledge and local-storage workspaces disclose their reference and data boundaries.
 
 | Category | Feature | Main capabilities |
 |---|---|---|
@@ -83,7 +84,7 @@ The Dashboard currently provides these **24 workspaces**. Calculation workspaces
 
 The Dashboard also includes global birth-data management, true-solar-time verification/civil-time fallback status, Command Palette navigation, page-summary copying, structured report export, and local history recording.
 
-> **About the counts:** The 24 Dashboard workspaces are user-facing page entry points. The repository also contains **32 local CLI tools**, including true-solar-time preprocessing, underlying charting/daily calculations, constitution questionnaires, and multiple combined analyses. A CLI tool can map to one or more Dashboard functions. See [tool-index.md](tool-index.md) for exact names, input contracts, and runnable fixtures.
+> **About the counts:** The 25 Dashboard workspaces are user-facing page entry points. The repository also contains **32 local CLI tools**, including true-solar-time preprocessing, underlying charting/daily calculations, constitution questionnaires, and multiple combined analyses. A CLI tool can map to one or more Dashboard functions. See [tool-index.md](tool-index.md) for exact names, input contracts, and runnable fixtures.
 
 ## Get Started
 

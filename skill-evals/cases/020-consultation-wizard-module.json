@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "020-consultation-wizard-module",
+  "kind": "document",
+  "input": {
+    "file": "apps/visual/src/lib/modules.ts"
+  },
+  "synthetic": true
+}
