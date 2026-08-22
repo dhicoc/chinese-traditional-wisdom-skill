@@ -31,6 +31,26 @@
       "path": "text",
       "operator": "contains-text",
       "value": "executeAlmanacConsultation"
+    },
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "executeNameConsultation"
+    },
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "executeDreamConsultation"
+    },
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "executeCeziConsultation"
+    },
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "executeRhythmConsultation"
     }
   ]
 }

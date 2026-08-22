@@ -42,7 +42,7 @@ Your question
 
 | Your goal | Traditional-culture context | What you receive |
 |---|---|---|
-| Unified entry | Guided consultation wizard | Natural-language planning, missing-input guidance, candidate handoff, and verified BaZi/Flying-Star/Eight-Mansions/Almanac facts |
+| Unified entry | Guided consultation wizard | Natural-language planning, missing-input guidance, candidate handoff, and verified BaZi/Flying-Star/Eight-Mansions/Almanac/Name/Dream/Character/Rhythm facts |
 | Understand the Four Pillars associated with a birth time | BaZi, favorable elements, ShenSha, annual cycles, and the dynamic layer | Four Pillars, Five Elements, Ten Gods, decadal/minor fortune, and annual, monthly, and daily pillars for a selected date |
 | Reflect on life themes through Ziwei | Ziwei Doushu | Palace, star, and structured-chart information |
 | Organize thinking about a specific question through divination | Liuyao, Meihua Yishu, Qimen Dunjia, Daliuren, Taiyi, character divination | Cast or chart results, reviewable rule facts, and bounded cultural interpretation |

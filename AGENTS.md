@@ -12,7 +12,7 @@ Before planning or editing this repository, read these files in order:
 
 ## Current priority
 
-v1.0.0 is formally released at tag `v1.0.0`. P4-01 unified consultation wizard phase 1 is the current implementation priority: the new `consult` workspace plans natural-language requests, keeps all 32 tools discoverable/transferable, and directly executes verified BaZi, Feixing, Bazhai, and Almanac slices through browser-safe engines. Continue by extracting reusable input/execution components for the daily/interpretation tool families without calling `runLocalTool()` from Dashboard. Run `pnpm eval:skill` before changing Skill behavior, preserve the v1.0.0 tag, and do not add a `riskSafetyGate`, execution-blocking safety CLI, capability-status split, fine-grained safety-copy scanner, or full-input history persistence unless product reverses those decisions.
+v1.0.0 is formally released at tag `v1.0.0`. P4-01 unified consultation wizard phase 1 is the current implementation priority: the new `consult` workspace plans natural-language requests, keeps all 32 tools discoverable/transferable, and directly executes verified BaZi, Feixing, Bazhai, Almanac, Name, Dream, Character, and Rhythm slices through browser-safe engines. The P4-01 MVP is complete; remaining tools stay exhaustively transferable to their existing workspaces unless product usage justifies more direct executors without calling `runLocalTool()` from Dashboard. Run `pnpm eval:skill` before changing Skill behavior, preserve the v1.0.0 tag, and do not add a `riskSafetyGate`, execution-blocking safety CLI, capability-status split, fine-grained safety-copy scanner, or full-input history persistence unless product reverses those decisions.
 
 ## Non-negotiable boundaries
 

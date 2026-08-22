@@ -39,7 +39,7 @@ describe('unified consultation wizard', () => {
     expect(onSelect).toHaveBeenCalledWith('reader');
   });
 
-  it('executes Feixing, Bazhai, and Almanac directly with transient forms', () => {
+  it('executes Feixing, Bazhai, and Almanac directly with transient forms', async () => {
     renderWizard();
     for (const scenario of [
       { query: '流年飞星 2026', tool: 'calc_feixing', form: 'consultation-feixing-form', action: '运行本地飞星计算' },
@@ -50,7 +50,7 @@ describe('unified consultation wizard', () => {
       fireEvent.click(screen.getByRole('button', { name: '生成本地方案' }));
       expect(screen.getByText(scenario.tool)).toBeInTheDocument();
       fireEvent.click(within(screen.getByTestId(scenario.form)).getByRole('button', { name: scenario.action }));
-      expect(screen.getByTestId('consultation-result')).toHaveTextContent('facts verified');
+      expect(await screen.findByTestId('consultation-result')).toHaveTextContent('facts verified');
     }
     expect(localStorage.length).toBe(0);
   });
@@ -62,6 +62,27 @@ describe('unified consultation wizard', () => {
     expect(screen.getByText('arrange_qimen')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '打开奇门遁甲' }));
     expect(onSelect).toHaveBeenCalledWith('qimen');
+  });
+
+
+  it('executes name, dream, character, and rhythm tools without persisting inputs', async () => {
+    renderWizard();
+    const scenarios = [
+      { query: '姓名起名分析', tool: 'analyze_name', form: 'consultation-name-form', fields: [['向导姓氏', '山'], ['向导名字', '河']], action: '运行本地姓名评分' },
+      { query: '梦见蛇 解梦', tool: 'dream_interpret', form: 'consultation-dream-form', fields: [['向导梦象关键词', '蛇']], action: '运行本地梦象检索' },
+      { query: '测字 明', tool: 'cast_cezi', form: 'consultation-cezi-form', fields: [['向导测字汉字', '明']], action: '运行本地测字' },
+      { query: '子午流注 时辰经络', tool: 'get_daily_rhythm', form: 'consultation-rhythm-form', fields: [['向导节律日期', '2026-08-22'], ['向导节律小时', '9']], action: '运行本地节律计算' },
+    ];
+    for (const scenario of scenarios) {
+      fireEvent.change(screen.getByTestId('consultation-query'), { target: { value: scenario.query } });
+      fireEvent.click(screen.getByRole('button', { name: '生成本地方案' }));
+      expect(screen.getByText(scenario.tool)).toBeInTheDocument();
+      const form = screen.getByTestId(scenario.form);
+      for (const [label, value] of scenario.fields) fireEvent.change(within(form).getByLabelText(label), { target: { value } });
+      fireEvent.click(within(form).getByRole('button', { name: scenario.action }));
+      expect(await screen.findByTestId('consultation-result')).toHaveTextContent('facts verified');
+    }
+    expect(localStorage.length).toBe(0);
   });
 
   it('keeps the tool-to-workspace transfer map exhaustive for all 32 tools', () => {

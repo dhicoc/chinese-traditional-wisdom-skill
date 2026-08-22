@@ -72,4 +72,37 @@ test.describe('P4-01 统一咨询向导', () => {
     await wizard.getByRole('button', { name: '打开奇门遁甲' }).click();
     await expect(page.locator('[data-testid="workspace-qimen"]')).toBeVisible();
   });
+
+  test('姓名、解梦、测字、节律在向导内完成异步与同步本地核验', async ({ page }) => {
+    await page.goto(`${BASE_URL}#consult`);
+    const wizard = page.getByTestId('consultation-wizard');
+
+    await wizard.getByTestId('consultation-query').fill('姓名起名分析');
+    await wizard.getByRole('button', { name: '生成本地方案' }).click();
+    await wizard.getByLabel('向导姓氏').fill('山');
+    await wizard.getByLabel('向导名字').fill('河');
+    await wizard.getByRole('button', { name: '运行本地姓名评分' }).click();
+    await expect(wizard.getByTestId('consultation-result')).toContainText('综合分');
+
+    await wizard.getByTestId('consultation-query').fill('梦见蛇 解梦');
+    await wizard.getByRole('button', { name: '生成本地方案' }).click();
+    await wizard.getByLabel('向导梦象关键词').fill('蛇');
+    await wizard.getByRole('button', { name: '运行本地梦象检索' }).click();
+    await expect(wizard.getByTestId('consultation-result')).toContainText('梦象条目');
+
+    await wizard.getByTestId('consultation-query').fill('测字 明');
+    await wizard.getByRole('button', { name: '生成本地方案' }).click();
+    await wizard.getByLabel('向导测字汉字').fill('明');
+    await wizard.getByRole('button', { name: '运行本地测字' }).click();
+    await expect(wizard.getByTestId('consultation-result')).toContainText('字义五行');
+
+    await wizard.getByTestId('consultation-query').fill('子午流注 时辰经络');
+    await wizard.getByRole('button', { name: '生成本地方案' }).click();
+    await wizard.getByLabel('向导节律日期').fill('2026-08-22');
+    await wizard.getByLabel('向导节律小时').fill('9');
+    await wizard.getByRole('button', { name: '运行本地节律计算' }).click();
+    await expect(wizard.getByTestId('consultation-result')).toContainText('经络');
+    await expect(wizard.getByTestId('consultation-result')).toContainText('facts verified');
+  });
+
 });
