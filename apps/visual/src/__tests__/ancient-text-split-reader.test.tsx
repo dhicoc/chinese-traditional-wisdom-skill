@@ -90,10 +90,11 @@ describe('AncientTextSplitReader', () => {
 
     render(<AncientTextSplitReader />);
 
-    expect(screen.getByRole('heading', { name: '本次起卦原文' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '第35卦 · 晋' })).toBeInTheDocument();
-    expect(screen.getByText('动爻 · 第2爻')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '第56卦 · 旅' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '周易六十四卦' })).toBeInTheDocument();
+    expect(screen.getByText('来自本次起卦结果')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '䷢ 火地晋' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '二爻' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: /变卦/ })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '返回典籍书库' }));
     expect(screen.getByRole('heading', { name: '典籍书目' })).toBeInTheDocument();
     expect(document.body.textContent).not.toContain('.json');

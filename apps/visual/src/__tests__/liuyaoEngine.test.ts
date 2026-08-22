@@ -35,8 +35,10 @@ describe('calculateLiuyao manual 起卦', () => {
     // 初爻动(6)→初爻变阳 → 下卦变乾 → 变卦乾为天
     const r = calculateLiuyao({ method: 'manual', yaoValues: '677777' });
     expect(r.hexagramName).toBe('天风姤');
+    expect(r.hexagramNumber).toBe(44);
     expect(r.changingYao).toEqual([1]);
     expect(r.changingHexagramName).toBe('乾为天');
+    expect(r.changingHexagramNumber).toBe(1);
     expect(r.lines[0].changing).toBe(true);
     expect(r.lines[0].yin).toBe(true); // 6=老阴
   });

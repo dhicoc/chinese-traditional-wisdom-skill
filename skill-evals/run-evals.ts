@@ -2,10 +2,11 @@ import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { planAgentParameters } from '../apps/visual/src/legacy/agentParameterPlanner.ts';
+import { parseIChingLookupRequest, runIChingLookup } from '../apps/visual/src/legacy/ichingLookup.ts';
 import { canonicalStringify } from '../apps/visual/src/legacy/provenance.ts';
 import { verifyPortableResultBundle } from '../apps/visual/src/legacy/resultBundleIntegrity.ts';
 
-type EvalKind = 'planner' | 'document' | 'bundle';
+type EvalKind = 'planner' | 'document' | 'bundle' | 'iching-lookup';
 type EvalCase = { schemaVersion: '1.0.0'; id: string; kind: EvalKind; input: Record<string, unknown> };
 type Assertion = { path: string; operator: 'equals' | 'contains' | 'not-contains' | 'contains-text' | 'not-contains-text' | 'matches' | 'not-matches' | 'array-contains-object' | 'length-equals' | 'length-at-least'; value: unknown };
 type Expected = { schemaVersion: '1.0.0'; caseId: string; assertions: Assertion[] };
@@ -46,6 +47,7 @@ function assertValue(actual: unknown, assertion: Assertion): boolean {
 }
 async function execute(testCase: EvalCase): Promise<unknown> {
   if (testCase.kind === 'planner') return planAgentParameters(testCase.input as { query: string; providedFields?: string[] });
+  if (testCase.kind === 'iching-lookup') return runIChingLookup(parseIChingLookupRequest(testCase.input));
   const relative = String(testCase.input.file ?? '');
   const target = path.resolve(root, relative);
   if (!(target === root || target.startsWith(root + path.sep))) throw new Error(`case ${testCase.id}: file outside repository`);

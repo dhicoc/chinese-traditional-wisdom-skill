@@ -77,7 +77,7 @@ The Dashboard currently provides these **24 workspaces**. Calculation workspaces
 | Fengshui | Eight Mansions | Life trigram, house trigram, East/West group, and annual-pattern reference |
 | Combined reference | Combined analysis | Annual, monthly, decision, space-time, Three Styles, date selection, marriage, and daily-wellness combinations |
 | Health cultural reference | Constitution tendency | Nine-constitution questionnaire, radar chart, and cultivation prompts; not medical care |
-| Knowledge and data | Classical text reader | *Bazhai Mingjing* text, mapping notes, keyword search, and highlighting |
+| Knowledge and data | Classical text reader | A 30-entry local library plus all 64 King Wen hexagrams, trigram matrix, line-pattern lookup, classical text, and derived relations |
 | Knowledge and data | Local history and favorites | Up to 30 redacted local summaries, favorites, removal, and privacy notes |
 | Development and verification | Test console | Local test registry and development-verification information |
 
@@ -162,6 +162,7 @@ Developers and CLI-capable Agents can invoke local tools directly:
 cd apps/visual
 pnpm install --frozen-lockfile
 pnpm engine <tool> <input-json-file>
+pnpm engine:iching-lookup src/__fixtures__/analysis/iching-lookup.success.json
 ```
 
 Except for `resolve_true_solar_time`, which returns `TrueSolarTimeResolution` directly, the CLI returns JSON `ToolEnvelope`. Before presenting deterministic facts, extract structured claims only from the current `ToolEnvelope.data` and verify them with the matching local `validate*Claims(data, claims)` function. This does not validate free-form text, cultural interpretation, suggestions, or prediction.

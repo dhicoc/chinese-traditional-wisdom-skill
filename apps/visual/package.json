@@ -39,6 +39,7 @@
     "check:bundle-budget": "node scripts/check-bundle-budget.mjs",
     "engine:bazi-time-sensitivity": "tsx scripts/run-engine-agent.ts bazi-time-sensitivity",
     "engine:compare-rules": "tsx scripts/run-engine-agent.ts compare-rules",
+    "engine:iching-lookup": "tsx scripts/run-engine-agent.ts iching-lookup",
     "engine:plan": "tsx scripts/run-engine-agent.ts plan",
     "eval:skill": "tsx ../../skill-evals/run-evals.ts",
     "check:release": "node scripts/check-release-contract.mjs"

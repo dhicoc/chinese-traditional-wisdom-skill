@@ -12,4 +12,4 @@ pnpm eval:skill
 - `expected/`：对路由、缺失字段、文档边界和结果包的断言。
 - `run-evals.ts`：读取同名 case/expected，输出仅含 case ID 的 JSON 报告。
 
-当前 19 项覆盖实施计划第 7 节全部 15 项行为，并锁定 4 项产品决定。Planner 用例复用生产 `planAgentParameters()`；文档用例检查 `SKILL.md` / `RULES.md`；结果包用例复用 canonical integrity verifier。任何断言失败进程退出码为 1，并阻断 CI。
+当前 20 项覆盖实施计划第 7 节全部 15 项行为、4 项产品决定及周易六十四卦本地查询契约。Planner 用例复用生产 `planAgentParameters()`；六十四卦用例复用 `parseIChingLookupRequest()` / `runIChingLookup()`；文档用例检查 `SKILL.md` / `RULES.md`；结果包用例复用 canonical integrity verifier。任何断言失败进程退出码为 1，并阻断 CI。

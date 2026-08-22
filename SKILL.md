@@ -51,6 +51,8 @@ Dashboard 本地历史默认不保存。操作后仅生成内存中的脱敏预�
 
 若用户明确要求比较流派、版本、计式或时间口径，使用 `pnpm engine:compare-rules <input.json>`。该独立分析命令不属于 32 工具 registry；只允许比较调用方显式选择的配置，只引用 `commonFacts`、`differences`、各变体 `citations` 与 `factsVerified`。不得新增、推断或推荐 `bestVariant`、`selectedVariant`、`recommendedVariant`，也不得用解释、现实事件或预测选择流派。支持域与输入示例见 `tool-index.md`。
 
+若用户按卦序、卦名、上下卦或六爻阴阳查询《周易》六十四卦，使用 `pnpm engine:iching-lookup <input.json>`。该独立本地命令返回规范卦序、卦象、卦辞、六爻辞、彖传、错综互卦与用户明确选择动爻后的变卦；模型不得自行换算卦序、爻形、Unicode 或关系卦。此命令不属于 32 工具 registry，不输出现实预测或行动建议。
+
 在选择工具前可运行 `pnpm engine:plan --query "<用户请求>"`。参数规划器只输出 `routeTarget`、候选工具、缺失字段、风险提示和建议深度，不调用计算引擎。只可把 `inputReady: true` 理解为必填字段名称齐全；仍须将真实输入交给对应 `parseLocalToolInput()`。命中 `refer-first`、`knowledge-only` 或 `no-traditional-calculation` 时不得绕过策略执行候选工具。Agent 不得回显、记录或持久化原始咨询文本。完整 CLI 契约见 `tool-index.md`。
 
 影响结果的当前日期或年份也不得由 CLI 隐式读取：飞星、八宅、年度联合和空间时间工具必须显式提供 year、targetYear 或 currentMonth；Dashboard 可在 UI 层取得当前值后显式传入。

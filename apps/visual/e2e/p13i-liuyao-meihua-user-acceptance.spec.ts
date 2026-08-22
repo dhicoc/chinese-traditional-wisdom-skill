@@ -24,6 +24,11 @@ test.describe('P1.3i 六爻与梅花用户侧验收', () => {
     await expect(workspace.getByRole('heading', { name: '变卦', exact: true })).toBeVisible();
     await expect(workspace.getByTestId('hexagram-chart').first()).toBeVisible();
     await expect(workspace.getByText('纳甲六爻明细')).toBeVisible();
+    await workspace.getByRole('button', { name: '阅读本次关联《周易》原文' }).click();
+    const reader = page.locator('[data-testid="workspace-reader"]');
+    await expect(reader.getByRole('heading', { name: '周易六十四卦' })).toBeVisible();
+    await expect(reader.getByText('来自本次起卦结果')).toBeVisible();
+    await expect(reader.getByRole('heading', { name: '䷫ 天风姤' })).toBeVisible();
 
     await expectNoHorizontalOverflow(page);
   });

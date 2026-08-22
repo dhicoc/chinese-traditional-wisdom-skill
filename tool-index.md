@@ -33,13 +33,36 @@ pnpm engine:present bazi_calculate <input-json-file>
 ```bash
 pnpm engine:bazi-time-sensitivity <input-json-file>
 pnpm engine:compare-rules <comparison-input-json-file>
+pnpm engine:iching-lookup <iching-input-json-file>
 pnpm engine:plan --query "想看今年事业"
 ```
 
 - `engine:bazi-time-sensitivity` 比较候选时辰的稳定与变化字段，不反推唯一时辰。
 - `engine:compare-rules` 支持八字神煞、称骨版本、大六壬流派、太乙配置、已核验时间基准和紫微动态口径；输出结构化 `commonFacts` / `differences`、逐变体来源与事实校验状态。
+- `engine:iching-lookup` 按卦序、卦名、上下卦或初爻到上爻的六爻阴阳查询文王六十四卦，并可按显式动爻计算变卦；输出卦辞、六爻辞、彖传、错综互卦和固定来源。
 - `engine:plan` 只做本地确定性路由与参数存在性检查，输出候选工具、缺失字段、风险提示和建议深度；不回显原始 query，不调用引擎。支持 `--query <text> [--provided fields]` 与 `--input <json>`；本节即为公开契约。
-- 三个命令是独立分析入口，不是第 33/34 个 `ToolEnvelope` 工具，不修改 `LOCAL_TOOL_REGISTRY`。规则比较输出只包含显式配置、结构化差异、引用与限制。
+- 四个命令是独立分析入口，不是新增的 `ToolEnvelope` 工具，不修改 32 工具 `LOCAL_TOOL_REGISTRY`。规则比较输出只包含显式配置、结构化差异、引用与限制；六十四卦查询只返回本地规范事实、原文与文化学习边界。
+
+
+## 周易六十四卦本地查询
+
+该能力是独立、只读、确定性的本地命令，不增加 registry 工具数：
+
+```bash
+cd apps/visual
+pnpm engine:iching-lookup src/__fixtures__/analysis/iching-lookup.success.json
+```
+
+输入必须显式选择一种查询方式：
+
+```json
+{"by":"number","number":35,"changingLines":[2]}
+{"by":"name","name":"火地晋"}
+{"by":"trigrams","upper":"离","lower":"坤"}
+{"by":"lines","linesBottomUp":["yin","yin","yin","yang","yin","yang"]}
+```
+
+`linesBottomUp` 固定按初爻到上爻提供六个 `yin` / `yang`；`changingLines` 只能包含 1–6 的整数。输出包含文王卦序、简繁卦名、Unicode 卦符、上下卦、六爻结构、卦辞、六爻辞、彖传、错卦、综卦、互卦、可选变卦、固定来源与文化学习限制。模型不得自行换算或补全卦序、爻形和关系卦。
 
 公开输入 fixture 位于 `apps/visual/src/__fixtures__/local-tools/`。每个本地工具都有 `.success.json` 可执行示例；它同时是 CLI 回归的标准成功输入。每个工具也有 `.boundary.json` 与 `.failure.json`，分别覆盖业务边界和必须被 CLI 契约拒绝的输入。工具名、三类 fixture 与 CLI 工具表由 `apps/visual/src/legacy/localToolRegistry.ts` 的 `LOCAL_TOOL_REGISTRY` / `LOCAL_TOOL_NAMES` 统一派生，文档检查会阻止任何遗漏。
 

@@ -292,9 +292,9 @@ export const MODULES: WisdomModule[] = [
     status: 'knowledge',
     statusLabel: '知识参考',
     privacyLevel: '不含个人资料',
-    questionTypes: ['古籍原文', '书目浏览', '原文检索'],
+    questionTypes: ['古籍原文', '书目浏览', '六十四卦', '原文检索'],
     accent: '#8a6d35',
-    description: '浏览本地馆藏，按书名、作者和主题查找典籍，并在原文中检索重点词句。',
+    description: '浏览本地馆藏与周易六十四卦，按书名、卦名、作者和主题查找，并在原文中检索重点词句。',
   },
   {
     id: 'history',

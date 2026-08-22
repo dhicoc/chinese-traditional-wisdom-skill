@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "1.0.0",
+  "caseId": "020-iching-local-lookup",
+  "assertions": [
+    {
+      "path": "hexagram",
+      "operator": "equals",
+      "value": {
+        "number": 35,
+        "name": "晋",
+        "fullName": "火地晋",
+        "symbol": "䷢",
+        "upperTrigram": "离",
+        "lowerTrigram": "坤"
+      }
+    },
+    {
+      "path": "hexagram.classicalText.yaoCi",
+      "operator": "length-equals",
+      "value": 6
+    },
+    {
+      "path": "relations.zong",
+      "operator": "equals",
+      "value": {
+        "number": 36,
+        "name": "明夷"
+      }
+    },
+    {
+      "path": "changedHexagram",
+      "operator": "equals",
+      "value": {
+        "number": 64,
+        "name": "未济"
+      }
+    },
+    {
+      "path": "limitation",
+      "operator": "contains-text",
+      "value": "传统文化学习"
+    }
+  ]
+}

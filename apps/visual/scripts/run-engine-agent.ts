@@ -10,6 +10,7 @@ import { createSafeResultBundle, serializeSafeResultBundle, verifySafeResultBund
 import { analyzeBaziTimeSensitivity, parseBaziTimeSensitivityInput } from '../src/legacy/baziTimeSensitivity.ts';
 import { parseRuleComparisonRequest, runRuleComparison } from '../src/legacy/ruleComparison.ts';
 import { parseAgentParameterPlanInput, planAgentParameters } from '../src/legacy/agentParameterPlanner.ts';
+import { parseIChingLookupRequest, runIChingLookup } from '../src/legacy/ichingLookup.ts';
 
 async function readJson(path: string | undefined, label: string, tool?: string): Promise<unknown> {
   if (!path) throw new LocalToolError('INVALID_INPUT', `${label}缺少 JSON 文件路径。`, tool);
@@ -86,6 +87,17 @@ async function main() {
       throw new LocalToolError('INVALID_INPUT', error instanceof Error ? error.message : String(error));
     }
   }
+  if (command === 'iching-lookup') {
+    try {
+      const input = parseIChingLookupRequest(await readJson(toolArg, 'input'));
+      stdout.write(`${JSON.stringify(runIChingLookup(input))}\n`);
+      return;
+    } catch (error) {
+      if (error instanceof LocalToolError) throw error;
+      throw new LocalToolError('INVALID_INPUT', error instanceof Error ? error.message : String(error));
+    }
+  }
+
   if (command === 'verify-bundle') {
     const bundle = await readJson(toolArg, 'bundle');
     stdout.write(`${JSON.stringify(verifySafeResultBundle(bundle))}\n`);
@@ -116,7 +128,7 @@ async function main() {
     return;
   }
 
-  throw new LocalToolError('INVALID_INPUT', '用法：engine-agent list | describe <tool> | verify <tool> <envelope.json> <claims.json> | present <tool> <input.json> | bundle <tool> <input.json> [claims.json] | verify-bundle <bundle.json> | bazi-time-sensitivity <input.json> | compare-rules <input.json> | plan --query <text> [--provided fields] | plan --input <input.json>');
+  throw new LocalToolError('INVALID_INPUT', '用法：engine-agent list | describe <tool> | verify <tool> <envelope.json> <claims.json> | present <tool> <input.json> | bundle <tool> <input.json> [claims.json] | verify-bundle <bundle.json> | bazi-time-sensitivity <input.json> | compare-rules <input.json> | iching-lookup <input.json> | plan --query <text> [--provided fields] | plan --input <input.json>');
 }
 
 main().catch((error: unknown) => {

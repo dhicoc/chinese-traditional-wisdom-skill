@@ -12,6 +12,7 @@ import {
   listKnowledgeBaseEntries,
   type KnowledgeBaseEntry,
 } from '@/legacy/searchEngine';
+import { IchingLibrary } from './IchingLibrary';
 import { renderReaderMarkdown } from './readerMarkdown';
 
 import bazhaiText from '@kb/fengshui/03-yang-house/八宅明镜.md?raw';
@@ -83,55 +84,6 @@ function toIChingReading(detail: ReaderSearchIntentDetail): IChingReading | null
   return { hexagram, changingHexagram, changingLines };
 }
 
-function ClassicalTextCard({ title, hexagram, changingLines }: {
-  title: string;
-  hexagram: CanonicalHexagram;
-  changingLines?: number[];
-}) {
-  return (
-    <article className="min-w-0 rounded-panel border border-ink-700 bg-ink-850/60 p-5">
-      <div className="mb-5 border-b border-white/10 pb-4">
-        <p className="text-xs font-semibold tracking-[0.18em] text-jade-400/75">{title}</p>
-        <h3 className="mt-2 font-serif text-2xl font-semibold text-jade-100">第{hexagram.number}卦 · {hexagram.name}</h3>
-        <p className="mt-2 text-sm text-jade-100/55">上{hexagram.upperTrigram} · 下{hexagram.lowerTrigram}</p>
-      </div>
-      <div className="space-y-5 font-serif text-[15px] leading-8 text-jade-100/72">
-        <section aria-labelledby={`${title}-${hexagram.number}-judgment`}>
-          <h4 id={`${title}-${hexagram.number}-judgment`} className="font-semibold text-jade-100">卦辞</h4>
-          <p className="mt-2">{hexagram.guaCi}</p>
-        </section>
-        {changingLines?.length ? (
-          <section aria-labelledby={`${title}-${hexagram.number}-moving-lines`}>
-            <h4 id={`${title}-${hexagram.number}-moving-lines`} className="font-semibold text-jade-100">本次动爻</h4>
-            <div className="mt-2 space-y-3">
-              {changingLines.map((line) => hexagram.yaoCi[line - 1] ? (
-                <div key={line} className="rounded-card border border-cinnabar-500/20 bg-cinnabar-500/5 p-3">
-                  <p className="text-xs font-semibold text-cinnabar-300">第{line}爻</p>
-                  <p className="mt-1">{hexagram.yaoCi[line - 1]}</p>
-                </div>
-              ) : null)}
-            </div>
-          </section>
-        ) : null}
-        <details className="rounded-card border border-white/10 bg-black/20 p-3">
-          <summary className="cursor-pointer font-sans text-sm font-semibold text-jade-100/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-500/40">查看六爻全文</summary>
-          <ol className="mt-3 space-y-3">
-            {hexagram.yaoCi.map((text, index) => (
-              <li key={text} className="border-t border-white/8 pt-3 first:border-0 first:pt-0">
-                <span className="mr-2 font-sans text-xs text-jade-400">第{index + 1}爻</span>{text}
-              </li>
-            ))}
-          </ol>
-        </details>
-        <section aria-labelledby={`${title}-${hexagram.number}-tuan`}>
-          <h4 id={`${title}-${hexagram.number}-tuan`} className="font-semibold text-jade-100">彖传</h4>
-          <p className="mt-2">{hexagram.tuanZhuan}</p>
-        </section>
-      </div>
-    </article>
-  );
-}
-
 function splitCitation(citationId: string): { bookCitationId: string; anchor: string | null; file: string | null } {
   const [bookCitationId, anchor] = citationId.split('#');
   const prefix = 'kb://fengshui/';
@@ -157,6 +109,7 @@ function matchesCatalog(entry: KnowledgeBaseEntry, query: string, category: stri
 }
 
 export function AncientTextSplitReader() {
+  const [mode, setMode] = useState<'books' | 'iching'>('books');
   const [selectedGuideId, setSelectedGuideId] = useState(BAZHAI_GUIDES[0].id);
   const [selectedCitationId, setSelectedCitationId] = useState(BAZHAI_CITATION_ID);
   const [catalogQuery, setCatalogQuery] = useState('');
@@ -173,8 +126,14 @@ export function AncientTextSplitReader() {
       if (!detail?.term) return;
       const nextIChingReading = toIChingReading(detail);
       setIChingReading(nextIChingReading);
-      setSearchTerm(detail.term);
-      if (!nextIChingReading) setSelectedCitationId(detail.citationId ?? BAZHAI_CITATION_ID);
+      if (nextIChingReading) {
+        setMode('iching');
+        setSearchTerm('');
+      } else {
+        setMode('books');
+        setSearchTerm(detail.term);
+        setSelectedCitationId(detail.citationId ?? BAZHAI_CITATION_ID);
+      }
     }
 
     function handleReaderSearchIntent(event: Event) {
@@ -252,12 +211,13 @@ export function AncientTextSplitReader() {
   }, [loadedText, renderedSource.html, searchTerm, selectedAnchor]);
 
   const contextPayload = useMemo(() => ({
-    内容: ichingReading ? `《周易》${ichingReading.hexagram.name}卦` : selectedBook?.title ?? '古籍阅读',
-    作者: ichingReading ? '《周易》' : selectedBook?.author || '未详',
+    内容: selectedBook?.title ?? '古籍阅读',
+    作者: selectedBook?.author || '未详',
     阅读重点: searchTerm || '未指定',
-  }), [ichingReading, searchTerm, selectedBook]);
+  }), [searchTerm, selectedBook]);
 
   function selectBook(entry: KnowledgeBaseEntry) {
+    setMode('books');
     setIChingReading(null);
     setSelectedCitationId(entry.citationId);
     setSearchTerm('');
@@ -265,49 +225,19 @@ export function AncientTextSplitReader() {
     window.requestAnimationFrame(() => readingHeadingRef.current?.focus());
   }
 
-  function returnToLibrary() {
-    setIChingReading(null);
-    setSearchTerm('');
-    window.requestAnimationFrame(() => readingHeadingRef.current?.focus());
-  }
-
-  if (ichingReading) {
+  if (mode === 'iching') {
     return (
-      <section className="space-y-4" aria-labelledby="iching-reading-title">
-        <div className="rounded-panel border border-ink-700 bg-ink-850/78 p-5 shadow-instrument">
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div>
-              <p className="text-xs font-semibold tracking-[0.2em] text-jade-400/75">周易原文</p>
-              <h2 id="iching-reading-title" className="mt-2 font-serif text-2xl font-semibold text-jade-100">本次起卦原文</h2>
-              <p className="mt-2 max-w-3xl text-sm leading-7 text-jade-100/60">
-                阅读本卦、动爻与变卦的原文。这里呈现典籍内容，不替您作出现实决定。
-              </p>
-              <div className="mt-4 flex flex-wrap gap-2 text-xs text-jade-100/60">
-                <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1.5">本卦 · {ichingReading.hexagram.name}</span>
-                <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1.5">动爻 · {ichingReading.changingLines.length ? ichingReading.changingLines.map((line) => `第${line}爻`).join('、') : '无'}</span>
-                {ichingReading.changingHexagram ? <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1.5">变卦 · {ichingReading.changingHexagram.name}</span> : null}
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={returnToLibrary} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-jade-100/70 transition hover:border-jade-500/30 hover:text-jade-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-jade-500/40">
-                返回典籍书库
-              </button>
-              <CopyContextButton commandScope="reader" label="复制阅读摘要" title="古籍阅读摘要" payload={contextPayload} />
-            </div>
-          </div>
-        </div>
-
-        <div className="grid gap-4 xl:grid-cols-2">
-          <ClassicalTextCard title="本卦" hexagram={ichingReading.hexagram} changingLines={ichingReading.changingLines} />
-          {ichingReading.changingHexagram ? (
-            <ClassicalTextCard title="变卦" hexagram={ichingReading.changingHexagram} />
-          ) : (
-            <div className="rounded-panel border border-dashed border-white/10 bg-black/16 p-6 text-sm leading-7 text-jade-100/60">
-              本次没有动爻，因此不另列变卦。您仍可展开本卦的六爻全文继续阅读。
-            </div>
-          )}
-        </div>
-      </section>
+      <IchingLibrary
+        key={`${ichingReading?.hexagram.number ?? 1}-${ichingReading?.changingLines.join('-') ?? 'library'}`}
+        initialNumber={ichingReading?.hexagram.number ?? 1}
+        initialChangingLines={ichingReading?.changingLines ?? []}
+        sourceLabel={ichingReading ? '来自本次起卦结果' : undefined}
+        onOpenBooks={() => {
+          setMode('books');
+          setIChingReading(null);
+          setSearchTerm('');
+        }}
+      />
     );
   }
 
@@ -327,7 +257,10 @@ export function AncientTextSplitReader() {
               <span className="rounded-full border border-jade-500/20 bg-jade-500/10 px-3 py-1.5 text-jade-300">仅在本机阅读</span>
             </div>
           </div>
-          <CopyContextButton commandScope="reader" label="复制阅读摘要" title="古籍阅读摘要" payload={contextPayload} />
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => { setIChingReading(null); setMode('iching'); }} className="rounded-full border border-gold-500/25 bg-gold-500/8 px-3 py-2 text-xs font-semibold text-gold-400 transition hover:border-gold-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40">周易六十四卦</button>
+            <CopyContextButton commandScope="reader" label="复制阅读摘要" title="古籍阅读摘要" payload={contextPayload} />
+          </div>
         </div>
         <p className="mt-4 border-t border-white/8 pt-3 text-xs leading-6 text-jade-100/50">
           古籍中的术语和判断具有历史语境，适合文化学习与文献阅读，不作为现实决策依据。

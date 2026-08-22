@@ -323,6 +323,7 @@ if (exists(readerPath)) {
     readerWorkspace.includes('renderReaderMarkdown') && !readerWorkspace.includes('highlightJson'),
     'AncientTextSplitReader 应通过安全阅读排版渲染古籍原文，不展示原始映射数据',
   );
+  check(readerWorkspace.includes('IchingLibrary'), 'AncientTextSplitReader 应接入周易六十四卦完整阅读模式');
   check(readerWorkspace.includes('READER_SEARCH_INTENT_EVENT'), 'AncientTextSplitReader 应监听古籍搜索 intent');
   check(readerWorkspace.includes('setSearchTerm'), 'AncientTextSplitReader 应可通过快捷命令更新搜索词');
 }

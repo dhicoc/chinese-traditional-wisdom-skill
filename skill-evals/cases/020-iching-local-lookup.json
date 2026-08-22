@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "020-iching-local-lookup",
+  "kind": "iching-lookup",
+  "input": {
+    "by": "number",
+    "number": 35,
+    "changingLines": [2]
+  },
+  "synthetic": true
+}

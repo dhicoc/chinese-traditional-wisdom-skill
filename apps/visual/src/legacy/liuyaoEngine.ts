@@ -14,7 +14,7 @@
  */
 
 import type { ToolEnvelope, ExportSnapshot } from './baseTypes';
-import { getHexagramText } from './ichingTexts';
+import { findCanonicalHexagramByName, getHexagramText } from './ichingTexts';
 
 // ─── 八卦爻线（初/中/上，true=阴）───
 const TRIGRAM_LINES: Record<string, [boolean, boolean, boolean]> = {
@@ -390,16 +390,9 @@ function castLines(input: LiuyaoInput): CastedLine[] {
   return lines;
 }
 
-// ─── 卦序号 ───
-let _hexOrder: string[] | null = null;
+// ─── 文王卦序号（统一复用六十四卦规范索引）───
 function hexagramIndex(name: string): number {
-  if (!_hexOrder) {
-    const order: string[] = [];
-    Object.keys(HEXAGRAM_NAMES).forEach((k) => order.push(HEXAGRAM_NAMES[k]));
-    _hexOrder = order;
-  }
-  const idx = _hexOrder.indexOf(name) + 1;
-  return idx || 0;
+  return findCanonicalHexagramByName(name)?.number ?? 0;
 }
 
 // ─── 空亡/旺衰/身爻/伏神 ───
