@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { executeBaziConsultation, type BaziConsultationResult } from '@/engine-api/consultation';
+import { executeAlmanacConsultation, executeBaziConsultation, executeBazhaiConsultation, executeFeixingConsultation, type WizardExecutionResult } from '@/engine-api/consultation';
 import { getSolarEntry } from '@/engine-api/calendar';
 import type { ModuleId } from '@/lib/modules';
 import { getModuleById } from '@/lib/modules';
@@ -37,7 +37,13 @@ export function ConsultationWorkspace({ onSelectModule }: ConsultationWorkspaceP
   const [selectedTool, setSelectedTool] = useState<PlannedToolCandidate['tool'] | null>(null);
   const [birth, setBirth] = useState<BaziBirth>(() => ({ ...solarBirth }));
   const [civilConfirmed, setCivilConfirmed] = useState(false);
-  const [result, setResult] = useState<BaziConsultationResult | null>(null);
+  const currentYear = new Date().getFullYear();
+  const [result, setResult] = useState<WizardExecutionResult | null>(null);
+  const [feixingYear, setFeixingYear] = useState(currentYear);
+  const [bazhaiBirthYear, setBazhaiBirthYear] = useState(solarBirth.year);
+  const [bazhaiGender, setBazhaiGender] = useState<'男' | '女'>(solarBirth.gender === '女' ? '女' : '男');
+  const [bazhaiYear, setBazhaiYear] = useState(currentYear);
+  const [almanacDate, setAlmanacDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [error, setError] = useState('');
 
   const selectedCandidate = useMemo(() => plan?.candidates.find((candidate) => candidate.tool === selectedTool) ?? null, [plan, selectedTool]);
@@ -52,7 +58,7 @@ export function ConsultationWorkspace({ onSelectModule }: ConsultationWorkspaceP
   }
 
   function reset() {
-    setQuery(''); setPlan(null); setSelectedTool(null); setResult(null); setError(''); setCivilConfirmed(false); setBirth({ ...solarBirth });
+    setQuery(''); setPlan(null); setSelectedTool(null); setResult(null); setError(''); setCivilConfirmed(false); setBirth({ ...solarBirth }); setFeixingYear(currentYear); setBazhaiBirthYear(solarBirth.year); setBazhaiGender(solarBirth.gender === '女' ? '女' : '男'); setBazhaiYear(currentYear); setAlmanacDate(new Date().toISOString().slice(0, 10));
   }
 
   function calculateBazi() {
@@ -64,6 +70,13 @@ export function ConsultationWorkspace({ onSelectModule }: ConsultationWorkspaceP
       setError(cause instanceof Error ? cause.message : '本次本地计算未能完成。');
     }
   }
+
+  function executeSupported(action: () => WizardExecutionResult) {
+    setError(''); setResult(null);
+    try { setResult(action()); } catch (cause) { setError(cause instanceof Error ? cause.message : '本次本地计算未能完成。'); }
+  }
+
+  const directlySupported = selectedCandidate ? ['bazi_calculate', 'calc_feixing', 'calc_bazhai', 'get_almanac'].includes(selectedCandidate.tool) : false;
 
   return (
     <section data-testid="consultation-wizard" className="space-y-4">
@@ -115,11 +128,39 @@ export function ConsultationWorkspace({ onSelectModule }: ConsultationWorkspaceP
         </>
       )}
 
-      {selectedCandidate && selectedCandidate.tool !== 'bazi_calculate' && (
+      {selectedCandidate && !directlySupported && (
         <section data-testid="consultation-handoff" className="rounded-panel border border-gold-500/20 bg-gold-500/5 p-4">
           <h3 className="text-sm font-semibold text-gold-200">准备转交：{selectedCandidate.tool}</h3>
           <p className="mt-2 text-xs text-jade-100/60">预计需要：{selectedCandidate.requiredInputKeys.map(missingLabel).join('、') || '无额外必填字段'}。</p>
           <button type="button" onClick={() => onSelectModule(TOOL_WORKSPACE_MAP[selectedCandidate.tool])} className="mt-3 rounded-card border border-gold-500/30 bg-gold-500/10 px-4 py-2 text-xs font-semibold text-gold-100">打开{getModuleById(TOOL_WORKSPACE_MAP[selectedCandidate.tool]).title}</button>
+        </section>
+      )}
+
+      {selectedCandidate?.tool === 'calc_feixing' && (
+        <section data-testid="consultation-feixing-form" className="rounded-panel border border-jade-500/20 bg-jade-500/5 p-4">
+          <h3 className="text-sm font-semibold text-jade-100">补齐流年飞星输入</h3>
+          <label className="mt-3 block max-w-xs text-xs text-jade-100/60">明确年份<input aria-label="向导飞星年份" type="number" min={1900} max={2100} value={feixingYear} onChange={(event) => setFeixingYear(Number(event.target.value))} className="mt-1 w-full rounded-card border border-white/10 bg-ink-950 px-3 py-2 text-jade-100" /></label>
+          <button type="button" onClick={() => executeSupported(() => executeFeixingConsultation({ year: feixingYear }))} className="mt-4 rounded-card border border-jade-500/35 bg-jade-500/15 px-4 py-2 text-xs font-semibold text-jade-100">运行本地飞星计算</button>
+        </section>
+      )}
+
+      {selectedCandidate?.tool === 'calc_bazhai' && (
+        <section data-testid="consultation-bazhai-form" className="rounded-panel border border-jade-500/20 bg-jade-500/5 p-4">
+          <h3 className="text-sm font-semibold text-jade-100">补齐八宅输入</h3>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <label className="text-xs text-jade-100/60">出生年份<input aria-label="向导八宅出生年份" type="number" min={1900} max={2100} value={bazhaiBirthYear} onChange={(event) => setBazhaiBirthYear(Number(event.target.value))} className="mt-1 w-full rounded-card border border-white/10 bg-ink-950 px-3 py-2 text-jade-100" /></label>
+            <label className="text-xs text-jade-100/60">性别<select aria-label="向导八宅性别" value={bazhaiGender} onChange={(event) => setBazhaiGender(event.target.value as '男' | '女')} className="mt-1 w-full rounded-card border border-white/10 bg-ink-950 px-3 py-2 text-jade-100"><option>男</option><option>女</option></select></label>
+            <label className="text-xs text-jade-100/60">查询年份<input aria-label="向导八宅查询年份" type="number" min={1900} max={2100} value={bazhaiYear} onChange={(event) => setBazhaiYear(Number(event.target.value))} className="mt-1 w-full rounded-card border border-white/10 bg-ink-950 px-3 py-2 text-jade-100" /></label>
+          </div>
+          <button type="button" onClick={() => executeSupported(() => executeBazhaiConsultation({ birthYear: bazhaiBirthYear, gender: bazhaiGender, year: bazhaiYear }))} className="mt-4 rounded-card border border-jade-500/35 bg-jade-500/15 px-4 py-2 text-xs font-semibold text-jade-100">运行本地八宅计算</button>
+        </section>
+      )}
+
+      {selectedCandidate?.tool === 'get_almanac' && (
+        <section data-testid="consultation-almanac-form" className="rounded-panel border border-jade-500/20 bg-jade-500/5 p-4">
+          <h3 className="text-sm font-semibold text-jade-100">补齐黄历输入</h3>
+          <label className="mt-3 block max-w-xs text-xs text-jade-100/60">明确日期<input aria-label="向导黄历日期" type="date" value={almanacDate} onChange={(event) => setAlmanacDate(event.target.value)} className="mt-1 w-full rounded-card border border-white/10 bg-ink-950 px-3 py-2 text-jade-100" /></label>
+          <button type="button" onClick={() => executeSupported(() => executeAlmanacConsultation({ date: almanacDate, solar: getSolarEntry() }))} className="mt-4 rounded-card border border-jade-500/35 bg-jade-500/15 px-4 py-2 text-xs font-semibold text-jade-100">运行本地黄历计算</button>
         </section>
       )}
 

@@ -40,11 +40,11 @@ P4-01 第一阶段已交付：
 - 第 25 个 Dashboard 工作区 `consult`；
 - 自然语言调用生产 Planner，展示 route、深度、候选工具和缺参；
 - 32 工具到既有工作区的编译期穷尽转交映射；
-- 八字在向导内完成民用时间明确确认、纯浏览器 Engine、11 项 claims 与 typed presentation；
+- 八字、飞星、八宅、黄历在向导内完成临时表单、纯浏览器 Engine、claims 与 typed presentation；
 - 查询和表单值仅在当前 React 内存，不写 history/localStorage；
 - 真太阳时仍转交八字工作区，不在向导内补造证据。
 
-下一阶段可逐工具族把既有工作区表单抽成可复用输入组件，使更多候选在向导内直接完成计算；不得复制 Runner 或绕过 Dashboard 纯引擎边界。
+下一阶段继续抽取姓名、解梦、测字、节律等日用工具输入组件，使更多候选在向导内直接完成计算；不得复制 Runner 或绕过 Dashboard 纯引擎边界。
 
 ## 近期：输入与引擎契约
 

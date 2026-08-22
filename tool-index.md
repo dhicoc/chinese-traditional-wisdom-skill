@@ -154,7 +154,7 @@ ToolEnvelope<TData> = {
 
 ## Dashboard 统一咨询向导
 
-Dashboard `#consult` 使用生产 `planAgentParameters()` 生成候选工具与缺参提示。当前八字候选可在向导内直接完成浏览器安全计算和 claims 校验；其他 31 工具通过穷尽映射进入既有工作区。该入口不增加 registry 工具数，不调用 `runLocalTool()`，不持久化 query 或表单值。
+Dashboard `#consult` 使用生产 `planAgentParameters()` 生成候选工具与缺参提示。当前八字、飞星、八宅和黄历候选可在向导内直接完成浏览器安全计算和 claims 校验；其他工具通过穷尽映射进入既有工作区。该入口不增加 registry 工具数，不调用 `runLocalTool()`，不持久化 query 或表单值。
 
 ## Skill 行为质量门
 

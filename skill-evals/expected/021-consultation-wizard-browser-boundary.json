@@ -16,6 +16,21 @@
       "path": "text",
       "operator": "not-contains-text",
       "value": "localStorage.setItem"
+    },
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "executeFeixingConsultation"
+    },
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "executeBazhaiConsultation"
+    },
+    {
+      "path": "text",
+      "operator": "contains-text",
+      "value": "executeAlmanacConsultation"
     }
   ]
 }

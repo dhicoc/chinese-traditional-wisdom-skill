@@ -34,14 +34,42 @@ test.describe('P4-01 统一咨询向导', () => {
     await expect(page.locator('[data-testid="workspace-reader"]')).toBeVisible();
   });
 
-  test('八宅请求显示必要字段并转交既有工作区', async ({ page }) => {
+  test('八宅请求在向导内完成结构化计算', async ({ page }) => {
     await page.goto(`${BASE_URL}#consult`);
     const wizard = page.getByTestId('consultation-wizard');
     await wizard.getByTestId('consultation-query').fill('八宅卧室方位布局');
     await wizard.getByRole('button', { name: '生成本地方案' }).click();
-    await expect(wizard.getByRole('heading', { name: '准备转交：calc_bazhai' })).toBeVisible();
-    await expect(wizard.getByTestId('consultation-handoff')).toContainText('出生年份');
-    await wizard.getByRole('button', { name: '打开八宅大游年' }).click();
-    await expect(page.locator('[data-testid="workspace-bazhai"]')).toBeVisible();
+    const form = wizard.getByTestId('consultation-bazhai-form');
+    await form.getByLabel('向导八宅查询年份').fill('2026');
+    await form.getByRole('button', { name: '运行本地八宅计算' }).click();
+    await expect(wizard.getByTestId('consultation-result')).toContainText('命卦');
+    await expect(wizard.getByTestId('consultation-result')).toContainText('facts verified');
+  });
+
+  test('飞星与黄历使用显式时间并在向导内完成计算', async ({ page }) => {
+    await page.goto(`${BASE_URL}#consult`);
+    const wizard = page.getByTestId('consultation-wizard');
+    await wizard.getByTestId('consultation-query').fill('流年飞星 2026');
+    await wizard.getByRole('button', { name: '生成本地方案' }).click();
+    await wizard.getByLabel('向导飞星年份').fill('2026');
+    await wizard.getByRole('button', { name: '运行本地飞星计算' }).click();
+    await expect(wizard.getByTestId('consultation-result')).toContainText('中宫星数');
+
+    await wizard.getByTestId('consultation-query').fill('2026-08-22 黄历宜忌');
+    await wizard.getByRole('button', { name: '生成本地方案' }).click();
+    await wizard.getByLabel('向导黄历日期').fill('2026-08-22');
+    await wizard.getByRole('button', { name: '运行本地黄历计算' }).click();
+    await expect(wizard.getByTestId('consultation-result')).toContainText('值日星宿');
+    await expect(wizard.getByTestId('consultation-result')).toContainText('facts verified');
+  });
+
+  test('未内嵌执行的奇门候选转交既有工作区', async ({ page }) => {
+    await page.goto(`${BASE_URL}#consult`);
+    const wizard = page.getByTestId('consultation-wizard');
+    await wizard.getByTestId('consultation-query').fill('奇门遁甲排盘');
+    await wizard.getByRole('button', { name: '生成本地方案' }).click();
+    await expect(wizard.getByRole('heading', { name: '准备转交：arrange_qimen' })).toBeVisible();
+    await wizard.getByRole('button', { name: '打开奇门遁甲' }).click();
+    await expect(page.locator('[data-testid="workspace-qimen"]')).toBeVisible();
   });
 });

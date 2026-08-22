@@ -1,6 +1,6 @@
 import { Solar } from 'lunar-typescript';
 import { describe, expect, it } from 'vitest';
-import { executeBaziConsultation } from '@/engine-api/consultation';
+import { executeAlmanacConsultation, executeBaziConsultation, executeBazhaiConsultation, executeFeixingConsultation } from '@/engine-api/consultation';
 
 describe('browser-safe consultation execution', () => {
   const birth = { year: 1990, month: 6, day: 15, hour: 12, minute: 0, gender: '男' as const };
@@ -24,6 +24,28 @@ describe('browser-safe consultation execution', () => {
 
   it('rejects invalid Gregorian dates instead of allowing calendar normalization', () => {
     expect(() => executeBaziConsultation({ birth: { ...birth, month: 2, day: 30 }, timeBasis: 'civil-unverified', civilFallbackConfirmed: true, solar: Solar })).toThrow('有效的公历出生日期');
+  });
+
+
+  it('executes and verifies Feixing, Bazhai, and Almanac slices', () => {
+    const feixing = executeFeixingConsultation({ year: 2026 });
+    expect(feixing).toMatchObject({ tool: 'calc_feixing', factsVerified: true });
+    expect(feixing.verifiedFacts).toHaveLength(6);
+
+    const bazhai = executeBazhaiConsultation({ birthYear: 1990, gender: '男', year: 2026 });
+    expect(bazhai).toMatchObject({ tool: 'calc_bazhai', factsVerified: true });
+    expect(bazhai.verifiedFacts).toHaveLength(6);
+
+    const almanac = executeAlmanacConsultation({ date: '2026-08-22', solar: Solar });
+    expect(almanac).toMatchObject({ tool: 'get_almanac', factsVerified: true });
+    expect(almanac.verifiedFacts).toHaveLength(9);
+    expect(JSON.stringify([feixing, bazhai, almanac])).not.toContain('input_normalized');
+  });
+
+  it('rejects implicit or malformed explicit dates and years', () => {
+    expect(() => executeFeixingConsultation({ year: 0 })).toThrow('明确飞星年份');
+    expect(() => executeBazhaiConsultation({ birthYear: 1990, gender: '男', year: 2200 })).toThrow('查询年份');
+    expect(() => executeAlmanacConsultation({ date: '2026-02-30', solar: Solar })).toThrow('有效的公历日期');
   });
 
 });

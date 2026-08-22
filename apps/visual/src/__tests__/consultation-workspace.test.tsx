@@ -39,13 +39,29 @@ describe('unified consultation wizard', () => {
     expect(onSelect).toHaveBeenCalledWith('reader');
   });
 
-  it('hands non-Bazi candidates to their existing workspace', () => {
+  it('executes Feixing, Bazhai, and Almanac directly with transient forms', () => {
+    renderWizard();
+    for (const scenario of [
+      { query: '流年飞星 2026', tool: 'calc_feixing', form: 'consultation-feixing-form', action: '运行本地飞星计算' },
+      { query: '八宅卧室方位布局', tool: 'calc_bazhai', form: 'consultation-bazhai-form', action: '运行本地八宅计算' },
+      { query: '2026-08-22 黄历宜忌', tool: 'get_almanac', form: 'consultation-almanac-form', action: '运行本地黄历计算' },
+    ]) {
+      fireEvent.change(screen.getByTestId('consultation-query'), { target: { value: scenario.query } });
+      fireEvent.click(screen.getByRole('button', { name: '生成本地方案' }));
+      expect(screen.getByText(scenario.tool)).toBeInTheDocument();
+      fireEvent.click(within(screen.getByTestId(scenario.form)).getByRole('button', { name: scenario.action }));
+      expect(screen.getByTestId('consultation-result')).toHaveTextContent('facts verified');
+    }
+    expect(localStorage.length).toBe(0);
+  });
+
+  it('hands unsupported direct-execution candidates to their existing workspace', () => {
     const onSelect = renderWizard();
-    fireEvent.change(screen.getByTestId('consultation-query'), { target: { value: '八宅卧室方位布局' } });
+    fireEvent.change(screen.getByTestId('consultation-query'), { target: { value: '奇门遁甲排盘' } });
     fireEvent.click(screen.getByRole('button', { name: '生成本地方案' }));
-    expect(screen.getByText('calc_bazhai')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '打开八宅大游年' }));
-    expect(onSelect).toHaveBeenCalledWith('bazhai');
+    expect(screen.getByText('arrange_qimen')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '打开奇门遁甲' }));
+    expect(onSelect).toHaveBeenCalledWith('qimen');
   });
 
   it('keeps the tool-to-workspace transfer map exhaustive for all 32 tools', () => {
