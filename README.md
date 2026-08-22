@@ -50,7 +50,6 @@ Chinese Traditional Wisdom Skill 是一个本地优先的传统文化咨询 Skil
 
 | 你的问题或目标 | 可使用的传统文化场景 | 你会获得什么 |
 |---|---|---|
-| 统一入口 | 统一咨询向导 | 自然语言规划、缺参提示、候选工具转交与八字/飞星/八宅/黄历/姓名/解梦/测字/节律已核验结果 |
 | 想了解出生时间对应的四柱结构 | 八字、喜用神、神煞、流年与动态层 | 四柱、五行、十神、大运、小运及指定日期的流年、流月、流日 |
 | 想从紫微视角整理人生议题 | 紫微斗数 | 宫位、星曜与结构化盘面信息 |
 | 面对一个具体问题，希望借助占问整理思路 | 六爻、梅花易数、奇门遁甲、大六壬、太乙、测字 | 起局或起卦结果、可复核规则事实与传统解释边界 |
@@ -61,7 +60,7 @@ Chinese Traditional Wisdom Skill 是一个本地优先的传统文化咨询 Skil
 
 ### Dashboard 完整功能目录
 
-Dashboard 当前提供以下 **25 个工作区**；其中计算型页面直接调用本地 TypeScript 引擎，知识型与本地存储页面会明确标示其参考或数据边界。
+Dashboard 当前提供以下 **24 个工作区**；其中计算型页面直接调用本地 TypeScript 引擎，知识型与本地存储页面会明确标示其参考或数据边界。
 
 | 分类 | 功能 | 主要内容 |
 |---|---|---|
@@ -92,7 +91,7 @@ Dashboard 当前提供以下 **25 个工作区**；其中计算型页面直接�
 
 Dashboard 还提供：全局生辰资料管理、真太阳时核验/民用时间降级状态、命令面板导航、页面摘要复制、结构化报告导出，以及本地历史记录。
 
-> **关于工具数量：** Dashboard 的 25 个工作区是面向使用者的页面入口；项目另有 **32 个本地 CLI 工具**，其中包含真太阳时预处理、底层排盘/日用计算、体质问卷和多种联合分析。CLI 工具可与 Dashboard 页面一对多对应，完整名称、输入契约与可运行 fixture 见 [tool-index.md](tool-index.md)。
+> **关于工具数量：** Dashboard 的 24 个工作区是面向使用者的页面入口；项目另有 **32 个本地 CLI 工具**，其中包含真太阳时预处理、底层排盘/日用计算、体质问卷和多种联合分析。CLI 工具可与 Dashboard 页面一对多对应，完整名称、输入契约与可运行 fixture 见 [tool-index.md](tool-index.md)。
 
 ## 开始使用
 
@@ -216,7 +215,7 @@ pnpm engine:plan --query "想看今年事业"
 | [RULES.md](RULES.md) | 伦理、隐私、健康与输入完整性边界 |
 | [README_AI.md](README_AI.md) | AI Agent 的本地调用说明与故障处理 |
 | [tool-index.md](tool-index.md) | 32 个本地工具、标准 fixture 与 CLI 参考 |
-| [skill-evals/README.md](skill-evals/README.md) | 21 项本地 Skill 行为契约与 `pnpm eval:skill` 使用说明 |
+| [skill-evals/README.md](skill-evals/README.md) | 19 项本地 Skill 行为契约与 `pnpm eval:skill` 使用说明 |
 | [v1.0.0 Release](https://github.com/dhicoc/chinese-traditional-wisdom-skill/releases/tag/v1.0.0) | 安装包、Release Notes、Manifest 与 SHA256SUMS |
 | [`bootstrap/`](bootstrap/) | 八字、紫微、六爻、梅花、风水等领域的详细说明 |
 | [`apps/visual/`](apps/visual/) | Dashboard、纯 TypeScript 引擎与测试 |

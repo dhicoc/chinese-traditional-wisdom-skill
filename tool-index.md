@@ -152,17 +152,13 @@ ToolEnvelope<TData> = {
 
 使用规则：从本次 `data` 提取结构化 claims，调用本地 `validate*Claims(data, claims)`。校验仅覆盖结构化事实，不能验证自由文本、解释、建议或预测。
 
-## Dashboard 统一咨询向导
-
-Dashboard `#consult` 使用生产 `planAgentParameters()` 生成候选工具与缺参提示。当前八字、飞星、八宅、黄历、姓名、解梦、测字和节律候选可在向导内直接完成浏览器安全计算和 claims 校验；其他工具通过穷尽映射进入既有工作区。该入口不增加 registry 工具数，不调用 `runLocalTool()`，不持久化 query 或表单值。
-
 ## Skill 行为质量门
 
 ```bash
 pnpm eval:skill
 ```
 
-该命令不是本地计算工具，不改变 32 工具 registry。它离线执行 21 项路由、参数、claims、知识/计算边界、隐私和产品决定契约；失败时退出码为 1。
+该命令不是本地计算工具，不改变 32 工具 registry。它离线执行 19 项路由、参数、claims、知识/计算边界、隐私和产品决定契约；失败时退出码为 1。
 
 ## 32 个本地 CLI 工具与标准输入
 

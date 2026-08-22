@@ -4,7 +4,6 @@ export type ModuleStatus = 'local-exact' | 'local-approx' | 'demo' | 'knowledge'
 
 export type ModuleId =
   | 'home'
-  | 'consult'
   | 'bazi'
   | 'ziwei'
   | 'liuyao'
@@ -55,18 +54,6 @@ export const MODULES: WisdomModule[] = [
     questionTypes: ['工具目录', '使用说明'],
     accent: '#4a7250',
     description: '浏览传统文化工具，查看使用说明与隐私提示。',
-  },
-  {
-    id: 'consult',
-    group: '易学源流',
-    title: '统一咨询向导',
-    shortTitle: '咨询向导',
-    status: 'derived',
-    statusLabel: '本地规划与转交',
-    privacyLevel: '当前页面内存，不自动保存',
-    questionTypes: ['自然语言咨询', '缺参向导', '工具推荐'],
-    accent: '#5f8f72',
-    description: '通过自然语言规划候选工具、补齐必要参数，并进入本地计算或现有工作区。',
   },
   {
     id: 'bazi',

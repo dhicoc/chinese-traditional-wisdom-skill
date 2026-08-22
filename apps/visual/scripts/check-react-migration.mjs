@@ -62,8 +62,6 @@ const ziweiWorkspace = read("apps/visual/src/features/ziwei/ZiweiWorkspace.tsx")
 const ids = moduleIdsFromModulesSource(modules);
 const workspaceIds = ids.filter((value) => value !== "home" && value !== "testing");
 check(ids.includes("home"), "MODULES 应保留 home 模块 id");
-check(ids.includes("consult"), "MODULES 应注册 P4-01 统一咨询向导");
-check(ids.length === 26 && workspaceIds.length === 24, `ModuleId 应含 25 个可见工作区 + testing 保留 id；当前 ids=${ids.length}, workspace=${workspaceIds.length}`);
 check(ids.length >= 14, "React MODULES 应覆盖 home + 至少 13 个工作区模块（当前含日用工具/测试/阅读器/历史，数量随演进增长）");
 for (const id of workspaceIds) {
   check(registry.includes(id + ":"), "workspaceRegistry 应注册模块 " + id);

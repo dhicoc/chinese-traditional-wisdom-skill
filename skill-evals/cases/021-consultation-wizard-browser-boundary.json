@@ -1,9 +1,0 @@
-{
-  "schemaVersion": "1.0.0",
-  "id": "021-consultation-wizard-browser-boundary",
-  "kind": "document",
-  "input": {
-    "file": "apps/visual/src/features/consultation/ConsultationWorkspace.tsx"
-  },
-  "synthetic": true
-}

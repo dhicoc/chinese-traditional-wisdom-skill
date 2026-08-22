@@ -8,7 +8,7 @@ interface WorkspaceProps {
 }
 
 /**
- * 懒加载：除默认首页（首屏直出）外，其余 24 个工作区均按需动态 import。
+ * 懒加载：除默认首页（首屏直出）外，其余 23 个工作区均按需动态 import。
  * 这样首屏不再打包全部排盘引擎（lunar-javascript / iztro / 3meta 等），
  * 用户点开对应标签时才拉取对应 chunk，显著缩小首屏体积。
  * 注意：各工作区为具名导出（export function XxxWorkspace），
@@ -17,7 +17,6 @@ interface WorkspaceProps {
 type WorkspaceComponent = ComponentType<WorkspaceProps> | LazyExoticComponent<ComponentType<WorkspaceProps>>;
 
 export const WORKSPACE_COMPONENTS: Partial<Record<ModuleId, WorkspaceComponent>> = {
-  consult: lazy(() => import('@/features/consultation/ConsultationWorkspace').then((m) => ({ default: m.ConsultationWorkspace }))),
   bazi: lazy(() => import('@/features/bazi/BaziWorkspace').then((m) => ({ default: m.BaziWorkspace }))),
   yunqi: lazy(() => import('@/features/yunqi/YunqiWorkspace').then((m) => ({ default: m.YunqiWorkspace }))),
   meihua: lazy(() => import('@/features/meihua/MeihuaWorkspace').then((m) => ({ default: m.MeihuaWorkspace }))),

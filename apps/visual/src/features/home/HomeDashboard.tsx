@@ -82,9 +82,8 @@ export function HomeDashboard({ activeModule, onSelectModule }: HomeDashboardPro
   return (
     <section className="space-y-5" data-testid="home-dashboard">
       {/* 场景化入口（UX P1） */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: '我想咨询', desc: '自然语言 · 缺参向导', module: 'consult' as ModuleId, icon: '问' },
           { label: '我想看运势', desc: '八字命盘 · 五行喜用', module: 'bazi' as ModuleId, icon: '运' },
           { label: '我想起名', desc: '姓名五行 · 五格评分', module: 'namewuxing' as ModuleId, icon: '名' },
           { label: '我想问事', desc: '六爻纳甲 · 事件占断', module: 'liuyao' as ModuleId, icon: '卜' },

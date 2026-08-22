@@ -475,7 +475,6 @@ check(birthCtx.includes('legacyReady: true') || birthCtx.includes('legacyReady:t
 
 const toolRegistry = read(path.join(srcRoot, 'legacy/toolRegistry.ts'));
 check(toolRegistry.includes('MODULES'), 'toolRegistry 应从 MODULES 构建工具目录');
-check(fs.readFileSync(path.join(srcRoot, 'features/consultation/ConsultationWorkspace.tsx'), 'utf8').includes('consultation-wizard'), 'P4-01 应保留统一咨询向导工作区');
 check(!toolRegistry.includes('window.ToolManifest'), 'toolRegistry 不应读 window.ToolManifest');
 check(!toolRegistry.includes('window.CapabilityRegistry'), 'toolRegistry 不应读 window.CapabilityRegistry');
 

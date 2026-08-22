@@ -2,13 +2,6 @@
 
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 与语义化版本。发布前阶段没有正式 tag；`v1.0.0` 是首个稳定版本。
 
-## [Unreleased]
-
-### Added
-
-- P4-01 统一咨询向导：自然语言规划、候选工具、缺参提示、32 工具工作区转交，以及八字、飞星、八宅、黄历、姓名、解梦、测字、节律 claims/typed presentation 完整切片。
-- Dashboard 工作区从 24 增至 25；Skill 行为评测从 19 增至 21。
-
 ## [1.0.0] - 2026-08-21
 
 ### Added

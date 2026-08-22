@@ -162,9 +162,4 @@ describe('agentRouter routeQuery', () => {
     ]);
     expect(route?.missingInputs[0].reason).toContain('不得默认子时');
   });
-
-  it('does not recursively route a vague query back into the consultation wizard', () => {
-    expect(routeQuery('统一咨询向导')).toBeNull();
-  });
-
 });
