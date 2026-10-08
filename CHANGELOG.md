@@ -7,6 +7,12 @@
 ### Fixed
 
 - 八字十神此前只按「目标天干索引 − 日主索引」查固定表，未使用日主自身五行，导致 100 组日主×天干中有 40 组错位：阳干日主在索引差 1、8 处把比劫与印的锚点插反，阴干日主有 6/10 组五行分界线整体偏移，并连带影响四柱与藏干十神、动态层的流年/流月/流日十神及报告文案。现改由五行生克与阴阳同异推导，与进阶分析既有口径一致。
+- Dashboard SVG 图表右键复制会丢失页面 CSS 变量、生成黑色 PNG，且异步渲染后可能失去剪贴板用户授权的问题；导出现在固化实际绘制样式并在右键手势内启动写入。
+
+### Security
+
+- `source-map-js` 升到已修补的 `1.2.2`（GHSA-68fv-2mgg-jv7q）。
+- 构建工具（`vite`、`typescript`、`tailwindcss`、`postcss`、`autoprefixer`、`@vitejs/plugin-react`）由 `dependencies` 归位到 `devDependencies`，使 `pnpm audit --prod` 只审计真正随静态产物考虑的依赖，不再把构建期传递依赖（`tailwindcss>chokidar>braces`）计为生产漏洞。
 
 ### Added
 
